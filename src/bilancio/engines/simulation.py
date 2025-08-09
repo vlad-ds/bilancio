@@ -1,12 +1,15 @@
 """Simulation engines for financial scenario analysis."""
 
-from typing import Protocol, Any, List, Dict, Optional
 import random
+from typing import Any, Protocol
+
+from bilancio.engines.clearing import settle_intraday_nets
+from bilancio.engines.settlement import settle_due
 
 
 class SimulationEngine(Protocol):
     """Protocol for simulation engines that can run financial scenarios."""
-    
+
     def run(self, scenario: Any) -> Any:
         """
         Run a simulation for a given scenario.
@@ -22,8 +25,8 @@ class SimulationEngine(Protocol):
 
 class MonteCarloEngine:
     """Monte Carlo simulation engine for financial scenarios."""
-    
-    def __init__(self, num_simulations: int = 1000, n_simulations: Optional[int] = None, random_seed: Optional[int] = None):
+
+    def __init__(self, num_simulations: int = 1000, n_simulations: int | None = None, random_seed: int | None = None):
         """
         Initialize the Monte Carlo engine.
         
@@ -39,11 +42,11 @@ class MonteCarloEngine:
         else:
             self.num_simulations = num_simulations
             self.n_simulations = num_simulations
-        
+
         if random_seed is not None:
             random.seed(random_seed)
-    
-    def run(self, scenario: Any) -> Dict[str, Any]:
+
+    def run(self, scenario: Any) -> dict[str, Any]:
         """
         Run Monte Carlo simulation for a scenario.
         
@@ -61,13 +64,13 @@ class MonteCarloEngine:
         """
         # Placeholder implementation
         results = []
-        
+
         for i in range(self.num_simulations):
             # In a real implementation, this would:
             # - Sample from probability distributions
             # - Apply scenario logic with sampled values
             # - Calculate outcome metrics
-            
+
             # For now, just generate dummy results
             result = {
                 'run_id': i,
@@ -75,7 +78,7 @@ class MonteCarloEngine:
                 'scenario': scenario
             }
             results.append(result)
-        
+
         # Calculate summary statistics
         outcomes = [r['outcome'] for r in results]
         summary = {
@@ -85,9 +88,37 @@ class MonteCarloEngine:
             'max': max(outcomes),
             'results': results
         }
-        
+
         return summary
-    
+
     def set_num_simulations(self, num_simulations: int) -> None:
         """Update the number of simulations to run."""
         self.num_simulations = num_simulations
+
+
+def run_day(system):
+    """
+    Run a single day's simulation with three phases.
+    
+    Phase A: Log PhaseA event (noop for now)
+    Phase B: Settle payables due today using settle_due
+    Phase C: Clear intraday nets using settle_intraday_nets
+    
+    Finally, increment the system day counter.
+    
+    Args:
+        system: System instance to run the day for
+    """
+    current_day = system.state.day
+
+    # Phase A: Log PhaseA event (noop for now)
+    system.log("PhaseA", day=current_day)
+
+    # Phase B: Settle payables due today
+    settle_due(system, current_day)
+
+    # Phase C: Clear intraday nets
+    settle_intraday_nets(system, current_day)
+
+    # Increment system day
+    system.state.day += 1

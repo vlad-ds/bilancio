@@ -1,7 +1,7 @@
 """Valuation engines for financial instruments."""
 
-from typing import Protocol, Any, Dict
 from decimal import Decimal
+from typing import Any, Protocol
 
 # Placeholder type - this should be replaced with actual implementation from the domain layer
 Money = Decimal
@@ -9,8 +9,8 @@ Money = Decimal
 
 class ValuationEngine(Protocol):
     """Protocol for valuation engines that can price financial instruments."""
-    
-    def value(self, instrument: Any, context: Dict[str, Any]) -> Money:
+
+    def value(self, instrument: Any, context: dict[str, Any]) -> Money:
         """
         Calculate the value of a financial instrument.
         
@@ -26,7 +26,7 @@ class ValuationEngine(Protocol):
 
 class SimpleValuationEngine:
     """Basic valuation engine implementing present value calculation."""
-    
+
     def __init__(self, discount_rate: float = 0.05):
         """
         Initialize the valuation engine.
@@ -35,8 +35,8 @@ class SimpleValuationEngine:
             discount_rate: Default discount rate for present value calculations
         """
         self.discount_rate = discount_rate
-    
-    def value(self, instrument: Any, context: Dict[str, Any]) -> Money:
+
+    def value(self, instrument: Any, context: dict[str, Any]) -> Money:
         """
         Calculate present value of an instrument.
         
@@ -53,15 +53,15 @@ class SimpleValuationEngine:
         """
         # Get discount rate from context or use default
         rate = context.get('discount_rate', self.discount_rate)
-        
+
         # This is a placeholder implementation
         # Real implementation would depend on the instrument type and its cash flows
         if hasattr(instrument, 'face_value'):
             return Money(str(instrument.face_value))
-        
+
         # Default to zero if we can't determine value
         return Money('0.0')
-    
+
     def set_discount_rate(self, rate: float) -> None:
         """Update the default discount rate."""
         self.discount_rate = rate

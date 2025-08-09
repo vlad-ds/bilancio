@@ -1,5 +1,7 @@
 from dataclasses import dataclass
+
 from .base import Instrument
+
 
 @dataclass
 class Deliverable(Instrument):

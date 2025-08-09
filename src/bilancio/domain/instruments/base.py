@@ -1,7 +1,9 @@
 from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Optional
-from bilancio.core.ids import InstrId, AgentId
+
+from bilancio.core.ids import AgentId, InstrId
+
 
 @dataclass
 class Instrument:

@@ -1,6 +1,6 @@
 from .base import Instrument
-from .means_of_payment import Cash, BankDeposit, ReserveDeposit
 from .credit import Payable
+from .means_of_payment import BankDeposit, Cash, ReserveDeposit
 from .nonfinancial import Deliverable
 
 __all__ = [

@@ -1,5 +1,5 @@
 import uuid
-from typing import Literal
+
 
 def new_id(prefix: str = "x") -> str:
     # short, sortable-ish id; fine for MVP

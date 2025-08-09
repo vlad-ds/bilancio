@@ -1,10 +1,11 @@
 from dataclasses import dataclass
-from typing import Optional
+
 from .base import Instrument
+
 
 @dataclass
 class Payable(Instrument):
-    due_day: Optional[int] = None
+    due_day: int | None = None
     def __post_init__(self):
         self.kind = "payable"
     def validate_type_invariants(self) -> None:

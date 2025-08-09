@@ -1,23 +1,26 @@
 from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import Dict, List
+
+from bilancio.core.atomic_tx import atomic
+from bilancio.core.errors import ValidationError
 from bilancio.core.ids import AgentId, InstrId, new_id
 from bilancio.domain.agent import Agent
 from bilancio.domain.instruments.base import Instrument
-from bilancio.domain.instruments.means_of_payment import Cash
+from bilancio.domain.instruments.means_of_payment import Cash, ReserveDeposit
 from bilancio.domain.instruments.nonfinancial import Deliverable
 from bilancio.domain.policy import PolicyEngine
-from bilancio.core.errors import ValidationError
-from bilancio.core.atomic_tx import atomic
-from bilancio.ops.primitives import split, merge, consume
+from bilancio.ops.primitives import consume, merge, split
+
 
 @dataclass
 class State:
-    agents: Dict[AgentId, Agent] = field(default_factory=dict)
-    contracts: Dict[InstrId, Instrument] = field(default_factory=dict)
-    events: List[dict] = field(default_factory=list)
+    agents: dict[AgentId, Agent] = field(default_factory=dict)
+    contracts: dict[InstrId, Instrument] = field(default_factory=dict)
+    events: list[dict] = field(default_factory=list)
     day: int = 0
     cb_cash_outstanding: int = 0
+    cb_reserves_outstanding: int = 0
 
 class System:
     def __init__(self, policy: PolicyEngine | None = None):
@@ -53,18 +56,25 @@ class System:
 
     # ---- invariants (MVP)
     def assert_invariants(self) -> None:
-        from bilancio.core.invariants import assert_cb_cash_matches_outstanding, assert_no_negative_balances
+        from bilancio.core.invariants import (
+            assert_cb_cash_matches_outstanding,
+            assert_cb_reserves_match,
+            assert_double_entry_numeric,
+            assert_no_negative_balances,
+        )
         for cid, c in self.state.contracts.items():
             assert cid in self.state.agents[c.asset_holder_id].asset_ids, f"{cid} missing on asset holder"
             assert cid in self.state.agents[c.liability_issuer_id].liability_ids, f"{cid} missing on issuer"
         assert_cb_cash_matches_outstanding(self)
+        assert_cb_reserves_match(self)
         assert_no_negative_balances(self)
-    
+        assert_double_entry_numeric(self)
+
     # ---- bootstrap helper
     def bootstrap_cb(self, cb: Agent) -> None:
         self.add_agent(cb)
         self.log("BootstrapCB", cb_id=cb.id)
-    
+
     # ---- cash operations
     def mint_cash(self, to_agent_id: AgentId, amount: int, denom="X") -> str:
         cb_id = next((aid for aid,a in self.state.agents.items() if a.kind == "central_bank"), None)
@@ -132,7 +142,121 @@ class System:
                 else:
                     seen[k] = cid
         return "ok"
-    
+
+    # ---- reserve operations
+    def _central_bank_id(self) -> str:
+        """Find and return the central bank agent ID"""
+        cb_id = next((aid for aid, a in self.state.agents.items() if a.kind == "central_bank"), None)
+        if not cb_id:
+            raise ValidationError("CentralBank must exist")
+        return cb_id
+
+    def mint_reserves(self, to_bank_id: str, amount: int, denom="X") -> str:
+        """Mint reserves to a bank"""
+        cb_id = self._central_bank_id()
+        instr_id = self.new_contract_id("R")
+        c = ReserveDeposit(
+            id=instr_id, kind="reserve_deposit", amount=amount, denom=denom,
+            asset_holder_id=to_bank_id, liability_issuer_id=cb_id
+        )
+        with atomic(self):
+            self.add_contract(c)
+            self.state.cb_reserves_outstanding += amount
+            self.log("ReservesMinted", to=to_bank_id, amount=amount, instr_id=instr_id)
+        return instr_id
+
+    def transfer_reserves(self, from_bank_id: str, to_bank_id: str, amount: int) -> None:
+        """Transfer reserves between banks"""
+        if from_bank_id == to_bank_id:
+            raise ValidationError("no-op transfer")
+        with atomic(self):
+            remaining = amount
+            # collect reserve pieces and split as needed
+            for cid in list(self.state.agents[from_bank_id].asset_ids):
+                instr = self.state.contracts.get(cid)
+                if not instr or instr.kind != "reserve_deposit": continue
+                piece_id = cid
+                if instr.amount > remaining:
+                    piece_id = split(self, cid, remaining)
+                piece = self.state.contracts[piece_id]
+                # move holder
+                self.state.agents[from_bank_id].asset_ids.remove(piece_id)
+                self.state.agents[to_bank_id].asset_ids.append(piece_id)
+                piece.asset_holder_id = to_bank_id
+                self.log("ReservesTransferred", frm=from_bank_id, to=to_bank_id, amount=min(remaining, piece.amount), instr_id=piece_id)
+                remaining -= piece.amount
+                if remaining == 0: break
+            if remaining != 0:
+                raise ValidationError("insufficient reserves")
+            # optional coalesce at receiver (merge duplicates)
+            rx_ids = [cid for cid in self.state.agents[to_bank_id].asset_ids
+                      if self.state.contracts[cid].kind == "reserve_deposit"]
+            # naive coalesce: pairwise merge same-key
+            seen = {}
+            for cid in rx_ids:
+                k = (self.state.contracts[cid].denom, self.state.contracts[cid].liability_issuer_id)
+                keep = seen.get(k)
+                if keep and keep != cid:
+                    merge(self, keep, cid)
+                else:
+                    seen[k] = cid
+
+    def convert_reserves_to_cash(self, bank_id: str, amount: int) -> None:
+        """Convert reserves to cash"""
+        with atomic(self):
+            # consume reserves
+            remaining = amount
+            reserve_ids = [cid for cid in self.state.agents[bank_id].asset_ids
+                          if self.state.contracts[cid].kind == "reserve_deposit"]
+            for cid in list(reserve_ids):
+                instr = self.state.contracts[cid]
+                take = min(instr.amount, remaining)
+                consume(self, cid, take)
+                remaining -= take
+                if remaining == 0: break
+            if remaining != 0:
+                raise ValidationError("insufficient reserves to convert")
+            # update outstanding reserves
+            self.state.cb_reserves_outstanding -= amount
+            # mint equivalent cash
+            self.state.cb_cash_outstanding += amount
+            cb_id = self._central_bank_id()
+            instr_id = self.new_contract_id("C")
+            c = Cash(
+                id=instr_id, kind="cash", amount=amount, denom="X",
+                asset_holder_id=bank_id, liability_issuer_id=cb_id
+            )
+            self.add_contract(c)
+            self.log("ReservesToCash", bank_id=bank_id, amount=amount, instr_id=instr_id)
+
+    def convert_cash_to_reserves(self, bank_id: str, amount: int) -> None:
+        """Convert cash to reserves"""
+        with atomic(self):
+            # consume cash
+            remaining = amount
+            cash_ids = [cid for cid in self.state.agents[bank_id].asset_ids
+                       if self.state.contracts[cid].kind == "cash"]
+            for cid in list(cash_ids):
+                instr = self.state.contracts[cid]
+                take = min(instr.amount, remaining)
+                consume(self, cid, take)
+                remaining -= take
+                if remaining == 0: break
+            if remaining != 0:
+                raise ValidationError("insufficient cash to convert")
+            # update outstanding cash
+            self.state.cb_cash_outstanding -= amount
+            # mint equivalent reserves
+            self.state.cb_reserves_outstanding += amount
+            cb_id = self._central_bank_id()
+            instr_id = self.new_contract_id("R")
+            c = ReserveDeposit(
+                id=instr_id, kind="reserve_deposit", amount=amount, denom="X",
+                asset_holder_id=bank_id, liability_issuer_id=cb_id
+            )
+            self.add_contract(c)
+            self.log("CashToReserves", bank_id=bank_id, amount=amount, instr_id=instr_id)
+
     # ---- deposit helpers
     def deposit_ids(self, customer_id: str, bank_id: str) -> list[str]:
         """Filter customer assets for bank_deposit issued by bank_id"""
@@ -146,7 +270,7 @@ class System:
     def total_deposit(self, customer_id: str, bank_id: str) -> int:
         """Calculate total deposit amount for customer at bank"""
         return sum(self.state.contracts[cid].amount for cid in self.deposit_ids(customer_id, bank_id))
-    
+
     # ---- deliverable operations
     def create_deliverable(self, issuer_id: AgentId, holder_id: AgentId, sku: str, quantity: int, divisible: bool=True, denom="N/A") -> str:
         instr_id = self.new_contract_id("N")

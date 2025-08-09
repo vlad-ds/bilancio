@@ -1,5 +1,6 @@
-from contextlib import contextmanager
 import copy
+from contextlib import contextmanager
+
 
 @contextmanager
 def atomic(system):
@@ -7,6 +8,6 @@ def atomic(system):
     snapshot = copy.deepcopy(system.state)
     try:
         yield
-    except Exception as e:
+    except Exception:
         system.state = snapshot
         raise

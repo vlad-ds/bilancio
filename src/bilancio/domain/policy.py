@@ -1,29 +1,31 @@
 from __future__ import annotations
+
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Type, Sequence, Dict, List
+
 from bilancio.domain.agent import Agent
 from bilancio.domain.agents.bank import Bank
 from bilancio.domain.agents.central_bank import CentralBank
 from bilancio.domain.agents.household import Household
 from bilancio.domain.agents.treasury import Treasury
 from bilancio.domain.instruments.base import Instrument
-from bilancio.domain.instruments.means_of_payment import Cash, BankDeposit, ReserveDeposit
 from bilancio.domain.instruments.credit import Payable
+from bilancio.domain.instruments.means_of_payment import BankDeposit, Cash, ReserveDeposit
 from bilancio.domain.instruments.nonfinancial import Deliverable
 
-AgentType = Type[Agent]
-InstrType = Type[Instrument]
+AgentType = type[Agent]
+InstrType = type[Instrument]
 
 @dataclass
 class PolicyEngine:
     # who may issue / hold each instrument type (MVP: static sets)
-    issuers: Dict[InstrType, Sequence[AgentType]]
-    holders: Dict[InstrType, Sequence[AgentType]]
+    issuers: dict[InstrType, Sequence[AgentType]]
+    holders: dict[InstrType, Sequence[AgentType]]
     # means-of-payment ranking per agent kind (least-preferred to keep first)
-    mop_rank: Dict[str, List[str]]
+    mop_rank: dict[str, list[str]]
 
     @classmethod
-    def default(cls) -> "PolicyEngine":
+    def default(cls) -> PolicyEngine:
         return cls(
             issuers={
                 Cash:        (CentralBank,),

@@ -1,16 +1,19 @@
-from typing import Tuple
-from bilancio.domain.instruments.base import Instrument
-from bilancio.core.ids import new_id
-from bilancio.core.errors import ValidationError
 
-def fungible_key(instr: Instrument) -> Tuple:
+from bilancio.core.errors import ValidationError
+from bilancio.core.ids import new_id
+from bilancio.domain.instruments.base import Instrument
+
+
+def fungible_key(instr: Instrument) -> tuple:
     # Same type, denomination, issuer, holder → can merge
     return (instr.kind, instr.denom, instr.liability_issuer_id, instr.asset_holder_id)
 
 def is_divisible(instr: Instrument) -> bool:
     # Cash and bank deposits are divisible; deliverables depend on flag
-    if instr.kind in ("cash", "bank_deposit", "reserve_deposit"): return True
-    if instr.kind == "deliverable": return getattr(instr, "divisible", False)
+    if instr.kind in ("cash", "bank_deposit", "reserve_deposit"):
+        return True
+    if instr.kind == "deliverable":
+        return getattr(instr, "divisible", False)
     return False
 
 def split(system, instr_id: str, amount: int) -> str:
@@ -36,8 +39,10 @@ def split(system, instr_id: str, amount: int) -> str:
     return twin_id
 
 def merge(system, a_id: str, b_id: str) -> str:
-    if a_id == b_id: return a_id
-    a = system.state.contracts[a_id]; b = system.state.contracts[b_id]
+    if a_id == b_id:
+        return a_id
+    a = system.state.contracts[a_id]
+    b = system.state.contracts[b_id]
     if fungible_key(a) != fungible_key(b):
         raise ValidationError("instruments are not fungible-compatible")
     a.amount += b.amount

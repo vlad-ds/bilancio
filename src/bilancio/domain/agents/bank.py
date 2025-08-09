@@ -1,5 +1,7 @@
 from dataclasses import dataclass
+
 from bilancio.domain.agent import Agent
+
 
 @dataclass
 class Bank(Agent):

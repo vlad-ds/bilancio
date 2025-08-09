@@ -1,12 +1,11 @@
 """File writing utilities for bilancio."""
 
-from typing import List
 
 # TODO: Import CashFlow from appropriate module once defined
 # from bilancio.domain.instruments import CashFlow
 
 
-def write_cashflows_csv(flows: List["CashFlow"], filepath: str) -> None:
+def write_cashflows_csv(flows: list["CashFlow"], filepath: str) -> None:
     """Write cash flows to a CSV file.
     
     Args:

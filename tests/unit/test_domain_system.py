@@ -31,8 +31,8 @@ def test_policy_allows_and_blocks_expected_cases():
                                  asset_holder_id="H1", liability_issuer_id="B1"))
 
     # Treasury can hold reserves, not required to test now, but ensure creation passes
-    sys.add_contract(ReserveDeposit(id="r", kind="reserve_deposit", amount=5, denom="X",
-                                    asset_holder_id="B1", liability_issuer_id="CB1"))
+    # Use mint_reserves to maintain invariants
+    sys.mint_reserves("B1", 5)
 
     # Any agent can issue a payable in MVP
     sys.add_contract(Payable(id="p", kind="payable", amount=7, denom="X",

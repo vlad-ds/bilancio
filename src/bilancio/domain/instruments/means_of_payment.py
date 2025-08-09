@@ -1,6 +1,7 @@
 from dataclasses import dataclass
-from typing import Optional
+
 from .base import Instrument
+
 
 @dataclass
 class Cash(Instrument):

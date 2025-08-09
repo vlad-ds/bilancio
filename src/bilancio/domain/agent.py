@@ -1,12 +1,14 @@
 from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import List
+
 from bilancio.core.ids import AgentId, InstrId
+
 
 @dataclass
 class Agent:
     id: AgentId
     name: str
     kind: str
-    asset_ids: List[InstrId] = field(default_factory=list)
-    liability_ids: List[InstrId] = field(default_factory=list)
+    asset_ids: list[InstrId] = field(default_factory=list)
+    liability_ids: list[InstrId] = field(default_factory=list)

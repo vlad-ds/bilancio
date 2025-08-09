@@ -7,7 +7,7 @@ from typing import Protocol
 
 class AtomicValue(Protocol):
     """Protocol for atomic values that have a value property."""
-    
+
     @property
     def value(self) -> object:
         """Return the atomic value."""
@@ -19,7 +19,7 @@ class Money:
     """Represents a monetary amount with currency."""
     amount: Decimal
     currency: str
-    
+
     @property
     def value(self) -> Decimal:
         """Return the monetary amount as the atomic value."""

@@ -1,11 +1,11 @@
 from bilancio.core.atomic_tx import atomic
 from bilancio.core.errors import ValidationError
-from bilancio.ops.primitives import split, merge, consume, coalesce_deposits
-from bilancio.domain.instruments.means_of_payment import BankDeposit
-from bilancio.domain.instruments.means_of_payment import Cash
+from bilancio.ops.primitives import coalesce_deposits, split
+
 
 def deposit_cash(system, customer_id: str, bank_id: str, amount: int) -> str:
-    if amount <= 0: raise ValidationError("amount must be positive")
+    if amount <= 0:
+        raise ValidationError("amount must be positive")
     # collect payer cash, splitting as needed
     with atomic(system):
         remaining = amount
@@ -23,7 +23,8 @@ def deposit_cash(system, customer_id: str, bank_id: str, amount: int) -> str:
             instr.asset_holder_id = bank_id
             moved_piece_ids.append(cid)
             remaining -= instr.amount
-            if remaining == 0: break
+            if remaining == 0:
+                break
         if remaining != 0:
             raise ValidationError("insufficient cash for deposit")
 
@@ -35,11 +36,13 @@ def deposit_cash(system, customer_id: str, bank_id: str, amount: int) -> str:
         return dep_id
 
 def withdraw_cash(system, customer_id: str, bank_id: str, amount: int) -> str:
-    if amount <= 0: raise ValidationError("amount must be positive")
+    if amount <= 0:
+        raise ValidationError("amount must be positive")
     with atomic(system):
         # 1) debit deposit
         dep_ids = system.deposit_ids(customer_id, bank_id)
-        if not dep_ids: raise ValidationError("no deposit at this bank")
+        if not dep_ids:
+            raise ValidationError("no deposit at this bank")
         remaining = amount
         for dep_id in dep_ids:
             dep = system.state.contracts[dep_id]
@@ -53,7 +56,8 @@ def withdraw_cash(system, customer_id: str, bank_id: str, amount: int) -> str:
                 holder.asset_ids.remove(dep_id)
                 issuer.liability_ids.remove(dep_id)
                 del system.state.contracts[dep_id]
-            if remaining == 0: break
+            if remaining == 0:
+                break
         if remaining != 0:
             raise ValidationError("insufficient deposit balance")
 
@@ -72,7 +76,8 @@ def withdraw_cash(system, customer_id: str, bank_id: str, amount: int) -> str:
             instr.asset_holder_id = customer_id
             moved_piece_ids.append(cid)
             remaining -= instr.amount
-            if remaining == 0: break
+            if remaining == 0:
+                break
         if remaining != 0:
             raise ValidationError("bank has insufficient cash on hand (MVP: no auto conversion from reserves)")
 
@@ -82,7 +87,8 @@ def withdraw_cash(system, customer_id: str, bank_id: str, amount: int) -> str:
 
 def client_payment(system, payer_id: str, payer_bank: str, payee_id: str, payee_bank: str,
                    amount: int, allow_cash_fallback: bool=False) -> str:
-    if amount <= 0: raise ValidationError("amount must be positive")
+    if amount <= 0:
+        raise ValidationError("amount must be positive")
     with atomic(system):
         # 1) debit payer's deposit at payer_bank
         dep_ids = system.deposit_ids(payer_id, payer_bank)
@@ -100,7 +106,8 @@ def client_payment(system, payer_id: str, payer_bank: str, payee_id: str, payee_
                 holder.asset_ids.remove(dep_id)
                 issuer.liability_ids.remove(dep_id)
                 del system.state.contracts[dep_id]
-            if remaining == 0: break
+            if remaining == 0:
+                break
 
         # Optional fallback: use payer's cash for the remainder (real-world "pay cash")
         cash_paid = 0
@@ -118,7 +125,8 @@ def client_payment(system, payer_id: str, payer_bank: str, payee_id: str, payee_
                 instr.asset_holder_id = payee_id
                 cash_paid += instr.amount
                 remaining -= instr.amount
-                if remaining == 0: break
+                if remaining == 0:
+                    break
 
         if remaining != 0:
             raise ValidationError("insufficient funds for payment")

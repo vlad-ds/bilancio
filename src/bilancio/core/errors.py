@@ -19,3 +19,8 @@ class CalculationError(BilancioError):
 class ConfigurationError(BilancioError):
     """Raised when configuration is invalid or missing."""
     pass
+
+
+class DefaultError(BilancioError):
+    """Raised when a debtor cannot settle their obligations."""
+    pass

@@ -1,12 +1,11 @@
 """File reading utilities for bilancio."""
 
-from typing import List
 
 # TODO: Import CashFlow from appropriate module once defined
 # from bilancio.domain.instruments import CashFlow
 
 
-def read_cashflows_csv(filepath: str) -> List["CashFlow"]:
+def read_cashflows_csv(filepath: str) -> list["CashFlow"]:
     """Read cash flows from a CSV file.
     
     Args:
