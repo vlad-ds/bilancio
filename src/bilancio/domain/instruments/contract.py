@@ -1,7 +1,7 @@
 from abc import ABC
 from typing import Any, Dict, List, Protocol
 
-from ..agents.agent import Agent
+from ..agent import Agent
 
 
 class Contract(Protocol):

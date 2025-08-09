@@ -45,13 +45,12 @@ def test_core_imports():
 
 def test_domain_imports():
     """Test that domain modules can be imported."""
-    from bilancio.domain.agents.agent import Agent, BaseAgent
+    from bilancio.domain.agent import Agent
     from bilancio.domain.instruments.contract import Contract, BaseContract
     from bilancio.domain.instruments.policy import Policy, BasePolicy
     
-    # Test that protocols and base classes exist
+    # Test that base classes exist
     assert Agent is not None
-    assert BaseAgent is not None
     assert Contract is not None
     assert BaseContract is not None
     assert Policy is not None
