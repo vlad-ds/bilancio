@@ -61,3 +61,22 @@ def consume(system, instr_id: str, amount: int) -> None:
         holder.asset_ids.remove(instr_id)
         issuer.liability_ids.remove(instr_id)
         del system.state.contracts[instr_id]
+
+def coalesce_deposits(system, customer_id: str, bank_id: str) -> str:
+    """Coalesce all deposits for a customer at a bank into a single instrument"""
+    ids = system.deposit_ids(customer_id, bank_id)
+    if not ids:
+        # create a zero-balance deposit instrument
+        from bilancio.domain.instruments.means_of_payment import BankDeposit
+        dep_id = system.new_contract_id("D")
+        dep = BankDeposit(
+            id=dep_id, kind="bank_deposit", amount=0, denom="X",
+            asset_holder_id=customer_id, liability_issuer_id=bank_id
+        )
+        system.add_contract(dep)
+        return dep_id
+    # merge all into the first
+    keep = ids[0]
+    for other in ids[1:]:
+        merge(system, keep, other)
+    return keep

@@ -1,0 +1,135 @@
+from bilancio.core.atomic_tx import atomic
+from bilancio.core.errors import ValidationError
+from bilancio.ops.primitives import split, merge, consume, coalesce_deposits
+from bilancio.domain.instruments.means_of_payment import BankDeposit
+from bilancio.domain.instruments.means_of_payment import Cash
+
+def deposit_cash(system, customer_id: str, bank_id: str, amount: int) -> str:
+    if amount <= 0: raise ValidationError("amount must be positive")
+    # collect payer cash, splitting as needed
+    with atomic(system):
+        remaining = amount
+        cash_ids = [cid for cid in list(system.state.agents[customer_id].asset_ids)
+                    if system.state.contracts[cid].kind == "cash"]
+        moved_piece_ids = []
+        for cid in cash_ids:
+            instr = system.state.contracts[cid]
+            if instr.amount > remaining:
+                cid = split(system, cid, remaining)
+                instr = system.state.contracts[cid]
+            # move holder to bank (issuer CB unchanged)
+            system.state.agents[customer_id].asset_ids.remove(cid)
+            system.state.agents[bank_id].asset_ids.append(cid)
+            instr.asset_holder_id = bank_id
+            moved_piece_ids.append(cid)
+            remaining -= instr.amount
+            if remaining == 0: break
+        if remaining != 0:
+            raise ValidationError("insufficient cash for deposit")
+
+        # credit/ensure deposit
+        dep_id = coalesce_deposits(system, customer_id, bank_id)
+        system.state.contracts[dep_id].amount += amount
+        system.log("CashDeposited", customer=customer_id, bank=bank_id, amount=amount,
+                   cash_piece_ids=moved_piece_ids, deposit_id=dep_id)
+        return dep_id
+
+def withdraw_cash(system, customer_id: str, bank_id: str, amount: int) -> str:
+    if amount <= 0: raise ValidationError("amount must be positive")
+    with atomic(system):
+        # 1) debit deposit
+        dep_ids = system.deposit_ids(customer_id, bank_id)
+        if not dep_ids: raise ValidationError("no deposit at this bank")
+        remaining = amount
+        for dep_id in dep_ids:
+            dep = system.state.contracts[dep_id]
+            take = min(dep.amount, remaining)
+            dep.amount -= take
+            remaining -= take
+            if dep.amount == 0 and take > 0:
+                # remove empty instrument
+                holder = system.state.agents[customer_id]
+                issuer = system.state.agents[bank_id]
+                holder.asset_ids.remove(dep_id)
+                issuer.liability_ids.remove(dep_id)
+                del system.state.contracts[dep_id]
+            if remaining == 0: break
+        if remaining != 0:
+            raise ValidationError("insufficient deposit balance")
+
+        # 2) move cash from bank vault → customer (require sufficient cash on hand)
+        bank_cash_ids = [cid for cid in list(system.state.agents[bank_id].asset_ids)
+                         if system.state.contracts[cid].kind == "cash"]
+        remaining = amount
+        moved_piece_ids = []
+        for cid in bank_cash_ids:
+            instr = system.state.contracts[cid]
+            if instr.amount > remaining:
+                cid = split(system, cid, remaining)
+                instr = system.state.contracts[cid]
+            system.state.agents[bank_id].asset_ids.remove(cid)
+            system.state.agents[customer_id].asset_ids.append(cid)
+            instr.asset_holder_id = customer_id
+            moved_piece_ids.append(cid)
+            remaining -= instr.amount
+            if remaining == 0: break
+        if remaining != 0:
+            raise ValidationError("bank has insufficient cash on hand (MVP: no auto conversion from reserves)")
+
+        system.log("CashWithdrawn", customer=customer_id, bank=bank_id, amount=amount, cash_piece_ids=moved_piece_ids)
+        # 3) coalesce customer cash if you want tidy balances (optional)
+        return "ok"
+
+def client_payment(system, payer_id: str, payer_bank: str, payee_id: str, payee_bank: str,
+                   amount: int, allow_cash_fallback: bool=False) -> str:
+    if amount <= 0: raise ValidationError("amount must be positive")
+    with atomic(system):
+        # 1) debit payer's deposit at payer_bank
+        dep_ids = system.deposit_ids(payer_id, payer_bank)
+        remaining = amount
+        deposit_paid = 0
+        for dep_id in dep_ids:
+            dep = system.state.contracts[dep_id]
+            take = min(dep.amount, remaining)
+            dep.amount -= take
+            remaining -= take
+            deposit_paid += take
+            if dep.amount == 0 and take > 0:
+                holder = system.state.agents[payer_id]
+                issuer = system.state.agents[payer_bank]
+                holder.asset_ids.remove(dep_id)
+                issuer.liability_ids.remove(dep_id)
+                del system.state.contracts[dep_id]
+            if remaining == 0: break
+
+        # Optional fallback: use payer's cash for the remainder (real-world "pay cash")
+        cash_paid = 0
+        if remaining and allow_cash_fallback:
+            cash_ids = [cid for cid in list(system.state.agents[payer_id].asset_ids)
+                        if system.state.contracts[cid].kind == "cash"]
+            for cid in cash_ids:
+                instr = system.state.contracts[cid]
+                if instr.amount > remaining:
+                    cid = split(system, cid, remaining)
+                    instr = system.state.contracts[cid]
+                # move payer cash → payee (physical cash handover)
+                system.state.agents[payer_id].asset_ids.remove(cid)
+                system.state.agents[payee_id].asset_ids.append(cid)
+                instr.asset_holder_id = payee_id
+                cash_paid += instr.amount
+                remaining -= instr.amount
+                if remaining == 0: break
+
+        if remaining != 0:
+            raise ValidationError("insufficient funds for payment")
+
+        # 2) credit payee's deposit at payee_bank (only the deposit portion, not cash)
+        dep_rx = coalesce_deposits(system, payee_id, payee_bank)
+        system.state.contracts[dep_rx].amount += deposit_paid
+
+        # 3) record event for cross-bank intraday flow (no reserves move yet)
+        if payer_bank != payee_bank:
+            system.log("ClientPayment", payer=payer_id, payer_bank=payer_bank,
+                       payee=payee_id, payee_bank=payee_bank, amount=deposit_paid)
+
+        return dep_rx

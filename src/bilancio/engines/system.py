@@ -53,11 +53,12 @@ class System:
 
     # ---- invariants (MVP)
     def assert_invariants(self) -> None:
-        from bilancio.core.invariants import assert_cb_cash_matches_outstanding
+        from bilancio.core.invariants import assert_cb_cash_matches_outstanding, assert_no_negative_balances
         for cid, c in self.state.contracts.items():
             assert cid in self.state.agents[c.asset_holder_id].asset_ids, f"{cid} missing on asset holder"
             assert cid in self.state.agents[c.liability_issuer_id].liability_ids, f"{cid} missing on issuer"
         assert_cb_cash_matches_outstanding(self)
+        assert_no_negative_balances(self)
     
     # ---- bootstrap helper
     def bootstrap_cb(self, cb: Agent) -> None:
@@ -131,6 +132,20 @@ class System:
                 else:
                     seen[k] = cid
         return "ok"
+    
+    # ---- deposit helpers
+    def deposit_ids(self, customer_id: str, bank_id: str) -> list[str]:
+        """Filter customer assets for bank_deposit issued by bank_id"""
+        out = []
+        for cid in self.state.agents[customer_id].asset_ids:
+            c = self.state.contracts[cid]
+            if c.kind == "bank_deposit" and c.liability_issuer_id == bank_id:
+                out.append(cid)
+        return out
+
+    def total_deposit(self, customer_id: str, bank_id: str) -> int:
+        """Calculate total deposit amount for customer at bank"""
+        return sum(self.state.contracts[cid].amount for cid in self.deposit_ids(customer_id, bank_id))
     
     # ---- deliverable operations
     def create_deliverable(self, issuer_id: AgentId, holder_id: AgentId, sku: str, quantity: int, divisible: bool=True, denom="N/A") -> str:
