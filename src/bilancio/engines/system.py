@@ -4,8 +4,12 @@ from typing import Dict, List
 from bilancio.core.ids import AgentId, InstrId, new_id
 from bilancio.domain.agent import Agent
 from bilancio.domain.instruments.base import Instrument
+from bilancio.domain.instruments.means_of_payment import Cash
+from bilancio.domain.instruments.nonfinancial import Deliverable
 from bilancio.domain.policy import PolicyEngine
 from bilancio.core.errors import ValidationError
+from bilancio.core.atomic_tx import atomic
+from bilancio.ops.primitives import split, merge, consume
 
 @dataclass
 class State:
@@ -13,6 +17,7 @@ class State:
     contracts: Dict[InstrId, Instrument] = field(default_factory=dict)
     events: List[dict] = field(default_factory=list)
     day: int = 0
+    cb_cash_outstanding: int = 0
 
 class System:
     def __init__(self, policy: PolicyEngine | None = None):
@@ -48,11 +53,117 @@ class System:
 
     # ---- invariants (MVP)
     def assert_invariants(self) -> None:
+        from bilancio.core.invariants import assert_cb_cash_matches_outstanding
         for cid, c in self.state.contracts.items():
             assert cid in self.state.agents[c.asset_holder_id].asset_ids, f"{cid} missing on asset holder"
             assert cid in self.state.agents[c.liability_issuer_id].liability_ids, f"{cid} missing on issuer"
+        assert_cb_cash_matches_outstanding(self)
     
     # ---- bootstrap helper
     def bootstrap_cb(self, cb: Agent) -> None:
         self.add_agent(cb)
         self.log("BootstrapCB", cb_id=cb.id)
+    
+    # ---- cash operations
+    def mint_cash(self, to_agent_id: AgentId, amount: int, denom="X") -> str:
+        cb_id = next((aid for aid,a in self.state.agents.items() if a.kind == "central_bank"), None)
+        assert cb_id, "CentralBank must exist"
+        instr_id = self.new_contract_id("C")
+        c = Cash(
+            id=instr_id, kind="cash", amount=amount, denom=denom,
+            asset_holder_id=to_agent_id, liability_issuer_id=cb_id
+        )
+        with atomic(self):
+            self.add_contract(c)
+            self.state.cb_cash_outstanding += amount
+            self.log("CashMinted", to=to_agent_id, amount=amount, instr_id=instr_id)
+        return instr_id
+
+    def retire_cash(self, from_agent_id: AgentId, amount: int) -> None:
+        # pull from holder's cash instruments (simple greedy)
+        with atomic(self):
+            remaining = amount
+            cash_ids = [cid for cid in self.state.agents[from_agent_id].asset_ids
+                        if self.state.contracts[cid].kind == "cash"]
+            for cid in list(cash_ids):
+                instr = self.state.contracts[cid]
+                take = min(instr.amount, remaining)
+                consume(self, cid, take)
+                remaining -= take
+                if remaining == 0: break
+            if remaining != 0:
+                raise ValidationError("insufficient cash to retire")
+            self.state.cb_cash_outstanding -= amount
+            self.log("CashRetired", frm=from_agent_id, amount=amount)
+
+    def transfer_cash(self, from_agent_id: AgentId, to_agent_id: AgentId, amount: int) -> str:
+        if from_agent_id == to_agent_id:
+            raise ValidationError("no-op transfer")
+        with atomic(self):
+            remaining = amount
+            # collect cash pieces and split as needed
+            for cid in list(self.state.agents[from_agent_id].asset_ids):
+                instr = self.state.contracts.get(cid)
+                if not instr or instr.kind != "cash": continue
+                piece_id = cid
+                if instr.amount > remaining:
+                    piece_id = split(self, cid, remaining)
+                piece = self.state.contracts[piece_id]
+                # move holder
+                self.state.agents[from_agent_id].asset_ids.remove(piece_id)
+                self.state.agents[to_agent_id].asset_ids.append(piece_id)
+                piece.asset_holder_id = to_agent_id
+                self.log("CashTransferred", frm=from_agent_id, to=to_agent_id, amount=min(remaining, piece.amount), instr_id=piece_id)
+                remaining -= piece.amount
+                if remaining == 0: break
+            if remaining != 0:
+                raise ValidationError("insufficient cash")
+            # optional coalesce at receiver (merge duplicates)
+            rx_ids = [cid for cid in self.state.agents[to_agent_id].asset_ids
+                      if self.state.contracts[cid].kind == "cash"]
+            # naive coalesce: pairwise merge same-key
+            seen = {}
+            for cid in rx_ids:
+                k = (self.state.contracts[cid].denom, self.state.contracts[cid].liability_issuer_id)
+                keep = seen.get(k)
+                if keep and keep != cid:
+                    merge(self, keep, cid)
+                else:
+                    seen[k] = cid
+        return "ok"
+    
+    # ---- deliverable operations
+    def create_deliverable(self, issuer_id: AgentId, holder_id: AgentId, sku: str, quantity: int, divisible: bool=True, denom="N/A") -> str:
+        instr_id = self.new_contract_id("N")
+        d = Deliverable(
+            id=instr_id, kind="deliverable", amount=quantity, denom=denom,
+            asset_holder_id=holder_id, liability_issuer_id=issuer_id,
+            sku=sku, divisible=divisible
+        )
+        with atomic(self):
+            self.add_contract(d)
+            self.log("DeliverableCreated", issuer=issuer_id, holder=holder_id, sku=sku, qty=quantity, instr_id=instr_id)
+        return instr_id
+
+    def transfer_deliverable(self, instr_id: InstrId, from_agent_id: AgentId, to_agent_id: AgentId, quantity: int | None=None) -> str:
+        instr = self.state.contracts[instr_id]
+        if instr.kind != "deliverable":
+            raise ValidationError("not a deliverable")
+        if instr.asset_holder_id != from_agent_id:
+            raise ValidationError("holder mismatch")
+        with atomic(self):
+            moving_id = instr_id
+            if quantity is not None:
+                if not getattr(instr, "divisible", False):
+                    raise ValidationError("indivisible deliverable")
+                if quantity <= 0 or quantity > instr.amount:
+                    raise ValidationError("invalid quantity")
+                if quantity < instr.amount:
+                    moving_id = split(self, instr_id, quantity)
+            # change owner
+            self.state.agents[from_agent_id].asset_ids.remove(moving_id)
+            self.state.agents[to_agent_id].asset_ids.append(moving_id)
+            m = self.state.contracts[moving_id]
+            m.asset_holder_id = to_agent_id
+            self.log("DeliverableTransferred", frm=from_agent_id, to=to_agent_id, instr_id=moving_id, qty=m.amount, sku=getattr(m, "sku","GENERIC"))
+        return moving_id
