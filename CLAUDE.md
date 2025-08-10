@@ -1,1 +1,2 @@
 - Use implementation subagents (in parallel) to execute do code changes whenever possible.
+- Always use `uv run` instead of `python` to run Python commands in this project
