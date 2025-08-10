@@ -308,3 +308,46 @@ class System:
             m.asset_holder_id = to_agent_id
             self.log("DeliverableTransferred", frm=from_agent_id, to=to_agent_id, instr_id=moving_id, qty=m.amount, sku=getattr(m, "sku","GENERIC"))
         return moving_id
+
+    def settle_obligation(self, contract_id: InstrId) -> None:
+        """
+        Settle and extinguish a bilateral obligation.
+        
+        This removes a matched asset-liability pair when the obligation has been fulfilled,
+        such as after delivering goods or services that were promised.
+        
+        Args:
+            contract_id: The ID of the contract to settle
+            
+        Raises:
+            ValidationError: If the contract doesn't exist
+        """
+        with atomic(self):
+            # Validate contract exists
+            if contract_id not in self.state.contracts:
+                raise ValidationError(f"Contract {contract_id} not found")
+            
+            contract = self.state.contracts[contract_id]
+            
+            # Remove from holder's assets
+            holder = self.state.agents[contract.asset_holder_id]
+            if contract_id not in holder.asset_ids:
+                raise ValidationError(f"Contract {contract_id} not in holder's assets")
+            holder.asset_ids.remove(contract_id)
+            
+            # Remove from issuer's liabilities
+            issuer = self.state.agents[contract.liability_issuer_id]
+            if contract_id not in issuer.liability_ids:
+                raise ValidationError(f"Contract {contract_id} not in issuer's liabilities")
+            issuer.liability_ids.remove(contract_id)
+            
+            # Remove contract from registry
+            del self.state.contracts[contract_id]
+            
+            # Log the settlement
+            self.log("ObligationSettled",
+                    contract_id=contract_id,
+                    holder_id=contract.asset_holder_id,
+                    issuer_id=contract.liability_issuer_id,
+                    contract_kind=contract.kind,
+                    amount=contract.amount)
