@@ -61,10 +61,12 @@ class System:
             assert_cb_reserves_match,
             assert_double_entry_numeric,
             assert_no_negative_balances,
+            assert_no_duplicate_refs,
         )
         for cid, c in self.state.contracts.items():
             assert cid in self.state.agents[c.asset_holder_id].asset_ids, f"{cid} missing on asset holder"
             assert cid in self.state.agents[c.liability_issuer_id].liability_ids, f"{cid} missing on issuer"
+        assert_no_duplicate_refs(self)
         assert_cb_cash_matches_outstanding(self)
         assert_cb_reserves_match(self)
         assert_no_negative_balances(self)
