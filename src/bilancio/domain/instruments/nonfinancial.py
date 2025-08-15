@@ -9,6 +9,7 @@ class Deliverable(Instrument):
     sku: str = "GENERIC"
     divisible: bool = True  # if False, amount must be whole and only full transfers allowed
     unit_price: Decimal = Decimal("0")  # Required monetary value per unit
+    due_day: int | None = None  # Optional due date for when deliverable must be delivered
     
     def __post_init__(self):
         self.kind = "deliverable"
