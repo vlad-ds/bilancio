@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Dict
+from typing import Any, Dict
 
 from bilancio.engines.system import System
 
@@ -19,9 +19,9 @@ class AgentBalance:
     total_financial_assets: int
     total_financial_liabilities: int
     net_financial: int
-    nonfinancial_assets_by_kind: Dict[str, Dict[str, any]]
+    nonfinancial_assets_by_kind: Dict[str, Dict[str, Any]]
     total_nonfinancial_value: Decimal
-    nonfinancial_liabilities_by_kind: Dict[str, Dict[str, any]]
+    nonfinancial_liabilities_by_kind: Dict[str, Dict[str, Any]]
     total_nonfinancial_liability_value: Decimal
 
 
@@ -32,9 +32,9 @@ class TrialBalance:
     liabilities_by_kind: Dict[str, int]
     total_financial_assets: int
     total_financial_liabilities: int
-    nonfinancial_assets_by_kind: Dict[str, Dict[str, any]]
+    nonfinancial_assets_by_kind: Dict[str, Dict[str, Any]]
     total_nonfinancial_value: Decimal
-    nonfinancial_liabilities_by_kind: Dict[str, Dict[str, any]]
+    nonfinancial_liabilities_by_kind: Dict[str, Dict[str, Any]]
     total_nonfinancial_liability_value: Decimal
 
 
