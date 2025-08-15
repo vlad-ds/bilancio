@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from bilancio.domain.agent import Agent
 from bilancio.domain.agents.bank import Bank
 from bilancio.domain.agents.central_bank import CentralBank
+from bilancio.domain.agents.firm import Firm
 from bilancio.domain.agents.household import Household
 from bilancio.domain.agents.treasury import Treasury
 from bilancio.domain.instruments.base import Instrument
@@ -36,13 +37,14 @@ class PolicyEngine:
             },
             holders={
                 Cash:            (Agent,),
-                BankDeposit:     (Household, Treasury, Bank),  # banks may hold but not for interbank settlement
+                BankDeposit:     (Household, Firm, Treasury, Bank),  # banks may hold but not for interbank settlement
                 ReserveDeposit:  (Bank, Treasury),
                 Payable:         (Agent,),
                 Deliverable:     (Agent,),
             },
             mop_rank={
                 "household":     ["bank_deposit", "cash"],     # use deposit first, then cash
+                "firm":          ["cash", "bank_deposit"],     # firms prefer cash for simplicity
                 "bank":          ["reserve_deposit"],          # banks settle in reserves
                 "treasury":      ["reserve_deposit"],
                 "central_bank":  ["reserve_deposit"],
