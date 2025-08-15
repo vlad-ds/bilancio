@@ -203,6 +203,77 @@ def test_settle_deliverables_not_due():
     assert system.state.contracts[widgets_id].amount == 20
 
 
+def test_deliverables_without_due_day_not_settled():
+    """Test that deliverables without due_day are not affected by settlement."""
+    system = System()
+    
+    # Create agents
+    supplier = Household(id="supplier", name="Supplier", kind="household")
+    customer = Household(id="customer", name="Customer", kind="household")
+    system.add_agent(supplier)
+    system.add_agent(customer)
+    
+    # Give supplier widgets
+    system.create_deliverable(
+        issuer_id="supplier",
+        holder_id="supplier",
+        sku="WIDGET",
+        quantity=20,
+        unit_price=Decimal("5")
+    )
+    
+    # Create deliverable obligation WITHOUT due_day
+    obligation_id = system.create_deliverable(
+        issuer_id="supplier",
+        holder_id="customer",
+        sku="WIDGET",
+        quantity=10,
+        unit_price=Decimal("5")
+        # Note: no due_day specified
+    )
+    
+    # Settle deliverables for any day - should not affect this obligation
+    settle_due_deliverables(system, day=1)
+    settle_due_deliverables(system, day=100)
+    
+    # Check that obligation is still there (not settled)
+    assert obligation_id in system.state.contracts
+    
+    # Check that no widgets were transferred
+    customer_widgets = [c for c in system.state.contracts.values()
+                        if c.asset_holder_id == "customer" and c.kind == "deliverable" 
+                        and c.id != obligation_id]
+    assert len(customer_widgets) == 0
+    
+    # Supplier still has all widgets
+    supplier_widgets = [c for c in system.state.contracts.values()
+                        if c.asset_holder_id == "supplier" and c.kind == "deliverable"
+                        and c.liability_issuer_id == "supplier"]
+    assert len(supplier_widgets) == 1
+    assert supplier_widgets[0].amount == 20
+
+
+def test_negative_due_day_validation():
+    """Test that negative due_day values are rejected."""
+    system = System()
+    
+    supplier = Household(id="supplier", name="Supplier", kind="household")
+    customer = Household(id="customer", name="Customer", kind="household")
+    system.add_agent(supplier)
+    system.add_agent(customer)
+    
+    # This should work (non-negative)
+    deliverable_id = system.create_deliverable(
+        issuer_id="supplier",
+        holder_id="customer",
+        sku="WIDGET",
+        quantity=10,
+        unit_price=Decimal("5"),
+        due_day=0  # Zero is valid
+    )
+    assert system.state.contracts[deliverable_id].due_day == 0
+
+
 def test_settle_due_handles_both_payables_and_deliverables():
     """Test that settle_due handles both payables and deliverables."""
     system = System()

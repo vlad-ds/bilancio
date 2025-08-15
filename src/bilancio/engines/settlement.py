@@ -172,51 +172,6 @@ def _deliver_goods(system, debtor_id, creditor_id, sku: str, required_quantity: 
         return 0
 
 
-def _deliver_goods(system, debtor_id, creditor_id, sku, amount) -> int:
-    """Deliver goods from debtor to creditor. Returns amount actually delivered."""
-    # Find available deliverables with matching SKU
-    available_deliverable_ids = []
-    for cid in system.state.agents[debtor_id].asset_ids:
-        contract = system.state.contracts[cid]
-        if contract.kind == "deliverable" and getattr(contract, "sku", None) == sku:
-            available_deliverable_ids.append(cid)
-    
-    if not available_deliverable_ids:
-        return 0
-    
-    # Calculate total available amount
-    available = sum(system.state.contracts[cid].amount for cid in available_deliverable_ids)
-    if available == 0:
-        return 0
-    
-    deliver_amount = min(amount, available)
-    
-    # Transfer deliverables one by one until we reach the required amount
-    total_delivered = 0
-    remaining = deliver_amount
-    
-    for cid in available_deliverable_ids:
-        if remaining == 0:
-            break
-        
-        contract = system.state.contracts[cid]
-        transfer_amount = min(remaining, contract.amount)
-        
-        try:
-            # Use transfer_deliverable with proper signature
-            system.transfer_deliverable(cid, debtor_id, creditor_id, transfer_amount)
-            total_delivered += transfer_amount
-            remaining -= transfer_amount
-        except (ValidationError, AttributeError):
-            # If transfer_deliverable fails, try generic transfer
-            try:
-                system.transfer(debtor_id, creditor_id, cid, transfer_amount)
-                total_delivered += transfer_amount
-                remaining -= transfer_amount
-            except ValidationError:
-                pass
-    
-    return total_delivered
 
 
 def _remove_contract(system, contract_id):
