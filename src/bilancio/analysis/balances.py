@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass
+from decimal import Decimal
 from typing import Dict
 
 from bilancio.engines.system import System
@@ -18,6 +19,8 @@ class AgentBalance:
     total_financial_assets: int
     total_financial_liabilities: int
     net_financial: int
+    nonfinancial_assets_by_kind: Dict[str, Dict[str, any]]
+    total_nonfinancial_value: Decimal | None
 
 
 @dataclass
@@ -27,6 +30,8 @@ class TrialBalance:
     liabilities_by_kind: Dict[str, int]
     total_financial_assets: int
     total_financial_liabilities: int
+    nonfinancial_assets_by_kind: Dict[str, Dict[str, any]]
+    total_nonfinancial_value: Decimal | None
 
 
 def agent_balance(system: System, agent_id: str) -> AgentBalance:
@@ -45,6 +50,9 @@ def agent_balance(system: System, agent_id: str) -> AgentBalance:
     liabilities_by_kind = defaultdict(int)
     total_financial_assets = 0
     total_financial_liabilities = 0
+    nonfinancial_assets_by_kind = defaultdict(lambda: {'quantity': 0, 'value': None})
+    total_nonfinancial_value = Decimal('0')
+    has_valued_nonfinancial = False
     
     # Sum up assets
     for contract_id in agent.asset_ids:
@@ -55,6 +63,20 @@ def agent_balance(system: System, agent_id: str) -> AgentBalance:
         is_financial_func = getattr(contract, 'is_financial', lambda: True)
         if is_financial_func():
             total_financial_assets += contract.amount
+        else:
+            # Track non-financial assets with quantity and value
+            sku = getattr(contract, 'sku', contract.kind)
+            nonfinancial_assets_by_kind[sku]['quantity'] += contract.amount
+            
+            # Calculate value if unit_price is available
+            valued_amount = getattr(contract, 'valued_amount', None)
+            if valued_amount is not None:
+                if nonfinancial_assets_by_kind[sku]['value'] is None:
+                    nonfinancial_assets_by_kind[sku]['value'] = valued_amount
+                else:
+                    nonfinancial_assets_by_kind[sku]['value'] += valued_amount
+                total_nonfinancial_value += valued_amount
+                has_valued_nonfinancial = True
     
     # Sum up liabilities
     for contract_id in agent.liability_ids:
@@ -74,7 +96,9 @@ def agent_balance(system: System, agent_id: str) -> AgentBalance:
         liabilities_by_kind=dict(liabilities_by_kind),
         total_financial_assets=total_financial_assets,
         total_financial_liabilities=total_financial_liabilities,
-        net_financial=net_financial
+        net_financial=net_financial,
+        nonfinancial_assets_by_kind=dict(nonfinancial_assets_by_kind),
+        total_nonfinancial_value=total_nonfinancial_value if has_valued_nonfinancial else None
     )
 
 
@@ -91,6 +115,9 @@ def system_trial_balance(system: System) -> TrialBalance:
     liabilities_by_kind = defaultdict(int)
     total_financial_assets = 0
     total_financial_liabilities = 0
+    nonfinancial_assets_by_kind = defaultdict(lambda: {'quantity': 0, 'value': None})
+    total_nonfinancial_value = Decimal('0')
+    has_valued_nonfinancial = False
     
     # Walk all contracts once and sum by kind for both sides
     for contract in system.state.contracts.values():
@@ -105,12 +132,28 @@ def system_trial_balance(system: System) -> TrialBalance:
         if is_financial_func():
             total_financial_assets += contract.amount
             total_financial_liabilities += contract.amount
+        else:
+            # Track non-financial assets system-wide
+            sku = getattr(contract, 'sku', contract.kind)
+            nonfinancial_assets_by_kind[sku]['quantity'] += contract.amount
+            
+            # Calculate value if unit_price is available
+            valued_amount = getattr(contract, 'valued_amount', None)
+            if valued_amount is not None:
+                if nonfinancial_assets_by_kind[sku]['value'] is None:
+                    nonfinancial_assets_by_kind[sku]['value'] = valued_amount
+                else:
+                    nonfinancial_assets_by_kind[sku]['value'] += valued_amount
+                total_nonfinancial_value += valued_amount
+                has_valued_nonfinancial = True
     
     return TrialBalance(
         assets_by_kind=dict(assets_by_kind),
         liabilities_by_kind=dict(liabilities_by_kind),
         total_financial_assets=total_financial_assets,
-        total_financial_liabilities=total_financial_liabilities
+        total_financial_liabilities=total_financial_liabilities,
+        nonfinancial_assets_by_kind=dict(nonfinancial_assets_by_kind),
+        total_nonfinancial_value=total_nonfinancial_value if has_valued_nonfinancial else None
     )
 
 
@@ -133,8 +176,11 @@ def as_rows(system: System) -> list[dict]:
             'total_financial_assets': balance.total_financial_assets,
             'total_financial_liabilities': balance.total_financial_liabilities,
             'net_financial': balance.net_financial,
+            'total_nonfinancial_value': balance.total_nonfinancial_value,
             **{f'assets_{kind}': amount for kind, amount in balance.assets_by_kind.items()},
-            **{f'liabilities_{kind}': amount for kind, amount in balance.liabilities_by_kind.items()}
+            **{f'liabilities_{kind}': amount for kind, amount in balance.liabilities_by_kind.items()},
+            **{f'nonfinancial_{sku}_quantity': data['quantity'] for sku, data in balance.nonfinancial_assets_by_kind.items()},
+            **{f'nonfinancial_{sku}_value': data['value'] for sku, data in balance.nonfinancial_assets_by_kind.items()}
         }
         rows.append(row)
     
@@ -145,8 +191,11 @@ def as_rows(system: System) -> list[dict]:
         'total_financial_assets': trial_balance.total_financial_assets,
         'total_financial_liabilities': trial_balance.total_financial_liabilities,
         'net_financial': 0,  # Should always be zero for system-wide view
+        'total_nonfinancial_value': trial_balance.total_nonfinancial_value,
         **{f'assets_{kind}': amount for kind, amount in trial_balance.assets_by_kind.items()},
-        **{f'liabilities_{kind}': amount for kind, amount in trial_balance.liabilities_by_kind.items()}
+        **{f'liabilities_{kind}': amount for kind, amount in trial_balance.liabilities_by_kind.items()},
+        **{f'nonfinancial_{sku}_quantity': data['quantity'] for sku, data in trial_balance.nonfinancial_assets_by_kind.items()},
+        **{f'nonfinancial_{sku}_value': data['value'] for sku, data in trial_balance.nonfinancial_assets_by_kind.items()}
     }
     rows.append(system_row)
     

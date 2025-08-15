@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from decimal import Decimal
 from typing import Dict, List, Optional, Union
 
 try:
@@ -25,6 +26,19 @@ def _format_currency(amount: int, show_sign: bool = False) -> str:
     if show_sign and amount > 0:
         formatted = f"+{formatted}"
     return formatted
+
+
+def _format_deliverable_name(sku: str, quantity: int) -> str:
+    """Format deliverable name with quantity in brackets."""
+    return f"deliverable ({sku}) [{quantity} unit{'s' if quantity != 1 else ''}]"
+
+
+def _format_deliverable_amount(valued_amount: Decimal | None) -> str:
+    """Format deliverable monetary value or return dash for unvalued."""
+    if valued_amount is None or valued_amount == 0:
+        return "-"
+    # Convert Decimal to int for currency formatting (assuming cents precision)
+    return _format_currency(int(valued_amount))
 
 
 def display_agent_balance_table(
@@ -123,24 +137,48 @@ def _display_rich_agent_balance(title: str, balance: AgentBalance) -> None:
     
     # Create the main table
     table = Table(title=title, box=box.ROUNDED, title_style="bold cyan")
-    table.add_column("ASSETS", style="green", width=25)
-    table.add_column("Amount", justify="right", style="green", width=12)
-    table.add_column("LIABILITIES", style="red", width=25)
-    table.add_column("Amount", justify="right", style="red", width=12)
+    table.add_column("ASSETS", style="green", width=30, no_wrap=True)
+    table.add_column("Amount", justify="right", style="green", width=12, no_wrap=True)
+    table.add_column("LIABILITIES", style="red", width=30, no_wrap=True)
+    table.add_column("Amount", justify="right", style="red", width=12, no_wrap=True)
     
-    # Get all asset and liability types, sorted
-    asset_types = sorted(balance.assets_by_kind.keys())
-    liability_types = sorted(balance.liabilities_by_kind.keys())
+    # Prepare asset and liability rows with special handling for deliverables
+    asset_rows = []
+    for asset_type in sorted(balance.assets_by_kind.keys()):
+        if asset_type == "deliverable":
+            # Handle deliverables separately - group by SKU
+            for sku, data in balance.nonfinancial_assets_by_kind.items():
+                name = _format_deliverable_name(sku, data['quantity'])
+                # Truncate long names for display
+                if len(name) > 29:
+                    name = name[:26] + "..."
+                amount = _format_deliverable_amount(data['value'])
+                asset_rows.append((name, amount))
+        else:
+            # Regular financial assets
+            name = asset_type
+            amount = _format_currency(balance.assets_by_kind[asset_type])
+            asset_rows.append((name, amount))
+    
+    liability_rows = []
+    for liability_type in sorted(balance.liabilities_by_kind.keys()):
+        if liability_type == "deliverable":
+            # For deliverable liabilities, just show the kind and amount
+            name = liability_type
+            amount = _format_currency(balance.liabilities_by_kind[liability_type])
+            liability_rows.append((name, amount))
+        else:
+            # Regular financial liabilities
+            name = liability_type
+            amount = _format_currency(balance.liabilities_by_kind[liability_type])
+            liability_rows.append((name, amount))
     
     # Determine the maximum number of rows needed
-    max_rows = max(len(asset_types), len(liability_types), 1)
+    max_rows = max(len(asset_rows), len(liability_rows), 1)
     
     for i in range(max_rows):
-        asset_name = asset_types[i] if i < len(asset_types) else ""
-        asset_amount = _format_currency(balance.assets_by_kind[asset_name]) if asset_name else ""
-        
-        liability_name = liability_types[i] if i < len(liability_types) else ""
-        liability_amount = _format_currency(balance.liabilities_by_kind[liability_name]) if liability_name else ""
+        asset_name, asset_amount = asset_rows[i] if i < len(asset_rows) else ("", "")
+        liability_name, liability_amount = liability_rows[i] if i < len(liability_rows) else ("", "")
         
         table.add_row(asset_name, asset_amount, liability_name, liability_amount)
     
@@ -152,6 +190,22 @@ def _display_rich_agent_balance(title: str, balance: AgentBalance) -> None:
         Text("TOTAL FINANCIAL", style="bold red"),
         Text(_format_currency(balance.total_financial_liabilities), style="bold red")
     )
+    
+    # Add valued non-financial total if present
+    if balance.total_nonfinancial_value is not None and balance.total_nonfinancial_value > 0:
+        table.add_row(
+            Text("TOTAL VALUED DELIV.", style="bold green"),
+            Text(_format_currency(int(balance.total_nonfinancial_value)), style="bold green"),
+            "",
+            ""
+        )
+        total_assets = balance.total_financial_assets + int(balance.total_nonfinancial_value)
+        table.add_row(
+            Text("TOTAL ASSETS", style="bold green"),
+            Text(_format_currency(total_assets), style="bold green"),
+            "",
+            ""
+        )
     
     # Add visual separation before net worth
     table.add_row("", "", "", "", end_section=True)
@@ -176,25 +230,56 @@ def _display_simple_agent_balance(title: str, balance: AgentBalance) -> None:
     print(f"{'ASSETS':<25} {'Amount':>12} | {'LIABILITIES':<25} {'Amount':>12}")
     print("-" * 60)
     
-    # Get all asset and liability types, sorted
-    asset_types = sorted(balance.assets_by_kind.keys())
-    liability_types = sorted(balance.liabilities_by_kind.keys())
+    # Prepare asset and liability rows with special handling for deliverables
+    asset_rows = []
+    for asset_type in sorted(balance.assets_by_kind.keys()):
+        if asset_type == "deliverable":
+            # Handle deliverables separately - group by SKU
+            for sku, data in balance.nonfinancial_assets_by_kind.items():
+                name = _format_deliverable_name(sku, data['quantity'])
+                # Truncate long names for simple display
+                if len(name) > 24:
+                    name = name[:21] + "..."
+                amount = _format_deliverable_amount(data['value'])
+                asset_rows.append((name, amount))
+        else:
+            # Regular financial assets
+            name = asset_type
+            amount = _format_currency(balance.assets_by_kind[asset_type])
+            asset_rows.append((name, amount))
+    
+    liability_rows = []
+    for liability_type in sorted(balance.liabilities_by_kind.keys()):
+        if liability_type == "deliverable":
+            # For deliverable liabilities, just show the kind and amount
+            name = liability_type
+            amount = _format_currency(balance.liabilities_by_kind[liability_type])
+            liability_rows.append((name, amount))
+        else:
+            # Regular financial liabilities
+            name = liability_type
+            amount = _format_currency(balance.liabilities_by_kind[liability_type])
+            liability_rows.append((name, amount))
     
     # Determine the maximum number of rows needed
-    max_rows = max(len(asset_types), len(liability_types), 1)
+    max_rows = max(len(asset_rows), len(liability_rows), 1)
     
     for i in range(max_rows):
-        asset_name = asset_types[i] if i < len(asset_types) else ""
-        asset_amount = _format_currency(balance.assets_by_kind[asset_name]) if asset_name else ""
-        
-        liability_name = liability_types[i] if i < len(liability_types) else ""
-        liability_amount = _format_currency(balance.liabilities_by_kind[liability_name]) if liability_name else ""
+        asset_name, asset_amount = asset_rows[i] if i < len(asset_rows) else ("", "")
+        liability_name, liability_amount = liability_rows[i] if i < len(liability_rows) else ("", "")
         
         print(f"{asset_name:<25} {asset_amount:>12} | {liability_name:<25} {liability_amount:>12}")
     
     print("-" * 60)
     print(f"{'TOTAL FINANCIAL':<25} {_format_currency(balance.total_financial_assets):>12} | "
           f"{'TOTAL FINANCIAL':<25} {_format_currency(balance.total_financial_liabilities):>12}")
+    
+    # Add valued non-financial total if present
+    if balance.total_nonfinancial_value is not None and balance.total_nonfinancial_value > 0:
+        print(f"{'TOTAL VALUED DELIV.':<25} {_format_currency(int(balance.total_nonfinancial_value)):>12} | {'':>38}")
+        total_assets = balance.total_financial_assets + int(balance.total_nonfinancial_value)
+        print(f"{'TOTAL ASSETS':<25} {_format_currency(total_assets):>12} | {'':>38}")
+    
     print("-" * 60)
     print(f"{'':>39} | {'NET FINANCIAL':<25} {_format_currency(balance.net_financial, show_sign=True):>12}")
 
@@ -224,10 +309,24 @@ def _display_rich_multiple_agent_balances(
         # Add assets
         table.add_row(Text("ASSETS", style="bold green underline"), "")
         for asset_type in sorted(balance.assets_by_kind.keys()):
-            table.add_row(
-                Text(asset_type, style="green"),
-                Text(_format_currency(balance.assets_by_kind[asset_type]), style="green")
-            )
+            if asset_type == "deliverable":
+                # Handle deliverables separately - group by SKU
+                for sku, data in balance.nonfinancial_assets_by_kind.items():
+                    name = _format_deliverable_name(sku, data['quantity'])
+                    # Truncate very long names for narrow column
+                    if len(name) > 14:
+                        name = name[:11] + "..."
+                    amount = _format_deliverable_amount(data['value'])
+                    table.add_row(
+                        Text(name, style="green"),
+                        Text(amount, style="green")
+                    )
+            else:
+                # Regular financial assets
+                table.add_row(
+                    Text(asset_type, style="green"),
+                    Text(_format_currency(balance.assets_by_kind[asset_type]), style="green")
+                )
         
         table.add_row("", "", end_section=True)
         
@@ -245,6 +344,19 @@ def _display_rich_multiple_agent_balances(
             Text("Total Financial", style="bold green"),
             Text(_format_currency(balance.total_financial_assets), style="bold green")
         )
+        
+        # Add valued deliverables total if present
+        if balance.total_nonfinancial_value is not None and balance.total_nonfinancial_value > 0:
+            table.add_row(
+                Text("Total Valued", style="bold green"),
+                Text(_format_currency(int(balance.total_nonfinancial_value)), style="bold green")
+            )
+            total_assets = balance.total_financial_assets + int(balance.total_nonfinancial_value)
+            table.add_row(
+                Text("Total Assets", style="bold green"),
+                Text(_format_currency(total_assets), style="bold green")
+            )
+        
         table.add_row(
             Text("Total Liab.", style="bold red"),
             Text(_format_currency(balance.total_financial_liabilities), style="bold red")
@@ -298,10 +410,21 @@ def _display_simple_multiple_agent_balances(
         data.append(("ASSETS", ""))
         
         for asset_type in sorted(balance.assets_by_kind.keys()):
-            amount = _format_currency(balance.assets_by_kind[asset_type])
-            if len(asset_type + " " + amount) > col_width:
-                asset_type = asset_type[:col_width-len(amount)-4] + "..."
-            data.append((asset_type, amount))
+            if asset_type == "deliverable":
+                # Handle deliverables separately - group by SKU
+                for sku, asset_data in balance.nonfinancial_assets_by_kind.items():
+                    name = _format_deliverable_name(sku, asset_data['quantity'])
+                    amount = _format_deliverable_amount(asset_data['value'])
+                    if len(name + " " + amount) > col_width:
+                        name = name[:col_width-len(amount)-4] + "..."
+                    data.append((name, amount))
+            else:
+                # Regular financial assets
+                amount = _format_currency(balance.assets_by_kind[asset_type])
+                asset_name = asset_type
+                if len(asset_name + " " + amount) > col_width:
+                    asset_name = asset_name[:col_width-len(amount)-4] + "..."
+                data.append((asset_name, amount))
         
         data.append(("", ""))
         data.append(("LIABILITIES", ""))
@@ -314,6 +437,13 @@ def _display_simple_multiple_agent_balances(
         
         data.append(("", ""))
         data.append(("Total Financial", _format_currency(balance.total_financial_assets)))
+        
+        # Add valued deliverables total if present
+        if balance.total_nonfinancial_value is not None and balance.total_nonfinancial_value > 0:
+            data.append(("Total Valued", _format_currency(int(balance.total_nonfinancial_value))))
+            total_assets = balance.total_financial_assets + int(balance.total_nonfinancial_value)
+            data.append(("Total Assets", _format_currency(total_assets)))
+        
         data.append(("Total Liab.", _format_currency(balance.total_financial_liabilities)))
         data.append(("Net Financial", _format_currency(balance.net_financial, show_sign=True)))
         

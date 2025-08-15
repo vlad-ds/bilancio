@@ -33,7 +33,7 @@ def split(system, instr_id: str, amount: int) -> str:
         denom=instr.denom,
         asset_holder_id=instr.asset_holder_id,
         liability_issuer_id=instr.liability_issuer_id,
-        **{k: getattr(instr, k) for k in ("due_day","sku","divisible") if hasattr(instr, k)}
+        **{k: getattr(instr, k) for k in ("due_day","sku","divisible","unit_price") if hasattr(instr, k)}
     )
     system.add_contract(twin)  # attaches to holder/issuer lists too
     return twin_id
