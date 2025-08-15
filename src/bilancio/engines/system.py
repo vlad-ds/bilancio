@@ -76,6 +76,11 @@ class System:
     def bootstrap_cb(self, cb: Agent) -> None:
         self.add_agent(cb)
         self.log("BootstrapCB", cb_id=cb.id)
+    
+    def add_agents(self, agents: list[Agent]) -> None:
+        """Add multiple agents to the system at once."""
+        for agent in agents:
+            self.add_agent(agent)
 
     # ---- cash operations
     def mint_cash(self, to_agent_id: AgentId, amount: int, denom="X") -> str:
