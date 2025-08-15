@@ -280,7 +280,7 @@ class System:
         return sum(self.state.contracts[cid].amount for cid in self.deposit_ids(customer_id, bank_id))
 
     # ---- deliverable operations
-    def create_deliverable(self, issuer_id: AgentId, holder_id: AgentId, sku: str, quantity: int, divisible: bool=True, denom="N/A", unit_price: Decimal | None = None) -> str:
+    def create_deliverable(self, issuer_id: AgentId, holder_id: AgentId, sku: str, quantity: int, unit_price: Decimal, divisible: bool=True, denom="N/A") -> str:
         instr_id = self.new_contract_id("N")
         d = Deliverable(
             id=instr_id, kind="deliverable", amount=quantity, denom=denom,
@@ -292,17 +292,20 @@ class System:
             self.log("DeliverableCreated", issuer=issuer_id, holder=holder_id, sku=sku, qty=quantity, instr_id=instr_id)
         return instr_id
 
-    def update_deliverable_price(self, instr_id: InstrId, unit_price: Decimal | None) -> None:
+    def update_deliverable_price(self, instr_id: InstrId, unit_price: Decimal) -> None:
         """
         Update the unit price of an existing deliverable.
         
         Args:
             instr_id: The ID of the deliverable to update
-            unit_price: The new unit price, or None to clear the price
+            unit_price: The new unit price (must be non-negative)
             
         Raises:
-            ValidationError: If the instrument doesn't exist or is not a deliverable
+            ValidationError: If the instrument doesn't exist, is not a deliverable, or price is negative
         """
+        if unit_price < 0:
+            raise ValidationError("unit_price must be non-negative")
+            
         try:
             instr = self.state.contracts[instr_id]
         except KeyError:

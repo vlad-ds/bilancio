@@ -1,4 +1,5 @@
 import pytest
+from decimal import Decimal
 from bilancio.engines.system import System
 from bilancio.domain.agents.central_bank import CentralBank
 from bilancio.domain.agents.bank import Bank
@@ -94,8 +95,8 @@ def test_create_and_transfer_divisible_deliverable():
     sys.add_agent(h1)
     sys.add_agent(h2)
     
-    # Create divisible widgets
-    widget_id = sys.create_deliverable("H1", "H1", "WIDGET", 10, divisible=True)
+    # Create divisible widgets (with price of 0 since we're just testing transfers)
+    widget_id = sys.create_deliverable("H1", "H1", "WIDGET", 10, Decimal("0"), divisible=True)
     
     # Check creation
     widget = sys.state.contracts[widget_id]
@@ -142,7 +143,7 @@ def test_indivisible_deliverable():
     sys.add_agent(h2)
     
     # Create indivisible item with quantity > 1 to test partial transfer
-    item_id = sys.create_deliverable("H1", "H1", "MACHINE", 5, divisible=False)
+    item_id = sys.create_deliverable("H1", "H1", "MACHINE", 5, Decimal("0"), divisible=False)
     
     # Partial transfer should fail
     with pytest.raises(ValidationError, match="indivisible"):
@@ -204,7 +205,7 @@ def test_deliverable_holder_mismatch():
     sys.add_agent(h3)
     
     # Create deliverable for H1
-    widget_id = sys.create_deliverable("H1", "H1", "WIDGET", 5)
+    widget_id = sys.create_deliverable("H1", "H1", "WIDGET", 5, Decimal("0"))
     
     # H2 cannot transfer H1's widget
     with pytest.raises(ValidationError, match="holder mismatch"):

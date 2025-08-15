@@ -32,25 +32,26 @@ def test_create_deliverable_with_unit_price():
     assert widget.valued_amount == Decimal("55.00")
 
 
-def test_create_deliverable_without_unit_price():
-    """Test creating a deliverable without a unit price (backward compatibility)."""
+def test_create_deliverable_with_zero_price():
+    """Test creating a deliverable with zero price."""
     sys = System()
     h1 = Household(id="H1", name="H1", kind="household")
     sys.add_agent(h1)
     
-    # Create deliverable without unit price
+    # Create deliverable with zero price
     widget_id = sys.create_deliverable(
         issuer_id="H1",
         holder_id="H1",
         sku="WIDGET", 
-        quantity=10
+        quantity=10,
+        unit_price=Decimal("0")
     )
     
     # Check the deliverable
     widget = sys.state.contracts[widget_id]
     assert widget.amount == 10
-    assert widget.unit_price is None
-    assert widget.valued_amount is None
+    assert widget.unit_price == Decimal("0")
+    assert widget.valued_amount == Decimal("0")
 
 
 def test_update_deliverable_price():
@@ -59,17 +60,18 @@ def test_update_deliverable_price():
     h1 = Household(id="H1", name="H1", kind="household")
     sys.add_agent(h1)
     
-    # Create deliverable without price
+    # Create deliverable with initial price
     widget_id = sys.create_deliverable(
         issuer_id="H1",
         holder_id="H1",
         sku="WIDGET",
-        quantity=10
+        quantity=10,
+        unit_price=Decimal("5.00")
     )
     
     widget = sys.state.contracts[widget_id]
-    assert widget.unit_price is None
-    assert widget.valued_amount is None
+    assert widget.unit_price == Decimal("5.00")
+    assert widget.valued_amount == Decimal("50.00")
     
     # Update price
     sys.update_deliverable_price(widget_id, Decimal("7.25"))
@@ -79,13 +81,13 @@ def test_update_deliverable_price():
     assert widget.unit_price == Decimal("7.25")
     assert widget.valued_amount == Decimal("72.50")
     
-    # Clear price
-    sys.update_deliverable_price(widget_id, None)
+    # Update to zero price
+    sys.update_deliverable_price(widget_id, Decimal("0"))
     
-    # Check cleared price
+    # Check zero price
     widget = sys.state.contracts[widget_id]
-    assert widget.unit_price is None
-    assert widget.valued_amount is None
+    assert widget.unit_price == Decimal("0")
+    assert widget.valued_amount == Decimal("0")
 
 
 def test_update_deliverable_price_errors():
@@ -131,12 +133,13 @@ def test_agent_balance_with_valued_deliverables():
         unit_price=Decimal("3.50")
     )
     
-    # Create unvalued deliverable (household has unpriced service)
+    # Create zero-priced deliverable (household has free service)
     sys.create_deliverable(
         issuer_id="T1",
         holder_id="H1",
         sku="SERVICE",
-        quantity=5
+        quantity=5,
+        unit_price=Decimal("0")
     )
     
     # Check household balance
@@ -152,7 +155,7 @@ def test_agent_balance_with_valued_deliverables():
     
     assert "SERVICE" in balance.nonfinancial_assets_by_kind
     assert balance.nonfinancial_assets_by_kind["SERVICE"]["quantity"] == 5
-    assert balance.nonfinancial_assets_by_kind["SERVICE"]["value"] is None
+    assert balance.nonfinancial_assets_by_kind["SERVICE"]["value"] == Decimal("0")
 
 
 def test_system_trial_balance_with_valued_deliverables():
@@ -182,12 +185,13 @@ def test_system_trial_balance_with_valued_deliverables():
         unit_price=Decimal("25.00")
     )
     
-    # Create unvalued deliverable
+    # Create zero-priced deliverable
     sys.create_deliverable(
         issuer_id="H1",
         holder_id="H2",
         sku="UNPRICED",
-        quantity=100
+        quantity=100,
+        unit_price=Decimal("0")
     )
     
     # Check system trial balance
@@ -207,7 +211,7 @@ def test_system_trial_balance_with_valued_deliverables():
     
     assert "UNPRICED" in trial_balance.nonfinancial_assets_by_kind
     assert trial_balance.nonfinancial_assets_by_kind["UNPRICED"]["quantity"] == 100
-    assert trial_balance.nonfinancial_assets_by_kind["UNPRICED"]["value"] is None
+    assert trial_balance.nonfinancial_assets_by_kind["UNPRICED"]["value"] == Decimal("0")
 
 
 def test_transfer_deliverable_preserves_unit_price():
@@ -244,34 +248,10 @@ def test_transfer_deliverable_preserves_unit_price():
     assert transferred.valued_amount == Decimal("15.00")
 
 
-def test_deliverable_with_zero_price():
-    """Test deliverable with zero unit price."""
-    sys = System()
-    h1 = Household(id="H1", name="H1", kind="household")
-    sys.add_agent(h1)
-    
-    # Create deliverable with zero price (free item)
-    free_id = sys.create_deliverable(
-        issuer_id="H1",
-        holder_id="H1",
-        sku="FREE_SAMPLE",
-        quantity=100,
-        unit_price=Decimal("0")
-    )
-    
-    # Check the deliverable
-    free_item = sys.state.contracts[free_id]
-    assert free_item.amount == 100
-    assert free_item.unit_price == Decimal("0")
-    assert free_item.valued_amount == Decimal("0")
-    
-    # Check balance shows zero value
-    balance = agent_balance(sys, "H1")
-    assert balance.total_nonfinancial_value == Decimal("0")
 
 
-def test_mixed_valued_and_unvalued_deliverables():
-    """Test system with mix of valued and unvalued deliverables."""
+def test_mixed_valued_and_zero_priced_deliverables():
+    """Test system with mix of valued and zero-priced deliverables."""
     sys = System()
     h1 = Household(id="H1", name="H1", kind="household")
     sys.add_agent(h1)
@@ -284,7 +264,7 @@ def test_mixed_valued_and_unvalued_deliverables():
     
     sys.create_deliverable(
         issuer_id="H1", holder_id="H1",
-        sku="UNPRICED", quantity=20
+        sku="ZERO_PRICED", quantity=20, unit_price=Decimal("0")
     )
     
     sys.create_deliverable(
@@ -300,13 +280,13 @@ def test_mixed_valued_and_unvalued_deliverables():
     # Check balance
     balance = agent_balance(sys, "H1")
     
-    # Total should only include priced items (not free or unpriced)
-    expected_value = Decimal("50") + Decimal("46.50")  # PRICED_A + PRICED_B
+    # Total should include all items (zero-priced contribute 0)
+    expected_value = Decimal("50") + Decimal("0") + Decimal("46.50") + Decimal("0")
     assert balance.total_nonfinancial_value == expected_value
     
     # Check individual items
     assert len(balance.nonfinancial_assets_by_kind) == 4
     assert balance.nonfinancial_assets_by_kind["PRICED_A"]["value"] == Decimal("50")
-    assert balance.nonfinancial_assets_by_kind["UNPRICED"]["value"] is None
+    assert balance.nonfinancial_assets_by_kind["ZERO_PRICED"]["value"] == Decimal("0")
     assert balance.nonfinancial_assets_by_kind["PRICED_B"]["value"] == Decimal("46.50")
     assert balance.nonfinancial_assets_by_kind["FREE"]["value"] == Decimal("0")

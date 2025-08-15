@@ -33,10 +33,8 @@ def _format_deliverable_name(sku: str, quantity: int) -> str:
     return f"deliverable ({sku}) [{quantity} unit{'s' if quantity != 1 else ''}]"
 
 
-def _format_deliverable_amount(valued_amount: Decimal | None) -> str:
-    """Format deliverable monetary value or return dash for unvalued."""
-    if valued_amount is None or valued_amount == 0:
-        return "-"
+def _format_deliverable_amount(valued_amount: Decimal) -> str:
+    """Format deliverable monetary value."""
     # Convert Decimal to int for currency formatting (assuming cents precision)
     return _format_currency(int(valued_amount))
 

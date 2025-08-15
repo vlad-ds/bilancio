@@ -1,4 +1,5 @@
 """Tests for balance analysis functionality."""
+from decimal import Decimal
 
 import pytest
 
@@ -56,7 +57,7 @@ class TestAgentBalance:
         system.mint_cash("HH01", 1000)
         
         # Create deliverable (non-financial)
-        system.create_deliverable("HH01", "HH02", "APPLES", 50)
+        system.create_deliverable("HH01", "HH02", "APPLES", 50, Decimal("0"))
         
         # Check HH01 balance (has financial assets, non-financial liabilities)
         hh1_balance = agent_balance(system, "HH01")
@@ -107,7 +108,7 @@ class TestSystemTrialBalance:
         
         # Create mixed instruments
         system.mint_cash("HH01", 1000)
-        system.create_deliverable("HH01", "HH02", "APPLES", 50)
+        system.create_deliverable("HH01", "HH02", "APPLES", 50, Decimal("0"))
         
         trial = system_trial_balance(system)
         assert trial.total_financial_assets == trial.total_financial_liabilities == 1000

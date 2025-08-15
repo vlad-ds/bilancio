@@ -1,4 +1,5 @@
 import pytest
+from decimal import Decimal
 from bilancio.engines.system import System
 from bilancio.domain.agents.household import Household
 from bilancio.domain.agents.central_bank import CentralBank
@@ -21,7 +22,7 @@ def test_settle_deliverable_obligation():
         holder_id="BUYER",   # Buyer has claim to receive
         sku="CHAIR",
         quantity=10,
-        divisible=False
+        unit_price=Decimal("0"), divisible=False
     )
     
     # Verify the obligation exists
@@ -96,7 +97,7 @@ def test_settle_contract_not_in_holder_assets_fails():
     sys.add_agent(h2)
     
     # Create a deliverable
-    d_id = sys.create_deliverable("H1", "H2", "ITEM", 1)
+    d_id = sys.create_deliverable("H1", "H2", "ITEM", 1, Decimal("0"))
     
     # Manually corrupt the data by removing from holder's assets
     h2.asset_ids.remove(d_id)
@@ -115,7 +116,7 @@ def test_settle_contract_not_in_issuer_liabilities_fails():
     sys.add_agent(h2)
     
     # Create a deliverable
-    d_id = sys.create_deliverable("H1", "H2", "ITEM", 1)
+    d_id = sys.create_deliverable("H1", "H2", "ITEM", 1, Decimal("0"))
     
     # Manually corrupt the data by removing from issuer's liabilities
     h1.liability_ids.remove(d_id)
@@ -134,7 +135,7 @@ def test_settle_obligation_is_atomic():
     sys.add_agent(h2)
     
     # Create a deliverable
-    d_id = sys.create_deliverable("H1", "H2", "ITEM", 5)
+    d_id = sys.create_deliverable("H1", "H2", "ITEM", 5, Decimal("0"))
     
     # Corrupt data to force failure partway through
     original_assets = h2.asset_ids.copy()
@@ -168,7 +169,7 @@ def test_settle_obligation_logs_event():
     sys.add_agent(h2)
     
     # Create a deliverable
-    d_id = sys.create_deliverable("H1", "H2", "WIDGET", 3)
+    d_id = sys.create_deliverable("H1", "H2", "WIDGET", 3, Decimal("0"))
     
     # Clear existing events to make test cleaner
     sys.state.events.clear()
@@ -207,6 +208,7 @@ def test_complete_chair_transaction_with_settlement():
         holder_id="ME",   # Buyer has claim to receive
         sku="CHAIR",
         quantity=10,
+        unit_price=Decimal("0"),  # Test uses zero price
         divisible=False
     )
     
@@ -250,9 +252,9 @@ def test_settle_multiple_obligations():
     sys.add_agent(h3)
     
     # Create multiple obligations
-    d1 = sys.create_deliverable("H1", "H2", "ITEM1", 5)
-    d2 = sys.create_deliverable("H2", "H3", "ITEM2", 3)
-    d3 = sys.create_deliverable("H1", "H3", "ITEM3", 7)
+    d1 = sys.create_deliverable("H1", "H2", "ITEM1", 5, Decimal("0"))
+    d2 = sys.create_deliverable("H2", "H3", "ITEM2", 3, Decimal("0"))
+    d3 = sys.create_deliverable("H1", "H3", "ITEM3", 7, Decimal("0"))
     
     # Settle them one by one
     sys.settle_obligation(d1)
