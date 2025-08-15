@@ -280,12 +280,12 @@ class System:
         return sum(self.state.contracts[cid].amount for cid in self.deposit_ids(customer_id, bank_id))
 
     # ---- deliverable operations
-    def create_deliverable(self, issuer_id: AgentId, holder_id: AgentId, sku: str, quantity: int, unit_price: Decimal, divisible: bool=True, denom="N/A") -> str:
+    def create_deliverable(self, issuer_id: AgentId, holder_id: AgentId, sku: str, quantity: int, unit_price: Decimal, divisible: bool=True, denom="N/A", due_day: int | None = None) -> str:
         instr_id = self.new_contract_id("N")
         d = Deliverable(
             id=instr_id, kind="deliverable", amount=quantity, denom=denom,
             asset_holder_id=holder_id, liability_issuer_id=issuer_id,
-            sku=sku, divisible=divisible, unit_price=unit_price
+            sku=sku, divisible=divisible, unit_price=unit_price, due_day=due_day
         )
         with atomic(self):
             self.add_contract(d)
