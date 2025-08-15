@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from decimal import Decimal
 
 from bilancio.core.atomic_tx import atomic
 from bilancio.core.errors import ValidationError
@@ -279,17 +280,48 @@ class System:
         return sum(self.state.contracts[cid].amount for cid in self.deposit_ids(customer_id, bank_id))
 
     # ---- deliverable operations
-    def create_deliverable(self, issuer_id: AgentId, holder_id: AgentId, sku: str, quantity: int, divisible: bool=True, denom="N/A") -> str:
+    def create_deliverable(self, issuer_id: AgentId, holder_id: AgentId, sku: str, quantity: int, unit_price: Decimal, divisible: bool=True, denom="N/A") -> str:
         instr_id = self.new_contract_id("N")
         d = Deliverable(
             id=instr_id, kind="deliverable", amount=quantity, denom=denom,
             asset_holder_id=holder_id, liability_issuer_id=issuer_id,
-            sku=sku, divisible=divisible
+            sku=sku, divisible=divisible, unit_price=unit_price
         )
         with atomic(self):
             self.add_contract(d)
             self.log("DeliverableCreated", issuer=issuer_id, holder=holder_id, sku=sku, qty=quantity, instr_id=instr_id)
         return instr_id
+
+    def update_deliverable_price(self, instr_id: InstrId, unit_price: Decimal) -> None:
+        """
+        Update the unit price of an existing deliverable.
+        
+        Args:
+            instr_id: The ID of the deliverable to update
+            unit_price: The new unit price (must be non-negative)
+            
+        Raises:
+            ValidationError: If the instrument doesn't exist, is not a deliverable, or price is negative
+        """
+        if unit_price < 0:
+            raise ValidationError("unit_price must be non-negative")
+            
+        try:
+            instr = self.state.contracts[instr_id]
+        except KeyError:
+            raise ValidationError("instrument not found")
+        
+        if instr.kind != "deliverable":
+            raise ValidationError("not a deliverable")
+        
+        with atomic(self):
+            old_price = instr.unit_price
+            instr.unit_price = unit_price
+            self.log("DeliverablePriceUpdated", 
+                    instr_id=instr_id, 
+                    sku=getattr(instr, "sku", "GENERIC"),
+                    old_price=old_price, 
+                    new_price=unit_price)
 
     def transfer_deliverable(self, instr_id: InstrId, from_agent_id: AgentId, to_agent_id: AgentId, quantity: int | None=None) -> str:
         instr = self.state.contracts[instr_id]

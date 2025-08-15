@@ -1,4 +1,5 @@
 """Comprehensive tests for the balance analytics module."""
+from decimal import Decimal
 
 import pytest
 
@@ -202,7 +203,7 @@ class TestBalanceAnalytics:
         deposit_cash(system, "HH02", "BK02", 800)
         
         # 4. Create some non-financial instruments
-        system.create_deliverable("HH01", "HH02", "WIDGETS", 25)
+        system.create_deliverable("HH01", "HH02", "WIDGETS", 25, Decimal("0"))
         
         # Verify system-wide balance
         trial = system_trial_balance(system)

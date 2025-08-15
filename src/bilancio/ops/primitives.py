@@ -6,7 +6,16 @@ from bilancio.domain.instruments.base import Instrument
 
 def fungible_key(instr: Instrument) -> tuple:
     # Same type, denomination, issuer, holder → can merge
-    return (instr.kind, instr.denom, instr.liability_issuer_id, instr.asset_holder_id)
+    # For deliverables, also include SKU and unit_price to prevent incorrect merging
+    base_key = (instr.kind, instr.denom, instr.liability_issuer_id, instr.asset_holder_id)
+    
+    # Add deliverable-specific attributes to prevent merging different SKUs or prices
+    if instr.kind == "deliverable":
+        sku = getattr(instr, "sku", None)
+        unit_price = getattr(instr, "unit_price", None)
+        return base_key + (sku, unit_price)
+    
+    return base_key
 
 def is_divisible(instr: Instrument) -> bool:
     # Cash and bank deposits are divisible; deliverables depend on flag
@@ -33,7 +42,7 @@ def split(system, instr_id: str, amount: int) -> str:
         denom=instr.denom,
         asset_holder_id=instr.asset_holder_id,
         liability_issuer_id=instr.liability_issuer_id,
-        **{k: getattr(instr, k) for k in ("due_day","sku","divisible") if hasattr(instr, k)}
+        **{k: getattr(instr, k) for k in ("due_day","sku","divisible","unit_price") if hasattr(instr, k)}
     )
     system.add_contract(twin)  # attaches to holder/issuer lists too
     return twin_id
