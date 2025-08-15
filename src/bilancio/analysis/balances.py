@@ -21,6 +21,8 @@ class AgentBalance:
     net_financial: int
     nonfinancial_assets_by_kind: Dict[str, Dict[str, any]]
     total_nonfinancial_value: Decimal
+    nonfinancial_liabilities_by_kind: Dict[str, Dict[str, any]]
+    total_nonfinancial_liability_value: Decimal
 
 
 @dataclass
@@ -32,6 +34,8 @@ class TrialBalance:
     total_financial_liabilities: int
     nonfinancial_assets_by_kind: Dict[str, Dict[str, any]]
     total_nonfinancial_value: Decimal
+    nonfinancial_liabilities_by_kind: Dict[str, Dict[str, any]]
+    total_nonfinancial_liability_value: Decimal
 
 
 def agent_balance(system: System, agent_id: str) -> AgentBalance:
@@ -52,6 +56,8 @@ def agent_balance(system: System, agent_id: str) -> AgentBalance:
     total_financial_liabilities = 0
     nonfinancial_assets_by_kind = defaultdict(lambda: {'quantity': 0, 'value': Decimal('0')})
     total_nonfinancial_value = Decimal('0')
+    nonfinancial_liabilities_by_kind = defaultdict(lambda: {'quantity': 0, 'value': Decimal('0')})
+    total_nonfinancial_liability_value = Decimal('0')
     
     # Sum up assets
     for contract_id in agent.asset_ids:
@@ -81,6 +87,15 @@ def agent_balance(system: System, agent_id: str) -> AgentBalance:
         is_financial_func = getattr(contract, 'is_financial', lambda: True)
         if is_financial_func():
             total_financial_liabilities += contract.amount
+        else:
+            # Track non-financial liabilities with quantity and value
+            sku = getattr(contract, 'sku', contract.kind)
+            nonfinancial_liabilities_by_kind[sku]['quantity'] += contract.amount
+            
+            # Calculate value (always available now)
+            valued_amount = getattr(contract, 'valued_amount', Decimal('0'))
+            nonfinancial_liabilities_by_kind[sku]['value'] += valued_amount
+            total_nonfinancial_liability_value += valued_amount
     
     net_financial = total_financial_assets - total_financial_liabilities
     
@@ -92,7 +107,9 @@ def agent_balance(system: System, agent_id: str) -> AgentBalance:
         total_financial_liabilities=total_financial_liabilities,
         net_financial=net_financial,
         nonfinancial_assets_by_kind=dict(nonfinancial_assets_by_kind),
-        total_nonfinancial_value=total_nonfinancial_value
+        total_nonfinancial_value=total_nonfinancial_value,
+        nonfinancial_liabilities_by_kind=dict(nonfinancial_liabilities_by_kind),
+        total_nonfinancial_liability_value=total_nonfinancial_liability_value
     )
 
 
@@ -111,6 +128,8 @@ def system_trial_balance(system: System) -> TrialBalance:
     total_financial_liabilities = 0
     nonfinancial_assets_by_kind = defaultdict(lambda: {'quantity': 0, 'value': Decimal('0')})
     total_nonfinancial_value = Decimal('0')
+    nonfinancial_liabilities_by_kind = defaultdict(lambda: {'quantity': 0, 'value': Decimal('0')})
+    total_nonfinancial_liability_value = Decimal('0')
     
     # Walk all contracts once and sum by kind for both sides
     for contract in system.state.contracts.values():
@@ -141,7 +160,9 @@ def system_trial_balance(system: System) -> TrialBalance:
         total_financial_assets=total_financial_assets,
         total_financial_liabilities=total_financial_liabilities,
         nonfinancial_assets_by_kind=dict(nonfinancial_assets_by_kind),
-        total_nonfinancial_value=total_nonfinancial_value
+        total_nonfinancial_value=total_nonfinancial_value,
+        nonfinancial_liabilities_by_kind=dict(nonfinancial_liabilities_by_kind),
+        total_nonfinancial_liability_value=total_nonfinancial_liability_value
     )
 
 

@@ -161,10 +161,14 @@ def _display_rich_agent_balance(title: str, balance: AgentBalance) -> None:
     liability_rows = []
     for liability_type in sorted(balance.liabilities_by_kind.keys()):
         if liability_type == "deliverable":
-            # For deliverable liabilities, just show the kind and amount
-            name = liability_type
-            amount = _format_currency(balance.liabilities_by_kind[liability_type])
-            liability_rows.append((name, amount))
+            # Handle deliverable liabilities - show by SKU with value
+            for sku, data in balance.nonfinancial_liabilities_by_kind.items():
+                name = _format_deliverable_name(sku, data['quantity'])
+                # Truncate long names for display
+                if len(name) > 29:
+                    name = name[:26] + "..."
+                amount = _format_deliverable_amount(data['value'])
+                liability_rows.append((name, amount))
         else:
             # Regular financial liabilities
             name = liability_type
@@ -249,10 +253,14 @@ def _display_simple_agent_balance(title: str, balance: AgentBalance) -> None:
     liability_rows = []
     for liability_type in sorted(balance.liabilities_by_kind.keys()):
         if liability_type == "deliverable":
-            # For deliverable liabilities, just show the kind and amount
-            name = liability_type
-            amount = _format_currency(balance.liabilities_by_kind[liability_type])
-            liability_rows.append((name, amount))
+            # Handle deliverable liabilities - show by SKU with value
+            for sku, data in balance.nonfinancial_liabilities_by_kind.items():
+                name = _format_deliverable_name(sku, data['quantity'])
+                # Truncate long names for display
+                if len(name) > 29:
+                    name = name[:26] + "..."
+                amount = _format_deliverable_amount(data['value'])
+                liability_rows.append((name, amount))
         else:
             # Regular financial liabilities
             name = liability_type
@@ -331,10 +339,24 @@ def _display_rich_multiple_agent_balances(
         # Add liabilities
         table.add_row(Text("LIABILITIES", style="bold red underline"), "")
         for liability_type in sorted(balance.liabilities_by_kind.keys()):
-            table.add_row(
-                Text(liability_type, style="red"),
-                Text(_format_currency(balance.liabilities_by_kind[liability_type]), style="red")
-            )
+            if liability_type == "deliverable":
+                # Handle deliverable liabilities - show by SKU with value
+                for sku, data in balance.nonfinancial_liabilities_by_kind.items():
+                    name = _format_deliverable_name(sku, data['quantity'])
+                    # Truncate very long names for narrow column
+                    if len(name) > 14:
+                        name = name[:11] + "..."
+                    amount = _format_deliverable_amount(data['value'])
+                    table.add_row(
+                        Text(name, style="red"),
+                        Text(amount, style="red")
+                    )
+            else:
+                # Regular financial liabilities
+                table.add_row(
+                    Text(liability_type, style="red"),
+                    Text(_format_currency(balance.liabilities_by_kind[liability_type]), style="red")
+                )
         
         # Add totals and net worth
         table.add_row("", "", end_section=True)
@@ -355,10 +377,26 @@ def _display_rich_multiple_agent_balances(
                 Text(_format_currency(total_assets), style="bold green")
             )
         
-        table.add_row(
-            Text("Total Liab.", style="bold red"),
-            Text(_format_currency(balance.total_financial_liabilities), style="bold red")
-        )
+        # Add total liabilities (financial + valued non-financial)
+        if balance.total_nonfinancial_liability_value is not None and balance.total_nonfinancial_liability_value > 0:
+            table.add_row(
+                Text("Total Fin. Liab.", style="bold red"),
+                Text(_format_currency(balance.total_financial_liabilities), style="bold red")
+            )
+            table.add_row(
+                Text("Total Valued Liab.", style="bold red"),
+                Text(_format_currency(int(balance.total_nonfinancial_liability_value)), style="bold red")
+            )
+            total_liab = balance.total_financial_liabilities + int(balance.total_nonfinancial_liability_value)
+            table.add_row(
+                Text("Total Liab.", style="bold red"),
+                Text(_format_currency(total_liab), style="bold red")
+            )
+        else:
+            table.add_row(
+                Text("Total Liab.", style="bold red"),
+                Text(_format_currency(balance.total_financial_liabilities), style="bold red")
+            )
         
         net_worth_style = "bold green" if balance.net_financial >= 0 else "bold red"
         table.add_row(
@@ -428,10 +466,21 @@ def _display_simple_multiple_agent_balances(
         data.append(("LIABILITIES", ""))
         
         for liability_type in sorted(balance.liabilities_by_kind.keys()):
-            amount = _format_currency(balance.liabilities_by_kind[liability_type])
-            if len(liability_type + " " + amount) > col_width:
-                liability_type = liability_type[:col_width-len(amount)-4] + "..."
-            data.append((liability_type, amount))
+            if liability_type == "deliverable":
+                # Handle deliverable liabilities - show by SKU with value
+                for sku, liability_data in balance.nonfinancial_liabilities_by_kind.items():
+                    name = _format_deliverable_name(sku, liability_data['quantity'])
+                    amount = _format_deliverable_amount(liability_data['value'])
+                    if len(name + " " + amount) > col_width:
+                        name = name[:col_width-len(amount)-4] + "..."
+                    data.append((name, amount))
+            else:
+                # Regular financial liabilities
+                amount = _format_currency(balance.liabilities_by_kind[liability_type])
+                liability_name = liability_type
+                if len(liability_name + " " + amount) > col_width:
+                    liability_name = liability_name[:col_width-len(amount)-4] + "..."
+                data.append((liability_name, amount))
         
         data.append(("", ""))
         data.append(("Total Financial", _format_currency(balance.total_financial_assets)))
@@ -442,7 +491,13 @@ def _display_simple_multiple_agent_balances(
             total_assets = balance.total_financial_assets + int(balance.total_nonfinancial_value)
             data.append(("Total Assets", _format_currency(total_assets)))
         
-        data.append(("Total Liab.", _format_currency(balance.total_financial_liabilities)))
+        # Add total liabilities
+        if balance.total_nonfinancial_liability_value is not None and balance.total_nonfinancial_liability_value > 0:
+            data.append(("Total Valued Liab.", _format_currency(int(balance.total_nonfinancial_liability_value))))
+            total_liab = balance.total_financial_liabilities + int(balance.total_nonfinancial_liability_value)
+            data.append(("Total Liab.", _format_currency(total_liab)))
+        else:
+            data.append(("Total Liab.", _format_currency(balance.total_financial_liabilities)))
         data.append(("Net Financial", _format_currency(balance.net_financial, show_sign=True)))
         
         balance_data.append(data)
