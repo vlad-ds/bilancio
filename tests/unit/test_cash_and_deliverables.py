@@ -88,54 +88,53 @@ def test_transfer_cash_with_split_and_merge():
     sys.assert_invariants()
 
 def test_create_and_transfer_divisible_deliverable():
-    """Test creating and transferring divisible deliverables."""
+    """Test creating and transferring divisible stock lots."""
     sys = System()
     h1 = Household(id="H1", name="H1", kind="household")
     h2 = Household(id="H2", name="H2", kind="household")
     sys.add_agent(h1)
     sys.add_agent(h2)
     
-    # Create divisible widgets (with price of 0 since we're just testing transfers)
-    widget_id = sys.create_deliverable("H1", "H1", "WIDGET", 10, Decimal("0"), divisible=True)
+    # Create divisible widgets stock
+    widget_id = sys.create_stock("H1", "WIDGET", 10, Decimal("0"), divisible=True)
     
     # Check creation
-    widget = sys.state.contracts[widget_id]
-    assert widget.amount == 10
+    widget = sys.state.stocks[widget_id]
+    assert widget.quantity == 10
     assert widget.sku == "WIDGET"
     assert widget.divisible == True
-    assert widget.asset_holder_id == "H1"
-    assert widget.liability_issuer_id == "H1"
+    assert widget.owner_id == "H1"
     
     # Transfer 3 widgets to H2
-    transferred_id = sys.transfer_deliverable(widget_id, "H1", "H2", quantity=3)
+    transferred_id = sys.transfer_stock(widget_id, "H1", "H2", quantity=3)
     
     # H1 should keep 7, H2 should have 3
-    original = sys.state.contracts[widget_id]
-    transferred = sys.state.contracts[transferred_id]
-    assert original.amount == 7
-    assert transferred.amount == 3
-    assert transferred.asset_holder_id == "H2"
+    original = sys.state.stocks[widget_id]
+    transferred = sys.state.stocks[transferred_id]
+    assert original.quantity == 7
+    assert transferred.quantity == 3
+    assert transferred.owner_id == "H2"
     
     # Full transfer of remaining
-    sys.transfer_deliverable(widget_id, "H1", "H2")
+    sys.transfer_stock(widget_id, "H1", "H2")
     
     # H1 should have none, H2 should have all
-    h1_widgets = [cid for cid in h1.asset_ids 
-                  if sys.state.contracts.get(cid) and 
-                  sys.state.contracts[cid].kind == "deliverable"]
+    h1_widgets = [sid for sid in sys.state.stocks.keys() 
+                  if sys.state.stocks[sid].owner_id == "H1" and 
+                  sys.state.stocks[sid].sku == "WIDGET"]
     assert len(h1_widgets) == 0
     
     h2_widget_total = sum(
-        sys.state.contracts[cid].amount 
-        for cid in h2.asset_ids 
-        if sys.state.contracts[cid].kind == "deliverable"
+        sys.state.stocks[sid].quantity 
+        for sid in sys.state.stocks.keys() 
+        if sys.state.stocks[sid].owner_id == "H2" and sys.state.stocks[sid].sku == "WIDGET"
     )
     assert h2_widget_total == 10
     
     sys.assert_invariants()
 
 def test_indivisible_deliverable():
-    """Test that indivisible deliverables cannot be partially transferred."""
+    """Test that indivisible stock lots cannot be partially transferred."""
     sys = System()
     h1 = Household(id="H1", name="H1", kind="household")
     h2 = Household(id="H2", name="H2", kind="household")
@@ -143,23 +142,18 @@ def test_indivisible_deliverable():
     sys.add_agent(h2)
     
     # Create indivisible item with quantity > 1 to test partial transfer
-    item_id = sys.create_deliverable("H1", "H1", "MACHINE", 5, Decimal("0"), divisible=False)
+    item_id = sys.create_stock("H1", "MACHINE", 5, Decimal("0"), divisible=False)
     
     # Partial transfer should fail
-    with pytest.raises(ValidationError, match="indivisible"):
-        sys.transfer_deliverable(item_id, "H1", "H2", quantity=3)
+    with pytest.raises(ValidationError, match="not divisible"):
+        sys.transfer_stock(item_id, "H1", "H2", quantity=3)
     
     # Full transfer should work (quantity=None means full transfer)
-    sys.transfer_deliverable(item_id, "H1", "H2")
+    sys.transfer_stock(item_id, "H1", "H2")
     
     # Item should now belong to H2
-    item = sys.state.contracts[item_id]
-    assert item.asset_holder_id == "H2"
-    # Get agents from system state
-    h1_from_sys = sys.state.agents["H1"]
-    h2_from_sys = sys.state.agents["H2"]
-    assert item_id in h2_from_sys.asset_ids
-    assert item_id not in h1_from_sys.asset_ids
+    item = sys.state.stocks[item_id]
+    assert item.owner_id == "H2"
     
     sys.assert_invariants()
 
@@ -195,7 +189,7 @@ def test_insufficient_cash_errors():
     sys.assert_invariants()
 
 def test_deliverable_holder_mismatch():
-    """Test error when trying to transfer deliverable from wrong holder."""
+    """Test error when trying to transfer stock from wrong owner."""
     sys = System()
     h1 = Household(id="H1", name="H1", kind="household")
     h2 = Household(id="H2", name="H2", kind="household")
@@ -204,12 +198,12 @@ def test_deliverable_holder_mismatch():
     sys.add_agent(h2)
     sys.add_agent(h3)
     
-    # Create deliverable for H1
-    widget_id = sys.create_deliverable("H1", "H1", "WIDGET", 5, Decimal("0"))
+    # Create stock for H1
+    widget_id = sys.create_stock("H1", "WIDGET", 5, Decimal("0"))
     
     # H2 cannot transfer H1's widget
-    with pytest.raises(ValidationError, match="holder mismatch"):
-        sys.transfer_deliverable(widget_id, "H2", "H3")
+    with pytest.raises(ValidationError, match="owner"):
+        sys.transfer_stock(widget_id, "H2", "H3")
     
     sys.assert_invariants()
 

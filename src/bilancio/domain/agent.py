@@ -27,3 +27,4 @@ class Agent:
     kind: str  # Still accepts str for backward compatibility
     asset_ids: list[InstrId] = field(default_factory=list)
     liability_ids: list[InstrId] = field(default_factory=list)
+    stock_ids: list[InstrId] = field(default_factory=list)

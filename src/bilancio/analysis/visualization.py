@@ -33,6 +33,16 @@ def _format_deliverable_name(sku: str, quantity: int) -> str:
     return f"deliverable ({sku}) [{quantity} unit{'s' if quantity != 1 else ''}]"
 
 
+def _format_inventory_name(sku: str, quantity: int) -> str:
+    """Format inventory name with quantity in brackets."""
+    return f"inventory ({sku}) [{quantity} unit{'s' if quantity != 1 else ''}]"
+
+
+def _format_delivery_obligation_name(sku: str, quantity: int) -> str:
+    """Format delivery obligation name with quantity in brackets."""
+    return f"delivery obligation ({sku}) [{quantity} unit{'s' if quantity != 1 else ''}]"
+
+
 def _format_deliverable_amount(valued_amount: Decimal) -> str:
     """Format deliverable monetary value."""
     # Convert Decimal to int for currency formatting (assuming cents precision)
@@ -140,11 +150,23 @@ def _display_rich_agent_balance(title: str, balance: AgentBalance) -> None:
     table.add_column("LIABILITIES", style="red", width=30, no_wrap=True)
     table.add_column("Amount", justify="right", style="red", width=12, no_wrap=True)
     
-    # Prepare asset and liability rows with special handling for deliverables
+    # Prepare asset and liability rows with special handling for deliverables and inventory
     asset_rows = []
+    
+    # Add inventory (stocks owned)
+    if hasattr(balance, 'inventory_by_sku'):
+        for sku, data in balance.inventory_by_sku.items():
+            name = _format_inventory_name(sku, data['quantity'])
+            # Truncate long names for display
+            if len(name) > 29:
+                name = name[:26] + "..."
+            amount = _format_deliverable_amount(data['value'])
+            asset_rows.append((name, amount))
+    
+    # Add financial and non-financial assets
     for asset_type in sorted(balance.assets_by_kind.keys()):
         if asset_type == "deliverable":
-            # Handle deliverables separately - group by SKU
+            # Handle old-style deliverables separately - group by SKU
             for sku, data in balance.nonfinancial_assets_by_kind.items():
                 name = _format_deliverable_name(sku, data['quantity'])
                 # Truncate long names for display
@@ -152,6 +174,9 @@ def _display_rich_agent_balance(title: str, balance: AgentBalance) -> None:
                     name = name[:26] + "..."
                 amount = _format_deliverable_amount(data['value'])
                 asset_rows.append((name, amount))
+        elif asset_type == "delivery_obligation":
+            # Skip delivery obligations on the asset side (they should be liabilities only)
+            continue
         else:
             # Regular financial assets
             name = asset_type
@@ -161,9 +186,20 @@ def _display_rich_agent_balance(title: str, balance: AgentBalance) -> None:
     liability_rows = []
     for liability_type in sorted(balance.liabilities_by_kind.keys()):
         if liability_type == "deliverable":
-            # Handle deliverable liabilities - show by SKU with value
+            # Handle old-style deliverable liabilities - show by SKU with value
             for sku, data in balance.nonfinancial_liabilities_by_kind.items():
-                name = _format_deliverable_name(sku, data['quantity'])
+                # Only show delivery obligations here now, not old deliverables
+                if data['quantity'] > 0:  # Only show if there are actual obligations
+                    name = _format_deliverable_name(sku, data['quantity'])
+                    # Truncate long names for display
+                    if len(name) > 29:
+                        name = name[:26] + "..."
+                    amount = _format_deliverable_amount(data['value'])
+                    liability_rows.append((name, amount))
+        elif liability_type == "delivery_obligation":
+            # Handle new delivery obligations - show by SKU with value
+            for sku, data in balance.nonfinancial_liabilities_by_kind.items():
+                name = _format_delivery_obligation_name(sku, data['quantity'])
                 # Truncate long names for display
                 if len(name) > 29:
                     name = name[:26] + "..."
