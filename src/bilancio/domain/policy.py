@@ -13,6 +13,7 @@ from bilancio.domain.instruments.base import Instrument
 from bilancio.domain.instruments.credit import Payable
 from bilancio.domain.instruments.means_of_payment import BankDeposit, Cash, ReserveDeposit
 from bilancio.domain.instruments.nonfinancial import Deliverable
+from bilancio.domain.instruments.delivery import DeliveryObligation
 
 AgentType = type[Agent]
 InstrType = type[Instrument]
@@ -33,14 +34,16 @@ class PolicyEngine:
                 BankDeposit: (Bank,),
                 ReserveDeposit: (CentralBank,),
                 Payable:     (Agent,),            # any agent can issue a payable
-                Deliverable: (Agent,),
+                Deliverable: (Agent,),            # backward compatibility
+                DeliveryObligation: (Agent,),     # any agent can promise to deliver
             },
             holders={
                 Cash:            (Agent,),
                 BankDeposit:     (Household, Firm, Treasury, Bank),  # banks may hold but not for interbank settlement
                 ReserveDeposit:  (Bank, Treasury),
                 Payable:         (Agent,),
-                Deliverable:     (Agent,),
+                Deliverable:     (Agent,),            # backward compatibility
+                DeliveryObligation: (Agent,),         # any agent can hold a delivery claim
             },
             mop_rank={
                 "household":     ["bank_deposit", "cash"],     # use deposit first, then cash

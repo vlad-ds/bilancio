@@ -56,23 +56,26 @@ class TestAgentBalance:
         # Mint cash (financial)
         system.mint_cash("HH01", 1000)
         
-        # Create deliverable (non-financial)
-        system.create_deliverable("HH01", "HH02", "APPLES", 50, Decimal("0"))
+        # Create stock lot (non-financial asset for HH01)
+        system.create_stock("HH01", "APPLES", 50, Decimal("0"))
         
-        # Check HH01 balance (has financial assets, non-financial liabilities)
+        # Create delivery obligation (HH01 owes to HH02)
+        system.create_delivery_obligation("HH01", "HH02", "ORANGES", 30, Decimal("0"), due_day=1)
+        
+        # Check HH01 balance (has financial assets, some stock, and delivery obligation liability)
         hh1_balance = agent_balance(system, "HH01")
         assert hh1_balance.total_financial_assets == 1000  # Only cash
-        assert hh1_balance.total_financial_liabilities == 0  # Deliverable liability is non-financial
+        assert hh1_balance.total_financial_liabilities == 0  # Delivery obligation liability is non-financial
         assert hh1_balance.net_financial == 1000
         assert hh1_balance.assets_by_kind == {"cash": 1000}
-        assert hh1_balance.liabilities_by_kind == {"deliverable": 50}
+        assert hh1_balance.liabilities_by_kind == {"delivery_obligation": 30}
         
-        # Check HH02 balance (has non-financial assets only)
+        # Check HH02 balance (has delivery obligation asset only)
         hh2_balance = agent_balance(system, "HH02")
-        assert hh2_balance.total_financial_assets == 0  # Deliverable asset is non-financial
+        assert hh2_balance.total_financial_assets == 0  # Delivery obligation asset is non-financial
         assert hh2_balance.total_financial_liabilities == 0
         assert hh2_balance.net_financial == 0
-        assert hh2_balance.assets_by_kind == {"deliverable": 50}
+        assert hh2_balance.assets_by_kind == {"delivery_obligation": 30}
         assert hh2_balance.liabilities_by_kind == {}
 
 
@@ -108,12 +111,15 @@ class TestSystemTrialBalance:
         
         # Create mixed instruments
         system.mint_cash("HH01", 1000)
-        system.create_deliverable("HH01", "HH02", "APPLES", 50, Decimal("0"))
+        # Create stock for HH01 (non-financial asset, no liability)
+        system.create_stock("HH01", "APPLES", 50, Decimal("0"))
+        # Create delivery obligation HH01 → HH02 (bilateral obligation)
+        system.create_delivery_obligation("HH01", "HH02", "ORANGES", 30, Decimal("0"), due_day=1)
         
         trial = system_trial_balance(system)
         assert trial.total_financial_assets == trial.total_financial_liabilities == 1000
-        assert trial.assets_by_kind == {"cash": 1000, "deliverable": 50}
-        assert trial.liabilities_by_kind == {"cash": 1000, "deliverable": 50}
+        assert trial.assets_by_kind == {"cash": 1000, "delivery_obligation": 30}
+        assert trial.liabilities_by_kind == {"cash": 1000, "delivery_obligation": 30}
 
 
 class TestAsRows:

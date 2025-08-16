@@ -19,6 +19,13 @@ def due_deliverables(system, day: int):
             yield c
 
 
+def due_delivery_obligations(system, day: int):
+    """Scan contracts for delivery obligations with due_day == day."""
+    for c in system.state.contracts.values():
+        if c.kind == "delivery_obligation" and getattr(c, "due_day", None) == day:
+            yield c
+
+
 def _pay_with_deposits(system, debtor_id, creditor_id, amount) -> int:
     """Pay using bank deposits. Returns amount actually paid."""
     # Find debtor's bank deposits
@@ -172,6 +179,50 @@ def _deliver_goods(system, debtor_id, creditor_id, sku: str, required_quantity: 
         return 0
 
 
+def _deliver_stock(system, debtor_id, creditor_id, sku: str, required_quantity: int) -> int:
+    """
+    Transfer stock lots from debtor to creditor by SKU using FIFO allocation.
+    Returns the quantity actually delivered.
+    """
+    # Find available stock lots with matching SKU
+    available_stocks = []
+    for stock_id in system.state.agents[debtor_id].stock_ids:
+        stock = system.state.stocks[stock_id]
+        if stock.sku == sku:
+            available_stocks.append((stock_id, stock.quantity))
+    
+    if not available_stocks:
+        return 0
+    
+    # Calculate total available quantity
+    total_available = sum(quantity for _, quantity in available_stocks)
+    if total_available == 0:
+        return 0
+    
+    deliver_quantity = min(required_quantity, total_available)
+    remaining_to_deliver = deliver_quantity
+    
+    # Sort by stock ID for FIFO (deterministic) behavior
+    available_stocks.sort(key=lambda x: x[0])
+    
+    try:
+        # Transfer stock from available lots
+        for stock_id, stock_quantity in available_stocks:
+            if remaining_to_deliver == 0:
+                break
+                
+            transfer_qty = min(remaining_to_deliver, stock_quantity)
+            
+            # Use the internal method to avoid nested atomic
+            system._transfer_stock_internal(stock_id, debtor_id, creditor_id, transfer_qty)
+            
+            remaining_to_deliver -= transfer_qty
+        
+        return deliver_quantity
+    except ValidationError:
+        return 0
+
+
 
 
 def _remove_contract(system, contract_id):
@@ -225,9 +276,46 @@ def settle_due_deliverables(system, day: int):
                       sku=required_sku, quantity=required_quantity)
 
 
+def settle_due_delivery_obligations(system, day: int):
+    """
+    Settle all delivery obligations due today using stock operations.
+    
+    For each delivery obligation due today:
+    - Get debtor and creditor agents
+    - Check if debtor has sufficient stock with matching SKU
+    - Transfer the stock to the creditor using FIFO allocation
+    - Remove the delivery obligation when fully settled
+    - Raise DefaultError if insufficient stock
+    - Log DeliveryObligationSettled event
+    """
+    for obligation in list(due_delivery_obligations(system, day)):
+        debtor = system.state.agents[obligation.liability_issuer_id]
+        creditor = system.state.agents[obligation.asset_holder_id]
+        required_sku = obligation.sku
+        required_quantity = obligation.amount
+
+        with atomic(system):
+            # Try to deliver the required stock
+            delivered_quantity = _deliver_stock(system, debtor.id, creditor.id, required_sku, required_quantity)
+            
+            if delivered_quantity != required_quantity:
+                # Cannot deliver fully - raise default error
+                shortage = required_quantity - delivered_quantity
+                raise DefaultError(f"Insufficient stock to settle delivery obligation {obligation.id}: {shortage} units of {required_sku} still owed")
+            
+            # Fully settled: cancel the delivery obligation and log
+            system._cancel_delivery_obligation_internal(obligation.id)
+            system.log("DeliveryObligationSettled", 
+                      obligation_id=obligation.id, 
+                      debtor=debtor.id, 
+                      creditor=creditor.id, 
+                      sku=required_sku, 
+                      qty=required_quantity)
+
+
 def settle_due(system, day: int):
     """
-    Settle all obligations due today (both payables and deliverables).
+    Settle all obligations due today (payables, deliverables, and delivery obligations).
     
     For each payable due today:
     - Get debtor and creditor agents
@@ -244,6 +332,14 @@ def settle_due(system, day: int):
     - Remove the deliverable obligation when fully settled
     - Raise DefaultError if insufficient deliverables
     - Log DeliverableSettled event
+    
+    For each delivery obligation due today:
+    - Get debtor and creditor agents
+    - Check if debtor has sufficient stock with matching SKU
+    - Transfer the stock to the creditor using FIFO allocation
+    - Remove the delivery obligation when fully settled
+    - Raise DefaultError if insufficient stock
+    - Log DeliveryObligationSettled event
     """
     # First settle payables
     for payable in list(due_payables(system, day)):
@@ -278,5 +374,8 @@ def settle_due(system, day: int):
             _remove_contract(system, payable.id)
             system.log("PayableSettled", pid=payable.id, debtor=debtor.id, creditor=creditor.id, amount=payable.amount)
     
-    # Then settle deliverables
+    # Then settle old-style deliverables (for backward compatibility)
     settle_due_deliverables(system, day)
+    
+    # Finally settle new delivery obligations
+    settle_due_delivery_obligations(system, day)

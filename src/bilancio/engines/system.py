@@ -9,15 +9,19 @@ from bilancio.core.ids import AgentId, InstrId, new_id
 from bilancio.domain.agent import Agent
 from bilancio.domain.instruments.base import Instrument
 from bilancio.domain.instruments.means_of_payment import Cash, ReserveDeposit
-from bilancio.domain.instruments.nonfinancial import Deliverable
+# from bilancio.domain.instruments.nonfinancial import Deliverable  # DEPRECATED
+from bilancio.domain.instruments.delivery import DeliveryObligation
+from bilancio.domain.goods import StockLot
 from bilancio.domain.policy import PolicyEngine
 from bilancio.ops.primitives import consume, merge, split
+from bilancio.ops.primitives_stock import split_stock, merge_stock
 
 
 @dataclass
 class State:
     agents: dict[AgentId, Agent] = field(default_factory=dict)
     contracts: dict[InstrId, Instrument] = field(default_factory=dict)
+    stocks: dict[InstrId, StockLot] = field(default_factory=dict)
     events: list[dict] = field(default_factory=list)
     day: int = 0
     cb_cash_outstanding: int = 0
@@ -63,6 +67,9 @@ class System:
             assert_double_entry_numeric,
             assert_no_negative_balances,
             assert_no_duplicate_refs,
+            assert_all_stock_ids_owned,
+            assert_no_negative_stocks,
+            assert_no_duplicate_stock_refs,
         )
         for cid, c in self.state.contracts.items():
             assert cid in self.state.agents[c.asset_holder_id].asset_ids, f"{cid} missing on asset holder"
@@ -72,6 +79,10 @@ class System:
         assert_cb_reserves_match(self)
         assert_no_negative_balances(self)
         assert_double_entry_numeric(self)
+        # Stock-related invariants
+        assert_all_stock_ids_owned(self)
+        assert_no_negative_stocks(self)
+        assert_no_duplicate_stock_refs(self)
 
     # ---- bootstrap helper
     def bootstrap_cb(self, cb: Agent) -> None:
@@ -279,72 +290,7 @@ class System:
         """Calculate total deposit amount for customer at bank"""
         return sum(self.state.contracts[cid].amount for cid in self.deposit_ids(customer_id, bank_id))
 
-    # ---- deliverable operations
-    def create_deliverable(self, issuer_id: AgentId, holder_id: AgentId, sku: str, quantity: int, unit_price: Decimal, divisible: bool=True, denom="N/A", due_day: int | None = None) -> str:
-        instr_id = self.new_contract_id("N")
-        d = Deliverable(
-            id=instr_id, kind="deliverable", amount=quantity, denom=denom,
-            asset_holder_id=holder_id, liability_issuer_id=issuer_id,
-            sku=sku, divisible=divisible, unit_price=unit_price, due_day=due_day
-        )
-        with atomic(self):
-            self.add_contract(d)
-            self.log("DeliverableCreated", issuer=issuer_id, holder=holder_id, sku=sku, qty=quantity, instr_id=instr_id)
-        return instr_id
-
-    def update_deliverable_price(self, instr_id: InstrId, unit_price: Decimal) -> None:
-        """
-        Update the unit price of an existing deliverable.
-        
-        Args:
-            instr_id: The ID of the deliverable to update
-            unit_price: The new unit price (must be non-negative)
-            
-        Raises:
-            ValidationError: If the instrument doesn't exist, is not a deliverable, or price is negative
-        """
-        if unit_price < 0:
-            raise ValidationError("unit_price must be non-negative")
-            
-        try:
-            instr = self.state.contracts[instr_id]
-        except KeyError:
-            raise ValidationError("instrument not found")
-        
-        if instr.kind != "deliverable":
-            raise ValidationError("not a deliverable")
-        
-        with atomic(self):
-            old_price = instr.unit_price
-            instr.unit_price = unit_price
-            self.log("DeliverablePriceUpdated", 
-                    instr_id=instr_id, 
-                    sku=getattr(instr, "sku", "GENERIC"),
-                    old_price=old_price, 
-                    new_price=unit_price)
-
-    def transfer_deliverable(self, instr_id: InstrId, from_agent_id: AgentId, to_agent_id: AgentId, quantity: int | None=None) -> str:
-        instr = self.state.contracts[instr_id]
-        if instr.kind != "deliverable":
-            raise ValidationError("not a deliverable")
-        if instr.asset_holder_id != from_agent_id:
-            raise ValidationError("holder mismatch")
-        with atomic(self):
-            moving_id = instr_id
-            if quantity is not None:
-                if not getattr(instr, "divisible", False):
-                    raise ValidationError("indivisible deliverable")
-                if quantity <= 0 or quantity > instr.amount:
-                    raise ValidationError("invalid quantity")
-                if quantity < instr.amount:
-                    moving_id = split(self, instr_id, quantity)
-            # change owner
-            self.state.agents[from_agent_id].asset_ids.remove(moving_id)
-            self.state.agents[to_agent_id].asset_ids.append(moving_id)
-            m = self.state.contracts[moving_id]
-            m.asset_holder_id = to_agent_id
-            self.log("DeliverableTransferred", frm=from_agent_id, to=to_agent_id, instr_id=moving_id, qty=m.amount, sku=getattr(m, "sku","GENERIC"))
-        return moving_id
+    # ---- deliverable operations (DEPRECATED - use stock operations and delivery obligations instead)
 
     def settle_obligation(self, contract_id: InstrId) -> None:
         """
@@ -388,3 +334,131 @@ class System:
                     issuer_id=contract.liability_issuer_id,
                     contract_kind=contract.kind,
                     amount=contract.amount)
+
+    # ---- stock operations (inventory)
+    def create_stock(self, owner_id: AgentId, sku: str, quantity: int, unit_price: Decimal, divisible: bool=True) -> InstrId:
+        """Create a new stock lot (inventory)."""
+        stock_id = new_id("S")
+        stock = StockLot(
+            id=stock_id,
+            kind="stock_lot",
+            sku=sku,
+            quantity=quantity,
+            unit_price=unit_price,
+            owner_id=owner_id,
+            divisible=divisible
+        )
+        with atomic(self):
+            self.state.stocks[stock_id] = stock
+            self.state.agents[owner_id].stock_ids.append(stock_id)
+            self.log("StockCreated", owner=owner_id, sku=sku, qty=quantity, unit_price=unit_price, stock_id=stock_id)
+        return stock_id
+
+    def split_stock(self, stock_id: InstrId, quantity: int) -> InstrId:
+        """Split a stock lot. Returns ID of the new split piece."""
+        with atomic(self):
+            return split_stock(self, stock_id, quantity)
+
+    def merge_stock(self, stock_id_keep: InstrId, stock_id_into: InstrId) -> InstrId:
+        """Merge two stock lots. Returns the ID of the kept lot."""
+        with atomic(self):
+            return merge_stock(self, stock_id_keep, stock_id_into)
+
+    def _transfer_stock_internal(self, stock_id: InstrId, from_owner: AgentId, to_owner: AgentId, quantity: int = None) -> InstrId:
+        """Internal helper for stock transfer without atomic wrapper."""
+        stock = self.state.stocks[stock_id]
+        if stock.owner_id != from_owner:
+            raise ValidationError("Stock owner mismatch")
+        
+        moving_id = stock_id
+        if quantity is not None:
+            if not stock.divisible:
+                raise ValidationError("Stock lot is not divisible")
+            if quantity <= 0 or quantity > stock.quantity:
+                raise ValidationError("Invalid transfer quantity")
+            if quantity < stock.quantity:
+                moving_id = split_stock(self, stock_id, quantity)
+        
+        # Transfer ownership
+        moving_stock = self.state.stocks[moving_id]
+        self.state.agents[from_owner].stock_ids.remove(moving_id)
+        self.state.agents[to_owner].stock_ids.append(moving_id)
+        moving_stock.owner_id = to_owner
+        
+        self.log("StockTransferred", 
+                frm=from_owner, 
+                to=to_owner, 
+                stock_id=moving_id, 
+                sku=moving_stock.sku,
+                qty=moving_stock.quantity)
+        return moving_id
+
+    def transfer_stock(self, stock_id: InstrId, from_owner: AgentId, to_owner: AgentId, quantity: int = None) -> InstrId:
+        """Transfer stock from one owner to another."""
+        with atomic(self):
+            return self._transfer_stock_internal(stock_id, from_owner, to_owner, quantity)
+
+    # ---- delivery obligation operations
+    def create_delivery_obligation(self, from_agent: AgentId, to_agent: AgentId, sku: str, quantity: int, unit_price: Decimal, due_day: int) -> InstrId:
+        """Create a delivery obligation (bilateral promise to deliver goods)."""
+        obligation_id = self.new_contract_id("D")
+        obligation = DeliveryObligation(
+            id=obligation_id,
+            kind="delivery_obligation",
+            amount=quantity,
+            denom="N/A",
+            asset_holder_id=to_agent,
+            liability_issuer_id=from_agent,
+            sku=sku,
+            unit_price=unit_price,
+            due_day=due_day
+        )
+        with atomic(self):
+            self.add_contract(obligation)
+            self.log("DeliveryObligationCreated", 
+                    id=obligation_id, 
+                    frm=from_agent, 
+                    to=to_agent, 
+                    sku=sku, 
+                    qty=quantity, 
+                    due_day=due_day, 
+                    unit_price=unit_price)
+        return obligation_id
+
+    def _cancel_delivery_obligation_internal(self, obligation_id: InstrId) -> None:
+        """Internal helper for cancelling delivery obligation without atomic wrapper."""
+        # Validate contract exists and is a delivery obligation
+        if obligation_id not in self.state.contracts:
+            raise ValidationError(f"Contract {obligation_id} not found")
+        
+        contract = self.state.contracts[obligation_id]
+        if contract.kind != "delivery_obligation":
+            raise ValidationError(f"Contract {obligation_id} is not a delivery obligation")
+        
+        # Remove from holder's assets
+        holder = self.state.agents[contract.asset_holder_id]
+        if obligation_id not in holder.asset_ids:
+            raise ValidationError(f"Contract {obligation_id} not in holder's assets")
+        holder.asset_ids.remove(obligation_id)
+        
+        # Remove from issuer's liabilities
+        issuer = self.state.agents[contract.liability_issuer_id]
+        if obligation_id not in issuer.liability_ids:
+            raise ValidationError(f"Contract {obligation_id} not in issuer's liabilities")
+        issuer.liability_ids.remove(obligation_id)
+        
+        # Remove contract from registry
+        del self.state.contracts[obligation_id]
+        
+        # Log the cancellation
+        self.log("DeliveryObligationCancelled",
+                obligation_id=obligation_id,
+                debtor=contract.liability_issuer_id,
+                creditor=contract.asset_holder_id,
+                sku=contract.sku,
+                qty=contract.amount)
+
+    def cancel_delivery_obligation(self, obligation_id: InstrId) -> None:
+        """Cancel (extinguish) a delivery obligation. Used by settlement engine after fulfillment."""
+        with atomic(self):
+            self._cancel_delivery_obligation_internal(obligation_id)

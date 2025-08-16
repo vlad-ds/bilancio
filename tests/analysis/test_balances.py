@@ -203,7 +203,10 @@ class TestBalanceAnalytics:
         deposit_cash(system, "HH02", "BK02", 800)
         
         # 4. Create some non-financial instruments
-        system.create_deliverable("HH01", "HH02", "WIDGETS", 25, Decimal("0"))
+        # Create stock for HH01
+        system.create_stock("HH01", "INVENTORY", 50, Decimal("0"))
+        # Create delivery obligation from HH01 to HH02
+        system.create_delivery_obligation("HH01", "HH02", "WIDGETS", 25, Decimal("0"), due_day=1)
         
         # Verify system-wide balance
         trial = system_trial_balance(system)
@@ -212,7 +215,7 @@ class TestBalanceAnalytics:
         total_reserves = 18000  # 10000 + 8000
         total_cash = 3500     # 2000 + 1500 original cash
         total_deposits = 2000  # 1200 + 800
-        total_deliverables = 25
+        total_delivery_obligations = 25
         
         expected_financial_total = total_reserves + total_cash + total_deposits
         
@@ -220,15 +223,15 @@ class TestBalanceAnalytics:
         assert trial.assets_by_kind.get("reserve_deposit", 0) == total_reserves
         assert trial.assets_by_kind.get("cash", 0) == total_cash
         assert trial.assets_by_kind.get("bank_deposit", 0) == total_deposits
-        assert trial.assets_by_kind.get("deliverable", 0) == total_deliverables
+        assert trial.assets_by_kind.get("delivery_obligation", 0) == total_delivery_obligations
         
         # Verify individual balances make sense
         hh1_balance = agent_balance(system, "HH01")
-        # HH01 should have: remaining cash + deposit + deliverable liability
+        # HH01 should have: remaining cash + deposit + delivery obligation liability
         expected_hh1_cash = 2000 - 1200  # 800
         assert hh1_balance.assets_by_kind.get("cash", 0) == expected_hh1_cash
         assert hh1_balance.assets_by_kind.get("bank_deposit", 0) == 1200
-        assert hh1_balance.liabilities_by_kind.get("deliverable", 0) == 25
+        assert hh1_balance.liabilities_by_kind.get("delivery_obligation", 0) == 25
         
         # Bank1 should have: reserves + cash from deposit, deposit liability
         bank1_balance = agent_balance(system, "BK01")
