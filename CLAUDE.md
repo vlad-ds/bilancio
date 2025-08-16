@@ -11,7 +11,8 @@
 - **ALWAYS TEST NOTEBOOKS BEFORE PRESENTING**: Run code snippets iteratively to catch errors
 - Test each cell's code with `uv run python -c "..."` before including in notebook
 - Only present notebooks after verifying no errors occur
+- To open notebooks in browser: `uv run jupyter notebook <path>` (runs in background)
 - Common pitfalls in bilancio:
-  - Must use actual agent classes (Bank, Household) not Agent(kind="bank") - policy checks isinstance()
+  - Must use actual agent classes (Bank, Household, Firm) not Agent(kind="bank") - policy checks isinstance()
   - Check function signatures - parameter order matters
   - Verify all imports work before creating notebook
