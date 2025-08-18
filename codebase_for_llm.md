@@ -26,7 +26,8 @@ This document contains the complete codebase structure and content for LLM inges
 │       ├── 004_banking.md
 │       ├── 005_reserves_settlement_clearing_scheduler.md
 │       ├── 006_analytics.md
-│       └── 007_deliverable.md
+│       ├── 007_deliverable.md
+│       └── 008_simulation.md
 ├── examples
 ├── notebooks
 │   └── demo
@@ -112,7 +113,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-25 directories, 79 files
+25 directories, 80 files
 
 ```
 
@@ -441,6 +442,57 @@ Complete git history from oldest to newest:
   - Add comprehensive list of directories to ignore (IDE configs, Python caches, virtual envs)
   - Clean up tree output to show only relevant source code and documentation files
   - Reduces noise in generated markdown documentation
+  🤖 Generated with [Claude Code](https://claude.ai/code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **03efa39e** (2025-08-18) by vladgheorghe
+  feat: add complete git history to codebase markdown generator
+  - Add get_git_history() function to extract full commit history
+  - Include commit hash, date, author, subject and body for each commit
+  - Display history chronologically from oldest to newest
+  - Helps LLMs understand project evolution and context
+  🤖 Generated with [Claude Code](https://claude.ai/code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **d0c1f3a3** (2025-08-18) by Vlad Gheorghe
+  feat: implement simulation improvements from plan 008 (#8)
+  * feat: implement simulation improvements from plan 008
+  - Add setup phase to System with context manager
+  - Fix run_day() to settle current_day instead of next_day
+  - Update visualization to remove day offset labeling
+  - Add run_until_stable() runner function
+  - Update notebooks to use new setup phase and literal due days
+  Key improvements:
+  1. Setup phase clearly separates initial conditions from simulation
+  2. Literal day semantics: due_day=1 means day 1 (not day 2)
+  3. run_until_stable() enables automated simulation runs
+  4. Event displays now show correct day numbers without offsets
+  All tests pass. Notebooks updated and verified working.
+  🤖 Generated with [Claude Code](https://claude.ai/code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+  * fix: clarify notebook output and properly implement run_until_stable
+  - Fixed confusing day progression in notebook output
+  - Now clearly shows when advancing days and settling obligations
+  - Actually implemented run_until_stable demonstration (not just a comment)
+  - Each section now properly explains the day progression
+  - Tested and verified all events display correctly
+  🤖 Generated with [Claude Code](https://claude.ai/code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+  ---------
+  Co-authored-by: Claude <noreply@anthropic.com>
+
+- **4accab4a** (2025-08-18) by vladgheorghe
+  chore: update project configuration
+  - Add temp/ folder to .gitignore for temporary test files
+  - Update CLAUDE.md with instructions for reviewing subagent code
+  - Add note about storing temp files in gitignored folder
+  🤖 Generated with [Claude Code](https://claude.ai/code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **658cf533** (2025-08-18) by vladgheorghe
+  docs: update codebase markdown documentation
+  - Regenerate codebase_for_llm.md with latest code structure
+  - Add scripts/codebase_for_llm.md generator script
   🤖 Generated with [Claude Code](https://claude.ai/code)
   Co-Authored-By: Claude <noreply@anthropic.com>
 
@@ -1460,10 +1512,10 @@ def _display_events_detailed(events: List[Dict[str, Any]]) -> None:
     
     # Display events for each day
     for day in sorted(events_by_day.keys()):
-        if day == 0:
-            print(f"\n📅 Day {day} (Initial Setup & Day 1 Settlements):")
-        elif day > 0:
-            print(f"\n📅 Day {day} (Day {day+1} Settlements):")
+        if day == -1:
+            print(f"\n📅 Setup Phase:")
+        elif day >= 0:
+            print(f"\n📅 Day {day}:")
         else:
             print(f"\n📅 Unknown Day:")
         
@@ -1525,11 +1577,8 @@ def display_events_for_day(system: System, day: int) -> None:
     Args:
         system: The bilancio system instance
         day: The simulation day to display events for
-    
-    Note: Events are logged with the previous day's number, so day 1 settlements
-    appear as day 0 in the event log.
     """
-    events = [e for e in system.state.events if e.get("day") == day - 1]
+    events = [e for e in system.state.events if e.get("day") == day]
     
     if not events:
         print("  No events occurred on this day.")
@@ -2862,10 +2911,37 @@ def settle_due(system, day: int):
 """Simulation engines for financial scenario analysis."""
 
 import random
+from dataclasses import dataclass
 from typing import Any, Protocol
 
 from bilancio.engines.clearing import settle_intraday_nets
 from bilancio.engines.settlement import settle_due
+
+
+IMPACT_EVENTS = {
+    "PayableSettled",
+    "DeliveryObligationSettled",
+    "InterbankCleared",
+    "InterbankOvernightCreated",
+}
+
+
+@dataclass
+class DayReport:
+    day: int
+    impacted: int
+    notes: str = ""
+
+
+def _impacted_today(system, day: int) -> int:
+    return sum(1 for e in system.state.events if e.get("day") == day and e.get("kind") in IMPACT_EVENTS)
+
+
+def _has_open_obligations(system) -> bool:
+    for c in system.state.contracts.values():
+        if c.kind in ("payable", "delivery_obligation"):
+            return True
+    return False
 
 
 class SimulationEngine(Protocol):
@@ -2962,8 +3038,8 @@ def run_day(system):
     Run a single day's simulation with three phases.
     
     Phase A: Log PhaseA event (noop for now)
-    Phase B: Settle payables due on the next day using settle_due
-    Phase C: Clear intraday nets using settle_intraday_nets
+    Phase B: Settle obligations due on the current day using settle_due
+    Phase C: Clear intraday nets for the current day using settle_intraday_nets
     
     Finally, increment the system day counter.
     
@@ -2971,19 +3047,47 @@ def run_day(system):
         system: System instance to run the day for
     """
     current_day = system.state.day
-    next_day = current_day + 1
 
     # Phase A: Log PhaseA event (noop for now)
-    system.log("PhaseA", day=current_day)
+    system.log("PhaseA")
 
-    # Phase B: Settle obligations due on the day we're advancing to
-    settle_due(system, next_day)
+    # Phase B: Settle obligations due on the current day
+    system.log("PhaseB")  # optional: helps timeline
+    settle_due(system, current_day)
 
-    # Phase C: Clear intraday nets
-    settle_intraday_nets(system, next_day)
+    # Phase C: Clear intraday nets for the current day
+    system.log("PhaseC")  # optional: helps timeline
+    settle_intraday_nets(system, current_day)
 
     # Increment system day
     system.state.day += 1
+
+
+def run_until_stable(system, max_days: int = 365, quiet_days: int = 2) -> list[DayReport]:
+    """
+    Advance day by day until the system is stable:
+    - No impactful events happen for `quiet_days` consecutive days, AND
+    - No outstanding payables or delivery obligations remain.
+    """
+    reports = []
+    consecutive_quiet = 0
+    start_day = system.state.day
+
+    for _ in range(max_days):
+        day_before = system.state.day
+        run_day(system)
+        impacted = _impacted_today(system, day_before)
+        reports.append(DayReport(day=day_before, impacted=impacted))
+
+        if impacted == 0:
+            consecutive_quiet += 1
+        else:
+            consecutive_quiet = 0
+
+        if consecutive_quiet >= quiet_days and not _has_open_obligations(system):
+            break
+
+    return reports
 
 ```
 
@@ -2994,6 +3098,7 @@ def run_day(system):
 ```python
 from __future__ import annotations
 
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from decimal import Decimal
 
@@ -3020,6 +3125,7 @@ class State:
     day: int = 0
     cb_cash_outstanding: int = 0
     cb_reserves_outstanding: int = 0
+    phase: str = "simulation"
 
 class System:
     def __init__(self, policy: PolicyEngine | None = None):
@@ -3029,6 +3135,17 @@ class System:
     # ---- ID helpers
     def new_agent_id(self, prefix="A") -> AgentId: return new_id(prefix)
     def new_contract_id(self, prefix="C") -> InstrId: return new_id(prefix)
+
+    # ---- phase management
+    @contextmanager
+    def setup(self):
+        """Context manager to temporarily set phase to 'setup'."""
+        old_phase = self.state.phase
+        self.state.phase = "setup"
+        try:
+            yield
+        finally:
+            self.state.phase = old_phase
 
     # ---- registry gateway
     def add_agent(self, agent: Agent) -> None:
@@ -3051,7 +3168,7 @@ class System:
 
     # ---- events
     def log(self, kind: str, **payload) -> None:
-        self.state.events.append({"kind": kind, "day": self.state.day, **payload})
+        self.state.events.append({"kind": kind, "day": self.state.day, "phase": self.state.phase, **payload})
 
     # ---- invariants (MVP)
     def assert_invariants(self) -> None:

@@ -1,0 +1,42 @@
+version: 1
+name: "Simple Banking System"
+description: "Basic scenario with central bank, one commercial bank, and two households"
+
+agents:
+  - id: CB
+    kind: central_bank
+    name: Central Bank
+  - id: B1
+    kind: bank
+    name: First National Bank
+  - id: H1
+    kind: household
+    name: Smith Family
+  - id: H2
+    kind: household
+    name: Jones Family
+
+initial_actions:
+  # Initialize bank with reserves
+  - mint_reserves: {to: B1, amount: 10000}
+  
+  # Give households initial cash
+  - mint_cash: {to: H1, amount: 2000}
+  - mint_cash: {to: H2, amount: 1500}
+  
+  # H1 deposits most of their cash
+  - deposit_cash: {customer: H1, bank: B1, amount: 1800}
+  
+  # H2 deposits some cash
+  - deposit_cash: {customer: H2, bank: B1, amount: 1000}
+  
+  # Create a payment obligation
+  - create_payable: {from: H1, to: H2, amount: 500, due_day: 1}
+
+run:
+  mode: until_stable
+  max_days: 30
+  quiet_days: 2
+  show:
+    balances: [CB, B1, H1, H2]
+    events: detailed

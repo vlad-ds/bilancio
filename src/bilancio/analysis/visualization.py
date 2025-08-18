@@ -663,17 +663,26 @@ def _display_events_summary(events: List[Dict[str, Any]]) -> None:
 
 def _display_events_detailed(events: List[Dict[str, Any]]) -> None:
     """Display events grouped by day with detailed formatting."""
-    # Group events by day
+    # Separate setup events from day events
+    setup_events = []
     events_by_day = defaultdict(list)
+    
     for event in events:
-        day = event.get("day", -1)
-        events_by_day[day].append(event)
+        # Check if this is a setup phase event
+        if event.get("phase") == "setup":
+            setup_events.append(event)
+        else:
+            day = event.get("day", -1)
+            events_by_day[day].append(event)
+    
+    # Display setup events first if any
+    if setup_events:
+        print(f"\n📅 Setup Phase:")
+        _display_day_events(setup_events)
     
     # Display events for each day
     for day in sorted(events_by_day.keys()):
-        if day == -1:
-            print(f"\n📅 Setup Phase:")
-        elif day >= 0:
+        if day >= 0:
             print(f"\n📅 Day {day}:")
         else:
             print(f"\n📅 Unknown Day:")
