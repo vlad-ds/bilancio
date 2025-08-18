@@ -671,10 +671,10 @@ def _display_events_detailed(events: List[Dict[str, Any]]) -> None:
     
     # Display events for each day
     for day in sorted(events_by_day.keys()):
-        if day == 0:
-            print(f"\n📅 Day {day} (Initial Setup & Day 1 Settlements):")
-        elif day > 0:
-            print(f"\n📅 Day {day} (Day {day+1} Settlements):")
+        if day == -1:
+            print(f"\n📅 Setup Phase:")
+        elif day >= 0:
+            print(f"\n📅 Day {day}:")
         else:
             print(f"\n📅 Unknown Day:")
         
@@ -736,11 +736,8 @@ def display_events_for_day(system: System, day: int) -> None:
     Args:
         system: The bilancio system instance
         day: The simulation day to display events for
-    
-    Note: Events are logged with the previous day's number, so day 1 settlements
-    appear as day 0 in the event log.
     """
-    events = [e for e in system.state.events if e.get("day") == day - 1]
+    events = [e for e in system.state.events if e.get("day") == day]
     
     if not events:
         print("  No events occurred on this day.")
