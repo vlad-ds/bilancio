@@ -167,8 +167,9 @@ class TestApplyToSystem:
         assert stocks[0].quantity == 100
         
         # Check payable was created
+        # Payable uses liability_issuer_id for the debtor
         payables = [c for c in system.state.contracts.values() 
-                   if hasattr(c, 'debtor_id') and c.debtor_id == "H1"]
+                   if hasattr(c, 'liability_issuer_id') and c.liability_issuer_id == "H1"]
         assert len(payables) > 0
         
         # System should pass invariants

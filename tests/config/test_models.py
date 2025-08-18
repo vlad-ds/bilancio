@@ -93,26 +93,30 @@ class TestActions:
     
     def test_create_delivery_obligation_with_aliases(self):
         """Test delivery obligation with from/to aliases."""
-        action = CreateDeliveryObligation(
-            from_agent="F1",
-            to_agent="H1",
-            sku="WIDGET",
-            quantity=10,
-            unit_price=Decimal("25"),
-            due_day=3
-        )
+        # Use the aliases 'from' and 'to' instead of from_agent/to_agent
+        data = {
+            "from": "F1",
+            "to": "H1",
+            "sku": "WIDGET",
+            "quantity": 10,
+            "unit_price": Decimal("25"),
+            "due_day": 3
+        }
+        action = CreateDeliveryObligation(**data)
         assert action.from_agent == "F1"
         assert action.to_agent == "H1"
         assert action.due_day == 3
     
     def test_create_payable_valid(self):
         """Test valid create payable action."""
-        action = CreatePayable(
-            from_agent="H1",
-            to_agent="H2",
-            amount=Decimal("300"),
-            due_day=1
-        )
+        # Use the aliases 'from' and 'to' instead of from_agent/to_agent
+        data = {
+            "from": "H1",
+            "to": "H2",
+            "amount": Decimal("300"),
+            "due_day": 1
+        }
+        action = CreatePayable(**data)
         assert action.from_agent == "H1"
         assert action.to_agent == "H2"
         assert action.amount == Decimal("300")
