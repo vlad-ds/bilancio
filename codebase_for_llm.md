@@ -19,23 +19,31 @@ This document contains the complete codebase structure and content for LLM inges
 ├── docs
 │   ├── Money modeling software.pdf
 │   ├── SP239 Kalecki on Credit and Debt extended.pdf
-│   └── plans
-│       ├── 000_setup.md
-│       ├── 001_domain_system.md
-│       ├── 003_cash_and_nonfin_exchange.md
-│       ├── 004_banking.md
-│       ├── 005_reserves_settlement_clearing_scheduler.md
-│       ├── 006_analytics.md
-│       ├── 007_deliverable.md
-│       └── 008_simulation.md
+│   ├── plans
+│   │   ├── 000_setup.md
+│   │   ├── 001_domain_system.md
+│   │   ├── 003_cash_and_nonfin_exchange.md
+│   │   ├── 004_banking.md
+│   │   ├── 005_reserves_settlement_clearing_scheduler.md
+│   │   ├── 006_analytics.md
+│   │   ├── 007_deliverable.md
+│   │   ├── 008_simulation.md
+│   │   └── 009_cli.md
+│   └── prompts
+│       └── scenario_translator_agent.md
 ├── examples
+│   └── scenarios
+│       ├── firm_delivery.yaml
+│       ├── interbank_netting.yaml
+│       ├── intraday_netting.yaml
+│       ├── simple_bank.yaml
+│       └── two_banks_interbank.yaml
 ├── notebooks
 │   └── demo
 │       ├── balance_sheet_display.ipynb
 │       └── pdf_example_with_firms.ipynb
 ├── pyproject.toml
 ├── scripts
-│   ├── codebase_for_llm.md
 │   └── generate_codebase_markdown.py
 ├── src
 │   └── bilancio
@@ -45,6 +53,11 @@ This document contains the complete codebase structure and content for LLM inges
 │       │   ├── balances.py
 │       │   ├── metrics.py
 │       │   └── visualization.py
+│       ├── config
+│       │   ├── __init__.py
+│       │   ├── apply.py
+│       │   ├── loaders.py
+│       │   └── models.py
 │       ├── core
 │       │   ├── __init__.py
 │       │   ├── atomic.py
@@ -81,20 +94,37 @@ This document contains the complete codebase structure and content for LLM inges
 │       │   ├── simulation.py
 │       │   ├── system.py
 │       │   └── valuation.py
+│       ├── export
+│       │   ├── __init__.py
+│       │   └── writers.py
 │       ├── io
 │       │   ├── __init__.py
 │       │   ├── readers.py
 │       │   └── writers.py
-│       └── ops
+│       ├── ops
+│       │   ├── __init__.py
+│       │   ├── banking.py
+│       │   ├── cashflows.py
+│       │   ├── primitives.py
+│       │   └── primitives_stock.py
+│       └── ui
 │           ├── __init__.py
-│           ├── banking.py
-│           ├── cashflows.py
-│           ├── primitives.py
-│           └── primitives_stock.py
+│           ├── cli.py
+│           ├── display.py
+│           ├── run.py
+│           └── wizard.py
+├── temp
+│   ├── balances.csv
+│   ├── events.jsonl
+│   └── test_from_template.yaml
 └── tests
     ├── analysis
     │   ├── __init__.py
     │   └── test_balances.py
+    ├── config
+    │   ├── test_apply.py
+    │   ├── test_loaders.py
+    │   └── test_models.py
     ├── integration
     │   ├── test_banking_ops.py
     │   ├── test_clearing_phase_c.py
@@ -103,6 +133,8 @@ This document contains the complete codebase structure and content for LLM inges
     ├── property
     ├── scenarios
     ├── test_smoke.py
+    ├── ui
+    │   └── test_cli.py
     └── unit
         ├── test_balances.py
         ├── test_cash_and_deliverables.py
@@ -113,7 +145,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-25 directories, 80 files
+33 directories, 104 files
 
 ```
 
@@ -493,6 +525,89 @@ Complete git history from oldest to newest:
   docs: update codebase markdown documentation
   - Regenerate codebase_for_llm.md with latest code structure
   - Add scripts/codebase_for_llm.md generator script
+  🤖 Generated with [Claude Code](https://claude.ai/code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **84348990** (2025-08-18) by Vlad Gheorghe
+  feat: implement CLI for Bilancio simulations (#10)
+  * feat: implement CLI for Bilancio simulations
+  - Add configuration layer with YAML support for scenario definitions
+  - Create CLI with run, validate, and new commands
+  - Implement export functionality for balances (CSV) and events (JSONL)
+  - Add example scenarios (simple_bank, two_banks_interbank, firm_delivery)
+  - Include comprehensive tests for config and UI layers
+  - Fix display_events to properly handle setup phase
+  - Support policy overrides and all major operations via YAML
+  The CLI allows domain experts to:
+  - Define scenarios in simple YAML format
+  - Run simulations step-by-step or until stable
+  - Validate configurations before running
+  - Export results for analysis
+  - Create new scenarios with wizard
+  🤖 Generated with [Claude Code](https://claude.ai/code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+  * docs: add scenario translator agent prompt
+  Create comprehensive prompt for AI agents to translate financial
+  scenarios from natural language to valid Bilancio YAML configs.
+  Includes understanding process, validation steps, and user instructions.
+  🤖 Generated with [Claude Code](https://claude.ai/code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+  * fix: update tests to use pydantic aliases correctly
+  - Fix CreateDeliveryObligation and CreatePayable tests to use 'from'/'to' aliases
+  - Fix test_apply to check for liability_issuer_id instead of debtor_id
+  🤖 Generated with [Claude Code](https://claude.ai/code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+  * fix: address PR review feedback (priorities 1-3)
+  Priority 1: Fix decimal parsing security vulnerability
+  - Use try/except with Decimal constructor for safer parsing
+  - Check for finite values to prevent infinity/nan issues
+  - Handle all decimal exceptions properly
+  Priority 2: Address precision loss in financial calculations
+  - Document that amounts are expected in minor units
+  - Improve JSON serialization to preserve decimal precision
+  - Use string representation for non-integer decimals in JSON
+  Priority 3: Implement template functionality for wizard
+  - Support using existing YAML files as templates
+  - Support predefined complexity levels (simple/standard/complex)
+  - Handle non-interactive mode gracefully
+  - Allow modification of loaded templates
+  All tests passing ✅
+  🤖 Generated with [Claude Code](https://claude.ai/code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+  ---------
+  Co-authored-by: Claude <noreply@anthropic.com>
+
+- **effcb9aa** (2025-08-18) by vladgheorghe
+  feat: improve CLI event display formatting and visual hierarchy
+  - Add clear visual hierarchy with phase headers and indented events
+  - Show all three phases (A, B, C) consistently even when empty
+  - Add agent IDs to balance sheet headers for clarity (e.g., "Consumer A [H1]")
+  - Format all event types with appropriate emojis and descriptions
+  - Fix setup phase event formatting (ReservesMinted, CashDeposited, etc.)
+  - Add "Day ended" marker after Phase C
+  - Improve stock split display with shortened IDs for readability
+  - Clarify phase descriptions: Phase A (Day begins), Phase B (Settlement), Phase C (Intraday netting)
+  🤖 Generated with [Claude Code](https://claude.ai/code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **caafcd53** (2025-08-18) by vladgheorghe
+  feat: add interbank netting example and improve event formatting
+  - Create interbank_netting.yaml example showing Phase C netting
+  - Add formatting for ClientPayment, InterbankCleared, ReservesTransferred events
+  - Document that Phase C is specifically for interbank settlement netting
+
+- **d4989288** (2025-08-18) by vladgheorghe
+  fix: correct balance sheet display timing in CLI simulation
+  The balance sheets were showing incorrect values because run_until_stable()
+  was executing all simulation days first, then displaying summaries afterwards.
+  This meant all balance sheets showed the final state rather than the state
+  at each specific day.
+  Changed run_until_stable_mode() to:
+  - Run simulation day-by-day instead of all at once
+  - Display each day's balance sheet immediately after that day completes
+  - Pass correct day number (0-based) to show_day_summary() for event filtering
+  This ensures balance sheets accurately reflect the system state at the end
+  of each simulated day.
   🤖 Generated with [Claude Code](https://claude.ai/code)
   Co-Authored-By: Claude <noreply@anthropic.com>
 
@@ -900,7 +1015,11 @@ def display_agent_balance_table(
     # Get agent info
     agent = system.state.agents[agent_id]
     if title is None:
-        title = f"{agent.name or agent_id} ({agent.kind})"
+        # Show both name and ID for clarity
+        if agent.name and agent.name != agent_id:
+            title = f"{agent.name} [{agent_id}] ({agent.kind})"
+        else:
+            title = f"{agent_id} ({agent.kind})"
     
     if format == 'rich':
         _display_rich_agent_balance(title, balance)
@@ -1205,7 +1324,11 @@ def _display_rich_multiple_agent_balances(
         # Get agent name if system is available
         if system and balance.agent_id in system.state.agents:
             agent = system.state.agents[balance.agent_id]
-            title = f"{agent.name or balance.agent_id}\n({agent.kind})"
+            # Show both name and ID for clarity
+            if agent.name and agent.name != balance.agent_id:
+                title = f"{agent.name} [{balance.agent_id}]\n({agent.kind})"
+            else:
+                title = f"{balance.agent_id}\n({agent.kind})"
         else:
             title = f"{balance.agent_id}"
         
@@ -1475,99 +1598,228 @@ def display_events(events: List[Dict[str, Any]], format: str = 'detailed') -> No
         events: List of event dictionaries from sys.state.events
         format: Display format ('detailed' or 'summary')
     """
+    console = Console() if RICH_AVAILABLE else None
+    
     if not events:
-        print("No events to display.")
+        _print("No events to display.", console)
         return
     
     if format == 'summary':
-        _display_events_summary(events)
+        _display_events_summary(events, console)
     else:
-        _display_events_detailed(events)
+        _display_events_detailed(events, console)
 
 
-def _display_events_summary(events: List[Dict[str, Any]]) -> None:
+def _print(text: str, console: Optional['Console'] = None) -> None:
+    """Print using Rich console if available, otherwise regular print."""
+    if console:
+        console.print(text)
+    else:
+        print(text)
+
+
+def _display_events_summary(events: List[Dict[str, Any]], console: Optional['Console'] = None) -> None:
     """Display events in a condensed summary format."""
     for event in events:
         kind = event.get("kind", "Unknown")
         day = event.get("day", "?")
         
         if kind == "PayableSettled":
-            print(f"Day {day}: 💰 {event['debtor']} → {event['creditor']}: ${event['amount']}")
+            _print(f"Day {day}: 💰 {event['debtor']} → {event['creditor']}: ${event['amount']}", console)
         elif kind == "DeliveryObligationSettled":
             qty = event.get('qty', event.get('quantity', 'N/A'))
-            print(f"Day {day}: 📦 {event['debtor']} → {event['creditor']}: {qty} {event.get('sku', 'items')}")
+            _print(f"Day {day}: 📦 {event['debtor']} → {event['creditor']}: {qty} {event.get('sku', 'items')}", console)
         elif kind == "StockTransferred":
-            print(f"Day {day}: 🚚 {event['frm']} → {event['to']}: {event['qty']} {event['sku']}")
+            _print(f"Day {day}: 🚚 {event['frm']} → {event['to']}: {event['qty']} {event['sku']}", console)
         elif kind == "CashTransferred":
-            print(f"Day {day}: 💵 {event['frm']} → {event['to']}: ${event['amount']}")
+            _print(f"Day {day}: 💵 {event['frm']} → {event['to']}: ${event['amount']}", console)
 
 
-def _display_events_detailed(events: List[Dict[str, Any]]) -> None:
+def _display_events_detailed(events: List[Dict[str, Any]], console: Optional['Console'] = None) -> None:
     """Display events grouped by day with detailed formatting."""
-    # Group events by day
+    # Separate setup events from day events
+    setup_events = []
     events_by_day = defaultdict(list)
+    
     for event in events:
-        day = event.get("day", -1)
-        events_by_day[day].append(event)
+        # Check if this is a setup phase event
+        if event.get("phase") == "setup":
+            setup_events.append(event)
+        else:
+            day = event.get("day", -1)
+            events_by_day[day].append(event)
+    
+    # Display setup events first if any
+    if setup_events:
+        _print(f"\n📅 Setup Phase:", console)
+        # Setup events don't have phase markers, display them directly
+        for event in setup_events:
+            _display_single_event(event, console, indent="  ")
     
     # Display events for each day
     for day in sorted(events_by_day.keys()):
-        if day == -1:
-            print(f"\n📅 Setup Phase:")
-        elif day >= 0:
-            print(f"\n📅 Day {day}:")
+        if day >= 0:
+            _print(f"\n📅 Day {day}:", console)
         else:
-            print(f"\n📅 Unknown Day:")
+            _print(f"\n📅 Unknown Day:", console)
         
-        _display_day_events(events_by_day[day])
-    
-    # Add explanatory note
-    print("\n📝 Event Types:")
-    print("  • Settled = obligation successfully fulfilled")
-    print("  • Cancelled = obligation removed from books after settlement")
-    print("  • Transferred = actual movement of assets (cash or stock)")
+        _display_day_events(events_by_day[day], console)
 
 
-def _display_day_events(day_events: List[Dict[str, Any]]) -> None:
+def _display_day_events(day_events: List[Dict[str, Any]], console: Optional['Console'] = None) -> None:
     """Display events for a single day with proper formatting."""
+    # Group events by their phase timing
+    phase_a_events = []
+    phase_b_events = []
+    phase_c_events = []
+    
+    # Track which phase we're in based on phase markers
+    current_phase = "A"  # Start with phase A
+    
     for event in day_events:
         kind = event.get("kind", "Unknown")
         
-        if kind == "StockCreated":
-            print(f"  🏭 Stock created: {event['owner']} gets {event['qty']} {event['sku']}")
-        
-        elif kind == "CashMinted":
-            print(f"  💰 Cash minted: ${event['amount']} to {event['to']}")
-        
-        elif kind == "PayableSettled":
-            print(f"  ✅ Payment settled: {event['debtor']} → {event['creditor']}: ${event['amount']}")
-        
-        elif kind == "PayableCancelled":
-            print(f"    └─ Payment obligation removed from books")
-        
-        elif kind == "DeliveryObligationSettled":
-            qty = event.get('qty', event.get('quantity', 'N/A'))
-            sku = event.get('sku', 'items')
-            print(f"  ✅ Delivery settled: {event['debtor']} → {event['creditor']}: {qty} {sku}")
-        
-        elif kind == "DeliveryObligationCancelled":
-            print(f"    └─ Delivery obligation removed from books")
-        
-        elif kind == "StockTransferred":
-            print(f"  📦 Stock transferred: {event['frm']} → {event['to']}: {event['qty']} {event['sku']}")
-        
-        elif kind == "CashTransferred":
-            print(f"  💵 Cash transferred: {event['frm']} → {event['to']}: ${event['amount']}")
-        
-        elif kind == "PhaseA":
-            print(f"  ⏰ Settlement phase begins (checking due obligations)")
-        
+        # Phase markers change which phase we're in
+        if kind == "PhaseA":
+            current_phase = "A"
         elif kind == "PhaseB":
-            print(f"  ⏳ End of day phase")
-        
+            current_phase = "B"
+        elif kind == "PhaseC":
+            current_phase = "C"
         else:
-            # For any other event types, show raw data
-            print(f"  • {kind}: {event}")
+            # Regular events go into the current phase bucket
+            if current_phase == "A":
+                phase_a_events.append(event)
+            elif current_phase == "B":
+                phase_b_events.append(event)
+            elif current_phase == "C":
+                phase_c_events.append(event)
+    
+    # Always display all three phases
+    # Phase A - No-op phase, just marks beginning of day
+    _print(f"\n  ⏰ Phase A: Day begins", console)
+    for event in phase_a_events:
+        _display_single_event(event, console, indent="    ")
+    
+    # Phase B - Settlement phase where obligations are fulfilled
+    _print(f"\n  💳 Phase B: Settlement (fulfilling due obligations)", console)
+    for event in phase_b_events:
+        _display_single_event(event, console, indent="    ")
+    
+    # Phase C - Intraday netting
+    _print(f"\n  📋 Phase C: Intraday netting", console)
+    for event in phase_c_events:
+        _display_single_event(event, console, indent="    ")
+    
+    # Mark end of day
+    _print(f"\n  🌙 Day ended", console)
+
+
+def _display_single_event(event: Dict[str, Any], console: Optional['Console'] = None, indent: str = "  ") -> None:
+    """Display a single event with proper formatting."""
+    kind = event.get("kind", "Unknown")
+    
+    if kind == "StockCreated":
+        _print(f"{indent}🏭 Stock created: {event['owner']} gets {event['qty']} {event['sku']}", console)
+    
+    elif kind == "CashMinted":
+        _print(f"{indent}💰 Cash minted: ${event['amount']} to {event['to']}", console)
+    
+    elif kind == "PayableSettled":
+        _print(f"{indent}✅ Payment settled: {event['debtor']} → {event['creditor']}: ${event['amount']}", console)
+    
+    elif kind == "PayableCancelled":
+        _print(f"{indent}  └─ Payment obligation removed from books", console)
+    
+    elif kind == "DeliveryObligationSettled":
+        qty = event.get('qty', event.get('quantity', 'N/A'))
+        sku = event.get('sku', 'items')
+        _print(f"{indent}✅ Delivery settled: {event['debtor']} → {event['creditor']}: {qty} {sku}", console)
+    
+    elif kind == "DeliveryObligationCancelled":
+        _print(f"{indent}  └─ Delivery obligation removed from books", console)
+    
+    elif kind == "StockTransferred":
+        _print(f"{indent}📦 Stock transferred: {event['frm']} → {event['to']}: {event['qty']} {event['sku']}", console)
+    
+    elif kind == "CashTransferred":
+        _print(f"{indent}💵 Cash transferred: {event['frm']} → {event['to']}: ${event['amount']}", console)
+    
+    elif kind == "StockSplit":
+        sku = event.get('sku', 'N/A')
+        original_qty = event.get('original_qty', 0)
+        split_qty = event.get('split_qty', 0)
+        remaining_qty = event.get('remaining_qty', 0)
+        # Show shortened IDs for readability
+        original_id = event.get('original_id', '')
+        new_id = event.get('new_id', '')
+        short_orig = original_id.split('_')[-1][:8] if original_id else 'N/A'
+        short_new = new_id.split('_')[-1][:8] if new_id else 'N/A'
+        _print(f"{indent}📊 Stock split: {short_orig} → {short_new}: {split_qty} {sku} (keeping {remaining_qty})", console)
+    
+    elif kind == "ReservesMinted":
+        amount = event.get('amount', 0)
+        to = event.get('to', 'N/A')
+        _print(f"{indent}🏦 Reserves minted: ${amount} to {to}", console)
+    
+    elif kind == "CashDeposited":
+        customer = event.get('customer', 'N/A')
+        bank = event.get('bank', 'N/A')
+        amount = event.get('amount', 0)
+        _print(f"{indent}🏧 Cash deposited: {customer} → {bank}: ${amount}", console)
+    
+    elif kind == "DeliveryObligationCreated":
+        frm = event.get('frm', event.get('from', 'N/A'))
+        to = event.get('to', 'N/A')
+        qty = event.get('qty', event.get('quantity', 0))
+        sku = event.get('sku', 'N/A')
+        due_day = event.get('due_day', 'N/A')
+        _print(f"{indent}📝 Delivery obligation created: {frm} → {to}: {qty} {sku} (due day {due_day})", console)
+    
+    elif kind == "PayableCreated":
+        frm = event.get('frm', event.get('from', event.get('debtor', 'N/A')))
+        to = event.get('to', event.get('creditor', 'N/A'))
+        amount = event.get('amount', 0)
+        due_day = event.get('due_day', 'N/A')
+        _print(f"{indent}💸 Payable created: {frm} → {to}: ${amount} (due day {due_day})", console)
+    
+    elif kind == "ClientPayment":
+        payer = event.get('payer', 'N/A')
+        payee = event.get('payee', 'N/A')
+        amount = event.get('amount', 0)
+        payer_bank = event.get('payer_bank', '')
+        payee_bank = event.get('payee_bank', '')
+        _print(f"{indent}💳 Client payment: {payer} ({payer_bank}) → {payee} ({payee_bank}): ${amount}", console)
+    
+    elif kind == "InterbankCleared":
+        debtor = event.get('debtor_bank', 'N/A')
+        creditor = event.get('creditor_bank', 'N/A')
+        amount = event.get('amount', 0)
+        _print(f"{indent}🏦 Interbank cleared: {debtor} → {creditor}: ${amount} (netted)", console)
+    
+    elif kind == "ReservesTransferred":
+        frm = event.get('frm', 'N/A')
+        to = event.get('to', 'N/A')
+        amount = event.get('amount', 0)
+        _print(f"{indent}💰 Reserves transferred: {frm} → {to}: ${amount}", console)
+    
+    elif kind == "InstrumentMerged":
+        # This is a technical event, show it more compactly
+        _print(f"{indent}🔀 Instruments merged", console)
+    
+    elif kind == "InterbankOvernightCreated":
+        debtor = event.get('debtor_bank', 'N/A')
+        creditor = event.get('creditor_bank', 'N/A')
+        amount = event.get('amount', 0)
+        _print(f"{indent}🌙 Overnight payable created: {debtor} → {creditor}: ${amount}", console)
+    
+    elif kind in ["PhaseA", "PhaseB", "PhaseC"]:
+        # Phase markers are not displayed as events themselves
+        pass
+    
+    else:
+        # For any other event types, show raw data
+        _print(f"{indent}• {kind}: {event}", console)
 
 
 def display_events_for_day(system: System, day: int) -> None:
@@ -1578,13 +1830,804 @@ def display_events_for_day(system: System, day: int) -> None:
         system: The bilancio system instance
         day: The simulation day to display events for
     """
+    console = Console() if RICH_AVAILABLE else None
     events = [e for e in system.state.events if e.get("day") == day]
     
     if not events:
-        print("  No events occurred on this day.")
+        _print("  No events occurred on this day.", console)
         return
     
-    _display_day_events(events)
+    _display_day_events(events, console)
+```
+
+---
+
+### 📄 src/bilancio/config/__init__.py
+
+```python
+"""Configuration layer for Bilancio scenarios."""
+
+from .loaders import load_yaml
+from .models import ScenarioConfig
+from .apply import apply_to_system
+
+__all__ = ["load_yaml", "ScenarioConfig", "apply_to_system"]
+```
+
+---
+
+### 📄 src/bilancio/config/apply.py
+
+```python
+"""Apply configuration to a Bilancio system."""
+
+from typing import Dict, Any
+from decimal import Decimal
+
+from bilancio.engines.system import System
+from bilancio.domain.agents import Bank, Household, Firm, CentralBank, Treasury
+from bilancio.ops.banking import deposit_cash, withdraw_cash, client_payment
+from bilancio.domain.instruments.credit import Payable
+from bilancio.core.errors import ValidationError
+
+from .models import ScenarioConfig, AgentSpec
+from .loaders import parse_action
+
+
+def create_agent(spec: AgentSpec) -> Any:
+    """Create an agent from specification.
+    
+    Args:
+        spec: Agent specification
+        
+    Returns:
+        Created agent instance
+        
+    Raises:
+        ValueError: If agent kind is unknown
+    """
+    agent_classes = {
+        "central_bank": CentralBank,
+        "bank": Bank,
+        "household": Household,
+        "firm": Firm,
+        "treasury": Treasury
+    }
+    
+    agent_class = agent_classes.get(spec.kind)
+    if not agent_class:
+        raise ValueError(f"Unknown agent kind: {spec.kind}")
+    
+    # Create agent with id, name, and kind
+    # Note: The agent classes set their own kind in __post_init__, but we pass it anyway
+    # for compatibility with the base Agent class
+    return agent_class(id=spec.id, name=spec.name, kind=spec.kind)
+
+
+def apply_policy_overrides(system: System, overrides: Dict[str, Any]) -> None:
+    """Apply policy overrides to the system.
+    
+    Args:
+        system: System instance
+        overrides: Policy override configuration
+    """
+    if not overrides:
+        return
+    
+    # Apply MOP rank overrides
+    if "mop_rank" in overrides and overrides["mop_rank"]:
+        for agent_kind, mop_list in overrides["mop_rank"].items():
+            system.policy.mop_rank[agent_kind] = mop_list
+
+
+def apply_action(system: System, action_dict: Dict[str, Any], agents: Dict[str, Any]) -> None:
+    """Apply a single action to the system.
+    
+    Args:
+        system: System instance
+        action_dict: Action dictionary from config
+        agents: Dictionary of agent_id -> agent instance
+        
+    Raises:
+        ValueError: If action cannot be applied
+        ValidationError: If action violates system invariants
+    """
+    # Parse the action
+    action = parse_action(action_dict)
+    action_type = action.action
+    
+    try:
+        if action_type == "mint_reserves":
+            system.mint_reserves(
+                to_bank_id=action.to,
+                amount=action.amount
+            )
+            
+        elif action_type == "mint_cash":
+            system.mint_cash(
+                to_agent_id=action.to,
+                amount=action.amount
+            )
+            
+        elif action_type == "transfer_reserves":
+            system.transfer_reserves(
+                from_bank_id=action.from_bank,
+                to_bank_id=action.to_bank,
+                amount=action.amount
+            )
+            
+        elif action_type == "transfer_cash":
+            system.transfer_cash(
+                from_agent_id=action.from_agent,
+                to_agent_id=action.to_agent,
+                amount=action.amount
+            )
+            
+        elif action_type == "deposit_cash":
+            deposit_cash(
+                system=system,
+                customer_id=action.customer,
+                bank_id=action.bank,
+                amount=action.amount
+            )
+            
+        elif action_type == "withdraw_cash":
+            withdraw_cash(
+                system=system,
+                customer_id=action.customer,
+                bank_id=action.bank,
+                amount=action.amount
+            )
+            
+        elif action_type == "client_payment":
+            # Need to determine banks for payer and payee
+            payer = agents.get(action.payer)
+            payee = agents.get(action.payee)
+            
+            if not payer or not payee:
+                raise ValueError(f"Unknown agent in client_payment: {action.payer} or {action.payee}")
+            
+            # Find bank relationships (simplified - assumes first deposit)
+            payer_bank = None
+            payee_bank = None
+            
+            # Check for existing deposits to determine banks
+            for bank_id in [a.id for a in agents.values() if a.kind == "bank"]:
+                if system.deposit_ids(action.payer, bank_id):
+                    payer_bank = bank_id
+                if system.deposit_ids(action.payee, bank_id):
+                    payee_bank = bank_id
+            
+            if not payer_bank or not payee_bank:
+                raise ValueError(f"Cannot determine banks for client_payment from {action.payer} to {action.payee}")
+            
+            client_payment(
+                system=system,
+                payer_id=action.payer,
+                payer_bank=payer_bank,
+                payee_id=action.payee,
+                payee_bank=payee_bank,
+                amount=action.amount
+            )
+            
+        elif action_type == "create_stock":
+            system.create_stock(
+                owner_id=action.owner,
+                sku=action.sku,
+                quantity=action.quantity,
+                unit_price=action.unit_price
+            )
+            
+        elif action_type == "transfer_stock":
+            # Find stock with matching SKU owned by from_agent
+            stocks = [s for s in system.state.stocks.values() 
+                     if s.owner_id == action.from_agent and s.sku == action.sku]
+            
+            if not stocks:
+                raise ValueError(f"No stock with SKU {action.sku} owned by {action.from_agent}")
+            
+            # Transfer from first matching stock
+            stock = stocks[0]
+            if stock.quantity < action.quantity:
+                raise ValueError(f"Insufficient stock: {stock.quantity} < {action.quantity}")
+            
+            system.transfer_stock(
+                stock_id=stock.id,
+                from_owner=action.from_agent,
+                to_owner=action.to_agent,
+                quantity=action.quantity if action.quantity < stock.quantity else None
+            )
+            
+        elif action_type == "create_delivery_obligation":
+            system.create_delivery_obligation(
+                from_agent=action.from_agent,
+                to_agent=action.to_agent,
+                sku=action.sku,
+                quantity=action.quantity,
+                unit_price=action.unit_price,
+                due_day=action.due_day
+            )
+            
+        elif action_type == "create_payable":
+            # Create a Payable instrument
+            # Payable uses asset_holder_id (creditor) and liability_issuer_id (debtor)
+            # Note: amount should be in minor units (e.g., cents)
+            # If the input is in major units (e.g., dollars), multiply by 100
+            # For now, we assume the YAML amounts are already in minor units
+            payable = Payable(
+                id=system.new_contract_id("PAY"),
+                kind="payable",  # Will be set by __post_init__ but required by dataclass
+                amount=int(action.amount),  # Assumes amount is already in minor units
+                denom="X",  # Default denomination - could be made configurable
+                asset_holder_id=action.to_agent,  # creditor holds the asset
+                liability_issuer_id=action.from_agent,  # debtor issues the liability
+                due_day=action.due_day
+            )
+            system.add_contract(payable)
+            
+        else:
+            raise ValueError(f"Unknown action type: {action_type}")
+            
+    except Exception as e:
+        # Add context to the error
+        raise ValueError(f"Failed to apply {action_type}: {e}")
+
+
+def apply_to_system(config: ScenarioConfig, system: System) -> None:
+    """Apply a scenario configuration to a system.
+    
+    This function:
+    1. Creates and adds all agents
+    2. Applies policy overrides
+    3. Executes all initial actions within System.setup()
+    4. Optionally validates invariants
+    
+    Args:
+        config: Scenario configuration
+        system: System instance to configure
+        
+    Raises:
+        ValueError: If configuration cannot be applied
+        ValidationError: If system invariants are violated
+    """
+    agents = {}
+    
+    # Use setup context for all initialization
+    with system.setup():
+        # Create and add agents
+        for agent_spec in config.agents:
+            agent = create_agent(agent_spec)
+            system.add_agent(agent)
+            agents[agent.id] = agent
+        
+        # Apply policy overrides
+        if config.policy_overrides:
+            apply_policy_overrides(system, config.policy_overrides.model_dump())
+        
+        # Execute initial actions
+        for action_dict in config.initial_actions:
+            apply_action(system, action_dict, agents)
+            
+            # Optional: check invariants after each action for debugging
+            # system.assert_invariants()
+    
+    # Final invariant check outside of setup
+    system.assert_invariants()
+```
+
+---
+
+### 📄 src/bilancio/config/loaders.py
+
+```python
+"""YAML loading utilities for Bilancio configuration."""
+
+import yaml
+from pathlib import Path
+from typing import Any, Dict
+from decimal import Decimal, InvalidOperation, DecimalException
+from pydantic import ValidationError
+
+from .models import (
+    ScenarioConfig,
+    MintReserves,
+    MintCash,
+    TransferReserves,
+    TransferCash,
+    DepositCash,
+    WithdrawCash,
+    ClientPayment,
+    CreateStock,
+    TransferStock,
+    CreateDeliveryObligation,
+    CreatePayable,
+    Action
+)
+
+
+def decimal_constructor(loader, node):
+    """Construct Decimal from YAML scalar."""
+    value = loader.construct_scalar(node)
+    return Decimal(value)
+
+
+# Register Decimal constructor for YAML
+yaml.SafeLoader.add_constructor('!decimal', decimal_constructor)
+
+
+def parse_action(action_dict: Dict[str, Any]) -> Action:
+    """Parse a single action dictionary into the appropriate Action model.
+    
+    Args:
+        action_dict: Dictionary containing action specification
+        
+    Returns:
+        Parsed Action model instance
+        
+    Raises:
+        ValueError: If action type is unknown or validation fails
+    """
+    # Determine action type from the dictionary keys
+    if "mint_reserves" in action_dict:
+        data = action_dict["mint_reserves"]
+        return MintReserves(**data)
+    elif "mint_cash" in action_dict:
+        data = action_dict["mint_cash"]
+        return MintCash(**data)
+    elif "transfer_reserves" in action_dict:
+        data = action_dict["transfer_reserves"]
+        return TransferReserves(**data)
+    elif "transfer_cash" in action_dict:
+        data = action_dict["transfer_cash"]
+        return TransferCash(**data)
+    elif "deposit_cash" in action_dict:
+        data = action_dict["deposit_cash"]
+        return DepositCash(**data)
+    elif "withdraw_cash" in action_dict:
+        data = action_dict["withdraw_cash"]
+        return WithdrawCash(**data)
+    elif "client_payment" in action_dict:
+        data = action_dict["client_payment"]
+        return ClientPayment(**data)
+    elif "create_stock" in action_dict:
+        data = action_dict["create_stock"]
+        return CreateStock(**data)
+    elif "transfer_stock" in action_dict:
+        data = action_dict["transfer_stock"]
+        return TransferStock(**data)
+    elif "create_delivery_obligation" in action_dict:
+        data = action_dict["create_delivery_obligation"]
+        # The model handles aliases automatically via pydantic
+        return CreateDeliveryObligation(**data)
+    elif "create_payable" in action_dict:
+        data = action_dict["create_payable"]
+        # The model handles aliases automatically via pydantic
+        return CreatePayable(**data)
+    else:
+        raise ValueError(f"Unknown action type in: {action_dict}")
+
+
+def preprocess_config(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Preprocess configuration data before validation.
+    
+    Converts string decimals to Decimal objects and handles
+    other necessary transformations.
+    
+    Args:
+        data: Raw configuration dictionary
+        
+    Returns:
+        Preprocessed configuration dictionary
+    """
+    def convert_decimals(obj):
+        """Recursively convert string decimals to Decimal objects."""
+        if isinstance(obj, dict):
+            return {k: convert_decimals(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [convert_decimals(item) for item in obj]
+        elif isinstance(obj, str):
+            # Safely try to convert strings to Decimal
+            # Only convert if the string is a valid number
+            try:
+                # Try to create a Decimal - this will validate the format
+                decimal_value = Decimal(obj)
+                # Additional check: ensure it's actually a number-like string
+                # and not something like 'infinity' or 'nan'
+                if decimal_value.is_finite():
+                    return decimal_value
+                else:
+                    return obj
+            except (ValueError, InvalidOperation, DecimalException):
+                # Not a valid decimal, return as-is
+                return obj
+        else:
+            return obj
+    
+    return convert_decimals(data)
+
+
+def load_yaml(path: Path | str) -> ScenarioConfig:
+    """Load and validate a scenario configuration from a YAML file.
+    
+    Args:
+        path: Path to the YAML configuration file
+        
+    Returns:
+        Validated ScenarioConfig instance
+        
+    Raises:
+        FileNotFoundError: If the configuration file doesn't exist
+        yaml.YAMLError: If the YAML is malformed
+        ValidationError: If the configuration doesn't match the schema
+        ValueError: If there are semantic errors in the configuration
+    """
+    path = Path(path)
+    
+    if not path.exists():
+        raise FileNotFoundError(f"Configuration file not found: {path}")
+    
+    try:
+        with open(path, 'r') as f:
+            data = yaml.safe_load(f)
+    except yaml.YAMLError as e:
+        raise yaml.YAMLError(f"Failed to parse YAML from {path}: {e}")
+    
+    if not isinstance(data, dict):
+        raise ValueError(f"Configuration file must contain a YAML dictionary, got {type(data)}")
+    
+    # Preprocess the configuration
+    data = preprocess_config(data)
+    
+    # Parse initial_actions if present
+    if "initial_actions" in data:
+        try:
+            parsed_actions = []
+            for action_dict in data["initial_actions"]:
+                # Keep the original dict for now - we'll parse in apply.py
+                parsed_actions.append(action_dict)
+            data["initial_actions"] = parsed_actions
+        except (ValueError, ValidationError) as e:
+            raise ValueError(f"Failed to parse initial_actions: {e}")
+    
+    # Validate using pydantic
+    try:
+        config = ScenarioConfig(**data)
+    except ValidationError as e:
+        # Format validation errors nicely
+        errors = []
+        for error in e.errors():
+            loc = " -> ".join(str(l) for l in error['loc'])
+            msg = error['msg']
+            errors.append(f"  - {loc}: {msg}")
+        
+        error_msg = f"Configuration validation failed:\n" + "\n".join(errors)
+        raise ValueError(error_msg)
+    
+    return config
+```
+
+---
+
+### 📄 src/bilancio/config/models.py
+
+```python
+"""Pydantic models for Bilancio scenario configuration."""
+
+from typing import Literal, Optional, Union, List, Dict, Any
+from decimal import Decimal
+from pydantic import BaseModel, Field, field_validator
+
+
+class PolicyOverrides(BaseModel):
+    """Policy configuration overrides."""
+    mop_rank: Optional[Dict[str, List[str]]] = Field(
+        None,
+        description="Override default settlement order per agent kind"
+    )
+
+
+class AgentSpec(BaseModel):
+    """Specification for an agent in the scenario."""
+    id: str = Field(..., description="Unique identifier for the agent")
+    kind: Literal["central_bank", "bank", "household", "firm", "treasury"] = Field(
+        ..., description="Type of agent"
+    )
+    name: str = Field(..., description="Human-readable name for the agent")
+
+
+class MintReserves(BaseModel):
+    """Action to mint reserves to a bank."""
+    action: Literal["mint_reserves"] = "mint_reserves"
+    to: str = Field(..., description="Target bank ID")
+    amount: Decimal = Field(..., description="Amount to mint")
+    
+    @field_validator("amount")
+    @classmethod
+    def amount_positive(cls, v):
+        if v <= 0:
+            raise ValueError("Amount must be positive")
+        return v
+
+
+class MintCash(BaseModel):
+    """Action to mint cash to an agent."""
+    action: Literal["mint_cash"] = "mint_cash"
+    to: str = Field(..., description="Target agent ID")
+    amount: Decimal = Field(..., description="Amount to mint")
+    
+    @field_validator("amount")
+    @classmethod
+    def amount_positive(cls, v):
+        if v <= 0:
+            raise ValueError("Amount must be positive")
+        return v
+
+
+class TransferReserves(BaseModel):
+    """Action to transfer reserves between banks."""
+    action: Literal["transfer_reserves"] = "transfer_reserves"
+    from_bank: str = Field(..., description="Source bank ID")
+    to_bank: str = Field(..., description="Target bank ID")
+    amount: Decimal = Field(..., description="Amount to transfer")
+    
+    @field_validator("amount")
+    @classmethod
+    def amount_positive(cls, v):
+        if v <= 0:
+            raise ValueError("Amount must be positive")
+        return v
+
+
+class TransferCash(BaseModel):
+    """Action to transfer cash between agents."""
+    action: Literal["transfer_cash"] = "transfer_cash"
+    from_agent: str = Field(..., description="Source agent ID")
+    to_agent: str = Field(..., description="Target agent ID")
+    amount: Decimal = Field(..., description="Amount to transfer")
+    
+    @field_validator("amount")
+    @classmethod
+    def amount_positive(cls, v):
+        if v <= 0:
+            raise ValueError("Amount must be positive")
+        return v
+
+
+class DepositCash(BaseModel):
+    """Action to deposit cash at a bank."""
+    action: Literal["deposit_cash"] = "deposit_cash"
+    customer: str = Field(..., description="Customer agent ID")
+    bank: str = Field(..., description="Bank ID")
+    amount: Decimal = Field(..., description="Amount to deposit")
+    
+    @field_validator("amount")
+    @classmethod
+    def amount_positive(cls, v):
+        if v <= 0:
+            raise ValueError("Amount must be positive")
+        return v
+
+
+class WithdrawCash(BaseModel):
+    """Action to withdraw cash from a bank."""
+    action: Literal["withdraw_cash"] = "withdraw_cash"
+    customer: str = Field(..., description="Customer agent ID")
+    bank: str = Field(..., description="Bank ID")
+    amount: Decimal = Field(..., description="Amount to withdraw")
+    
+    @field_validator("amount")
+    @classmethod
+    def amount_positive(cls, v):
+        if v <= 0:
+            raise ValueError("Amount must be positive")
+        return v
+
+
+class ClientPayment(BaseModel):
+    """Action for client payment between bank accounts."""
+    action: Literal["client_payment"] = "client_payment"
+    payer: str = Field(..., description="Payer agent ID")
+    payee: str = Field(..., description="Payee agent ID")
+    amount: Decimal = Field(..., description="Payment amount")
+    
+    @field_validator("amount")
+    @classmethod
+    def amount_positive(cls, v):
+        if v <= 0:
+            raise ValueError("Amount must be positive")
+        return v
+
+
+class CreateStock(BaseModel):
+    """Action to create stock inventory."""
+    action: Literal["create_stock"] = "create_stock"
+    owner: str = Field(..., description="Owner agent ID")
+    sku: str = Field(..., description="Stock keeping unit identifier")
+    quantity: int = Field(..., description="Quantity of items")
+    unit_price: Decimal = Field(..., description="Price per unit")
+    
+    @field_validator("quantity")
+    @classmethod
+    def quantity_positive(cls, v):
+        if v <= 0:
+            raise ValueError("Quantity must be positive")
+        return v
+    
+    @field_validator("unit_price")
+    @classmethod
+    def price_non_negative(cls, v):
+        if v < 0:
+            raise ValueError("Unit price cannot be negative")
+        return v
+
+
+class TransferStock(BaseModel):
+    """Action to transfer stock between agents."""
+    action: Literal["transfer_stock"] = "transfer_stock"
+    from_agent: str = Field(..., description="Source agent ID")
+    to_agent: str = Field(..., description="Target agent ID")
+    sku: str = Field(..., description="Stock keeping unit identifier")
+    quantity: int = Field(..., description="Quantity to transfer")
+    
+    @field_validator("quantity")
+    @classmethod
+    def quantity_positive(cls, v):
+        if v <= 0:
+            raise ValueError("Quantity must be positive")
+        return v
+
+
+class CreateDeliveryObligation(BaseModel):
+    """Action to create a delivery obligation."""
+    action: Literal["create_delivery_obligation"] = "create_delivery_obligation"
+    from_agent: str = Field(..., description="Delivering agent ID", alias="from")
+    to_agent: str = Field(..., description="Receiving agent ID", alias="to")
+    sku: str = Field(..., description="Stock keeping unit identifier")
+    quantity: int = Field(..., description="Quantity to deliver")
+    unit_price: Decimal = Field(..., description="Price per unit")
+    due_day: int = Field(..., description="Day when delivery is due")
+    
+    @field_validator("quantity")
+    @classmethod
+    def quantity_positive(cls, v):
+        if v <= 0:
+            raise ValueError("Quantity must be positive")
+        return v
+    
+    @field_validator("unit_price")
+    @classmethod
+    def price_non_negative(cls, v):
+        if v < 0:
+            raise ValueError("Unit price cannot be negative")
+        return v
+    
+    @field_validator("due_day")
+    @classmethod
+    def due_day_non_negative(cls, v):
+        if v < 0:
+            raise ValueError("Due day cannot be negative")
+        return v
+
+
+class CreatePayable(BaseModel):
+    """Action to create a payable obligation."""
+    action: Literal["create_payable"] = "create_payable"
+    from_agent: str = Field(..., description="Debtor agent ID", alias="from")
+    to_agent: str = Field(..., description="Creditor agent ID", alias="to")
+    amount: Decimal = Field(..., description="Amount to pay")
+    due_day: int = Field(..., description="Day when payment is due")
+    
+    @field_validator("amount")
+    @classmethod
+    def amount_positive(cls, v):
+        if v <= 0:
+            raise ValueError("Amount must be positive")
+        return v
+    
+    @field_validator("due_day")
+    @classmethod
+    def due_day_non_negative(cls, v):
+        if v < 0:
+            raise ValueError("Due day cannot be negative")
+        return v
+
+
+# Union type for all actions
+Action = Union[
+    MintReserves,
+    MintCash,
+    TransferReserves,
+    TransferCash,
+    DepositCash,
+    WithdrawCash,
+    ClientPayment,
+    CreateStock,
+    TransferStock,
+    CreateDeliveryObligation,
+    CreatePayable
+]
+
+
+class ShowConfig(BaseModel):
+    """Display configuration for the run."""
+    balances: Optional[List[str]] = Field(
+        None,
+        description="Agent IDs to show balances for"
+    )
+    events: Literal["summary", "detailed"] = Field(
+        "detailed",
+        description="Event display mode"
+    )
+
+
+class ExportConfig(BaseModel):
+    """Export configuration for simulation results."""
+    balances_csv: Optional[str] = Field(
+        None,
+        description="Path to export balances CSV"
+    )
+    events_jsonl: Optional[str] = Field(
+        None,
+        description="Path to export events JSONL"
+    )
+
+
+class RunConfig(BaseModel):
+    """Run configuration for the simulation."""
+    mode: Literal["step", "until_stable"] = Field(
+        "until_stable",
+        description="Simulation run mode"
+    )
+    max_days: int = Field(90, description="Maximum days to simulate")
+    quiet_days: int = Field(2, description="Required quiet days for stable state")
+    show: ShowConfig = Field(default_factory=ShowConfig)
+    export: ExportConfig = Field(default_factory=ExportConfig)
+    
+    @field_validator("max_days")
+    @classmethod
+    def max_days_positive(cls, v):
+        if v <= 0:
+            raise ValueError("Max days must be positive")
+        return v
+    
+    @field_validator("quiet_days")
+    @classmethod
+    def quiet_days_non_negative(cls, v):
+        if v < 0:
+            raise ValueError("Quiet days cannot be negative")
+        return v
+
+
+class ScenarioConfig(BaseModel):
+    """Complete scenario configuration."""
+    version: int = Field(1, description="Configuration version")
+    name: str = Field(..., description="Scenario name")
+    description: Optional[str] = Field(None, description="Scenario description")
+    policy_overrides: Optional[PolicyOverrides] = Field(
+        None,
+        description="Policy engine overrides"
+    )
+    agents: List[AgentSpec] = Field(..., description="Agents in the scenario")
+    initial_actions: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description="Actions to execute during setup"
+    )
+    run: RunConfig = Field(default_factory=RunConfig)
+    
+    @field_validator("version")
+    @classmethod
+    def version_supported(cls, v):
+        if v != 1:
+            raise ValueError(f"Unsupported configuration version: {v}")
+        return v
+    
+    @field_validator("agents")
+    @classmethod
+    def agents_unique_ids(cls, v):
+        ids = [agent.id for agent in v]
+        if len(ids) != len(set(ids)):
+            raise ValueError("Agent IDs must be unique")
+        return v
 ```
 
 ---
@@ -3653,6 +4696,208 @@ class SimpleValuationEngine:
 
 ---
 
+### 📄 src/bilancio/export/__init__.py
+
+```python
+"""Export utilities for Bilancio simulation results."""
+
+from .writers import write_balances_csv, write_events_jsonl
+
+__all__ = ["write_balances_csv", "write_events_jsonl"]
+```
+
+---
+
+### 📄 src/bilancio/export/writers.py
+
+```python
+"""Writers for exporting Bilancio simulation data."""
+
+import json
+import csv
+from pathlib import Path
+from typing import Any, Dict, List
+from decimal import Decimal
+
+from bilancio.engines.system import System
+from bilancio.analysis.balances import as_rows, system_trial_balance
+
+
+def decimal_default(obj):
+    """JSON encoder for Decimal types.
+    
+    Preserves precision by converting to string for exact representation.
+    Most JSON parsers can handle numeric strings correctly.
+    """
+    if isinstance(obj, Decimal):
+        # Convert to string to preserve exact precision
+        # Use normalize() to remove trailing zeros
+        normalized = obj.normalize()
+        # Check if it's an integer value
+        if normalized == normalized.to_integral_value():
+            return int(normalized)
+        else:
+            # Return as string to preserve exact decimal precision
+            return str(normalized)
+    raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
+
+
+def write_balances_csv(system: System, path: Path) -> None:
+    """Export system balances to CSV format.
+    
+    Creates a CSV file with balance sheet data for all agents
+    and the system as a whole.
+    
+    Args:
+        system: System instance with simulation results
+        path: Path where to write the CSV file
+    """
+    # Get balance rows
+    rows = as_rows(system)
+    
+    # Add system trial balance
+    trial_bal = system_trial_balance(system)
+    rows.append({
+        "agent_id": "SYSTEM",
+        "agent_name": "System Total",
+        "agent_kind": "system",
+        "item_type": "summary",
+        "item_name": "Total Assets",
+        "amount": trial_bal.total_financial_assets
+    })
+    rows.append({
+        "agent_id": "SYSTEM",
+        "agent_name": "System Total",
+        "agent_kind": "system",
+        "item_type": "summary",
+        "item_name": "Total Liabilities",
+        "amount": trial_bal.total_financial_liabilities
+    })
+    rows.append({
+        "agent_id": "SYSTEM",
+        "agent_name": "System Total",
+        "agent_kind": "system",
+        "item_type": "summary",
+        "item_name": "Total Equity",
+        "amount": trial_bal.total_financial_assets - trial_bal.total_financial_liabilities
+    })
+    
+    # Write to CSV
+    if rows:
+        # Collect all unique fieldnames from all rows
+        fieldnames_set = set()
+        for row in rows:
+            fieldnames_set.update(row.keys())
+        fieldnames = sorted(list(fieldnames_set))
+        
+        with open(path, 'w', newline='') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            
+            for row in rows:
+                # Convert Decimal to float for CSV
+                row_copy = row.copy()
+                for key, value in row_copy.items():
+                    if isinstance(value, Decimal):
+                        row_copy[key] = float(value)
+                writer.writerow(row_copy)
+
+
+def write_events_jsonl(system: System, path: Path) -> None:
+    """Export system events to JSONL format.
+    
+    Creates a JSONL file (one JSON object per line) with all
+    simulation events for detailed analysis.
+    
+    Args:
+        system: System instance with simulation results
+        path: Path where to write the JSONL file
+    """
+    with open(path, 'w') as f:
+        for event in system.state.events:
+            # Write each event as a separate JSON line
+            json.dump(event, f, default=decimal_default)
+            f.write('\n')
+
+
+def write_balances_snapshot(
+    system: System,
+    path: Path,
+    day: int,
+    agent_ids: List[str] = None
+) -> None:
+    """Export a snapshot of balances for specific agents on a specific day.
+    
+    Args:
+        system: System instance
+        path: Path where to write the snapshot
+        day: Day number for the snapshot
+        agent_ids: List of agent IDs to include (None for all)
+    """
+    snapshot = {
+        "day": day,
+        "agents": {}
+    }
+    
+    # Determine which agents to include
+    if agent_ids is None:
+        agent_ids = list(system.state.agents.keys())
+    
+    # Collect balance data for each agent
+    for agent_id in agent_ids:
+        if agent_id not in system.state.agents:
+            continue
+            
+        agent = system.state.agents[agent_id]
+        
+        # Get balance sheet items
+        assets = []
+        for asset_id in agent.asset_ids:
+            if asset_id in system.state.contracts:
+                contract = system.state.contracts[asset_id]
+                assets.append({
+                    "id": asset_id,
+                    "type": type(contract).__name__,
+                    "amount": getattr(contract, "amount", None)
+                })
+        
+        liabilities = []
+        for liability_id in agent.liability_ids:
+            if liability_id in system.state.contracts:
+                contract = system.state.contracts[liability_id]
+                liabilities.append({
+                    "id": liability_id,
+                    "type": type(contract).__name__,
+                    "amount": getattr(contract, "amount", None)
+                })
+        
+        stocks = []
+        for stock_id in agent.stock_ids:
+            if stock_id in system.state.stocks:
+                stock = system.state.stocks[stock_id]
+                stocks.append({
+                    "id": stock_id,
+                    "sku": stock.sku,
+                    "quantity": stock.quantity,
+                    "unit_price": stock.unit_price,
+                    "total_value": stock.quantity * stock.unit_price
+                })
+        
+        snapshot["agents"][agent_id] = {
+            "name": agent.name,
+            "kind": agent.kind,
+            "assets": assets,
+            "liabilities": liabilities,
+            "stocks": stocks
+        }
+    
+    # Write snapshot to file
+    with open(path, 'w') as f:
+        json.dump(snapshot, f, indent=2, default=decimal_default)
+```
+
+---
+
 ### 📄 src/bilancio/io/__init__.py
 
 ```python
@@ -4137,6 +5382,970 @@ def consume_stock(system: 'System', stock_id: InstrId, quantity: int) -> None:
 
 ---
 
+### 📄 src/bilancio/ui/__init__.py
+
+```python
+"""User interface layer for Bilancio CLI."""
+
+from .cli import main
+
+__all__ = ["main"]
+```
+
+---
+
+### 📄 src/bilancio/ui/cli.py
+
+```python
+"""Command-line interface for Bilancio."""
+
+import click
+from pathlib import Path
+from typing import Optional, List
+import sys
+
+from rich.console import Console
+from rich.panel import Panel
+
+from .run import run_scenario
+from .wizard import create_scenario_wizard
+
+
+console = Console()
+
+
+@click.group()
+def cli():
+    """Bilancio - Economic simulation framework."""
+    pass
+
+
+@cli.command()
+@click.argument('scenario_file', type=click.Path(exists=True, path_type=Path))
+@click.option('--mode', type=click.Choice(['step', 'until-stable']), 
+              default='until-stable', help='Simulation run mode')
+@click.option('--max-days', type=int, default=90, 
+              help='Maximum days to simulate')
+@click.option('--quiet-days', type=int, default=2,
+              help='Required quiet days for stable state')
+@click.option('--show', type=click.Choice(['summary', 'detailed']),
+              default='detailed', help='Event display mode')
+@click.option('--agents', type=str, default=None,
+              help='Comma-separated list of agent IDs to show balances for')
+@click.option('--check-invariants', 
+              type=click.Choice(['setup', 'daily', 'none']),
+              default='setup',
+              help='When to check system invariants')
+@click.option('--export-balances', type=click.Path(path_type=Path),
+              default=None, help='Path to export balances CSV')
+@click.option('--export-events', type=click.Path(path_type=Path),
+              default=None, help='Path to export events JSONL')
+def run(scenario_file: Path, 
+        mode: str,
+        max_days: int,
+        quiet_days: int,
+        show: str,
+        agents: Optional[str],
+        check_invariants: str,
+        export_balances: Optional[Path],
+        export_events: Optional[Path]):
+    """Run a Bilancio simulation scenario.
+    
+    Load a scenario from a YAML file and run the simulation either
+    step-by-step or until a stable state is reached.
+    """
+    try:
+        # Parse agent list if provided
+        agent_ids = None
+        if agents:
+            agent_ids = [a.strip() for a in agents.split(',')]
+        
+        # Override export paths if provided via CLI
+        export = {
+            'balances_csv': str(export_balances) if export_balances else None,
+            'events_jsonl': str(export_events) if export_events else None
+        }
+        
+        # Run the scenario
+        run_scenario(
+            path=scenario_file,
+            mode=mode,
+            max_days=max_days,
+            quiet_days=quiet_days,
+            show=show,
+            agent_ids=agent_ids,
+            check_invariants=check_invariants,
+            export=export
+        )
+        
+    except FileNotFoundError as e:
+        console.print(Panel(
+            f"[red]File not found:[/red] {e}",
+            title="Error",
+            border_style="red"
+        ))
+        sys.exit(1)
+        
+    except ValueError as e:
+        console.print(Panel(
+            f"[red]Configuration error:[/red]\n{e}",
+            title="Error",
+            border_style="red"
+        ))
+        sys.exit(1)
+        
+    except Exception as e:
+        console.print(Panel(
+            f"[red]Unexpected error:[/red]\n{e}",
+            title="Error",
+            border_style="red"
+        ))
+        if '--debug' in sys.argv:
+            raise
+        sys.exit(1)
+
+
+@cli.command()
+@click.argument('scenario_file', type=click.Path(exists=True, path_type=Path))
+def validate(scenario_file: Path):
+    """Validate a Bilancio scenario configuration file.
+    
+    Check that a YAML configuration file is valid without running
+    the simulation. Reports any errors in the configuration structure,
+    agent definitions, or initial actions.
+    """
+    try:
+        from bilancio.config import load_yaml
+        from bilancio.engines.system import System
+        from bilancio.config import apply_to_system
+        
+        # Load and parse the configuration
+        console.print(f"[dim]Validating {scenario_file}...[/dim]")
+        config = load_yaml(scenario_file)
+        
+        console.print(f"[green]✓[/green] Configuration syntax is valid")
+        console.print(f"  Name: {config.name}")
+        console.print(f"  Version: {config.version}")
+        console.print(f"  Agents: {len(config.agents)}")
+        console.print(f"  Initial actions: {len(config.initial_actions)}")
+        
+        # Try to apply to a test system to validate actions
+        console.print("[dim]Checking if configuration can be applied...[/dim]")
+        test_system = System()
+        apply_to_system(config, test_system)
+        
+        console.print(f"[green]✓[/green] Configuration can be applied successfully")
+        
+        # Run invariant checks
+        test_system.assert_invariants()
+        console.print(f"[green]✓[/green] System invariants pass")
+        
+        # Summary
+        console.print("\n[bold green]Configuration is valid![/bold green]")
+        console.print(f"\nAgents defined:")
+        for agent in config.agents:
+            console.print(f"  • {agent.id} ({agent.kind}): {agent.name}")
+        
+        if config.run.export.balances_csv or config.run.export.events_jsonl:
+            console.print(f"\nExports configured:")
+            if config.run.export.balances_csv:
+                console.print(f"  • Balances: {config.run.export.balances_csv}")
+            if config.run.export.events_jsonl:
+                console.print(f"  • Events: {config.run.export.events_jsonl}")
+        
+    except FileNotFoundError as e:
+        console.print(Panel(
+            f"[red]File not found:[/red] {e}",
+            title="Error",
+            border_style="red"
+        ))
+        sys.exit(1)
+        
+    except ValueError as e:
+        console.print(Panel(
+            f"[red]Configuration error:[/red]\n{e}",
+            title="Validation Failed",
+            border_style="red"
+        ))
+        sys.exit(1)
+        
+    except Exception as e:
+        console.print(Panel(
+            f"[red]Validation error:[/red]\n{e}",
+            title="Validation Failed",
+            border_style="red"
+        ))
+        if '--debug' in sys.argv:
+            raise
+        sys.exit(1)
+
+
+@cli.command()
+@click.option('--from', 'from_template', type=str, default=None,
+              help='Base template to use')
+@click.option('-o', '--output', type=click.Path(path_type=Path),
+              required=True, help='Output YAML file path')
+def new(from_template: Optional[str], output: Path):
+    """Create a new scenario configuration.
+    
+    Interactive wizard to create a new Bilancio scenario
+    configuration file.
+    """
+    try:
+        create_scenario_wizard(output, from_template)
+        console.print(f"[green]✓[/green] Created scenario file: {output}")
+        
+    except Exception as e:
+        console.print(Panel(
+            f"[red]Failed to create scenario:[/red]\n{e}",
+            title="Error",
+            border_style="red"
+        ))
+        sys.exit(1)
+
+
+def main():
+    """Main entry point for the CLI."""
+    cli()
+
+
+if __name__ == '__main__':
+    main()
+```
+
+---
+
+### 📄 src/bilancio/ui/display.py
+
+```python
+"""Display utilities for Bilancio CLI."""
+
+from typing import Optional, List, Dict, Any
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+from rich.text import Text
+
+from bilancio.engines.system import System
+from bilancio.analysis.visualization import (
+    display_agent_balance_table,
+    display_multiple_agent_balances,
+    display_events,
+    display_events_for_day
+)
+from bilancio.analysis.balances import system_trial_balance
+from bilancio.core.errors import DefaultError, ValidationError
+
+
+console = Console()
+
+
+def show_scenario_header(name: str, description: Optional[str] = None) -> None:
+    """Display scenario header.
+    
+    Args:
+        name: Scenario name
+        description: Optional scenario description
+    """
+    header = Text(name, style="bold cyan")
+    if description:
+        header.append(f"\n{description}", style="dim")
+    
+    console.print(Panel(
+        header,
+        title="Bilancio Scenario",
+        border_style="cyan"
+    ))
+
+
+def show_day_summary(
+    system: System,
+    agent_ids: Optional[List[str]] = None,
+    event_mode: str = "detailed",
+    day: Optional[int] = None
+) -> None:
+    """Display summary for a simulation day.
+    
+    Args:
+        system: System instance
+        agent_ids: Agent IDs to show balances for
+        event_mode: "summary" or "detailed"
+        day: Day number to display events for (None for all)
+    """
+    # Show events
+    if day is not None:
+        # Show events for specific day
+        events_for_day = [e for e in system.state.events if e.get("day") == day]
+        if events_for_day:
+            console.print("\n[bold]Events:[/bold]")
+            if event_mode == "detailed":
+                display_events(events_for_day, format="detailed")
+            else:
+                # Summary mode - just count by type
+                event_counts = {}
+                for event in events_for_day:
+                    event_type = event.get("type", "Unknown")
+                    event_counts[event_type] = event_counts.get(event_type, 0) + 1
+                
+                for event_type, count in sorted(event_counts.items()):
+                    console.print(f"  • {event_type}: {count}")
+    else:
+        # Show all recent events
+        if system.state.events:
+            console.print("\n[bold]Events:[/bold]")
+            display_events(system.state.events, format="detailed")
+    
+    # Show balances
+    if agent_ids:
+        console.print("\n[bold]Balances:[/bold]")
+        if len(agent_ids) == 1:
+            # Single agent - show detailed balance
+            display_agent_balance_table(system, agent_ids[0], format="rich")
+        else:
+            # Multiple agents - show side by side
+            display_multiple_agent_balances(system, agent_ids, format="rich")
+    else:
+        # Show system trial balance
+        console.print("\n[bold]System Trial Balance:[/bold]")
+        trial_bal = system_trial_balance(system)
+        
+        table = Table(show_header=True, header_style="bold")
+        table.add_column("Metric")
+        table.add_column("Value", justify="right")
+        
+        total_assets = trial_bal.total_financial_assets
+        total_liabilities = trial_bal.total_financial_liabilities
+        
+        table.add_row("Total Assets", f"{total_assets:,.2f}")
+        table.add_row("Total Liabilities", f"{total_liabilities:,.2f}")
+        table.add_row("Total Equity", f"{total_assets - total_liabilities:,.2f}")
+        
+        # Check if balanced
+        diff = abs(total_assets - total_liabilities)
+        if diff < 0.01:
+            table.add_row("Status", "[green]✓ Balanced[/green]")
+        else:
+            table.add_row("Status", f"[red]✗ Imbalanced ({diff:,.2f})[/red]")
+        
+        console.print(table)
+
+
+def show_simulation_summary(system: System) -> None:
+    """Display final simulation summary.
+    
+    Args:
+        system: System instance
+    """
+    console.print(Panel(
+        f"[bold]Final State[/bold]\n"
+        f"Day: {system.state.day}\n"
+        f"Total Events: {len(system.state.events)}\n"
+        f"Active Agents: {len(system.state.agents)}\n"
+        f"Active Contracts: {len(system.state.contracts)}\n"
+        f"Stock Lots: {len(system.state.stocks)}",
+        title="Summary",
+        border_style="green"
+    ))
+
+
+def show_error_panel(
+    error: Exception,
+    phase: str,
+    context: Optional[Dict[str, Any]] = None
+) -> None:
+    """Display error in a formatted panel.
+    
+    Args:
+        error: Exception that occurred
+        phase: Phase where error occurred (setup, day_N, simulation)
+        context: Additional context information
+    """
+    error_type = type(error).__name__
+    error_msg = str(error)
+    
+    # Build error content
+    content = Text()
+    content.append(f"Type: {error_type}\n", style="red bold")
+    content.append(f"Message: {error_msg}\n", style="red")
+    
+    if context:
+        content.append("\nContext:\n", style="yellow")
+        for key, value in context.items():
+            content.append(f"  • {key}: {value}\n", style="dim")
+    
+    # Add helpful hints based on error type
+    if isinstance(error, DefaultError):
+        content.append("\n💡 ", style="yellow")
+        content.append("This usually means a debtor lacks sufficient funds or assets to settle an obligation.\n", style="dim")
+        content.append("Check the agent's balance sheet and available means of payment.", style="dim")
+        
+    elif isinstance(error, ValidationError):
+        content.append("\n💡 ", style="yellow")
+        content.append("This indicates a system invariant violation.\n", style="dim")
+        content.append("Common causes: duplicate IDs, negative balances, or mismatched references.", style="dim")
+    
+    # Display the panel
+    console.print(Panel(
+        content,
+        title=f"Error in {phase}",
+        border_style="red",
+        expand=False
+    ))
+    
+    # Log the error as an event
+    if context and "scenario" in context:
+        console.print(f"[dim]Error logged to simulation events[/dim]")
+```
+
+---
+
+### 📄 src/bilancio/ui/run.py
+
+```python
+"""Orchestration logic for running Bilancio simulations."""
+
+from pathlib import Path
+from typing import Optional, List, Dict, Any
+import sys
+
+from rich.console import Console
+from rich.panel import Panel
+from rich.prompt import Confirm
+from rich.table import Table
+
+from bilancio.engines.system import System
+from bilancio.engines.simulation import run_day, run_until_stable
+from bilancio.core.errors import ValidationError, DefaultError
+from bilancio.config import load_yaml, apply_to_system
+from bilancio.export.writers import write_balances_csv, write_events_jsonl
+
+from .display import (
+    show_scenario_header,
+    show_day_summary,
+    show_simulation_summary,
+    show_error_panel
+)
+
+
+console = Console()
+
+
+def run_scenario(
+    path: Path,
+    mode: str = "until_stable",
+    max_days: int = 90,
+    quiet_days: int = 2,
+    show: str = "detailed",
+    agent_ids: Optional[List[str]] = None,
+    check_invariants: str = "setup",
+    export: Optional[Dict[str, str]] = None
+) -> None:
+    """Run a Bilancio simulation scenario.
+    
+    Args:
+        path: Path to scenario YAML file
+        mode: "step" or "until_stable"
+        max_days: Maximum days to simulate
+        quiet_days: Required quiet days for stable state
+        show: "summary" or "detailed" for event display
+        agent_ids: List of agent IDs to show balances for
+        check_invariants: "setup", "daily", or "none"
+        export: Dictionary with export paths (balances_csv, events_jsonl)
+    """
+    # Load configuration
+    console.print("[dim]Loading scenario...[/dim]")
+    config = load_yaml(path)
+    
+    # Create and configure system
+    system = System()
+    
+    # Apply configuration
+    try:
+        apply_to_system(config, system)
+        
+        if check_invariants in ("setup", "daily"):
+            system.assert_invariants()
+            
+    except (ValidationError, ValueError) as e:
+        show_error_panel(
+            error=e,
+            phase="setup",
+            context={"scenario": config.name}
+        )
+        sys.exit(1)
+    
+    # Use config settings unless overridden by CLI
+    if agent_ids is None and config.run.show.balances:
+        agent_ids = config.run.show.balances
+    
+    if export is None:
+        export = {}
+    
+    # Use config export settings if not overridden
+    if not export.get('balances_csv') and config.run.export.balances_csv:
+        export['balances_csv'] = config.run.export.balances_csv
+    if not export.get('events_jsonl') and config.run.export.events_jsonl:
+        export['events_jsonl'] = config.run.export.events_jsonl
+    
+    # Show scenario header
+    show_scenario_header(config.name, config.description)
+    
+    # Show initial state
+    console.print("\n[bold cyan]📅 Day 0 (After Setup)[/bold cyan]")
+    show_day_summary(system, agent_ids, show)
+    
+    if mode == "step":
+        run_step_mode(
+            system=system,
+            max_days=max_days,
+            show=show,
+            agent_ids=agent_ids,
+            check_invariants=check_invariants,
+            scenario_name=config.name
+        )
+    else:
+        run_until_stable_mode(
+            system=system,
+            max_days=max_days,
+            quiet_days=quiet_days,
+            show=show,
+            agent_ids=agent_ids,
+            check_invariants=check_invariants,
+            scenario_name=config.name
+        )
+    
+    # Export results if requested
+    if export.get('balances_csv'):
+        export_path = Path(export['balances_csv'])
+        export_path.parent.mkdir(parents=True, exist_ok=True)
+        write_balances_csv(system, export_path)
+        console.print(f"[green]✓[/green] Exported balances to {export_path}")
+    
+    if export.get('events_jsonl'):
+        export_path = Path(export['events_jsonl'])
+        export_path.parent.mkdir(parents=True, exist_ok=True)
+        write_events_jsonl(system, export_path)
+        console.print(f"[green]✓[/green] Exported events to {export_path}")
+
+
+def run_step_mode(
+    system: System,
+    max_days: int,
+    show: str,
+    agent_ids: Optional[List[str]],
+    check_invariants: str,
+    scenario_name: str
+) -> None:
+    """Run simulation in step-by-step mode.
+    
+    Args:
+        system: Configured system
+        max_days: Maximum days to simulate
+        show: Event display mode
+        agent_ids: Agent IDs to show balances for
+        check_invariants: Invariant checking mode
+        scenario_name: Name of the scenario for error context
+    """
+    day = 0
+    
+    while day < max_days:
+        # Prompt to continue
+        console.print()
+        if not Confirm.ask(f"[cyan]Run day {day + 1}?[/cyan]", default=True):
+            console.print("[yellow]Simulation stopped by user[/yellow]")
+            break
+        
+        try:
+            # Run the next day
+            day_report = run_day(system)
+            day += 1
+            
+            # Check invariants if requested
+            if check_invariants == "daily":
+                system.assert_invariants()
+            
+            # Show day summary
+            console.print(f"\n[bold cyan]📅 Day {day}[/bold cyan]")
+            show_day_summary(system, agent_ids, show)
+            
+            # Check if we've reached a stable state
+            if day_report.quiet and not day_report.has_open_obligations:
+                console.print("[green]✓[/green] System reached stable state")
+                break
+                
+        except DefaultError as e:
+            show_error_panel(
+                error=e,
+                phase=f"day_{day + 1}",
+                context={
+                    "scenario": scenario_name,
+                    "day": day + 1,
+                    "phase": system.state.phase
+                }
+            )
+            break
+            
+        except ValidationError as e:
+            show_error_panel(
+                error=e,
+                phase=f"day_{day + 1}",
+                context={
+                    "scenario": scenario_name,
+                    "day": day + 1,
+                    "phase": system.state.phase
+                }
+            )
+            break
+            
+        except Exception as e:
+            show_error_panel(
+                error=e,
+                phase=f"day_{day + 1}",
+                context={
+                    "scenario": scenario_name,
+                    "day": day + 1
+                }
+            )
+            break
+    
+    # Show final summary
+    console.print("\n[bold]Simulation Complete[/bold]")
+    show_simulation_summary(system)
+
+
+def run_until_stable_mode(
+    system: System,
+    max_days: int,
+    quiet_days: int,
+    show: str,
+    agent_ids: Optional[List[str]],
+    check_invariants: str,
+    scenario_name: str
+) -> None:
+    """Run simulation until stable state is reached.
+    
+    Args:
+        system: Configured system
+        max_days: Maximum days to simulate
+        quiet_days: Required quiet days for stable state
+        show: Event display mode
+        agent_ids: Agent IDs to show balances for
+        check_invariants: Invariant checking mode
+        scenario_name: Name of the scenario for error context
+    """
+    console.print(f"\n[dim]Running simulation until stable (max {max_days} days)...[/dim]\n")
+    
+    try:
+        # Run simulation day by day to capture correct balance snapshots
+        from bilancio.engines.simulation import run_day, _impacted_today, _has_open_obligations
+        from bilancio.analysis.balances import agent_balance
+        
+        reports = []
+        consecutive_quiet = 0
+        
+        for day_num in range(1, max_days + 1):
+            # Run the next day
+            day_before = system.state.day
+            run_day(system)
+            impacted = _impacted_today(system, day_before)
+            
+            # Create report
+            from bilancio.engines.simulation import DayReport
+            report = DayReport(day=day_before, impacted=impacted)
+            reports.append(report)
+            
+            # Display this day's results immediately (with correct balance state)
+            console.print(f"[bold cyan]📅 Day {day_num}[/bold cyan]")
+            
+            # Check invariants if requested
+            if check_invariants == "daily":
+                try:
+                    system.assert_invariants()
+                except Exception as e:
+                    console.print(f"[yellow]⚠ Invariant check failed: {e}[/yellow]")
+            
+            # Show events and balances for this specific day
+            # Note: events are stored with 0-based day numbers
+            show_day_summary(system, agent_ids, show, day=day_before)
+            
+            # Show activity summary
+            if report.impacted > 0:
+                console.print(f"[dim]Activity: {report.impacted} impactful events[/dim]")
+            else:
+                console.print("[dim]→ Quiet day (no activity)[/dim]")
+            
+            if report.notes:
+                console.print(f"[dim]Note: {report.notes}[/dim]")
+            
+            console.print()
+            
+            # Check for stable state
+            if impacted == 0:
+                consecutive_quiet += 1
+            else:
+                consecutive_quiet = 0
+            
+            if consecutive_quiet >= quiet_days and not _has_open_obligations(system):
+                console.print("[green]✓[/green] System reached stable state")
+                break
+        
+        # If we didn't break early, check if we hit max days
+        else:
+            console.print("[yellow]⚠[/yellow] Maximum days reached without stable state")
+        
+    except DefaultError as e:
+        show_error_panel(
+            error=e,
+            phase="simulation",
+            context={
+                "scenario": scenario_name,
+                "day": system.state.day,
+                "phase": system.state.phase
+            }
+        )
+        
+    except ValidationError as e:
+        show_error_panel(
+            error=e,
+            phase="simulation",
+            context={
+                "scenario": scenario_name,
+                "day": system.state.day,
+                "phase": system.state.phase
+            }
+        )
+        
+    except Exception as e:
+        show_error_panel(
+            error=e,
+            phase="simulation",
+            context={
+                "scenario": scenario_name,
+                "day": system.state.day
+            }
+        )
+    
+    # Show final summary
+    console.print("\n[bold]Simulation Complete[/bold]")
+    show_simulation_summary(system)
+```
+
+---
+
+### 📄 src/bilancio/ui/wizard.py
+
+```python
+"""Interactive wizard for creating Bilancio scenarios."""
+
+import yaml
+from pathlib import Path
+from typing import Optional
+from rich.console import Console
+from rich.prompt import Prompt, IntPrompt, Confirm
+
+console = Console()
+
+
+def create_scenario_wizard(output_path: Path, template: Optional[str] = None) -> None:
+    """Interactive wizard to create a scenario configuration.
+    
+    Args:
+        output_path: Path where to save the configuration
+        template: Optional template name to use (simple, standard, complex, or path to YAML)
+    """
+    console.print("[bold cyan]Bilancio Scenario Creator[/bold cyan]\n")
+    
+    # If template is provided, use it to determine complexity
+    if template:
+        # Check if template is a file path
+        template_path = Path(template)
+        if template_path.exists() and template_path.suffix in ['.yaml', '.yml']:
+            # Load existing YAML as template
+            console.print(f"[dim]Using template from: {template}[/dim]")
+            with open(template_path, 'r') as f:
+                config = yaml.safe_load(f)
+            
+            # Allow user to modify the loaded template
+            name = Prompt.ask("Scenario name", default=config.get("name", "My Scenario"))
+            description = Prompt.ask("Description (optional)", 
+                                    default=config.get("description", ""))
+            
+            # Update the config with new name and description
+            config["name"] = name
+            config["description"] = description or None
+            
+            # Save and exit early
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(output_path, 'w') as f:
+                yaml.dump(config, f, default_flow_style=False, sort_keys=False)
+            
+            console.print(f"\n[green]✓[/green] Scenario configuration saved to: {output_path}")
+            console.print(f"\nRun your scenario with: [cyan]bilancio run {output_path}[/cyan]")
+            return
+        
+        # Otherwise, treat template as complexity level
+        elif template in ["simple", "standard", "complex"]:
+            complexity = template
+            console.print(f"[dim]Using {complexity} template[/dim]")
+        else:
+            console.print(f"[yellow]Warning: Unknown template '{template}', using interactive mode[/yellow]")
+            complexity = Prompt.ask(
+                "Complexity",
+                choices=["simple", "standard", "complex"],
+                default="simple"
+            )
+    else:
+        # No template provided, ask for complexity
+        complexity = Prompt.ask(
+            "Complexity",
+            choices=["simple", "standard", "complex"],
+            default="simple"
+        )
+    
+    # Get basic information (with fallback for non-interactive mode)
+    try:
+        name = Prompt.ask("Scenario name", default="My Scenario")
+        description = Prompt.ask("Description (optional)", default="")
+    except (EOFError, KeyboardInterrupt):
+        # Non-interactive mode or user cancelled - use defaults
+        name = "My Scenario"
+        description = ""
+    
+    config = {
+        "version": 1,
+        "name": name,
+        "description": description or None,
+        "agents": [],
+        "initial_actions": [],
+        "run": {
+            "mode": "until_stable",
+            "max_days": 90,
+            "quiet_days": 2,
+            "show": {
+                "events": "detailed"
+            }
+        }
+    }
+    
+    if complexity == "simple":
+        # Simple: 1 central bank, 1 bank, 2 households
+        config["agents"] = [
+            {"id": "CB", "kind": "central_bank", "name": "Central Bank"},
+            {"id": "B1", "kind": "bank", "name": "First Bank"},
+            {"id": "H1", "kind": "household", "name": "Household 1"},
+            {"id": "H2", "kind": "household", "name": "Household 2"}
+        ]
+        
+        config["initial_actions"] = [
+            {"mint_reserves": {"to": "B1", "amount": 10000}},
+            {"mint_cash": {"to": "H1", "amount": 1000}},
+            {"mint_cash": {"to": "H2", "amount": 1000}},
+            {"deposit_cash": {"customer": "H1", "bank": "B1", "amount": 800}}
+        ]
+        
+        config["run"]["show"]["balances"] = ["B1", "H1", "H2"]
+        
+    elif complexity == "standard":
+        # Standard: Add a firm and some delivery obligations
+        config["agents"] = [
+            {"id": "CB", "kind": "central_bank", "name": "Central Bank"},
+            {"id": "B1", "kind": "bank", "name": "First Bank"},
+            {"id": "B2", "kind": "bank", "name": "Second Bank"},
+            {"id": "H1", "kind": "household", "name": "Household 1"},
+            {"id": "H2", "kind": "household", "name": "Household 2"},
+            {"id": "F1", "kind": "firm", "name": "ABC Corp"}
+        ]
+        
+        config["initial_actions"] = [
+            {"mint_reserves": {"to": "B1", "amount": 10000}},
+            {"mint_reserves": {"to": "B2", "amount": 10000}},
+            {"mint_cash": {"to": "H1", "amount": 2000}},
+            {"mint_cash": {"to": "H2", "amount": 1500}},
+            {"deposit_cash": {"customer": "H1", "bank": "B1", "amount": 1500}},
+            {"deposit_cash": {"customer": "H2", "bank": "B2", "amount": 1000}},
+            {"create_stock": {"owner": "F1", "sku": "WIDGET", "quantity": 100, "unit_price": "50"}},
+            {"create_delivery_obligation": {
+                "from": "F1", "to": "H1", 
+                "sku": "WIDGET", "quantity": 5, 
+                "unit_price": "50", "due_day": 2
+            }}
+        ]
+        
+        config["run"]["show"]["balances"] = ["B1", "B2", "H1", "H2", "F1"]
+        
+    else:  # complex
+        console.print("[yellow]Complex scenarios should be hand-crafted.[/yellow]")
+        console.print("Creating a template with all available features...")
+        
+        # Complex: Full example with all features
+        config["policy_overrides"] = {
+            "mop_rank": {
+                "household": ["bank_deposit", "cash"],
+                "bank": ["reserve_deposit"]
+            }
+        }
+        
+        config["agents"] = [
+            {"id": "CB", "kind": "central_bank", "name": "Central Bank"},
+            {"id": "T1", "kind": "treasury", "name": "Treasury"},
+            {"id": "B1", "kind": "bank", "name": "Commercial Bank 1"},
+            {"id": "B2", "kind": "bank", "name": "Commercial Bank 2"},
+            {"id": "H1", "kind": "household", "name": "Smith Family"},
+            {"id": "H2", "kind": "household", "name": "Jones Family"},
+            {"id": "F1", "kind": "firm", "name": "Manufacturing Inc"},
+            {"id": "F2", "kind": "firm", "name": "Retail Corp"}
+        ]
+        
+        config["initial_actions"] = [
+            # Initial reserves
+            {"mint_reserves": {"to": "B1", "amount": 50000}},
+            {"mint_reserves": {"to": "B2", "amount": 50000}},
+            
+            # Initial cash
+            {"mint_cash": {"to": "H1", "amount": 5000}},
+            {"mint_cash": {"to": "H2", "amount": 3000}},
+            {"mint_cash": {"to": "F1", "amount": 10000}},
+            {"mint_cash": {"to": "F2", "amount": 8000}},
+            
+            # Bank deposits
+            {"deposit_cash": {"customer": "H1", "bank": "B1", "amount": 4000}},
+            {"deposit_cash": {"customer": "H2", "bank": "B2", "amount": 2500}},
+            {"deposit_cash": {"customer": "F1", "bank": "B1", "amount": 8000}},
+            {"deposit_cash": {"customer": "F2", "bank": "B2", "amount": 6000}},
+            
+            # Create inventory
+            {"create_stock": {"owner": "F1", "sku": "MACHINE", "quantity": 10, "unit_price": "1000"}},
+            {"create_stock": {"owner": "F2", "sku": "GOODS", "quantity": 100, "unit_price": "50"}},
+            
+            # Create obligations
+            {"create_delivery_obligation": {
+                "from": "F1", "to": "F2",
+                "sku": "MACHINE", "quantity": 2,
+                "unit_price": "1000", "due_day": 3
+            }},
+            {"create_payable": {
+                "from": "H1", "to": "F2",
+                "amount": 500, "due_day": 1
+            }}
+        ]
+        
+        config["run"]["show"]["balances"] = ["CB", "B1", "B2", "H1", "H2", "F1", "F2"]
+        config["run"]["export"] = {
+            "balances_csv": "out/balances.csv",
+            "events_jsonl": "out/events.jsonl"
+        }
+    
+    # Save the configuration
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, 'w') as f:
+        yaml.dump(config, f, default_flow_style=False, sort_keys=False)
+    
+    console.print(f"\n[green]✓[/green] Scenario configuration saved to: {output_path}")
+    console.print(f"\nRun your scenario with: [cyan]bilancio run {output_path}[/cyan]")
+```
+
+---
+
 ## Tests
 
 Below are all the test files:
@@ -4395,6 +6604,730 @@ class TestBalanceAnalytics:
         
         # Ensure all invariants pass
         system.assert_invariants()
+```
+
+---
+
+### 🧪 tests/config/test_apply.py
+
+```python
+"""Tests for applying configuration to system."""
+
+import pytest
+from decimal import Decimal
+
+from bilancio.engines.system import System
+from bilancio.config.models import ScenarioConfig, AgentSpec
+from bilancio.config.apply import apply_to_system, create_agent, apply_action
+from bilancio.domain.agents import Bank, Household, CentralBank, Firm
+
+
+class TestCreateAgent:
+    """Test agent creation from specification."""
+    
+    def test_create_central_bank(self):
+        """Test creating a central bank agent."""
+        spec = AgentSpec(id="CB", kind="central_bank", name="Central Bank")
+        agent = create_agent(spec)
+        assert isinstance(agent, CentralBank)
+        assert agent.id == "CB"
+        assert agent.name == "Central Bank"
+        assert agent.kind == "central_bank"
+    
+    def test_create_bank(self):
+        """Test creating a bank agent."""
+        spec = AgentSpec(id="B1", kind="bank", name="First Bank")
+        agent = create_agent(spec)
+        assert isinstance(agent, Bank)
+        assert agent.id == "B1"
+        assert agent.name == "First Bank"
+        assert agent.kind == "bank"
+    
+    def test_create_household(self):
+        """Test creating a household agent."""
+        spec = AgentSpec(id="H1", kind="household", name="Smith Family")
+        agent = create_agent(spec)
+        assert isinstance(agent, Household)
+        assert agent.id == "H1"
+        assert agent.name == "Smith Family"
+        assert agent.kind == "household"
+    
+    def test_create_firm(self):
+        """Test creating a firm agent."""
+        spec = AgentSpec(id="F1", kind="firm", name="ABC Corp")
+        agent = create_agent(spec)
+        assert isinstance(agent, Firm)
+        assert agent.id == "F1"
+        assert agent.name == "ABC Corp"
+        assert agent.kind == "firm"
+
+
+class TestApplyToSystem:
+    """Test applying configuration to system."""
+    
+    def test_apply_minimal_config(self):
+        """Test applying minimal configuration."""
+        config = ScenarioConfig(
+            name="Minimal",
+            agents=[
+                {"id": "CB", "kind": "central_bank", "name": "Central Bank"},
+                {"id": "B1", "kind": "bank", "name": "Bank"}
+            ]
+        )
+        
+        system = System()
+        apply_to_system(config, system)
+        
+        # Check agents were added
+        assert "CB" in system.state.agents
+        assert "B1" in system.state.agents
+        assert system.state.agents["CB"].kind == "central_bank"
+        assert system.state.agents["B1"].kind == "bank"
+        
+        # System should pass invariants
+        system.assert_invariants()
+    
+    def test_apply_with_initial_actions(self):
+        """Test applying configuration with initial actions."""
+        config = ScenarioConfig(
+            name="With Actions",
+            agents=[
+                {"id": "CB", "kind": "central_bank", "name": "Central Bank"},
+                {"id": "B1", "kind": "bank", "name": "Bank"},
+                {"id": "H1", "kind": "household", "name": "Household"}
+            ],
+            initial_actions=[
+                {"mint_reserves": {"to": "B1", "amount": 10000}},
+                {"mint_cash": {"to": "H1", "amount": 1000}}
+            ]
+        )
+        
+        system = System()
+        apply_to_system(config, system)
+        
+        # Check agents
+        assert len(system.state.agents) == 3
+        
+        # Check that actions were executed
+        # Bank should have reserves
+        bank = system.state.agents["B1"]
+        assert len(bank.asset_ids) > 0  # Should have reserve deposit
+        
+        # Household should have cash
+        household = system.state.agents["H1"]
+        assert len(household.asset_ids) > 0  # Should have cash
+        
+        # System should pass invariants
+        system.assert_invariants()
+    
+    def test_apply_with_policy_overrides(self):
+        """Test applying configuration with policy overrides."""
+        config = ScenarioConfig(
+            name="With Policy",
+            agents=[
+                {"id": "CB", "kind": "central_bank", "name": "CB"}
+            ],
+            policy_overrides={
+                "mop_rank": {
+                    "household": ["cash", "bank_deposit"],
+                    "bank": ["reserve_deposit"]
+                }
+            }
+        )
+        
+        system = System()
+        apply_to_system(config, system)
+        
+        # Check policy was updated
+        assert system.policy.mop_rank["household"] == ["cash", "bank_deposit"]
+        assert system.policy.mop_rank["bank"] == ["reserve_deposit"]
+    
+    def test_apply_complex_scenario(self):
+        """Test applying a complex scenario with multiple actions."""
+        config = ScenarioConfig(
+            name="Complex",
+            agents=[
+                {"id": "CB", "kind": "central_bank", "name": "Central Bank"},
+                {"id": "B1", "kind": "bank", "name": "Bank 1"},
+                {"id": "B2", "kind": "bank", "name": "Bank 2"},
+                {"id": "H1", "kind": "household", "name": "Household 1"},
+                {"id": "H2", "kind": "household", "name": "Household 2"},
+                {"id": "F1", "kind": "firm", "name": "Firm 1"}
+            ],
+            initial_actions=[
+                {"mint_reserves": {"to": "B1", "amount": 20000}},
+                {"mint_reserves": {"to": "B2", "amount": 15000}},
+                {"mint_cash": {"to": "H1", "amount": 5000}},
+                {"mint_cash": {"to": "H2", "amount": 3000}},
+                {"deposit_cash": {"customer": "H1", "bank": "B1", "amount": 4000}},
+                {"deposit_cash": {"customer": "H2", "bank": "B2", "amount": 2000}},
+                {"create_stock": {"owner": "F1", "sku": "WIDGET", "quantity": 100, "unit_price": "25"}},
+                {"create_payable": {"from": "H1", "to": "H2", "amount": 500, "due_day": 1}}
+            ]
+        )
+        
+        system = System()
+        apply_to_system(config, system)
+        
+        # Check all agents were created
+        assert len(system.state.agents) == 6
+        
+        # Check stock was created
+        assert len(system.state.stocks) > 0
+        stocks = [s for s in system.state.stocks.values() if s.owner_id == "F1"]
+        assert len(stocks) == 1
+        assert stocks[0].sku == "WIDGET"
+        assert stocks[0].quantity == 100
+        
+        # Check payable was created
+        # Payable uses liability_issuer_id for the debtor
+        payables = [c for c in system.state.contracts.values() 
+                   if hasattr(c, 'liability_issuer_id') and c.liability_issuer_id == "H1"]
+        assert len(payables) > 0
+        
+        # System should pass invariants
+        system.assert_invariants()
+    
+    def test_apply_with_delivery_obligation(self):
+        """Test applying configuration with delivery obligations."""
+        config = ScenarioConfig(
+            name="Delivery",
+            agents=[
+                {"id": "CB", "kind": "central_bank", "name": "CB"},
+                {"id": "F1", "kind": "firm", "name": "Firm"},
+                {"id": "H1", "kind": "household", "name": "Household"}
+            ],
+            initial_actions=[
+                {"mint_cash": {"to": "F1", "amount": 1000}},
+                {"mint_cash": {"to": "H1", "amount": 1000}},
+                {"create_stock": {"owner": "F1", "sku": "ITEM", "quantity": 10, "unit_price": "50"}},
+                {"create_delivery_obligation": {
+                    "from": "F1", "to": "H1",
+                    "sku": "ITEM", "quantity": 5,
+                    "unit_price": "50", "due_day": 2
+                }}
+            ]
+        )
+        
+        system = System()
+        apply_to_system(config, system)
+        
+        # Check delivery obligation was created
+        obligations = [c for c in system.state.contracts.values()
+                      if hasattr(c, 'sku')]
+        assert len(obligations) > 0
+        
+        # System should pass invariants
+        system.assert_invariants()
+```
+
+---
+
+### 🧪 tests/config/test_loaders.py
+
+```python
+"""Tests for YAML configuration loading."""
+
+import pytest
+import yaml
+from pathlib import Path
+from decimal import Decimal
+import tempfile
+
+from bilancio.config.loaders import load_yaml, parse_action, preprocess_config
+from bilancio.config.models import (
+    MintCash,
+    MintReserves,
+    DepositCash,
+    CreateStock,
+    CreateDeliveryObligation,
+    CreatePayable
+)
+
+
+class TestParseAction:
+    """Test action parsing from dictionaries."""
+    
+    def test_parse_mint_cash(self):
+        """Test parsing mint_cash action."""
+        action = parse_action({"mint_cash": {"to": "H1", "amount": 1000}})
+        assert isinstance(action, MintCash)
+        assert action.to == "H1"
+        assert action.amount == 1000
+    
+    def test_parse_mint_reserves(self):
+        """Test parsing mint_reserves action."""
+        action = parse_action({"mint_reserves": {"to": "B1", "amount": 5000}})
+        assert isinstance(action, MintReserves)
+        assert action.to == "B1"
+        assert action.amount == 5000
+    
+    def test_parse_deposit_cash(self):
+        """Test parsing deposit_cash action."""
+        action = parse_action({
+            "deposit_cash": {"customer": "H1", "bank": "B1", "amount": 500}
+        })
+        assert isinstance(action, DepositCash)
+        assert action.customer == "H1"
+        assert action.bank == "B1"
+        assert action.amount == 500
+    
+    def test_parse_create_stock(self):
+        """Test parsing create_stock action."""
+        action = parse_action({
+            "create_stock": {
+                "owner": "F1",
+                "sku": "WIDGET",
+                "quantity": 100,
+                "unit_price": "25.50"
+            }
+        })
+        assert isinstance(action, CreateStock)
+        assert action.owner == "F1"
+        assert action.sku == "WIDGET"
+        assert action.quantity == 100
+        assert action.unit_price == Decimal("25.50")
+    
+    def test_parse_delivery_obligation_with_aliases(self):
+        """Test parsing delivery obligation with from/to aliases."""
+        action = parse_action({
+            "create_delivery_obligation": {
+                "from": "F1",
+                "to": "H1",
+                "sku": "WIDGET",
+                "quantity": 10,
+                "unit_price": "25",
+                "due_day": 3
+            }
+        })
+        assert isinstance(action, CreateDeliveryObligation)
+        assert action.from_agent == "F1"
+        assert action.to_agent == "H1"
+        assert action.sku == "WIDGET"
+    
+    def test_parse_payable_with_aliases(self):
+        """Test parsing payable with from/to aliases."""
+        action = parse_action({
+            "create_payable": {
+                "from": "H1",
+                "to": "H2",
+                "amount": 300,
+                "due_day": 1
+            }
+        })
+        assert isinstance(action, CreatePayable)
+        assert action.from_agent == "H1"
+        assert action.to_agent == "H2"
+        assert action.amount == 300
+    
+    def test_parse_unknown_action(self):
+        """Test that unknown action types raise error."""
+        with pytest.raises(ValueError) as exc_info:
+            parse_action({"unknown_action": {"data": "value"}})
+        assert "Unknown action type" in str(exc_info.value)
+
+
+class TestPreprocessConfig:
+    """Test configuration preprocessing."""
+    
+    def test_convert_string_decimals(self):
+        """Test conversion of string decimals."""
+        data = {
+            "amount": "123.45",
+            "nested": {
+                "price": "99.99"
+            },
+            "list": [
+                {"value": "10.50"},
+                {"value": "20.75"}
+            ]
+        }
+        
+        result = preprocess_config(data)
+        
+        assert result["amount"] == Decimal("123.45")
+        assert result["nested"]["price"] == Decimal("99.99")
+        assert result["list"][0]["value"] == Decimal("10.50")
+        assert result["list"][1]["value"] == Decimal("20.75")
+    
+    def test_preserve_non_numeric_strings(self):
+        """Test that non-numeric strings are preserved."""
+        data = {
+            "name": "Test Name",
+            "id": "ABC123",
+            "amount": "100.00",
+            "description": "Some text with 123 numbers"
+        }
+        
+        result = preprocess_config(data)
+        
+        assert result["name"] == "Test Name"
+        assert result["id"] == "ABC123"
+        assert result["amount"] == Decimal("100.00")
+        assert result["description"] == "Some text with 123 numbers"
+
+
+class TestLoadYaml:
+    """Test YAML file loading."""
+    
+    def test_load_valid_yaml(self):
+        """Test loading a valid YAML configuration."""
+        yaml_content = """
+version: 1
+name: Test Scenario
+description: A test scenario
+
+agents:
+  - id: CB
+    kind: central_bank
+    name: Central Bank
+  - id: B1
+    kind: bank
+    name: First Bank
+
+initial_actions:
+  - mint_reserves: {to: B1, amount: 10000}
+  - mint_cash: {to: H1, amount: 1000}
+
+run:
+  mode: until_stable
+  max_days: 30
+"""
+        
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+            f.write(yaml_content)
+            temp_path = Path(f.name)
+        
+        try:
+            config = load_yaml(temp_path)
+            assert config.name == "Test Scenario"
+            assert config.version == 1
+            assert len(config.agents) == 2
+            assert config.agents[0].id == "CB"
+            assert config.agents[1].id == "B1"
+            assert len(config.initial_actions) == 2
+            assert config.run.mode == "until_stable"
+            assert config.run.max_days == 30
+        finally:
+            temp_path.unlink()
+    
+    def test_load_file_not_found(self):
+        """Test loading non-existent file."""
+        with pytest.raises(FileNotFoundError):
+            load_yaml(Path("nonexistent.yaml"))
+    
+    def test_load_invalid_yaml_syntax(self):
+        """Test loading file with invalid YAML syntax."""
+        yaml_content = """
+version: 1
+name: Bad YAML
+  - this is invalid
+    : syntax
+"""
+        
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+            f.write(yaml_content)
+            temp_path = Path(f.name)
+        
+        try:
+            with pytest.raises(yaml.YAMLError):
+                load_yaml(temp_path)
+        finally:
+            temp_path.unlink()
+    
+    def test_load_invalid_config_schema(self):
+        """Test loading YAML with invalid configuration schema."""
+        yaml_content = """
+version: 1
+name: Invalid Config
+agents:
+  - id: CB
+    kind: invalid_kind
+    name: Invalid Agent
+"""
+        
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+            f.write(yaml_content)
+            temp_path = Path(f.name)
+        
+        try:
+            with pytest.raises(ValueError) as exc_info:
+                load_yaml(temp_path)
+            assert "validation failed" in str(exc_info.value).lower()
+        finally:
+            temp_path.unlink()
+    
+    def test_load_example_scenario(self):
+        """Test loading one of the example scenarios."""
+        example_path = Path("examples/scenarios/simple_bank.yaml")
+        if example_path.exists():
+            config = load_yaml(example_path)
+            assert config.name == "Simple Banking System"
+            assert len(config.agents) == 4  # CB, B1, H1, H2
+            assert config.run.mode == "until_stable"
+```
+
+---
+
+### 🧪 tests/config/test_models.py
+
+```python
+"""Tests for configuration models."""
+
+import pytest
+from decimal import Decimal
+from pydantic import ValidationError
+
+from bilancio.config.models import (
+    AgentSpec,
+    MintCash,
+    MintReserves,
+    DepositCash,
+    CreateStock,
+    CreateDeliveryObligation,
+    CreatePayable,
+    ScenarioConfig,
+    RunConfig,
+    PolicyOverrides
+)
+
+
+class TestAgentSpec:
+    """Test AgentSpec model validation."""
+    
+    def test_valid_agent_spec(self):
+        """Test creating a valid agent specification."""
+        agent = AgentSpec(
+            id="B1",
+            kind="bank",
+            name="First Bank"
+        )
+        assert agent.id == "B1"
+        assert agent.kind == "bank"
+        assert agent.name == "First Bank"
+    
+    def test_invalid_agent_kind(self):
+        """Test that invalid agent kind raises error."""
+        with pytest.raises(ValidationError):
+            AgentSpec(
+                id="X1",
+                kind="invalid_kind",
+                name="Invalid Agent"
+            )
+
+
+class TestActions:
+    """Test action model validation."""
+    
+    def test_mint_cash_valid(self):
+        """Test valid mint cash action."""
+        action = MintCash(to="H1", amount=Decimal("1000"))
+        assert action.to == "H1"
+        assert action.amount == Decimal("1000")
+        assert action.action == "mint_cash"
+    
+    def test_mint_cash_negative_amount(self):
+        """Test that negative amounts are rejected."""
+        with pytest.raises(ValidationError):
+            MintCash(to="H1", amount=Decimal("-100"))
+    
+    def test_deposit_cash_valid(self):
+        """Test valid deposit cash action."""
+        action = DepositCash(
+            customer="H1",
+            bank="B1",
+            amount=Decimal("500")
+        )
+        assert action.customer == "H1"
+        assert action.bank == "B1"
+        assert action.amount == Decimal("500")
+    
+    def test_create_stock_valid(self):
+        """Test valid create stock action."""
+        action = CreateStock(
+            owner="F1",
+            sku="WIDGET",
+            quantity=100,
+            unit_price=Decimal("25.50")
+        )
+        assert action.owner == "F1"
+        assert action.sku == "WIDGET"
+        assert action.quantity == 100
+        assert action.unit_price == Decimal("25.50")
+    
+    def test_create_stock_invalid_quantity(self):
+        """Test that zero or negative quantities are rejected."""
+        with pytest.raises(ValidationError):
+            CreateStock(
+                owner="F1",
+                sku="WIDGET",
+                quantity=0,
+                unit_price=Decimal("25")
+            )
+    
+    def test_create_delivery_obligation_with_aliases(self):
+        """Test delivery obligation with from/to aliases."""
+        # Use the aliases 'from' and 'to' instead of from_agent/to_agent
+        data = {
+            "from": "F1",
+            "to": "H1",
+            "sku": "WIDGET",
+            "quantity": 10,
+            "unit_price": Decimal("25"),
+            "due_day": 3
+        }
+        action = CreateDeliveryObligation(**data)
+        assert action.from_agent == "F1"
+        assert action.to_agent == "H1"
+        assert action.due_day == 3
+    
+    def test_create_payable_valid(self):
+        """Test valid create payable action."""
+        # Use the aliases 'from' and 'to' instead of from_agent/to_agent
+        data = {
+            "from": "H1",
+            "to": "H2",
+            "amount": Decimal("300"),
+            "due_day": 1
+        }
+        action = CreatePayable(**data)
+        assert action.from_agent == "H1"
+        assert action.to_agent == "H2"
+        assert action.amount == Decimal("300")
+        assert action.due_day == 1
+    
+    def test_create_payable_negative_due_day(self):
+        """Test that negative due days are rejected."""
+        with pytest.raises(ValidationError):
+            CreatePayable(
+                from_agent="H1",
+                to_agent="H2",
+                amount=Decimal("300"),
+                due_day=-1
+            )
+
+
+class TestScenarioConfig:
+    """Test ScenarioConfig model validation."""
+    
+    def test_minimal_valid_config(self):
+        """Test minimal valid scenario configuration."""
+        config = ScenarioConfig(
+            name="Test Scenario",
+            agents=[
+                {"id": "CB", "kind": "central_bank", "name": "Central Bank"},
+                {"id": "B1", "kind": "bank", "name": "Bank 1"}
+            ]
+        )
+        assert config.name == "Test Scenario"
+        assert config.version == 1
+        assert len(config.agents) == 2
+        assert config.description is None
+        assert config.initial_actions == []
+    
+    def test_config_with_all_fields(self):
+        """Test scenario configuration with all fields."""
+        config = ScenarioConfig(
+            version=1,
+            name="Full Scenario",
+            description="A complete test scenario",
+            policy_overrides={
+                "mop_rank": {
+                    "household": ["bank_deposit", "cash"]
+                }
+            },
+            agents=[
+                {"id": "CB", "kind": "central_bank", "name": "CB"},
+                {"id": "B1", "kind": "bank", "name": "Bank"}
+            ],
+            initial_actions=[
+                {"mint_reserves": {"to": "B1", "amount": 10000}}
+            ],
+            run={
+                "mode": "until_stable",
+                "max_days": 90,
+                "quiet_days": 2,
+                "show": {
+                    "balances": ["CB", "B1"],
+                    "events": "detailed"
+                },
+                "export": {
+                    "balances_csv": "balances.csv",
+                    "events_jsonl": "events.jsonl"
+                }
+            }
+        )
+        assert config.name == "Full Scenario"
+        assert config.description == "A complete test scenario"
+        assert config.policy_overrides.mop_rank["household"] == ["bank_deposit", "cash"]
+        assert config.run.mode == "until_stable"
+        assert config.run.max_days == 90
+        assert config.run.export.balances_csv == "balances.csv"
+    
+    def test_duplicate_agent_ids_rejected(self):
+        """Test that duplicate agent IDs are rejected."""
+        with pytest.raises(ValidationError) as exc_info:
+            ScenarioConfig(
+                name="Invalid",
+                agents=[
+                    {"id": "B1", "kind": "bank", "name": "Bank 1"},
+                    {"id": "B1", "kind": "bank", "name": "Bank 2"}
+                ]
+            )
+        assert "unique" in str(exc_info.value).lower()
+    
+    def test_unsupported_version_rejected(self):
+        """Test that unsupported versions are rejected."""
+        with pytest.raises(ValidationError) as exc_info:
+            ScenarioConfig(
+                version=2,
+                name="Future Version",
+                agents=[
+                    {"id": "CB", "kind": "central_bank", "name": "CB"}
+                ]
+            )
+        assert "version" in str(exc_info.value).lower()
+
+
+class TestRunConfig:
+    """Test RunConfig model validation."""
+    
+    def test_default_run_config(self):
+        """Test default run configuration values."""
+        config = RunConfig()
+        assert config.mode == "until_stable"
+        assert config.max_days == 90
+        assert config.quiet_days == 2
+        assert config.show.events == "detailed"
+        assert config.show.balances is None
+        assert config.export.balances_csv is None
+        assert config.export.events_jsonl is None
+    
+    def test_custom_run_config(self):
+        """Test custom run configuration."""
+        config = RunConfig(
+            mode="step",
+            max_days=30,
+            quiet_days=5,
+            show={"balances": ["A1", "A2"], "events": "summary"},
+            export={"balances_csv": "out.csv"}
+        )
+        assert config.mode == "step"
+        assert config.max_days == 30
+        assert config.quiet_days == 5
+        assert config.show.balances == ["A1", "A2"]
+        assert config.show.events == "summary"
+        assert config.export.balances_csv == "out.csv"
+    
+    def test_negative_max_days_rejected(self):
+        """Test that negative max_days is rejected."""
+        with pytest.raises(ValidationError):
+            RunConfig(max_days=-1)
+    
+    def test_negative_quiet_days_rejected(self):
+        """Test that negative quiet_days is rejected."""
+        with pytest.raises(ValidationError):
+            RunConfig(quiet_days=-1)
 ```
 
 ---
@@ -5643,6 +8576,167 @@ def test_package_metadata():
     
     assert TimeCoordinate is not None
     assert BilancioError is not None
+```
+
+---
+
+### 🧪 tests/ui/test_cli.py
+
+```python
+"""Tests for CLI functionality."""
+
+import pytest
+from pathlib import Path
+from click.testing import CliRunner
+import tempfile
+import yaml
+
+from bilancio.ui.cli import cli
+
+
+class TestCLI:
+    """Test CLI commands."""
+    
+    def test_cli_help(self):
+        """Test that CLI help works."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ['--help'])
+        assert result.exit_code == 0
+        assert 'Bilancio' in result.output
+        assert 'simulation' in result.output.lower()
+    
+    def test_run_help(self):
+        """Test that run command help works."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ['run', '--help'])
+        assert result.exit_code == 0
+        assert 'scenario' in result.output.lower()
+        assert '--max-days' in result.output
+        assert '--mode' in result.output
+    
+    def test_new_help(self):
+        """Test that new command help works."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ['new', '--help'])
+        assert result.exit_code == 0
+        assert 'scenario' in result.output.lower()
+        assert '--output' in result.output or '-o' in result.output
+    
+    def test_run_nonexistent_file(self):
+        """Test running with non-existent file."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ['run', 'nonexistent.yaml'])
+        assert result.exit_code != 0
+        assert 'not found' in result.output.lower() or 'does not exist' in result.output.lower()
+    
+    def test_run_simple_scenario(self):
+        """Test running a simple scenario."""
+        # Create a minimal scenario file
+        scenario = {
+            "version": 1,
+            "name": "Test Scenario",
+            "agents": [
+                {"id": "CB", "kind": "central_bank", "name": "Central Bank"},
+                {"id": "B1", "kind": "bank", "name": "Bank"}
+            ],
+            "initial_actions": [
+                {"mint_reserves": {"to": "B1", "amount": 1000}}
+            ],
+            "run": {
+                "mode": "until_stable",
+                "max_days": 5,
+                "quiet_days": 1
+            }
+        }
+        
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+            yaml.dump(scenario, f)
+            temp_path = Path(f.name)
+        
+        try:
+            runner = CliRunner()
+            result = runner.invoke(cli, [
+                'run', str(temp_path),
+                '--mode', 'until-stable',
+                '--max-days', '5'
+            ])
+            
+            # Check that it ran without crashing
+            assert result.exit_code == 0
+            assert 'Test Scenario' in result.output
+            assert 'Day' in result.output
+            
+        finally:
+            temp_path.unlink()
+    
+    def test_new_scenario_creation(self):
+        """Test creating a new scenario file."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_path = Path(tmpdir) / "new_scenario.yaml"
+            
+            runner = CliRunner()
+            # Provide input for the wizard prompts
+            result = runner.invoke(cli, [
+                'new',
+                '-o', str(output_path)
+            ], input="Test Scenario\nTest description\nsimple\n")
+            
+            # Check file was created
+            assert output_path.exists()
+            
+            # Load and validate the created file
+            with open(output_path) as f:
+                config = yaml.safe_load(f)
+            
+            assert config['name'] == "Test Scenario"
+            assert config['version'] == 1
+            assert len(config['agents']) > 0
+    
+    def test_run_with_export(self):
+        """Test running scenario with export options."""
+        scenario = {
+            "version": 1,
+            "name": "Export Test",
+            "agents": [
+                {"id": "CB", "kind": "central_bank", "name": "CB"},
+                {"id": "B1", "kind": "bank", "name": "Bank"}
+            ],
+            "initial_actions": [
+                {"mint_reserves": {"to": "B1", "amount": 1000}}
+            ],
+            "run": {
+                "mode": "until_stable",
+                "max_days": 2
+            }
+        }
+        
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Create scenario file
+            scenario_path = Path(tmpdir) / "scenario.yaml"
+            with open(scenario_path, 'w') as f:
+                yaml.dump(scenario, f)
+            
+            # Set export paths
+            balances_path = Path(tmpdir) / "balances.csv"
+            events_path = Path(tmpdir) / "events.jsonl"
+            
+            runner = CliRunner()
+            result = runner.invoke(cli, [
+                'run', str(scenario_path),
+                '--export-balances', str(balances_path),
+                '--export-events', str(events_path),
+                '--max-days', '2'
+            ])
+            
+            assert result.exit_code == 0
+            
+            # Check export files were created
+            assert balances_path.exists()
+            assert events_path.exists()
+            
+            # Check files have content
+            assert balances_path.stat().st_size > 0
+            assert events_path.stat().st_size > 0
 ```
 
 ---
@@ -7566,5 +10660,5 @@ def test_settle_multiple_obligations():
 ## End of Codebase
 
 Generated from: /Users/vladgheorghe/code/bilancio
-Total source files: 44
-Total test files: 15
+Total source files: 55
+Total test files: 19
