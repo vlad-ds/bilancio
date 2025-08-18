@@ -232,16 +232,26 @@ def run_until_stable_mode(
     console.print(f"\n[dim]Running simulation until stable (max {max_days} days)...[/dim]\n")
     
     try:
-        # Run until stable
-        reports = run_until_stable(
-            system=system,
-            max_days=max_days,
-            quiet_days=quiet_days
-        )
+        # Run simulation day by day to capture correct balance snapshots
+        from bilancio.engines.simulation import run_day, _impacted_today, _has_open_obligations
+        from bilancio.analysis.balances import agent_balance
         
-        # Show progress for each day
-        for i, report in enumerate(reports, 1):
-            console.print(f"[bold cyan]📅 Day {i}[/bold cyan]")
+        reports = []
+        consecutive_quiet = 0
+        
+        for day_num in range(1, max_days + 1):
+            # Run the next day
+            day_before = system.state.day
+            run_day(system)
+            impacted = _impacted_today(system, day_before)
+            
+            # Create report
+            from bilancio.engines.simulation import DayReport
+            report = DayReport(day=day_before, impacted=impacted)
+            reports.append(report)
+            
+            # Display this day's results immediately (with correct balance state)
+            console.print(f"[bold cyan]📅 Day {day_num}[/bold cyan]")
             
             # Check invariants if requested
             if check_invariants == "daily":
@@ -250,8 +260,9 @@ def run_until_stable_mode(
                 except Exception as e:
                     console.print(f"[yellow]⚠ Invariant check failed: {e}[/yellow]")
             
-            # Show events and balances
-            show_day_summary(system, agent_ids, show, day=i)
+            # Show events and balances for this specific day
+            # Note: events are stored with 0-based day numbers
+            show_day_summary(system, agent_ids, show, day=day_before)
             
             # Show activity summary
             if report.impacted > 0:
@@ -263,16 +274,18 @@ def run_until_stable_mode(
                 console.print(f"[dim]Note: {report.notes}[/dim]")
             
             console.print()
+            
+            # Check for stable state
+            if impacted == 0:
+                consecutive_quiet += 1
+            else:
+                consecutive_quiet = 0
+            
+            if consecutive_quiet >= quiet_days and not _has_open_obligations(system):
+                console.print("[green]✓[/green] System reached stable state")
+                break
         
-        # Check final state
-        final_report = reports[-1] if reports else None
-        # A day is quiet if it has 0 impacted events
-        # Check if there are open obligations
-        has_open = any(c.kind in ("payable", "delivery_obligation") 
-                      for c in system.state.contracts.values())
-        
-        if final_report and final_report.impacted == 0 and not has_open:
-            console.print("[green]✓[/green] System reached stable state")
+        # If we didn't break early, check if we hit max days
         else:
             console.print("[yellow]⚠[/yellow] Maximum days reached without stable state")
         
