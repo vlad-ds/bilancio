@@ -62,16 +62,10 @@ def export_to_html(
             name_text = f" ({agent.name})" if agent.name else ""
             console.print(f"  {icon} {agent.id}{name_text} - {agent.kind}", style="dim")
     
-    # Show initial actions from config
+    # Show initial actions from config (this is the complete story)
     if config.initial_actions:
         console.print("\n[bold]Initial Actions:[/bold]")
         _capture_initial_actions(console, config.initial_actions)
-    
-    # Show setup events that were recorded
-    setup_events = [e for e in system.state.events if e.get("phase") == "setup"]
-    if setup_events:
-        console.print("\n[bold]Setup Events:[/bold]")
-        _capture_events_to_console(console, setup_events)
     
     # Show initial balances (use the snapshot if available)
     if initial_balances:
@@ -84,6 +78,11 @@ def export_to_html(
     # Capture each day's output
     for day_data in days_data:
         day_num = day_data['day']
+        
+        # Skip day 0 - it's already shown as "Day 0 (Initial Setup)"
+        if day_num == 0:
+            continue
+            
         console.print(f"\n[bold cyan]📅 Day {day_num}[/bold cyan]")
         
         # Show day events and balances
@@ -94,7 +93,8 @@ def export_to_html(
             agent_ids, 
             show, 
             day=day_num,
-            day_events=day_data.get('events', [])
+            day_events=day_data.get('events', []),
+            day_balances=day_data.get('balances', {})
         )
         
         # Add status messages
@@ -245,7 +245,8 @@ def _capture_day_summary(
     agent_ids: Optional[List[str]],
     event_mode: str,
     day: int,
-    day_events: Optional[List[Dict]] = None
+    day_events: Optional[List[Dict]] = None,
+    day_balances: Optional[Dict[str, Any]] = None
 ) -> None:
     """Capture day summary to console."""
     from bilancio.analysis.visualization import (
@@ -273,14 +274,17 @@ def _capture_day_summary(
             # Summary mode
             event_counts = {}
             for event in events_to_show:
-                event_type = event.get("type", "Unknown")
+                event_type = event.get("kind", event.get("type", "Unknown"))
                 event_counts[event_type] = event_counts.get(event_type, 0) + 1
             
             for event_type, count in sorted(event_counts.items()):
                 console.print(f"  • {event_type}: {count}")
     
-    # Show balances
-    if agent_ids:
+    # Show balances - use the snapshot if available, otherwise use current system state
+    if day_balances:
+        console.print("\n[bold]Balances:[/bold]")
+        _capture_balances_from_snapshot(console, day_balances, system)
+    elif agent_ids:
         console.print("\n[bold]Balances:[/bold]")
         if len(agent_ids) == 1:
             # Single agent - use the existing display function with our console

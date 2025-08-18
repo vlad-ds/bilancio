@@ -173,37 +173,51 @@ def run_step_mode(
     Returns:
         List of day data dictionaries
     """
-    day = 0
     days_data = []
     
-    while day < max_days:
-        # Prompt to continue
+    for _ in range(max_days):
+        # Get the current day before running 
+        day_before = system.state.day
+        
+        # Prompt to continue (ask about the next day which is day_before + 1)
         console.print()
-        if not Confirm.ask(f"[cyan]Run day {day + 1}?[/cyan]", default=True):
+        if not Confirm.ask(f"[cyan]Run day {day_before + 1}?[/cyan]", default=True):
             console.print("[yellow]Simulation stopped by user[/yellow]")
             break
         
         try:
             # Run the next day
             day_report = run_day(system)
-            day += 1
             
             # Check invariants if requested
             if check_invariants == "daily":
                 system.assert_invariants()
             
-            # Show day summary
-            console.print(f"\n[bold cyan]📅 Day {day}[/bold cyan]")
-            show_day_summary(system, agent_ids, show)
-            
-            # Collect day data for PDF export
-            day_events = [e for e in system.state.events if e.get("day") == day - 1]
-            days_data.append({
-                'day': day,
-                'events': day_events,
-                'quiet': day_report.quiet,
-                'stable': day_report.quiet and not day_report.has_open_obligations
-            })
+            # Skip day 0 - it's already shown as "Day 0 (After Setup)"
+            if day_before >= 1:
+                # Show day summary
+                console.print(f"\n[bold cyan]📅 Day {day_before}[/bold cyan]")
+                show_day_summary(system, agent_ids, show, day=day_before)
+                
+                # Collect day data for HTML export  
+                # Use the actual event day
+                day_events = [e for e in system.state.events 
+                             if e.get("day") == day_before and e.get("phase") == "simulation"]
+                
+                # Capture current balance state for this day
+                day_balances = {}
+                if agent_ids:
+                    from bilancio.analysis.balances import agent_balance
+                    for agent_id in agent_ids:
+                        day_balances[agent_id] = agent_balance(system, agent_id)
+                
+                days_data.append({
+                    'day': day_before,  # Use actual event day, not 1-based counter
+                    'events': day_events,
+                    'quiet': day_report.quiet,
+                    'stable': day_report.quiet and not day_report.has_open_obligations,
+                    'balances': day_balances
+                })
             
             # Check if we've reached a stable state
             if day_report.quiet and not day_report.has_open_obligations:
@@ -213,10 +227,10 @@ def run_step_mode(
         except DefaultError as e:
             show_error_panel(
                 error=e,
-                phase=f"day_{day + 1}",
+                phase=f"day_{system.state.day}",
                 context={
                     "scenario": scenario_name,
-                    "day": day + 1,
+                    "day": system.state.day,
                     "phase": system.state.phase
                 }
             )
@@ -225,10 +239,10 @@ def run_step_mode(
         except ValidationError as e:
             show_error_panel(
                 error=e,
-                phase=f"day_{day + 1}",
+                phase=f"day_{system.state.day}",
                 context={
                     "scenario": scenario_name,
-                    "day": day + 1,
+                    "day": system.state.day,
                     "phase": system.state.phase
                 }
             )
@@ -237,10 +251,10 @@ def run_step_mode(
         except Exception as e:
             show_error_panel(
                 error=e,
-                phase=f"day_{day + 1}",
+                phase=f"day_{system.state.day}",
                 context={
                     "scenario": scenario_name,
-                    "day": day + 1
+                    "day": system.state.day
                 }
             )
             break
@@ -288,7 +302,7 @@ def run_until_stable_mode(
         consecutive_quiet = 0
         days_data = []
         
-        for day_num in range(1, max_days + 1):
+        for _ in range(max_days):
             # Run the next day
             day_before = system.state.day
             run_day(system)
@@ -299,40 +313,53 @@ def run_until_stable_mode(
             report = DayReport(day=day_before, impacted=impacted)
             reports.append(report)
             
-            # Display this day's results immediately (with correct balance state)
-            console.print(f"[bold cyan]📅 Day {day_num}[/bold cyan]")
-            
-            # Check invariants if requested
-            if check_invariants == "daily":
-                try:
-                    system.assert_invariants()
-                except Exception as e:
-                    console.print(f"[yellow]⚠ Invariant check failed: {e}[/yellow]")
-            
-            # Show events and balances for this specific day
-            # Note: events are stored with 0-based day numbers
-            show_day_summary(system, agent_ids, show, day=day_before)
-            
-            # Collect day data for PDF export
-            day_events = [e for e in system.state.events if e.get("day") == day_before]
-            is_stable = consecutive_quiet >= quiet_days and not _has_open_obligations(system)
-            days_data.append({
-                'day': day_num,
-                'events': day_events,
-                'quiet': report.impacted == 0,
-                'stable': is_stable
-            })
-            
-            # Show activity summary
-            if report.impacted > 0:
-                console.print(f"[dim]Activity: {report.impacted} impactful events[/dim]")
-            else:
-                console.print("[dim]→ Quiet day (no activity)[/dim]")
-            
-            if report.notes:
-                console.print(f"[dim]Note: {report.notes}[/dim]")
-            
-            console.print()
+            # Skip day 0 - it's already shown as "Day 0 (After Setup)"
+            if day_before >= 1:
+                # Display this day's results immediately (with correct balance state)
+                console.print(f"[bold cyan]📅 Day {day_before}[/bold cyan]")
+                
+                # Check invariants if requested
+                if check_invariants == "daily":
+                    try:
+                        system.assert_invariants()
+                    except Exception as e:
+                        console.print(f"[yellow]⚠ Invariant check failed: {e}[/yellow]")
+                
+                # Show events and balances for this specific day
+                # Note: events are stored with 0-based day numbers
+                show_day_summary(system, agent_ids, show, day=day_before)
+                
+                # Collect day data for HTML export
+                # We want simulation events from the day that was just displayed
+                # show_day_summary was called with day=day_before
+                day_events = [e for e in system.state.events 
+                             if e.get("day") == day_before and e.get("phase") == "simulation"]
+                is_stable = consecutive_quiet >= quiet_days and not _has_open_obligations(system)
+                
+                # Capture current balance state for this day
+                day_balances = {}
+                if agent_ids:
+                    for agent_id in agent_ids:
+                        day_balances[agent_id] = agent_balance(system, agent_id)
+                
+                days_data.append({
+                    'day': day_before,  # Use actual event day, not 1-based counter
+                    'events': day_events,
+                    'quiet': report.impacted == 0,
+                    'stable': is_stable,
+                    'balances': day_balances
+                })
+                
+                # Show activity summary
+                if report.impacted > 0:
+                    console.print(f"[dim]Activity: {report.impacted} impactful events[/dim]")
+                else:
+                    console.print("[dim]→ Quiet day (no activity)[/dim]")
+                
+                if report.notes:
+                    console.print(f"[dim]Note: {report.notes}[/dim]")
+                
+                console.print()
             
             # Check for stable state
             if impacted == 0:

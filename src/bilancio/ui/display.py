@@ -64,7 +64,7 @@ def show_day_summary(
                 # Summary mode - just count by type
                 event_counts = {}
                 for event in events_for_day:
-                    event_type = event.get("type", "Unknown")
+                    event_type = event.get("kind", event.get("type", "Unknown"))
                     event_counts[event_type] = event_counts.get(event_type, 0) + 1
                 
                 for event_type, count in sorted(event_counts.items()):
