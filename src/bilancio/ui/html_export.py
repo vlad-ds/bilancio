@@ -25,7 +25,8 @@ def export_to_html(
     config: ScenarioConfig,
     days_data: List[Dict[str, Any]],
     agent_ids: Optional[List[str]] = None,
-    show: str = "detailed"
+    show: str = "detailed",
+    initial_balances: Optional[Dict[str, Any]] = None
 ) -> None:
     """Export simulation output to HTML with colors and formatting.
     
@@ -36,6 +37,7 @@ def export_to_html(
         days_data: List of day summaries with events and state
         agent_ids: Agent IDs to show balances for
         show: Event display mode
+        initial_balances: Initial balance snapshots after setup
     """
     # Create a console that captures to HTML
     console = Console(
@@ -52,6 +54,14 @@ def export_to_html(
     # Capture initial state (Day 0)
     console.print("\n[bold cyan]📅 Day 0 (Initial Setup)[/bold cyan]")
     
+    # Show agents
+    if config.agents:
+        console.print("\n[bold]Agents:[/bold]")
+        for agent in config.agents:
+            icon = {"central_bank": "🏛️", "bank": "🏦", "household": "👤", "firm": "🏢"}.get(agent.kind, "📌")
+            name_text = f" ({agent.name})" if agent.name else ""
+            console.print(f"  {icon} {agent.id}{name_text} - {agent.kind}", style="dim")
+    
     # Show initial actions from config
     if config.initial_actions:
         console.print("\n[bold]Initial Actions:[/bold]")
@@ -63,8 +73,11 @@ def export_to_html(
         console.print("\n[bold]Setup Events:[/bold]")
         _capture_events_to_console(console, setup_events)
     
-    # Show initial balances
-    if agent_ids:
+    # Show initial balances (use the snapshot if available)
+    if initial_balances:
+        console.print("\n[bold]Initial Balances:[/bold]")
+        _capture_balances_from_snapshot(console, initial_balances, system)
+    elif agent_ids:
         console.print("\n[bold]Initial Balances:[/bold]")
         _capture_balances(console, system, agent_ids)
     
@@ -123,6 +136,49 @@ def _capture_initial_actions(console: Console, initial_actions: List[Dict]) -> N
             else:
                 # Generic display for unknown action types
                 console.print(f"  📌 {action_type.replace('_', ' ').title()}: {params}")
+
+
+def _capture_balances_from_snapshot(console: Console, initial_balances: Dict[str, Any], system: System) -> None:
+    """Capture agent balances from a snapshot."""
+    from rich.columns import Columns
+    from rich.table import Table
+    from rich import box
+    
+    agent_ids = list(initial_balances.keys())
+    
+    if len(agent_ids) == 1:
+        # Single agent
+        balance = initial_balances[agent_ids[0]]
+        agent = system.state.agents[agent_ids[0]]
+        
+        # Get agent title
+        if agent.name and agent.name != agent_ids[0]:
+            title = f"{agent.name} [{agent_ids[0]}]\n({agent.kind})"
+        else:
+            title = f"{agent_ids[0]}\n({agent.kind})"
+        
+        # Create and display table
+        table = _create_balance_table_for_console(title, balance)
+        console.print(table)
+    else:
+        # Multiple agents - display side by side
+        tables = []
+        for agent_id in agent_ids:
+            balance = initial_balances[agent_id]
+            agent = system.state.agents[agent_id]
+            
+            # Get agent title
+            if agent.name and agent.name != agent_id:
+                title = f"{agent.name} [{agent_id}]\n({agent.kind})"
+            else:
+                title = f"{agent_id}\n({agent.kind})"
+            
+            # Create a table for this agent
+            table = _create_balance_table_for_console(title, balance)
+            tables.append(table)
+        
+        # Display tables side by side
+        console.print(Columns(tables, padding=(0, 2), expand=False))
 
 
 def _capture_balances(console: Console, system: System, agent_ids: List[str]) -> None:

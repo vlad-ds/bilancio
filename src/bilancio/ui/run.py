@@ -92,6 +92,14 @@ def run_scenario(
     console.print("\n[bold cyan]📅 Day 0 (After Setup)[/bold cyan]")
     show_day_summary(system, agent_ids, show)
     
+    # Capture initial balance state for HTML export
+    initial_balances = {}
+    from bilancio.analysis.balances import agent_balance
+    # Capture balances for all agents that we might display
+    capture_ids = agent_ids if agent_ids else [a.id for a in system.state.agents.values()]
+    for agent_id in capture_ids:
+        initial_balances[agent_id] = agent_balance(system, agent_id)
+    
     # Track day data for PDF export
     days_data = []
     
@@ -138,7 +146,8 @@ def run_scenario(
             config=config,
             days_data=days_data,
             agent_ids=agent_ids,
-            show=show
+            show=show,
+            initial_balances=initial_balances
         )
         console.print(f"[green]✓[/green] Exported colored output to HTML: {html_output}")
 
