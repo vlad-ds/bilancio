@@ -28,7 +28,13 @@ def get_tree_output(path: str, exclude_patterns: List[str] = None) -> str:
 def generate_simple_tree(path: str, exclude_patterns: List[str]) -> str:
     """Generate a simple tree structure if tree command is not available."""
     def should_exclude(name: str) -> bool:
-        exclude_list = ['__pycache__', '.pyc', '.git', '.pytest_cache', '.coverage', 'egg-info']
+        exclude_list = [
+            '__pycache__', '.pyc', '.git', '.pytest_cache', '.coverage', 
+            'egg-info', '.conductor', '.uv', 'node_modules', '.DS_Store',
+            '.mypy_cache', '.ruff_cache', 'htmlcov', '.tox', '.nox',
+            '.hypothesis', '.env', '.venv', 'venv', 'env', '.idea',
+            '.vscode', '.claude', '*.lock', '.ipynb_checkpoints'
+        ]
         return any(exc in name for exc in exclude_list)
     
     def walk_dir(dir_path: Path, prefix: str = "") -> List[str]:
@@ -85,9 +91,14 @@ def generate_markdown(output_file: str = "codebase_for_llm.md"):
         f.write("```\n")
         tree_output = get_tree_output(
             str(root_dir),
-            exclude_patterns=['__pycache__*', '*.pyc', '.git', '.pytest_cache', 
-                            '*.egg-info', '.coverage*', '.venv', 'venv', 
-                            'htmlcov', '*.ipynb_checkpoints']
+            exclude_patterns=[
+                '__pycache__*', '*.pyc', '.git', '.pytest_cache', 
+                '*.egg-info', '.coverage*', '.venv', 'venv', 'env',
+                'htmlcov', '*.ipynb_checkpoints', '.conductor', '.uv',
+                '.DS_Store', '.mypy_cache', '.ruff_cache', '.tox', '.nox',
+                '.hypothesis', '.env', '.idea', '.vscode', '.claude',
+                '*.lock', 'node_modules', '*.log', 'dist', 'build'
+            ]
         )
         f.write(tree_output)
         f.write("\n```\n\n")
