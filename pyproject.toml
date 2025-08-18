@@ -61,6 +61,9 @@ examples = [
     "notebook>=6.5.0",
 ]
 
+[project.scripts]
+bilancio = "bilancio.ui.cli:main"
+
 [project.urls]
 "Homepage" = "https://github.com/yourusername/bilancio"
 "Bug Tracker" = "https://github.com/yourusername/bilancio/issues"

@@ -47,3 +47,4 @@
   - Display verification checks with actual vs expected values
   - Include descriptive messages explaining what each step does
 - **Make notebooks self-documenting** - The output should tell a clear story of what's happening without needing to read the code
+- When I tell you to implement a plan from @docs/plans/, always make sure you start from main with clean git status - if not, stop and tell me. Then, create a new branch with the name of the plan and start work.
