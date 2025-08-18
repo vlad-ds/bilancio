@@ -41,8 +41,8 @@ def cli():
               default=None, help='Path to export balances CSV')
 @click.option('--export-events', type=click.Path(path_type=Path),
               default=None, help='Path to export events JSONL')
-@click.option('--pdf', type=click.Path(path_type=Path),
-              default=None, help='Path to export colored output as PDF')
+@click.option('--html', type=click.Path(path_type=Path),
+              default=None, help='Path to export colored output as HTML')
 def run(scenario_file: Path, 
         mode: str,
         max_days: int,
@@ -52,7 +52,7 @@ def run(scenario_file: Path,
         check_invariants: str,
         export_balances: Optional[Path],
         export_events: Optional[Path],
-        pdf: Optional[Path]):
+        html: Optional[Path]):
     """Run a Bilancio simulation scenario.
     
     Load a scenario from a YAML file and run the simulation either
@@ -80,7 +80,7 @@ def run(scenario_file: Path,
             agent_ids=agent_ids,
             check_invariants=check_invariants,
             export=export,
-            pdf_output=pdf
+            html_output=html
         )
         
     except FileNotFoundError as e:

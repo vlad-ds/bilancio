@@ -35,7 +35,7 @@ def run_scenario(
     agent_ids: Optional[List[str]] = None,
     check_invariants: str = "setup",
     export: Optional[Dict[str, str]] = None,
-    pdf_output: Optional[Path] = None
+    html_output: Optional[Path] = None
 ) -> None:
     """Run a Bilancio simulation scenario.
     
@@ -48,7 +48,7 @@ def run_scenario(
         agent_ids: List of agent IDs to show balances for
         check_invariants: "setup", "daily", or "none"
         export: Dictionary with export paths (balances_csv, events_jsonl)
-        pdf_output: Optional path to export PDF with colored output
+        html_output: Optional path to export HTML with colored output
     """
     # Load configuration
     console.print("[dim]Loading scenario...[/dim]")
@@ -128,24 +128,19 @@ def run_scenario(
         write_events_jsonl(system, export_path)
         console.print(f"[green]✓[/green] Exported events to {export_path}")
     
-    # Export to PDF if requested
-    if pdf_output:
-        from .pdf_export import export_to_pdf
-        pdf_output.parent.mkdir(parents=True, exist_ok=True)
-        export_to_pdf(
-            output_path=pdf_output,
+    # Export to HTML if requested
+    if html_output:
+        from .html_export import export_to_html
+        html_output.parent.mkdir(parents=True, exist_ok=True)
+        export_to_html(
+            output_path=html_output,
             system=system,
             config=config,
             days_data=days_data,
             agent_ids=agent_ids,
             show=show
         )
-        html_path = pdf_output.with_suffix('.html')
-        if pdf_output.exists():
-            console.print(f"[green]✓[/green] Exported colored output to PDF: {pdf_output}")
-        else:
-            console.print(f"[green]✓[/green] Exported colored output to HTML: {html_path}")
-            console.print(f"[dim]   (Open in browser and print to PDF for best results)[/dim]")
+        console.print(f"[green]✓[/green] Exported colored output to HTML: {html_output}")
 
 
 def run_step_mode(

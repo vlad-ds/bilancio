@@ -1,4 +1,4 @@
-"""PDF export functionality for Bilancio CLI output."""
+"""HTML export functionality for Bilancio CLI output."""
 
 from pathlib import Path
 from typing import Optional, List, Dict, Any
@@ -19,7 +19,7 @@ from .display import (
 )
 
 
-def export_to_pdf(
+def export_to_html(
     output_path: Path,
     system: System,
     config: ScenarioConfig,
@@ -27,10 +27,10 @@ def export_to_pdf(
     agent_ids: Optional[List[str]] = None,
     show: str = "detailed"
 ) -> None:
-    """Export simulation output to PDF with colors and formatting.
+    """Export simulation output to HTML with colors and formatting.
     
     Args:
-        output_path: Path to save the PDF file
+        output_path: Path to save the HTML file
         system: The simulation system
         config: Scenario configuration
         days_data: List of day summaries with events and state
@@ -85,56 +85,9 @@ def export_to_pdf(
         inline_styles=True
     )
     
-    # Save as HTML file (which can be printed to PDF from browser)
-    html_path = output_path.with_suffix('.html')
-    with open(html_path, 'w', encoding='utf-8') as f:
+    # Save as HTML file
+    with open(output_path, 'w', encoding='utf-8') as f:
         f.write(html_content)
-    
-    # Try to use alternative PDF generation methods
-    try:
-        _convert_html_to_pdf(html_path, output_path)
-    except Exception:
-        # If PDF conversion fails, keep the HTML file
-        pass
-
-
-def _convert_html_to_pdf(html_path: Path, pdf_path: Path) -> None:
-    """Try to convert HTML to PDF using available methods."""
-    import subprocess
-    import shutil
-    
-    # Try using wkhtmltopdf if available
-    if shutil.which('wkhtmltopdf'):
-        subprocess.run([
-            'wkhtmltopdf',
-            '--enable-local-file-access',
-            '--print-media-type',
-            str(html_path),
-            str(pdf_path)
-        ], capture_output=True)
-        return
-    
-    # Try using Chrome/Chromium if available
-    chrome_paths = [
-        '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-        '/usr/bin/google-chrome',
-        '/usr/bin/chromium-browser',
-        '/usr/bin/chromium'
-    ]
-    
-    for chrome_path in chrome_paths:
-        if os.path.exists(chrome_path):
-            subprocess.run([
-                chrome_path,
-                '--headless',
-                '--disable-gpu',
-                '--print-to-pdf=' + str(pdf_path),
-                str(html_path)
-            ], capture_output=True)
-            return
-    
-    # If no PDF converter is available, raise an exception
-    raise Exception("No PDF converter available. HTML file saved instead.")
 
 
 def _capture_scenario_header(console: Console, name: str, description: Optional[str]) -> None:
@@ -298,10 +251,31 @@ def _capture_events_to_console(console: Console, events: List[Dict]) -> None:
 
 def _display_single_event(console: Console, event: Dict) -> None:
     """Display a single event with appropriate formatting."""
-    event_type = event.get("type", "Unknown")
+    # Check both 'kind' and 'type' fields for compatibility
+    event_type = event.get("kind", event.get("type", "Unknown"))
     
-    # Map event types to display formats
+    # Map event types to display formats (using the actual event kinds from the system)
     event_formats = {
+        # Setup events
+        "ReservesMinted": ("🏦", "cyan", "Reserves minted: ${amount} to {to}"),
+        "CashMinted": ("💰", "green", "Cash minted: ${amount} to {to}"),
+        "CashDeposited": ("🏧", "blue", "Cash deposited: {customer} → {bank}: ${amount}"),
+        
+        # Payment events
+        "ClientPayment": ("💳", "magenta", "Client payment: {payer} ({payer_bank}) → {payee} ({payee_bank}): ${amount}"),
+        "PayableSettled": ("✅", "green", "Payment settled: {debtor} → {creditor}: ${amount}"),
+        
+        # Interbank events
+        "ReservesTransferred": ("💰", "yellow", "Reserves transferred: {frm} → {to}: ${amount}"),
+        "InstrumentMerged": ("🔀", "dim", "Instruments merged"),
+        "InterbankCleared": ("🏦", "cyan", "Interbank cleared: {debtor_bank} → {creditor_bank}: ${amount} (netted)"),
+        
+        # Phase events
+        "PhaseA": ("⏰", "yellow", "Phase A: Day begins"),
+        "PhaseB": ("💳", "green", "Phase B: Settlement (fulfilling due obligations)"),
+        "PhaseC": ("📋", "cyan", "Phase C: Intraday netting"),
+        
+        # Legacy/alternative names
         "reserves_minted": ("🏦", "cyan", "Reserves minted: ${amount} to {to}"),
         "cash_minted": ("💰", "green", "Cash minted: ${amount} to {to}"),
         "cash_deposited": ("🏧", "blue", "Cash deposited: {from} → {to}: ${amount}"),
@@ -310,13 +284,13 @@ def _display_single_event(console: Console, event: Dict) -> None:
         "reserves_transferred": ("💰", "yellow", "Reserves transferred: {from} → {to}: ${amount}"),
         "instruments_merged": ("🔀", "dim", "Instruments merged"),
         "interbank_cleared": ("🏦", "cyan", "Interbank cleared: {from} → {to}: ${amount} (netted)"),
-        "begin_day": ("⏰", "yellow", ""),
+        "begin_day": ("⏰", "yellow", "Phase A: Day begins"),
         "day_ended": ("🌙", "dim", "Day ended"),
     }
     
     if event_type in event_formats:
         emoji, color, template = event_formats[event_type]
-        if template:
+        if template and not template.startswith("Phase"):  # Don't show template for phase events
             # Format the template with event data
             text = template
             for key, value in event.items():
@@ -325,11 +299,8 @@ def _display_single_event(console: Console, event: Dict) -> None:
                 else:
                     text = text.replace(f"{{{key}}}", str(value))
             console.print(f"    {emoji} {text}", style=color)
-        elif event_type == "begin_day":
-            # Skip or show minimally
-            pass
-        else:
-            console.print(f"    {emoji} {event_type.replace('_', ' ').title()}", style=color)
+        elif template:  # Phase events - show as is
+            console.print(f"    {emoji} {template}", style=color)
     else:
         # Generic event display
         details = ""
