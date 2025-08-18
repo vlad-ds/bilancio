@@ -34,7 +34,8 @@ def run_scenario(
     show: str = "detailed",
     agent_ids: Optional[List[str]] = None,
     check_invariants: str = "setup",
-    export: Optional[Dict[str, str]] = None
+    export: Optional[Dict[str, str]] = None,
+    pdf_output: Optional[Path] = None
 ) -> None:
     """Run a Bilancio simulation scenario.
     
@@ -47,6 +48,7 @@ def run_scenario(
         agent_ids: List of agent IDs to show balances for
         check_invariants: "setup", "daily", or "none"
         export: Dictionary with export paths (balances_csv, events_jsonl)
+        pdf_output: Optional path to export PDF with colored output
     """
     # Load configuration
     console.print("[dim]Loading scenario...[/dim]")
@@ -90,8 +92,11 @@ def run_scenario(
     console.print("\n[bold cyan]📅 Day 0 (After Setup)[/bold cyan]")
     show_day_summary(system, agent_ids, show)
     
+    # Track day data for PDF export
+    days_data = []
+    
     if mode == "step":
-        run_step_mode(
+        days_data = run_step_mode(
             system=system,
             max_days=max_days,
             show=show,
@@ -100,7 +105,7 @@ def run_scenario(
             scenario_name=config.name
         )
     else:
-        run_until_stable_mode(
+        days_data = run_until_stable_mode(
             system=system,
             max_days=max_days,
             quiet_days=quiet_days,
@@ -122,6 +127,25 @@ def run_scenario(
         export_path.parent.mkdir(parents=True, exist_ok=True)
         write_events_jsonl(system, export_path)
         console.print(f"[green]✓[/green] Exported events to {export_path}")
+    
+    # Export to PDF if requested
+    if pdf_output:
+        from .pdf_export import export_to_pdf
+        pdf_output.parent.mkdir(parents=True, exist_ok=True)
+        export_to_pdf(
+            output_path=pdf_output,
+            system=system,
+            config=config,
+            days_data=days_data,
+            agent_ids=agent_ids,
+            show=show
+        )
+        html_path = pdf_output.with_suffix('.html')
+        if pdf_output.exists():
+            console.print(f"[green]✓[/green] Exported colored output to PDF: {pdf_output}")
+        else:
+            console.print(f"[green]✓[/green] Exported colored output to HTML: {html_path}")
+            console.print(f"[dim]   (Open in browser and print to PDF for best results)[/dim]")
 
 
 def run_step_mode(
@@ -131,7 +155,7 @@ def run_step_mode(
     agent_ids: Optional[List[str]],
     check_invariants: str,
     scenario_name: str
-) -> None:
+) -> List[Dict[str, Any]]:
     """Run simulation in step-by-step mode.
     
     Args:
@@ -141,8 +165,12 @@ def run_step_mode(
         agent_ids: Agent IDs to show balances for
         check_invariants: Invariant checking mode
         scenario_name: Name of the scenario for error context
+    
+    Returns:
+        List of day data dictionaries
     """
     day = 0
+    days_data = []
     
     while day < max_days:
         # Prompt to continue
@@ -163,6 +191,15 @@ def run_step_mode(
             # Show day summary
             console.print(f"\n[bold cyan]📅 Day {day}[/bold cyan]")
             show_day_summary(system, agent_ids, show)
+            
+            # Collect day data for PDF export
+            day_events = [e for e in system.state.events if e.get("day") == day - 1]
+            days_data.append({
+                'day': day,
+                'events': day_events,
+                'quiet': day_report.quiet,
+                'stable': day_report.quiet and not day_report.has_open_obligations
+            })
             
             # Check if we've reached a stable state
             if day_report.quiet and not day_report.has_open_obligations:
@@ -207,6 +244,10 @@ def run_step_mode(
     # Show final summary
     console.print("\n[bold]Simulation Complete[/bold]")
     show_simulation_summary(system)
+    
+    return days_data
+    
+    return days_data
 
 
 def run_until_stable_mode(
@@ -217,7 +258,7 @@ def run_until_stable_mode(
     agent_ids: Optional[List[str]],
     check_invariants: str,
     scenario_name: str
-) -> None:
+) -> List[Dict[str, Any]]:
     """Run simulation until stable state is reached.
     
     Args:
@@ -228,6 +269,9 @@ def run_until_stable_mode(
         agent_ids: Agent IDs to show balances for
         check_invariants: Invariant checking mode
         scenario_name: Name of the scenario for error context
+    
+    Returns:
+        List of day data dictionaries
     """
     console.print(f"\n[dim]Running simulation until stable (max {max_days} days)...[/dim]\n")
     
@@ -238,6 +282,7 @@ def run_until_stable_mode(
         
         reports = []
         consecutive_quiet = 0
+        days_data = []
         
         for day_num in range(1, max_days + 1):
             # Run the next day
@@ -263,6 +308,16 @@ def run_until_stable_mode(
             # Show events and balances for this specific day
             # Note: events are stored with 0-based day numbers
             show_day_summary(system, agent_ids, show, day=day_before)
+            
+            # Collect day data for PDF export
+            day_events = [e for e in system.state.events if e.get("day") == day_before]
+            is_stable = consecutive_quiet >= quiet_days and not _has_open_obligations(system)
+            days_data.append({
+                'day': day_num,
+                'events': day_events,
+                'quiet': report.impacted == 0,
+                'stable': is_stable
+            })
             
             # Show activity summary
             if report.impacted > 0:
@@ -324,3 +379,5 @@ def run_until_stable_mode(
     # Show final summary
     console.print("\n[bold]Simulation Complete[/bold]")
     show_simulation_summary(system)
+    
+    return days_data
