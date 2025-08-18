@@ -74,6 +74,69 @@ def get_python_files(directory: Path) -> List[Path]:
     return sorted(python_files)
 
 
+def get_git_history() -> str:
+    """Get the full git commit history."""
+    try:
+        # Get detailed git log with full commit messages
+        cmd = ['git', 'log', '--pretty=format:%H|%ai|%an|%s%n%b', '--reverse']
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        
+        commits = []
+        current_commit = []
+        
+        for line in result.stdout.split('\n'):
+            if '|' in line and len(line.split('|')) >= 4:
+                # This is a new commit header
+                if current_commit:
+                    # Process previous commit
+                    parts = current_commit[0].split('|', 3)
+                    if len(parts) == 4:
+                        commit_hash, date, author, subject = parts
+                        body = '\n'.join(current_commit[1:]) if len(current_commit) > 1 else ""
+                        commits.append({
+                            'hash': commit_hash[:8],
+                            'date': date.split(' ')[0],  # Just the date part
+                            'author': author,
+                            'subject': subject,
+                            'body': body.strip()
+                        })
+                # Start new commit
+                current_commit = [line]
+            else:
+                # This is part of the commit body
+                if line.strip():
+                    current_commit.append(line)
+        
+        # Don't forget the last commit
+        if current_commit:
+            parts = current_commit[0].split('|', 3)
+            if len(parts) == 4:
+                commit_hash, date, author, subject = parts
+                body = '\n'.join(current_commit[1:]) if len(current_commit) > 1 else ""
+                commits.append({
+                    'hash': commit_hash[:8],
+                    'date': date.split(' ')[0],
+                    'author': author,
+                    'subject': subject,
+                    'body': body.strip()
+                })
+        
+        # Format the commits
+        output = []
+        for commit in commits:
+            output.append(f"- **{commit['hash']}** ({commit['date']}) by {commit['author']}")
+            output.append(f"  {commit['subject']}")
+            if commit['body']:
+                for line in commit['body'].split('\n'):
+                    if line.strip():
+                        output.append(f"  {line}")
+            output.append("")
+        
+        return '\n'.join(output)
+    except subprocess.CalledProcessError:
+        return "Unable to retrieve git history (not a git repository or git not available)\n"
+
+
 def generate_markdown(output_file: str = "codebase_for_llm.md"):
     """Generate the markdown file with codebase content."""
     root_dir = Path.cwd()
@@ -103,6 +166,13 @@ def generate_markdown(output_file: str = "codebase_for_llm.md"):
         f.write(tree_output)
         f.write("\n```\n\n")
         f.write("---\n\n")
+        
+        # Git history section
+        f.write("## Git Commit History\n\n")
+        f.write("Complete git history from oldest to newest:\n\n")
+        git_history = get_git_history()
+        f.write(git_history)
+        f.write("\n---\n\n")
         
         # Source code section
         f.write("## Source Code (src/bilancio)\n\n")
