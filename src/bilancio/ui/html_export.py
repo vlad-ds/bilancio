@@ -50,10 +50,23 @@ def export_to_html(
     _capture_scenario_header(console, config.name, config.description)
     
     # Capture initial state (Day 0)
-    console.print("\n[bold cyan]📅 Day 0 (After Setup)[/bold cyan]")
-    # For Day 0, only show setup events
+    console.print("\n[bold cyan]📅 Day 0 (Initial Setup)[/bold cyan]")
+    
+    # Show initial actions from config
+    if config.initial_actions:
+        console.print("\n[bold]Initial Actions:[/bold]")
+        _capture_initial_actions(console, config.initial_actions)
+    
+    # Show setup events that were recorded
     setup_events = [e for e in system.state.events if e.get("phase") == "setup"]
-    _capture_day_summary(console, system, agent_ids, show, day=0, day_events=setup_events)
+    if setup_events:
+        console.print("\n[bold]Setup Events:[/bold]")
+        _capture_events_to_console(console, setup_events)
+    
+    # Show initial balances
+    if agent_ids:
+        console.print("\n[bold]Initial Balances:[/bold]")
+        _capture_balances(console, system, agent_ids)
     
     # Capture each day's output
     for day_data in days_data:
@@ -91,6 +104,67 @@ def export_to_html(
     # Save as HTML file
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(html_content)
+
+
+def _capture_initial_actions(console: Console, initial_actions: List[Dict]) -> None:
+    """Display initial actions from configuration."""
+    for action in initial_actions:
+        # Each action is a dict with one key (the action type)
+        for action_type, params in action.items():
+            if action_type == "mint_reserves":
+                console.print(f"  🏦 Mint reserves: ${params['amount']:,} to {params['to']}", style="cyan")
+            elif action_type == "mint_cash":
+                console.print(f"  💰 Mint cash: ${params['amount']:,} to {params['to']}", style="green")
+            elif action_type == "deposit_cash":
+                console.print(f"  🏧 Deposit cash: {params['customer']} deposits ${params['amount']:,} at {params['bank']}", style="blue")
+            elif action_type == "create_payable":
+                due_text = f" (due Day {params['due_day']})" if 'due_day' in params else ""
+                console.print(f"  📝 Create payable: {params['from']} owes {params['to']} ${params['amount']:,}{due_text}", style="magenta")
+            else:
+                # Generic display for unknown action types
+                console.print(f"  📌 {action_type.replace('_', ' ').title()}: {params}")
+
+
+def _capture_balances(console: Console, system: System, agent_ids: List[str]) -> None:
+    """Capture agent balances display."""
+    from bilancio.analysis.balances import agent_balance
+    from rich.columns import Columns
+    from rich.table import Table
+    from rich import box
+    
+    if len(agent_ids) == 1:
+        # Single agent
+        balance = agent_balance(system, agent_ids[0])
+        agent = system.state.agents[agent_ids[0]]
+        
+        # Get agent title
+        if agent.name and agent.name != agent_ids[0]:
+            title = f"{agent.name} [{agent_ids[0]}]\n({agent.kind})"
+        else:
+            title = f"{agent_ids[0]}\n({agent.kind})"
+        
+        # Create and display table
+        table = _create_balance_table_for_console(title, balance)
+        console.print(table)
+    else:
+        # Multiple agents - display side by side
+        tables = []
+        for agent_id in agent_ids:
+            balance = agent_balance(system, agent_id)
+            agent = system.state.agents[agent_id]
+            
+            # Get agent title
+            if agent.name and agent.name != agent_id:
+                title = f"{agent.name} [{agent_id}]\n({agent.kind})"
+            else:
+                title = f"{agent_id}\n({agent.kind})"
+            
+            # Create a table for this agent
+            table = _create_balance_table_for_console(title, balance)
+            tables.append(table)
+        
+        # Display tables side by side
+        console.print(Columns(tables, padding=(0, 2), expand=False))
 
 
 def _capture_scenario_header(console: Console, name: str, description: Optional[str]) -> None:
