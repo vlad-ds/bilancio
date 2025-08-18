@@ -1,5 +1,7 @@
-- Use implementation subagents (in parallel) to execute do code changes whenever possible.
+- Use implementation subagents (in parallel) to execute code changes whenever possible, but always review what the subagents wrote, find possible issues, and fix them if necessary.
 - Always use `uv run` instead of `python` to run Python commands in this project
+- Remove all temporary test_ files when they're no longer needed
+- Store temporary test files in a gitignored temp/ folder instead of the project root
 
 ## Running Tests
 - Run all tests: `uv run pytest tests/ -v`
