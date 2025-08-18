@@ -59,7 +59,11 @@ def display_agent_balance_table(
     # Get agent info
     agent = system.state.agents[agent_id]
     if title is None:
-        title = f"{agent.name or agent_id} ({agent.kind})"
+        # Show both name and ID for clarity
+        if agent.name and agent.name != agent_id:
+            title = f"{agent.name} [{agent_id}] ({agent.kind})"
+        else:
+            title = f"{agent_id} ({agent.kind})"
     
     if format == 'rich':
         _display_rich_agent_balance(title, balance)
@@ -364,7 +368,11 @@ def _display_rich_multiple_agent_balances(
         # Get agent name if system is available
         if system and balance.agent_id in system.state.agents:
             agent = system.state.agents[balance.agent_id]
-            title = f"{agent.name or balance.agent_id}\n({agent.kind})"
+            # Show both name and ID for clarity
+            if agent.name and agent.name != balance.agent_id:
+                title = f"{agent.name} [{balance.agent_id}]\n({agent.kind})"
+            else:
+                title = f"{balance.agent_id}\n({agent.kind})"
         else:
             title = f"{balance.agent_id}"
         
@@ -634,34 +642,44 @@ def display_events(events: List[Dict[str, Any]], format: str = 'detailed') -> No
         events: List of event dictionaries from sys.state.events
         format: Display format ('detailed' or 'summary')
     """
+    console = Console() if RICH_AVAILABLE else None
+    
     if not events:
-        print("No events to display.")
+        _print("No events to display.", console)
         return
     
     if format == 'summary':
-        _display_events_summary(events)
+        _display_events_summary(events, console)
     else:
-        _display_events_detailed(events)
+        _display_events_detailed(events, console)
 
 
-def _display_events_summary(events: List[Dict[str, Any]]) -> None:
+def _print(text: str, console: Optional['Console'] = None) -> None:
+    """Print using Rich console if available, otherwise regular print."""
+    if console:
+        console.print(text)
+    else:
+        print(text)
+
+
+def _display_events_summary(events: List[Dict[str, Any]], console: Optional['Console'] = None) -> None:
     """Display events in a condensed summary format."""
     for event in events:
         kind = event.get("kind", "Unknown")
         day = event.get("day", "?")
         
         if kind == "PayableSettled":
-            print(f"Day {day}: 💰 {event['debtor']} → {event['creditor']}: ${event['amount']}")
+            _print(f"Day {day}: 💰 {event['debtor']} → {event['creditor']}: ${event['amount']}", console)
         elif kind == "DeliveryObligationSettled":
             qty = event.get('qty', event.get('quantity', 'N/A'))
-            print(f"Day {day}: 📦 {event['debtor']} → {event['creditor']}: {qty} {event.get('sku', 'items')}")
+            _print(f"Day {day}: 📦 {event['debtor']} → {event['creditor']}: {qty} {event.get('sku', 'items')}", console)
         elif kind == "StockTransferred":
-            print(f"Day {day}: 🚚 {event['frm']} → {event['to']}: {event['qty']} {event['sku']}")
+            _print(f"Day {day}: 🚚 {event['frm']} → {event['to']}: {event['qty']} {event['sku']}", console)
         elif kind == "CashTransferred":
-            print(f"Day {day}: 💵 {event['frm']} → {event['to']}: ${event['amount']}")
+            _print(f"Day {day}: 💵 {event['frm']} → {event['to']}: ${event['amount']}", console)
 
 
-def _display_events_detailed(events: List[Dict[str, Any]]) -> None:
+def _display_events_detailed(events: List[Dict[str, Any]], console: Optional['Console'] = None) -> None:
     """Display events grouped by day with detailed formatting."""
     # Separate setup events from day events
     setup_events = []
@@ -677,65 +695,145 @@ def _display_events_detailed(events: List[Dict[str, Any]]) -> None:
     
     # Display setup events first if any
     if setup_events:
-        print(f"\n📅 Setup Phase:")
-        _display_day_events(setup_events)
+        _print(f"\n📅 Setup Phase:", console)
+        # Setup events don't have phase markers, display them directly
+        for event in setup_events:
+            _display_single_event(event, console, indent="  ")
     
     # Display events for each day
     for day in sorted(events_by_day.keys()):
         if day >= 0:
-            print(f"\n📅 Day {day}:")
+            _print(f"\n📅 Day {day}:", console)
         else:
-            print(f"\n📅 Unknown Day:")
+            _print(f"\n📅 Unknown Day:", console)
         
-        _display_day_events(events_by_day[day])
-    
-    # Add explanatory note
-    print("\n📝 Event Types:")
-    print("  • Settled = obligation successfully fulfilled")
-    print("  • Cancelled = obligation removed from books after settlement")
-    print("  • Transferred = actual movement of assets (cash or stock)")
+        _display_day_events(events_by_day[day], console)
 
 
-def _display_day_events(day_events: List[Dict[str, Any]]) -> None:
+def _display_day_events(day_events: List[Dict[str, Any]], console: Optional['Console'] = None) -> None:
     """Display events for a single day with proper formatting."""
+    # Group events by their phase timing
+    phase_a_events = []
+    phase_b_events = []
+    phase_c_events = []
+    
+    # Track which phase we're in based on phase markers
+    current_phase = "A"  # Start with phase A
+    
     for event in day_events:
         kind = event.get("kind", "Unknown")
         
-        if kind == "StockCreated":
-            print(f"  🏭 Stock created: {event['owner']} gets {event['qty']} {event['sku']}")
-        
-        elif kind == "CashMinted":
-            print(f"  💰 Cash minted: ${event['amount']} to {event['to']}")
-        
-        elif kind == "PayableSettled":
-            print(f"  ✅ Payment settled: {event['debtor']} → {event['creditor']}: ${event['amount']}")
-        
-        elif kind == "PayableCancelled":
-            print(f"    └─ Payment obligation removed from books")
-        
-        elif kind == "DeliveryObligationSettled":
-            qty = event.get('qty', event.get('quantity', 'N/A'))
-            sku = event.get('sku', 'items')
-            print(f"  ✅ Delivery settled: {event['debtor']} → {event['creditor']}: {qty} {sku}")
-        
-        elif kind == "DeliveryObligationCancelled":
-            print(f"    └─ Delivery obligation removed from books")
-        
-        elif kind == "StockTransferred":
-            print(f"  📦 Stock transferred: {event['frm']} → {event['to']}: {event['qty']} {event['sku']}")
-        
-        elif kind == "CashTransferred":
-            print(f"  💵 Cash transferred: {event['frm']} → {event['to']}: ${event['amount']}")
-        
-        elif kind == "PhaseA":
-            print(f"  ⏰ Settlement phase begins (checking due obligations)")
-        
+        # Phase markers change which phase we're in
+        if kind == "PhaseA":
+            current_phase = "A"
         elif kind == "PhaseB":
-            print(f"  ⏳ End of day phase")
-        
+            current_phase = "B"
+        elif kind == "PhaseC":
+            current_phase = "C"
         else:
-            # For any other event types, show raw data
-            print(f"  • {kind}: {event}")
+            # Regular events go into the current phase bucket
+            if current_phase == "A":
+                phase_a_events.append(event)
+            elif current_phase == "B":
+                phase_b_events.append(event)
+            elif current_phase == "C":
+                phase_c_events.append(event)
+    
+    # Always display all three phases
+    # Phase A - No-op phase, just marks beginning of day
+    _print(f"\n  ⏰ Phase A: Day begins", console)
+    for event in phase_a_events:
+        _display_single_event(event, console, indent="    ")
+    
+    # Phase B - Settlement phase where obligations are fulfilled
+    _print(f"\n  💳 Phase B: Settlement (fulfilling due obligations)", console)
+    for event in phase_b_events:
+        _display_single_event(event, console, indent="    ")
+    
+    # Phase C - Intraday netting
+    _print(f"\n  📋 Phase C: Intraday netting", console)
+    for event in phase_c_events:
+        _display_single_event(event, console, indent="    ")
+    
+    # Mark end of day
+    _print(f"\n  🌙 Day ended", console)
+
+
+def _display_single_event(event: Dict[str, Any], console: Optional['Console'] = None, indent: str = "  ") -> None:
+    """Display a single event with proper formatting."""
+    kind = event.get("kind", "Unknown")
+    
+    if kind == "StockCreated":
+        _print(f"{indent}🏭 Stock created: {event['owner']} gets {event['qty']} {event['sku']}", console)
+    
+    elif kind == "CashMinted":
+        _print(f"{indent}💰 Cash minted: ${event['amount']} to {event['to']}", console)
+    
+    elif kind == "PayableSettled":
+        _print(f"{indent}✅ Payment settled: {event['debtor']} → {event['creditor']}: ${event['amount']}", console)
+    
+    elif kind == "PayableCancelled":
+        _print(f"{indent}  └─ Payment obligation removed from books", console)
+    
+    elif kind == "DeliveryObligationSettled":
+        qty = event.get('qty', event.get('quantity', 'N/A'))
+        sku = event.get('sku', 'items')
+        _print(f"{indent}✅ Delivery settled: {event['debtor']} → {event['creditor']}: {qty} {sku}", console)
+    
+    elif kind == "DeliveryObligationCancelled":
+        _print(f"{indent}  └─ Delivery obligation removed from books", console)
+    
+    elif kind == "StockTransferred":
+        _print(f"{indent}📦 Stock transferred: {event['frm']} → {event['to']}: {event['qty']} {event['sku']}", console)
+    
+    elif kind == "CashTransferred":
+        _print(f"{indent}💵 Cash transferred: {event['frm']} → {event['to']}: ${event['amount']}", console)
+    
+    elif kind == "StockSplit":
+        sku = event.get('sku', 'N/A')
+        original_qty = event.get('original_qty', 0)
+        split_qty = event.get('split_qty', 0)
+        remaining_qty = event.get('remaining_qty', 0)
+        # Show shortened IDs for readability
+        original_id = event.get('original_id', '')
+        new_id = event.get('new_id', '')
+        short_orig = original_id.split('_')[-1][:8] if original_id else 'N/A'
+        short_new = new_id.split('_')[-1][:8] if new_id else 'N/A'
+        _print(f"{indent}📊 Stock split: {short_orig} → {short_new}: {split_qty} {sku} (keeping {remaining_qty})", console)
+    
+    elif kind == "ReservesMinted":
+        amount = event.get('amount', 0)
+        to = event.get('to', 'N/A')
+        _print(f"{indent}🏦 Reserves minted: ${amount} to {to}", console)
+    
+    elif kind == "CashDeposited":
+        customer = event.get('customer', 'N/A')
+        bank = event.get('bank', 'N/A')
+        amount = event.get('amount', 0)
+        _print(f"{indent}🏧 Cash deposited: {customer} → {bank}: ${amount}", console)
+    
+    elif kind == "DeliveryObligationCreated":
+        frm = event.get('frm', event.get('from', 'N/A'))
+        to = event.get('to', 'N/A')
+        qty = event.get('qty', event.get('quantity', 0))
+        sku = event.get('sku', 'N/A')
+        due_day = event.get('due_day', 'N/A')
+        _print(f"{indent}📝 Delivery obligation created: {frm} → {to}: {qty} {sku} (due day {due_day})", console)
+    
+    elif kind == "PayableCreated":
+        frm = event.get('frm', event.get('from', event.get('debtor', 'N/A')))
+        to = event.get('to', event.get('creditor', 'N/A'))
+        amount = event.get('amount', 0)
+        due_day = event.get('due_day', 'N/A')
+        _print(f"{indent}💸 Payable created: {frm} → {to}: ${amount} (due day {due_day})", console)
+    
+    elif kind in ["PhaseA", "PhaseB", "PhaseC"]:
+        # Phase markers are not displayed as events themselves
+        pass
+    
+    else:
+        # For any other event types, show raw data
+        _print(f"{indent}• {kind}: {event}", console)
 
 
 def display_events_for_day(system: System, day: int) -> None:
@@ -746,10 +844,11 @@ def display_events_for_day(system: System, day: int) -> None:
         system: The bilancio system instance
         day: The simulation day to display events for
     """
+    console = Console() if RICH_AVAILABLE else None
     events = [e for e in system.state.events if e.get("day") == day]
     
     if not events:
-        print("  No events occurred on this day.")
+        _print("  No events occurred on this day.", console)
         return
     
-    _display_day_events(events)
+    _display_day_events(events, console)
