@@ -1,31 +1,25 @@
-{"kind": "ReservesMinted", "day": 0, "phase": "setup", "to": "B1", "amount": 20000, "instr_id": "R_21b079037399"}
-{"kind": "ReservesMinted", "day": 0, "phase": "setup", "to": "B2", "amount": 15000, "instr_id": "R_6b6d04192cf9"}
-{"kind": "CashMinted", "day": 0, "phase": "setup", "to": "H1", "amount": 5000, "instr_id": "C_739dfa642fec"}
-{"kind": "CashMinted", "day": 0, "phase": "setup", "to": "H2", "amount": 4000, "instr_id": "C_e533874c4a88"}
-{"kind": "CashMinted", "day": 0, "phase": "setup", "to": "H3", "amount": 3000, "instr_id": "C_1e4ec48e3783"}
-{"kind": "CashDeposited", "day": 0, "phase": "setup", "customer": "H1", "bank": "B1", "amount": 4500, "cash_piece_ids": ["C_9775337eca2b"], "deposit_id": "D_c2c51e85d305"}
-{"kind": "CashDeposited", "day": 0, "phase": "setup", "customer": "H2", "bank": "B2", "amount": 3500, "cash_piece_ids": ["C_c2c7500baa92"], "deposit_id": "D_7eb9b0750310"}
-{"kind": "CashDeposited", "day": 0, "phase": "setup", "customer": "H3", "bank": "B1", "amount": 2500, "cash_piece_ids": ["C_8c4542323dde"], "deposit_id": "D_674b48364af3"}
+{"kind": "ReservesMinted", "day": 0, "phase": "setup", "to": "B1", "amount": 20000, "instr_id": "R_bbe9f4d57863"}
+{"kind": "ReservesMinted", "day": 0, "phase": "setup", "to": "B2", "amount": 15000, "instr_id": "R_0e53a344c3e1"}
+{"kind": "CashMinted", "day": 0, "phase": "setup", "to": "H1", "amount": 5000, "instr_id": "C_8f3edc37c781"}
+{"kind": "CashMinted", "day": 0, "phase": "setup", "to": "H2", "amount": 4000, "instr_id": "C_b4e701566619"}
+{"kind": "CashMinted", "day": 0, "phase": "setup", "to": "H3", "amount": 3000, "instr_id": "C_8b56bbc92874"}
+{"kind": "CashDeposited", "day": 0, "phase": "setup", "customer": "H1", "bank": "B1", "amount": 4500, "cash_piece_ids": ["C_f48443f220d4"], "deposit_id": "D_2b3c91328528"}
+{"kind": "CashDeposited", "day": 0, "phase": "setup", "customer": "H2", "bank": "B2", "amount": 3500, "cash_piece_ids": ["C_77be6e595ab9"], "deposit_id": "D_482f6f08d703"}
+{"kind": "CashDeposited", "day": 0, "phase": "setup", "customer": "H3", "bank": "B1", "amount": 2500, "cash_piece_ids": ["C_c0ab32da7af6"], "deposit_id": "D_584b03a0b830"}
 {"kind": "PhaseA", "day": 0, "phase": "simulation"}
 {"kind": "PhaseB", "day": 0, "phase": "simulation"}
 {"kind": "PhaseC", "day": 0, "phase": "simulation"}
 {"kind": "PhaseA", "day": 1, "phase": "simulation"}
 {"kind": "PhaseB", "day": 1, "phase": "simulation"}
 {"kind": "ClientPayment", "day": 1, "phase": "simulation", "payer": "H1", "payer_bank": "B1", "payee": "H2", "payee_bank": "B2", "amount": 1000}
-{"kind": "PayableSettled", "day": 1, "phase": "simulation", "pid": "PAY_a9cf71b91a4d", "debtor": "H1", "creditor": "H2", "amount": 1000}
+{"kind": "PayableSettled", "day": 1, "phase": "simulation", "pid": "PAY_2da847b028be", "debtor": "H1", "creditor": "H2", "amount": 1000}
 {"kind": "ClientPayment", "day": 1, "phase": "simulation", "payer": "H2", "payer_bank": "B2", "payee": "H3", "payee_bank": "B1", "amount": 800}
-{"kind": "PayableSettled", "day": 1, "phase": "simulation", "pid": "PAY_9f88971e9b34", "debtor": "H2", "creditor": "H3", "amount": 800}
+{"kind": "PayableSettled", "day": 1, "phase": "simulation", "pid": "PAY_4b6228742175", "debtor": "H2", "creditor": "H3", "amount": 800}
 {"kind": "PhaseC", "day": 1, "phase": "simulation"}
-{"kind": "ReservesTransferred", "day": 1, "phase": "simulation", "frm": "B1", "to": "B2", "amount": 200, "instr_id": "C_4a69ede587c4"}
-{"kind": "InstrumentMerged", "day": 1, "phase": "simulation", "keep": "R_6b6d04192cf9", "removed": "C_4a69ede587c4"}
+{"kind": "ReservesTransferred", "day": 1, "phase": "simulation", "frm": "B1", "to": "B2", "amount": 200, "instr_id": "C_dc4d5d54275a"}
+{"kind": "InstrumentMerged", "day": 1, "phase": "simulation", "keep": "R_0e53a344c3e1", "removed": "C_dc4d5d54275a"}
 {"kind": "InterbankCleared", "day": 1, "phase": "simulation", "debtor_bank": "B1", "creditor_bank": "B2", "amount": 200}
 {"kind": "PhaseA", "day": 2, "phase": "simulation"}
 {"kind": "PhaseB", "day": 2, "phase": "simulation"}
-{"kind": "PayableSettled", "day": 2, "phase": "simulation", "pid": "PAY_45430b56f392", "debtor": "H3", "creditor": "H1", "amount": 300}
+{"kind": "PayableSettled", "day": 2, "phase": "simulation", "pid": "PAY_0efe8dc67499", "debtor": "H3", "creditor": "H1", "amount": 300}
 {"kind": "PhaseC", "day": 2, "phase": "simulation"}
-{"kind": "PhaseA", "day": 3, "phase": "simulation"}
-{"kind": "PhaseB", "day": 3, "phase": "simulation"}
-{"kind": "PhaseC", "day": 3, "phase": "simulation"}
-{"kind": "PhaseA", "day": 4, "phase": "simulation"}
-{"kind": "PhaseB", "day": 4, "phase": "simulation"}
-{"kind": "PhaseC", "day": 4, "phase": "simulation"}

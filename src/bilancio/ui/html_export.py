@@ -51,7 +51,9 @@ def export_to_html(
     
     # Capture initial state (Day 0)
     console.print("\n[bold cyan]📅 Day 0 (After Setup)[/bold cyan]")
-    _capture_day_summary(console, system, agent_ids, show, day=0)
+    # For Day 0, only show setup events
+    setup_events = [e for e in system.state.events if e.get("phase") == "setup"]
+    _capture_day_summary(console, system, agent_ids, show, day=0, day_events=setup_events)
     
     # Capture each day's output
     for day_data in days_data:
@@ -59,6 +61,7 @@ def export_to_html(
         console.print(f"\n[bold cyan]📅 Day {day_num}[/bold cyan]")
         
         # Show day events and balances
+        # The events in day_data are the events that happened DURING this day
         _capture_day_summary(
             console, 
             system, 
@@ -212,41 +215,63 @@ def _capture_events_to_console(console: Console, events: List[Dict]) -> None:
     """Capture events display to console with proper formatting."""
     from collections import defaultdict
     
-    # Group events by phase or day
-    events_by_phase = defaultdict(list)
+    if not events:
+        return
+    
+    # Don't group by day - we're already under a day section
+    # Just group by simulation phase (setup, A, B, C)
+    phase_groups = defaultdict(list)
     
     for event in events:
-        phase_key = f"Day {event.get('day', 'Setup')}"
-        events_by_phase[phase_key].append(event)
+        event_phase = event.get('phase', '')
+        event_kind = event.get('kind', event.get('type', ''))
+        
+        # Determine the phase group
+        if event_phase == 'setup':
+            phase = "Setup Phase"
+        elif event_kind == 'PhaseA':
+            phase = "Phase A"
+        elif event_kind == 'PhaseB':
+            phase = "Phase B"
+        elif event_kind == 'PhaseC':
+            phase = "Phase C"
+        elif event_phase == 'simulation':
+            # Determine phase based on event type
+            if event_kind in ['ClientPayment', 'PayableSettled']:
+                phase = "Phase B"
+            elif event_kind in ['ReservesTransferred', 'InstrumentMerged', 'InterbankCleared']:
+                phase = "Phase C"
+            else:
+                phase = "Phase A"
+        else:
+            phase = "Other"
+        
+        phase_groups[phase].append(event)
     
     # Display events grouped by phase
-    for phase_key in sorted(events_by_phase.keys()):
-        console.print(f"\n[bold cyan]📅 {phase_key}:[/bold cyan]")
-        
-        phase_events = events_by_phase[phase_key]
-        
-        # Further group by simulation phase
-        phase_groups = defaultdict(list)
-        for event in phase_events:
-            phase = event.get('phase', '')
-            if not phase and phase_key == "Day Setup":
-                phase = "Setup Phase"
-            elif phase == 'A':
-                phase = "Phase A: Day begins"
-            elif phase == 'B':
-                phase = "Phase B: Settlement (fulfilling due obligations)"
-            elif phase == 'C':
-                phase = "Phase C: Intraday netting"
-            else:
-                phase = "Other"
-            phase_groups[phase].append(event)
-        
-        for phase, phase_events_list in phase_groups.items():
-            if phase != "Other":
-                console.print(f"\n  [yellow]{phase.replace('Phase ', '⏰ Phase ' if 'A:' in phase else '💳 Phase ' if 'B:' in phase else '📋 Phase ' if 'C:' in phase else '')}[/yellow]")
+    phase_order = ["Setup Phase", "Phase A", "Phase B", "Phase C", "Other"]
+    
+    for phase in phase_order:
+        if phase in phase_groups and phase_groups[phase]:
+            phase_events = phase_groups[phase]
             
-            for event in phase_events_list:
-                _display_single_event(console, event)
+            # Only show phase headers if there are non-phase events
+            has_content = any(e.get('kind') not in ['PhaseA', 'PhaseB', 'PhaseC'] for e in phase_events)
+            
+            if has_content:
+                if phase == "Setup Phase":
+                    console.print("\n  [bold yellow]🔧 Setup Phase:[/bold yellow]")
+                elif phase == "Phase A":
+                    console.print("\n  [bold yellow]⏰ Phase A: Day begins[/bold yellow]")
+                elif phase == "Phase B":
+                    console.print("\n  [bold green]💳 Phase B: Settlement[/bold green]")
+                elif phase == "Phase C":
+                    console.print("\n  [bold cyan]📋 Phase C: Intraday netting[/bold cyan]")
+                
+                # Display events, skipping the phase marker events
+                for event in phase_events:
+                    if event.get('kind') not in ['PhaseA', 'PhaseB', 'PhaseC']:
+                        _display_single_event(console, event)
 
 
 def _display_single_event(console: Console, event: Dict) -> None:
