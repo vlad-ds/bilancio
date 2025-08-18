@@ -827,6 +827,36 @@ def _display_single_event(event: Dict[str, Any], console: Optional['Console'] = 
         due_day = event.get('due_day', 'N/A')
         _print(f"{indent}💸 Payable created: {frm} → {to}: ${amount} (due day {due_day})", console)
     
+    elif kind == "ClientPayment":
+        payer = event.get('payer', 'N/A')
+        payee = event.get('payee', 'N/A')
+        amount = event.get('amount', 0)
+        payer_bank = event.get('payer_bank', '')
+        payee_bank = event.get('payee_bank', '')
+        _print(f"{indent}💳 Client payment: {payer} ({payer_bank}) → {payee} ({payee_bank}): ${amount}", console)
+    
+    elif kind == "InterbankCleared":
+        debtor = event.get('debtor_bank', 'N/A')
+        creditor = event.get('creditor_bank', 'N/A')
+        amount = event.get('amount', 0)
+        _print(f"{indent}🏦 Interbank cleared: {debtor} → {creditor}: ${amount} (netted)", console)
+    
+    elif kind == "ReservesTransferred":
+        frm = event.get('frm', 'N/A')
+        to = event.get('to', 'N/A')
+        amount = event.get('amount', 0)
+        _print(f"{indent}💰 Reserves transferred: {frm} → {to}: ${amount}", console)
+    
+    elif kind == "InstrumentMerged":
+        # This is a technical event, show it more compactly
+        _print(f"{indent}🔀 Instruments merged", console)
+    
+    elif kind == "InterbankOvernightCreated":
+        debtor = event.get('debtor_bank', 'N/A')
+        creditor = event.get('creditor_bank', 'N/A')
+        amount = event.get('amount', 0)
+        _print(f"{indent}🌙 Overnight payable created: {debtor} → {creditor}: ${amount}", console)
+    
     elif kind in ["PhaseA", "PhaseB", "PhaseC"]:
         # Phase markers are not displayed as events themselves
         pass
