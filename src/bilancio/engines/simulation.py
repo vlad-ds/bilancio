@@ -1,10 +1,37 @@
 """Simulation engines for financial scenario analysis."""
 
 import random
+from dataclasses import dataclass
 from typing import Any, Protocol
 
 from bilancio.engines.clearing import settle_intraday_nets
 from bilancio.engines.settlement import settle_due
+
+
+IMPACT_EVENTS = {
+    "PayableSettled",
+    "DeliveryObligationSettled",
+    "InterbankCleared",
+    "InterbankOvernightCreated",
+}
+
+
+@dataclass
+class DayReport:
+    day: int
+    impacted: int
+    notes: str = ""
+
+
+def _impacted_today(system, day: int) -> int:
+    return sum(1 for e in system.state.events if e.get("day") == day and e.get("kind") in IMPACT_EVENTS)
+
+
+def _has_open_obligations(system) -> bool:
+    for c in system.state.contracts.values():
+        if c.kind in ("payable", "delivery_obligation"):
+            return True
+    return False
 
 
 class SimulationEngine(Protocol):
@@ -101,8 +128,8 @@ def run_day(system):
     Run a single day's simulation with three phases.
     
     Phase A: Log PhaseA event (noop for now)
-    Phase B: Settle payables due on the next day using settle_due
-    Phase C: Clear intraday nets using settle_intraday_nets
+    Phase B: Settle obligations due on the current day using settle_due
+    Phase C: Clear intraday nets for the current day using settle_intraday_nets
     
     Finally, increment the system day counter.
     
@@ -110,16 +137,44 @@ def run_day(system):
         system: System instance to run the day for
     """
     current_day = system.state.day
-    next_day = current_day + 1
 
     # Phase A: Log PhaseA event (noop for now)
-    system.log("PhaseA", day=current_day)
+    system.log("PhaseA")
 
-    # Phase B: Settle obligations due on the day we're advancing to
-    settle_due(system, next_day)
+    # Phase B: Settle obligations due on the current day
+    system.log("PhaseB")  # optional: helps timeline
+    settle_due(system, current_day)
 
-    # Phase C: Clear intraday nets
-    settle_intraday_nets(system, next_day)
+    # Phase C: Clear intraday nets for the current day
+    system.log("PhaseC")  # optional: helps timeline
+    settle_intraday_nets(system, current_day)
 
     # Increment system day
     system.state.day += 1
+
+
+def run_until_stable(system, max_days: int = 365, quiet_days: int = 2) -> list[DayReport]:
+    """
+    Advance day by day until the system is stable:
+    - No impactful events happen for `quiet_days` consecutive days, AND
+    - No outstanding payables or delivery obligations remain.
+    """
+    reports = []
+    consecutive_quiet = 0
+    start_day = system.state.day
+
+    for _ in range(max_days):
+        day_before = system.state.day
+        run_day(system)
+        impacted = _impacted_today(system, day_before)
+        reports.append(DayReport(day=day_before, impacted=impacted))
+
+        if impacted == 0:
+            consecutive_quiet += 1
+        else:
+            consecutive_quiet = 0
+
+        if consecutive_quiet >= quiet_days and not _has_open_obligations(system):
+            break
+
+    return reports

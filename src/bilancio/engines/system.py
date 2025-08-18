@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from decimal import Decimal
 
@@ -26,6 +27,7 @@ class State:
     day: int = 0
     cb_cash_outstanding: int = 0
     cb_reserves_outstanding: int = 0
+    phase: str = "simulation"
 
 class System:
     def __init__(self, policy: PolicyEngine | None = None):
@@ -35,6 +37,17 @@ class System:
     # ---- ID helpers
     def new_agent_id(self, prefix="A") -> AgentId: return new_id(prefix)
     def new_contract_id(self, prefix="C") -> InstrId: return new_id(prefix)
+
+    # ---- phase management
+    @contextmanager
+    def setup(self):
+        """Context manager to temporarily set phase to 'setup'."""
+        old_phase = self.state.phase
+        self.state.phase = "setup"
+        try:
+            yield
+        finally:
+            self.state.phase = old_phase
 
     # ---- registry gateway
     def add_agent(self, agent: Agent) -> None:
@@ -57,7 +70,7 @@ class System:
 
     # ---- events
     def log(self, kind: str, **payload) -> None:
-        self.state.events.append({"kind": kind, "day": self.state.day, **payload})
+        self.state.events.append({"kind": kind, "day": self.state.day, "phase": self.state.phase, **payload})
 
     # ---- invariants (MVP)
     def assert_invariants(self) -> None:
