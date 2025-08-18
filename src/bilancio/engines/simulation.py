@@ -101,7 +101,7 @@ def run_day(system):
     Run a single day's simulation with three phases.
     
     Phase A: Log PhaseA event (noop for now)
-    Phase B: Settle payables due today using settle_due
+    Phase B: Settle payables due on the next day using settle_due
     Phase C: Clear intraday nets using settle_intraday_nets
     
     Finally, increment the system day counter.
@@ -110,15 +110,16 @@ def run_day(system):
         system: System instance to run the day for
     """
     current_day = system.state.day
+    next_day = current_day + 1
 
     # Phase A: Log PhaseA event (noop for now)
     system.log("PhaseA", day=current_day)
 
-    # Phase B: Settle payables due today
-    settle_due(system, current_day)
+    # Phase B: Settle obligations due on the day we're advancing to
+    settle_due(system, next_day)
 
     # Phase C: Clear intraday nets
-    settle_intraday_nets(system, current_day)
+    settle_intraday_nets(system, next_day)
 
     # Increment system day
     system.state.day += 1

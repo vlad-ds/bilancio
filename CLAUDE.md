@@ -16,3 +16,32 @@
   - Must use actual agent classes (Bank, Household, Firm) not Agent(kind="bank") - policy checks isinstance()
   - Check function signatures - parameter order matters
   - Verify all imports work before creating notebook
+
+### Balance Sheet Display
+- **Use existing display functions** - Always use `bilancio.analysis.visualization.display_agent_balance_table()` and `display_multiple_agent_balances()` instead of creating custom display functions
+- **Prefer 'rich' format** - Use `format='rich'` for pretty formatted output (default). This gives nicely formatted tables with colors and borders
+- **Use 'simple' format only when needed** - Use `format='simple'` only when balance sheets have many items that would be cramped in the rich format (simple format has more room)
+- **Get balance data with agent_balance()** - Use `bilancio.analysis.balances.agent_balance()` to get structured balance sheet data for analysis
+
+### Testing Notebooks - Critical Lessons
+- **ALWAYS TEST AFTER ANY CHANGE** - Every time you touch/edit/modify a notebook, you MUST run the complete testing from scratch using `uv run jupyter nbconvert --execute <notebook.ipynb>`. NO EXCEPTIONS.
+- **Always test notebooks by executing them directly** - Use `uv run jupyter nbconvert --execute <notebook.ipynb>` to run the actual notebook. Don't extract code to test in separate Python files.
+- **Check the ENTIRE output of every cell** - Not just whether it executes without errors, but what each cell actually produces. A notebook can "run" without errors but still produce incorrect results.
+- **Read actual outputs, not just success messages** - A notebook can execute "successfully" (no exceptions) but still produce wrong results. Must examine the actual output values.
+- **When notebooks don't work as expected** - The issue might not be in the notebook itself but in the underlying code it's calling (check the actual library functions being used).
+- **For complex debugging**:
+  - First, check if the notebook executes at all
+  - Then, examine output of each cell systematically
+  - Trace through the logic to find where results diverge from expectations
+  - Test individual functions separately only AFTER identifying where the problem occurs
+- **When editing notebooks is problematic** - Sometimes it's better to recreate from scratch than to fix complex editing issues with notebook cells
+
+### Creating Notebooks - Essential Rules
+- **Ensure correct cell types** - Double-check that code cells are type "code" and markdown cells are type "markdown". Mixed up cell types cause confusing errors.
+- **Add sufficient output for debugging** - Every cell should produce enough output to understand what's happening:
+  - Print intermediate results and state changes
+  - Show balance sheets after each operation
+  - Log events and settlements as they occur
+  - Display verification checks with actual vs expected values
+  - Include descriptive messages explaining what each step does
+- **Make notebooks self-documenting** - The output should tell a clear story of what's happening without needing to read the code

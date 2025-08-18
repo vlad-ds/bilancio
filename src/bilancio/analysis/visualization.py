@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from decimal import Decimal
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 try:
     from rich.console import Console
@@ -26,21 +26,6 @@ def _format_currency(amount: int, show_sign: bool = False) -> str:
     if show_sign and amount > 0:
         formatted = f"+{formatted}"
     return formatted
-
-
-def _format_deliverable_name(sku: str, quantity: int) -> str:
-    """Format deliverable name with quantity in brackets."""
-    return f"deliverable ({sku}) [{quantity} unit{'s' if quantity != 1 else ''}]"
-
-
-def _format_inventory_name(sku: str, quantity: int) -> str:
-    """Format inventory name with quantity in brackets."""
-    return f"inventory ({sku}) [{quantity} unit{'s' if quantity != 1 else ''}]"
-
-
-def _format_delivery_obligation_name(sku: str, quantity: int) -> str:
-    """Format delivery obligation name with quantity in brackets."""
-    return f"delivery obligation ({sku}) [{quantity} unit{'s' if quantity != 1 else ''}]"
 
 
 def _format_deliverable_amount(valued_amount: Decimal) -> str:
@@ -143,73 +128,81 @@ def _display_rich_agent_balance(title: str, balance: AgentBalance) -> None:
     """Display a single agent balance using rich formatting."""
     console = Console()
     
-    # Create the main table
+    # Create the main table with wider columns to avoid truncation
     table = Table(title=title, box=box.ROUNDED, title_style="bold cyan")
-    table.add_column("ASSETS", style="green", width=30, no_wrap=True)
-    table.add_column("Amount", justify="right", style="green", width=12, no_wrap=True)
-    table.add_column("LIABILITIES", style="red", width=30, no_wrap=True)
-    table.add_column("Amount", justify="right", style="red", width=12, no_wrap=True)
+    table.add_column("ASSETS", style="green", width=35, no_wrap=False)
+    table.add_column("Amount", justify="right", style="green", width=15, no_wrap=True)
+    table.add_column("LIABILITIES", style="red", width=35, no_wrap=False)
+    table.add_column("Amount", justify="right", style="red", width=15, no_wrap=True)
     
-    # Prepare asset and liability rows with special handling for deliverables and inventory
     asset_rows = []
     
-    # Add inventory (stocks owned)
+    # First: Add inventory (stocks owned) - these are physical assets
     if hasattr(balance, 'inventory_by_sku'):
         for sku, data in balance.inventory_by_sku.items():
-            name = _format_inventory_name(sku, data['quantity'])
-            # Truncate long names for display
-            if len(name) > 29:
-                name = name[:26] + "..."
-            amount = _format_deliverable_amount(data['value'])
-            asset_rows.append((name, amount))
-    
-    # Add financial and non-financial assets
-    for asset_type in sorted(balance.assets_by_kind.keys()):
-        if asset_type == "deliverable":
-            # Handle old-style deliverables separately - group by SKU
-            for sku, data in balance.nonfinancial_assets_by_kind.items():
-                name = _format_deliverable_name(sku, data['quantity'])
-                # Truncate long names for display
-                if len(name) > 29:
-                    name = name[:26] + "..."
-                amount = _format_deliverable_amount(data['value'])
+            qty = data['quantity']
+            if qty > 0:
+                name = f"{sku} [{qty} unit{'s' if qty != 1 else ''}]"
+                amount = _format_currency(int(data['value']))
                 asset_rows.append((name, amount))
-        elif asset_type == "delivery_obligation":
-            # Skip delivery obligations on the asset side (they should be liabilities only)
-            continue
-        else:
-            # Regular financial assets
+    
+    # Second: Add non-financial assets (rights to receive goods)
+    # Track which SKUs we've already displayed
+    displayed_asset_skus = set()
+    for sku, data in balance.nonfinancial_assets_by_kind.items():
+        qty = data['quantity']
+        if qty > 0:
+            name = f"{sku} receivable [{qty} unit{'s' if qty != 1 else ''}]"
+            amount = _format_currency(int(data['value']))
+            asset_rows.append((name, amount))
+            displayed_asset_skus.add(sku)
+    
+    # Third: Add financial assets (everything else in assets_by_kind)
+    # These are guaranteed to be financial since non-financial are already handled
+    financial_asset_kinds = set()
+    for asset_type in sorted(balance.assets_by_kind.keys()):
+        # Skip if this is a non-financial type we already displayed
+        # We identify non-financial by checking if its SKU was in nonfinancial_assets_by_kind
+        is_nonfinancial = False
+        for sku in displayed_asset_skus:
+            # This is a heuristic but works for current instrument types
+            if asset_type in ['deliverable', 'delivery_obligation']:
+                is_nonfinancial = True
+                break
+        
+        if not is_nonfinancial and asset_type not in financial_asset_kinds:
             name = asset_type
             amount = _format_currency(balance.assets_by_kind[asset_type])
             asset_rows.append((name, amount))
+            financial_asset_kinds.add(asset_type)
     
     liability_rows = []
+    
+    # First: Add non-financial liabilities (obligations to deliver goods)
+    displayed_liability_skus = set()
+    for sku, data in balance.nonfinancial_liabilities_by_kind.items():
+        qty = data['quantity']
+        if qty > 0:
+            name = f"{sku} obligation [{qty} unit{'s' if qty != 1 else ''}]"
+            amount = _format_currency(int(data['value']))
+            liability_rows.append((name, amount))
+            displayed_liability_skus.add(sku)
+    
+    # Second: Add financial liabilities (everything else in liabilities_by_kind)
+    financial_liability_kinds = set()
     for liability_type in sorted(balance.liabilities_by_kind.keys()):
-        if liability_type == "deliverable":
-            # Handle old-style deliverable liabilities - show by SKU with value
-            for sku, data in balance.nonfinancial_liabilities_by_kind.items():
-                # Only show delivery obligations here now, not old deliverables
-                if data['quantity'] > 0:  # Only show if there are actual obligations
-                    name = _format_deliverable_name(sku, data['quantity'])
-                    # Truncate long names for display
-                    if len(name) > 29:
-                        name = name[:26] + "..."
-                    amount = _format_deliverable_amount(data['value'])
-                    liability_rows.append((name, amount))
-        elif liability_type == "delivery_obligation":
-            # Handle new delivery obligations - show by SKU with value
-            for sku, data in balance.nonfinancial_liabilities_by_kind.items():
-                name = _format_delivery_obligation_name(sku, data['quantity'])
-                # Truncate long names for display
-                if len(name) > 29:
-                    name = name[:26] + "..."
-                amount = _format_deliverable_amount(data['value'])
-                liability_rows.append((name, amount))
-        else:
-            # Regular financial liabilities
+        # Skip if this is a non-financial type we already displayed
+        is_nonfinancial = False
+        for sku in displayed_liability_skus:
+            if liability_type in ['deliverable', 'delivery_obligation']:
+                is_nonfinancial = True
+                break
+        
+        if not is_nonfinancial and liability_type not in financial_liability_kinds:
             name = liability_type
             amount = _format_currency(balance.liabilities_by_kind[liability_type])
             liability_rows.append((name, amount))
+            financial_liability_kinds.add(liability_type)
     
     # Determine the maximum number of rows needed
     max_rows = max(len(asset_rows), len(liability_rows), 1)
@@ -264,44 +257,76 @@ def _display_rich_agent_balance(title: str, balance: AgentBalance) -> None:
 def _display_simple_agent_balance(title: str, balance: AgentBalance) -> None:
     """Display a single agent balance using simple text formatting."""
     print(f"\n{title}")
-    print("=" * 60)
-    print(f"{'ASSETS':<25} {'Amount':>12} | {'LIABILITIES':<25} {'Amount':>12}")
-    print("-" * 60)
+    print("=" * 70)
+    print(f"{'ASSETS':<30} {'Amount':>12} | {'LIABILITIES':<30} {'Amount':>12}")
+    print("-" * 70)
     
-    # Prepare asset and liability rows with special handling for deliverables
     asset_rows = []
-    for asset_type in sorted(balance.assets_by_kind.keys()):
-        if asset_type == "deliverable":
-            # Handle deliverables separately - group by SKU
-            for sku, data in balance.nonfinancial_assets_by_kind.items():
-                name = _format_deliverable_name(sku, data['quantity'])
-                # Truncate long names for simple display
-                if len(name) > 24:
-                    name = name[:21] + "..."
-                amount = _format_deliverable_amount(data['value'])
-                asset_rows.append((name, amount))
-        else:
-            # Regular financial assets
-            name = asset_type
-            amount = _format_currency(balance.assets_by_kind[asset_type])
-            asset_rows.append((name, amount))
     
-    liability_rows = []
-    for liability_type in sorted(balance.liabilities_by_kind.keys()):
-        if liability_type == "deliverable":
-            # Handle deliverable liabilities - show by SKU with value
-            for sku, data in balance.nonfinancial_liabilities_by_kind.items():
-                name = _format_deliverable_name(sku, data['quantity'])
-                # Truncate long names for display
+    # First: Add inventory (stocks owned)
+    if hasattr(balance, 'inventory_by_sku'):
+        for sku, data in balance.inventory_by_sku.items():
+            qty = data['quantity']
+            if qty > 0:
+                name = f"{sku} [{qty} unit{'s' if qty != 1 else ''}]"
                 if len(name) > 29:
                     name = name[:26] + "..."
-                amount = _format_deliverable_amount(data['value'])
-                liability_rows.append((name, amount))
-        else:
-            # Regular financial liabilities
+                amount = _format_currency(int(data['value']))
+                asset_rows.append((name, amount))
+    
+    # Second: Add non-financial assets (rights to receive goods)
+    displayed_asset_skus = set()
+    for sku, data in balance.nonfinancial_assets_by_kind.items():
+        qty = data['quantity']
+        if qty > 0:
+            name = f"{sku} receivable [{qty} unit{'s' if qty != 1 else ''}]"
+            if len(name) > 29:
+                name = name[:26] + "..."
+            amount = _format_currency(int(data['value']))
+            asset_rows.append((name, amount))
+            displayed_asset_skus.add(sku)
+    
+    # Third: Add financial assets
+    financial_asset_kinds = set()
+    for asset_type in sorted(balance.assets_by_kind.keys()):
+        # Skip non-financial types
+        is_nonfinancial = asset_type in ['deliverable', 'delivery_obligation']
+        
+        if not is_nonfinancial and asset_type not in financial_asset_kinds:
+            name = asset_type
+            if len(name) > 29:
+                name = name[:26] + "..."
+            amount = _format_currency(balance.assets_by_kind[asset_type])
+            asset_rows.append((name, amount))
+            financial_asset_kinds.add(asset_type)
+    
+    liability_rows = []
+    
+    # First: Add non-financial liabilities (obligations to deliver goods)
+    displayed_liability_skus = set()
+    for sku, data in balance.nonfinancial_liabilities_by_kind.items():
+        qty = data['quantity']
+        if qty > 0:
+            name = f"{sku} obligation [{qty} unit{'s' if qty != 1 else ''}]"
+            if len(name) > 29:
+                name = name[:26] + "..."
+            amount = _format_currency(int(data['value']))
+            liability_rows.append((name, amount))
+            displayed_liability_skus.add(sku)
+    
+    # Second: Add financial liabilities
+    financial_liability_kinds = set()
+    for liability_type in sorted(balance.liabilities_by_kind.keys()):
+        # Skip non-financial types
+        is_nonfinancial = liability_type in ['deliverable', 'delivery_obligation']
+        
+        if not is_nonfinancial and liability_type not in financial_liability_kinds:
             name = liability_type
+            if len(name) > 29:
+                name = name[:26] + "..."
             amount = _format_currency(balance.liabilities_by_kind[liability_type])
             liability_rows.append((name, amount))
+            financial_liability_kinds.add(liability_type)
     
     # Determine the maximum number of rows needed
     max_rows = max(len(asset_rows), len(liability_rows), 1)
@@ -310,20 +335,20 @@ def _display_simple_agent_balance(title: str, balance: AgentBalance) -> None:
         asset_name, asset_amount = asset_rows[i] if i < len(asset_rows) else ("", "")
         liability_name, liability_amount = liability_rows[i] if i < len(liability_rows) else ("", "")
         
-        print(f"{asset_name:<25} {asset_amount:>12} | {liability_name:<25} {liability_amount:>12}")
+        print(f"{asset_name:<30} {asset_amount:>12} | {liability_name:<30} {liability_amount:>12}")
     
-    print("-" * 60)
-    print(f"{'TOTAL FINANCIAL':<25} {_format_currency(balance.total_financial_assets):>12} | "
-          f"{'TOTAL FINANCIAL':<25} {_format_currency(balance.total_financial_liabilities):>12}")
+    print("-" * 70)
+    print(f"{'TOTAL FINANCIAL':<30} {_format_currency(balance.total_financial_assets):>12} | "
+          f"{'TOTAL FINANCIAL':<30} {_format_currency(balance.total_financial_liabilities):>12}")
     
     # Add valued non-financial total if present
     if balance.total_nonfinancial_value is not None and balance.total_nonfinancial_value > 0:
-        print(f"{'TOTAL VALUED DELIV.':<25} {_format_currency(int(balance.total_nonfinancial_value)):>12} | {'':>38}")
+        print(f"{'TOTAL VALUED DELIV.':<30} {_format_currency(int(balance.total_nonfinancial_value)):>12} | {'':>43}")
         total_assets = balance.total_financial_assets + int(balance.total_nonfinancial_value)
-        print(f"{'TOTAL ASSETS':<25} {_format_currency(total_assets):>12} | {'':>38}")
+        print(f"{'TOTAL ASSETS':<30} {_format_currency(total_assets):>12} | {'':>43}")
     
-    print("-" * 60)
-    print(f"{'':>39} | {'NET FINANCIAL':<25} {_format_currency(balance.net_financial, show_sign=True):>12}")
+    print("-" * 70)
+    print(f"{'':>44} | {'NET FINANCIAL':<30} {_format_currency(balance.net_financial, show_sign=True):>12}")
 
 
 def _display_rich_multiple_agent_balances(
@@ -344,29 +369,51 @@ def _display_rich_multiple_agent_balances(
             title = f"{balance.agent_id}"
         
         # Create table for this balance sheet
-        table = Table(title=title, box=box.ROUNDED, title_style="bold cyan", width=30)
-        table.add_column("Item", style="white", width=15)
-        table.add_column("Amount", justify="right", style="white", width=10)
+        table = Table(title=title, box=box.ROUNDED, title_style="bold cyan", width=35)
+        table.add_column("Item", style="white", width=20)
+        table.add_column("Amount", justify="right", style="white", width=12)
         
         # Add assets
         table.add_row(Text("ASSETS", style="bold green underline"), "")
-        for asset_type in sorted(balance.assets_by_kind.keys()):
-            if asset_type == "deliverable":
-                # Handle deliverables separately - group by SKU
-                for sku, data in balance.nonfinancial_assets_by_kind.items():
-                    name = _format_deliverable_name(sku, data['quantity'])
-                    # Truncate very long names for narrow column
-                    if len(name) > 14:
-                        name = name[:11] + "..."
-                    amount = _format_deliverable_amount(data['value'])
+        
+        # First: Add inventory (stocks owned)
+        if hasattr(balance, 'inventory_by_sku'):
+            for sku, data in balance.inventory_by_sku.items():
+                qty = data['quantity']
+                if qty > 0:
+                    name = f"{sku} [{qty}]"
+                    if len(name) > 19:
+                        name = name[:16] + "..."
+                    amount = _format_currency(int(data['value']))
                     table.add_row(
                         Text(name, style="green"),
                         Text(amount, style="green")
                     )
-            else:
-                # Regular financial assets
+        
+        # Second: Add non-financial assets (rights to receive goods)
+        displayed_asset_skus = set()
+        for sku, data in balance.nonfinancial_assets_by_kind.items():
+            qty = data['quantity']
+            if qty > 0:
+                name = f"{sku} recv [{qty}]"
+                if len(name) > 19:
+                    name = name[:16] + "..."
+                amount = _format_currency(int(data['value']))
                 table.add_row(
-                    Text(asset_type, style="green"),
+                    Text(name, style="green"),
+                    Text(amount, style="green")
+                )
+                displayed_asset_skus.add(sku)
+        
+        # Third: Add financial assets
+        for asset_type in sorted(balance.assets_by_kind.keys()):
+            # Skip non-financial types
+            if asset_type not in ['deliverable', 'delivery_obligation']:
+                name = asset_type
+                if len(name) > 19:
+                    name = name[:16] + "..."
+                table.add_row(
+                    Text(name, style="green"),
                     Text(_format_currency(balance.assets_by_kind[asset_type]), style="green")
                 )
         
@@ -374,23 +421,29 @@ def _display_rich_multiple_agent_balances(
         
         # Add liabilities
         table.add_row(Text("LIABILITIES", style="bold red underline"), "")
-        for liability_type in sorted(balance.liabilities_by_kind.keys()):
-            if liability_type == "deliverable":
-                # Handle deliverable liabilities - show by SKU with value
-                for sku, data in balance.nonfinancial_liabilities_by_kind.items():
-                    name = _format_deliverable_name(sku, data['quantity'])
-                    # Truncate very long names for narrow column
-                    if len(name) > 14:
-                        name = name[:11] + "..."
-                    amount = _format_deliverable_amount(data['value'])
-                    table.add_row(
-                        Text(name, style="red"),
-                        Text(amount, style="red")
-                    )
-            else:
-                # Regular financial liabilities
+        
+        # First: Add non-financial liabilities (obligations to deliver goods)
+        for sku, data in balance.nonfinancial_liabilities_by_kind.items():
+            qty = data['quantity']
+            if qty > 0:
+                name = f"{sku} oblig [{qty}]"
+                if len(name) > 19:
+                    name = name[:16] + "..."
+                amount = _format_currency(int(data['value']))
                 table.add_row(
-                    Text(liability_type, style="red"),
+                    Text(name, style="red"),
+                    Text(amount, style="red")
+                )
+        
+        # Second: Add financial liabilities
+        for liability_type in sorted(balance.liabilities_by_kind.keys()):
+            # Skip non-financial types
+            if liability_type not in ['deliverable', 'delivery_obligation']:
+                name = liability_type
+                if len(name) > 19:
+                    name = name[:16] + "..."
+                table.add_row(
+                    Text(name, style="red"),
                     Text(_format_currency(balance.liabilities_by_kind[liability_type]), style="red")
                 )
         
@@ -481,17 +534,31 @@ def _display_simple_multiple_agent_balances(
         data = []
         data.append(("ASSETS", ""))
         
-        for asset_type in sorted(balance.assets_by_kind.keys()):
-            if asset_type == "deliverable":
-                # Handle deliverables separately - group by SKU
-                for sku, asset_data in balance.nonfinancial_assets_by_kind.items():
-                    name = _format_deliverable_name(sku, asset_data['quantity'])
-                    amount = _format_deliverable_amount(asset_data['value'])
+        # First: Add inventory (stocks owned)
+        if hasattr(balance, 'inventory_by_sku'):
+            for sku, inv_data in balance.inventory_by_sku.items():
+                qty = inv_data['quantity']
+                if qty > 0:
+                    name = f"{sku} [{qty}]"
+                    amount = _format_currency(int(inv_data['value']))
                     if len(name + " " + amount) > col_width:
                         name = name[:col_width-len(amount)-4] + "..."
                     data.append((name, amount))
-            else:
-                # Regular financial assets
+        
+        # Second: Add non-financial assets (rights to receive goods)
+        for sku, asset_data in balance.nonfinancial_assets_by_kind.items():
+            qty = asset_data['quantity']
+            if qty > 0:
+                name = f"{sku} recv [{qty}]"
+                amount = _format_currency(int(asset_data['value']))
+                if len(name + " " + amount) > col_width:
+                    name = name[:col_width-len(amount)-4] + "..."
+                data.append((name, amount))
+        
+        # Third: Add financial assets
+        for asset_type in sorted(balance.assets_by_kind.keys()):
+            # Skip non-financial types
+            if asset_type not in ['deliverable', 'delivery_obligation']:
                 amount = _format_currency(balance.assets_by_kind[asset_type])
                 asset_name = asset_type
                 if len(asset_name + " " + amount) > col_width:
@@ -501,17 +568,20 @@ def _display_simple_multiple_agent_balances(
         data.append(("", ""))
         data.append(("LIABILITIES", ""))
         
+        # First: Add non-financial liabilities (obligations to deliver goods)
+        for sku, liability_data in balance.nonfinancial_liabilities_by_kind.items():
+            qty = liability_data['quantity']
+            if qty > 0:
+                name = f"{sku} oblig [{qty}]"
+                amount = _format_currency(int(liability_data['value']))
+                if len(name + " " + amount) > col_width:
+                    name = name[:col_width-len(amount)-4] + "..."
+                data.append((name, amount))
+        
+        # Second: Add financial liabilities
         for liability_type in sorted(balance.liabilities_by_kind.keys()):
-            if liability_type == "deliverable":
-                # Handle deliverable liabilities - show by SKU with value
-                for sku, liability_data in balance.nonfinancial_liabilities_by_kind.items():
-                    name = _format_deliverable_name(sku, liability_data['quantity'])
-                    amount = _format_deliverable_amount(liability_data['value'])
-                    if len(name + " " + amount) > col_width:
-                        name = name[:col_width-len(amount)-4] + "..."
-                    data.append((name, amount))
-            else:
-                # Regular financial liabilities
+            # Skip non-financial types
+            if liability_type not in ['deliverable', 'delivery_obligation']:
                 amount = _format_currency(balance.liabilities_by_kind[liability_type])
                 liability_name = liability_type
                 if len(liability_name + " " + amount) > col_width:
@@ -554,3 +624,126 @@ def _display_simple_multiple_agent_balances(
             row_parts.append(line)
         
         print(" | ".join(row_parts))
+
+
+def display_events(events: List[Dict[str, Any]], format: str = 'detailed') -> None:
+    """
+    Display system events in a nicely formatted way.
+    
+    Args:
+        events: List of event dictionaries from sys.state.events
+        format: Display format ('detailed' or 'summary')
+    """
+    if not events:
+        print("No events to display.")
+        return
+    
+    if format == 'summary':
+        _display_events_summary(events)
+    else:
+        _display_events_detailed(events)
+
+
+def _display_events_summary(events: List[Dict[str, Any]]) -> None:
+    """Display events in a condensed summary format."""
+    for event in events:
+        kind = event.get("kind", "Unknown")
+        day = event.get("day", "?")
+        
+        if kind == "PayableSettled":
+            print(f"Day {day}: 💰 {event['debtor']} → {event['creditor']}: ${event['amount']}")
+        elif kind == "DeliveryObligationSettled":
+            qty = event.get('qty', event.get('quantity', 'N/A'))
+            print(f"Day {day}: 📦 {event['debtor']} → {event['creditor']}: {qty} {event.get('sku', 'items')}")
+        elif kind == "StockTransferred":
+            print(f"Day {day}: 🚚 {event['frm']} → {event['to']}: {event['qty']} {event['sku']}")
+        elif kind == "CashTransferred":
+            print(f"Day {day}: 💵 {event['frm']} → {event['to']}: ${event['amount']}")
+
+
+def _display_events_detailed(events: List[Dict[str, Any]]) -> None:
+    """Display events grouped by day with detailed formatting."""
+    # Group events by day
+    events_by_day = defaultdict(list)
+    for event in events:
+        day = event.get("day", -1)
+        events_by_day[day].append(event)
+    
+    # Display events for each day
+    for day in sorted(events_by_day.keys()):
+        if day == 0:
+            print(f"\n📅 Day {day} (Initial Setup & Day 1 Settlements):")
+        elif day > 0:
+            print(f"\n📅 Day {day} (Day {day+1} Settlements):")
+        else:
+            print(f"\n📅 Unknown Day:")
+        
+        _display_day_events(events_by_day[day])
+    
+    # Add explanatory note
+    print("\n📝 Event Types:")
+    print("  • Settled = obligation successfully fulfilled")
+    print("  • Cancelled = obligation removed from books after settlement")
+    print("  • Transferred = actual movement of assets (cash or stock)")
+
+
+def _display_day_events(day_events: List[Dict[str, Any]]) -> None:
+    """Display events for a single day with proper formatting."""
+    for event in day_events:
+        kind = event.get("kind", "Unknown")
+        
+        if kind == "StockCreated":
+            print(f"  🏭 Stock created: {event['owner']} gets {event['qty']} {event['sku']}")
+        
+        elif kind == "CashMinted":
+            print(f"  💰 Cash minted: ${event['amount']} to {event['to']}")
+        
+        elif kind == "PayableSettled":
+            print(f"  ✅ Payment settled: {event['debtor']} → {event['creditor']}: ${event['amount']}")
+        
+        elif kind == "PayableCancelled":
+            print(f"    └─ Payment obligation removed from books")
+        
+        elif kind == "DeliveryObligationSettled":
+            qty = event.get('qty', event.get('quantity', 'N/A'))
+            sku = event.get('sku', 'items')
+            print(f"  ✅ Delivery settled: {event['debtor']} → {event['creditor']}: {qty} {sku}")
+        
+        elif kind == "DeliveryObligationCancelled":
+            print(f"    └─ Delivery obligation removed from books")
+        
+        elif kind == "StockTransferred":
+            print(f"  📦 Stock transferred: {event['frm']} → {event['to']}: {event['qty']} {event['sku']}")
+        
+        elif kind == "CashTransferred":
+            print(f"  💵 Cash transferred: {event['frm']} → {event['to']}: ${event['amount']}")
+        
+        elif kind == "PhaseA":
+            print(f"  ⏰ Settlement phase begins (checking due obligations)")
+        
+        elif kind == "PhaseB":
+            print(f"  ⏳ End of day phase")
+        
+        else:
+            # For any other event types, show raw data
+            print(f"  • {kind}: {event}")
+
+
+def display_events_for_day(system: System, day: int) -> None:
+    """
+    Display all events that occurred on a specific simulation day.
+    
+    Args:
+        system: The bilancio system instance
+        day: The simulation day to display events for
+    
+    Note: Events are logged with the previous day's number, so day 1 settlements
+    appear as day 0 in the event log.
+    """
+    events = [e for e in system.state.events if e.get("day") == day - 1]
+    
+    if not events:
+        print("  No events occurred on this day.")
+        return
+    
+    _display_day_events(events)
