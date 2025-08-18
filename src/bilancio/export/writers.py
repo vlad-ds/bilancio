@@ -11,9 +11,21 @@ from bilancio.analysis.balances import as_rows, system_trial_balance
 
 
 def decimal_default(obj):
-    """JSON encoder for Decimal types."""
+    """JSON encoder for Decimal types.
+    
+    Preserves precision by converting to string for exact representation.
+    Most JSON parsers can handle numeric strings correctly.
+    """
     if isinstance(obj, Decimal):
-        return float(obj)
+        # Convert to string to preserve exact precision
+        # Use normalize() to remove trailing zeros
+        normalized = obj.normalize()
+        # Check if it's an integer value
+        if normalized == normalized.to_integral_value():
+            return int(normalized)
+        else:
+            # Return as string to preserve exact decimal precision
+            return str(normalized)
     raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
 
 

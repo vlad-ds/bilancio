@@ -190,11 +190,14 @@ def apply_action(system: System, action_dict: Dict[str, Any], agents: Dict[str, 
         elif action_type == "create_payable":
             # Create a Payable instrument
             # Payable uses asset_holder_id (creditor) and liability_issuer_id (debtor)
+            # Note: amount should be in minor units (e.g., cents)
+            # If the input is in major units (e.g., dollars), multiply by 100
+            # For now, we assume the YAML amounts are already in minor units
             payable = Payable(
                 id=system.new_contract_id("PAY"),
                 kind="payable",  # Will be set by __post_init__ but required by dataclass
-                amount=int(action.amount),  # Convert to int (minor units)
-                denom="X",  # Default denomination
+                amount=int(action.amount),  # Assumes amount is already in minor units
+                denom="X",  # Default denomination - could be made configurable
                 asset_holder_id=action.to_agent,  # creditor holds the asset
                 liability_issuer_id=action.from_agent,  # debtor issues the liability
                 due_day=action.due_day

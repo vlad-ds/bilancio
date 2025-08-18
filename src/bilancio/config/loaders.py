@@ -3,7 +3,7 @@
 import yaml
 from pathlib import Path
 from typing import Any, Dict
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation, DecimalException
 from pydantic import ValidationError
 
 from .models import (
@@ -104,14 +104,20 @@ def preprocess_config(data: Dict[str, Any]) -> Dict[str, Any]:
         elif isinstance(obj, list):
             return [convert_decimals(item) for item in obj]
         elif isinstance(obj, str):
-            # Try to convert strings that look like numbers to Decimal
+            # Safely try to convert strings to Decimal
+            # Only convert if the string is a valid number
             try:
-                # Check if it's a numeric string
-                if '.' in obj or obj.isdigit() or (obj[0] in '+-' and obj[1:].replace('.', '').isdigit()):
-                    return Decimal(obj)
-            except (ValueError, IndexError):
-                pass
-            return obj
+                # Try to create a Decimal - this will validate the format
+                decimal_value = Decimal(obj)
+                # Additional check: ensure it's actually a number-like string
+                # and not something like 'infinity' or 'nan'
+                if decimal_value.is_finite():
+                    return decimal_value
+                else:
+                    return obj
+            except (ValueError, InvalidOperation, DecimalException):
+                # Not a valid decimal, return as-is
+                return obj
         else:
             return obj
     

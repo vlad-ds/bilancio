@@ -14,20 +14,65 @@ def create_scenario_wizard(output_path: Path, template: Optional[str] = None) ->
     
     Args:
         output_path: Path where to save the configuration
-        template: Optional template name to use
+        template: Optional template name to use (simple, standard, complex, or path to YAML)
     """
     console.print("[bold cyan]Bilancio Scenario Creator[/bold cyan]\n")
     
-    # Get basic information
-    name = Prompt.ask("Scenario name", default="My Scenario")
-    description = Prompt.ask("Description (optional)", default="")
+    # If template is provided, use it to determine complexity
+    if template:
+        # Check if template is a file path
+        template_path = Path(template)
+        if template_path.exists() and template_path.suffix in ['.yaml', '.yml']:
+            # Load existing YAML as template
+            console.print(f"[dim]Using template from: {template}[/dim]")
+            with open(template_path, 'r') as f:
+                config = yaml.safe_load(f)
+            
+            # Allow user to modify the loaded template
+            name = Prompt.ask("Scenario name", default=config.get("name", "My Scenario"))
+            description = Prompt.ask("Description (optional)", 
+                                    default=config.get("description", ""))
+            
+            # Update the config with new name and description
+            config["name"] = name
+            config["description"] = description or None
+            
+            # Save and exit early
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(output_path, 'w') as f:
+                yaml.dump(config, f, default_flow_style=False, sort_keys=False)
+            
+            console.print(f"\n[green]✓[/green] Scenario configuration saved to: {output_path}")
+            console.print(f"\nRun your scenario with: [cyan]bilancio run {output_path}[/cyan]")
+            return
+        
+        # Otherwise, treat template as complexity level
+        elif template in ["simple", "standard", "complex"]:
+            complexity = template
+            console.print(f"[dim]Using {complexity} template[/dim]")
+        else:
+            console.print(f"[yellow]Warning: Unknown template '{template}', using interactive mode[/yellow]")
+            complexity = Prompt.ask(
+                "Complexity",
+                choices=["simple", "standard", "complex"],
+                default="simple"
+            )
+    else:
+        # No template provided, ask for complexity
+        complexity = Prompt.ask(
+            "Complexity",
+            choices=["simple", "standard", "complex"],
+            default="simple"
+        )
     
-    # Choose complexity
-    complexity = Prompt.ask(
-        "Complexity",
-        choices=["simple", "standard", "complex"],
-        default="simple"
-    )
+    # Get basic information (with fallback for non-interactive mode)
+    try:
+        name = Prompt.ask("Scenario name", default="My Scenario")
+        description = Prompt.ask("Description (optional)", default="")
+    except (EOFError, KeyboardInterrupt):
+        # Non-interactive mode or user cancelled - use defaults
+        name = "My Scenario"
+        description = ""
     
     config = {
         "version": 1,
