@@ -133,6 +133,11 @@ def _capture_initial_actions(console: Console, initial_actions: List[Dict]) -> N
             elif action_type == "create_payable":
                 due_text = f" (due Day {params['due_day']})" if 'due_day' in params else ""
                 console.print(f"  📝 Create payable: {params['from']} owes {params['to']} ${params['amount']:,}{due_text}", style="magenta")
+            elif action_type == "create_stock":
+                console.print(f"  📦 Create stock: {params['owner']} creates {params['quantity']:,} units of {params['sku']} @ ${params['unit_price']}/unit", style="yellow")
+            elif action_type == "create_delivery_obligation":
+                due_text = f" (due Day {params['due_day']})" if 'due_day' in params else ""
+                console.print(f"  🚚 Create delivery: {params['from']} owes {params['to']} {params['quantity']:,} units of {params['sku']} @ ${params['unit_price']}/unit{due_text}", style="yellow")
             else:
                 # Generic display for unknown action types
                 console.print(f"  📌 {action_type.replace('_', ' ').title()}: {params}")
@@ -371,12 +376,17 @@ def _capture_events_to_console(console: Console, events: List[Dict]) -> None:
             phase = "Phase C"
         elif event_phase == 'simulation':
             # Determine phase based on event type
-            if event_kind in ['ClientPayment', 'PayableSettled']:
+            if event_kind in ['ClientPayment', 'PayableSettled', 'CashTransferred', 'StockSplit', 
+                             'StockTransferred', 'DeliveryObligationCancelled', 'DeliveryObligationSettled',
+                             'InstrumentsMerged', 'PaymentSettled', 'DeliverySettled']:
                 phase = "Phase B"
             elif event_kind in ['ReservesTransferred', 'InstrumentMerged', 'InterbankCleared']:
                 phase = "Phase C"
+            elif event_kind in ['PhaseEnded', 'DayEnded']:
+                phase = "Day End"
             else:
-                phase = "Phase A"
+                # Only PhaseA event should be in Phase A
+                phase = "Phase A" if event_kind == 'PhaseA' else "Other"
         else:
             phase = "Other"
         
@@ -429,10 +439,26 @@ def _display_single_event(console: Console, event: Dict) -> None:
         "InstrumentMerged": ("🔀", "dim", "Instruments merged"),
         "InterbankCleared": ("🏦", "cyan", "Interbank cleared: {debtor_bank} → {creditor_bank}: ${amount} (netted)"),
         
+        # Stock events
+        "StockCreated": ("🏭", "yellow", "Stock created: {owner} gets {qty} {sku}"),
+        "StockSplit": ("📊", "blue", "Stock split: {original_id} → {new_id}: {split_qty} {sku} (keeping {remaining_qty})"),
+        "StockTransferred": ("📦", "green", "Stock transferred: {frm} → {to}: {qty} {sku}"),
+        "DeliveryObligationCreated": ("📝", "magenta", "Delivery obligation created: {from} → {to}: {qty} {sku} (due day {due_day})"),
+        "DeliveryObligationCancelled": ("  └─", "dim", "Delivery obligation removed from books"),
+        "DeliveryObligationSettled": ("✅", "green", "Delivery settled: {debtor} → {creditor}: {qty} {sku}"),
+        "DeliverySettled": ("✅", "green", "Delivery settled: {debtor} → {creditor}: {qty} {sku}"),
+        
+        # Cash transfer events
+        "CashTransferred": ("💵", "green", "Cash transferred: {from} → {to}: ${amount}"),
+        "InstrumentsMerged": ("🔀", "dim", "Instruments merged"),
+        "PaymentSettled": ("✅", "green", "Payment settled: {from} → {to}: ${amount}"),
+        
         # Phase events
         "PhaseA": ("⏰", "yellow", "Phase A: Day begins"),
         "PhaseB": ("💳", "green", "Phase B: Settlement (fulfilling due obligations)"),
         "PhaseC": ("📋", "cyan", "Phase C: Intraday netting"),
+        "PhaseEnded": ("", "dim", ""),
+        "DayEnded": ("🌙", "dim", "Day ended"),
         
         # Legacy/alternative names
         "reserves_minted": ("🏦", "cyan", "Reserves minted: ${amount} to {to}"),
@@ -452,6 +478,14 @@ def _display_single_event(console: Console, event: Dict) -> None:
         if template and not template.startswith("Phase"):  # Don't show template for phase events
             # Format the template with event data
             text = template
+            
+            # Special handling for StockSplit to shorten IDs
+            if event_type == "StockSplit":
+                if 'original_id' in event:
+                    event['original_id'] = event['original_id'].split('_')[-1][:8] if event['original_id'] else 'N/A'
+                if 'new_id' in event:
+                    event['new_id'] = event['new_id'].split('_')[-1][:8] if event['new_id'] else 'N/A'
+            
             for key, value in event.items():
                 if key == "amount":
                     text = text.replace(f"${{{key}}}", f"${value}")
