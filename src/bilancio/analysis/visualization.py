@@ -1336,17 +1336,31 @@ def _build_events_detailed_renderables(events: List[Dict[str, Any]]) -> List[Ren
     """Build renderables for events in detailed format."""
     renderables = []
     
-    # Simple implementation - just convert each event to a text representation
+    # Use the formatter registry to format events nicely
+    from bilancio.ui.render.formatters import registry
+    
     for event in events:
         kind = event.get("kind", "Unknown")
         if kind in ["PhaseA", "PhaseB", "PhaseC"]:
             continue  # Skip phase markers
         
+        # Format the event using the registry
+        title, lines, icon = registry.format(event)
+        
         if RICH_AVAILABLE:
-            text = f"• {kind}: {event}"
-            renderables.append(Text(text))
+            # Create a nice formatted display with icon and details
+            event_text = f"{icon} {title}"
+            if lines:
+                # Add indented details
+                for line in lines[:2]:  # Show first 2 lines for compactness
+                    event_text += f"\n   {line}"
+            renderables.append(Text(event_text))
         else:
-            renderables.append(f"• {kind}: {event}")
+            # Simple text format
+            text = f"• {title}"
+            if lines:
+                text += " - " + ", ".join(lines[:2])
+            renderables.append(text)
     
     return renderables
 
