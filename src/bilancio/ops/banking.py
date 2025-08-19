@@ -135,9 +135,29 @@ def client_payment(system, payer_id: str, payer_bank: str, payee_id: str, payee_
         dep_rx = coalesce_deposits(system, payee_id, payee_bank)
         system.state.contracts[dep_rx].amount += deposit_paid
 
-        # 3) record event for cross-bank intraday flow (no reserves move yet)
-        if payer_bank != payee_bank:
-            system.log("ClientPayment", payer=payer_id, payer_bank=payer_bank,
-                       payee=payee_id, payee_bank=payee_bank, amount=deposit_paid)
+        # 3) Log payment events with proper classification
+        if deposit_paid > 0:
+            if payer_bank == payee_bank:
+                # Intra-bank payment (same bank)
+                system.log("IntraBankPayment", 
+                          payer=payer_id, 
+                          payee=payee_id, 
+                          bank=payer_bank, 
+                          amount=deposit_paid)
+            else:
+                # Inter-bank payment (cross-bank, will need clearing)
+                system.log("ClientPayment", 
+                          payer=payer_id, 
+                          payer_bank=payer_bank,
+                          payee=payee_id, 
+                          payee_bank=payee_bank, 
+                          amount=deposit_paid)
+        
+        if cash_paid > 0:
+            # Cash payment was used as fallback
+            system.log("CashPayment",
+                      payer=payer_id,
+                      payee=payee_id,
+                      amount=cash_paid)
 
         return dep_rx

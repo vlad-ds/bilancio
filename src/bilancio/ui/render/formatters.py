@@ -180,20 +180,63 @@ def format_cash_withdrawn(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
 
 @registry.register("ClientPayment")
 def format_client_payment(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
-    """Format client payment events."""
+    """Format inter-bank client payment events."""
     payer = event.get("payer", "Unknown")
     payee = event.get("payee", "Unknown")
     amount = event.get("amount", 0)
     payer_bank = event.get("payer_bank", "Unknown")
     payee_bank = event.get("payee_bank", "Unknown")
     
-    title = f"💳 Client Payment: ${amount:,}"
+    title = f"💳 Inter-Bank Payment: ${amount:,}"
     lines = [
         f"{payer} → {payee}",
         f"via {payer_bank} → {payee_bank}"
     ]
     
     return title, lines, "💳"
+
+
+@registry.register("IntraBankPayment")
+def format_intra_bank_payment(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
+    """Format intra-bank payment events."""
+    payer = event.get("payer", "Unknown")
+    payee = event.get("payee", "Unknown")
+    amount = event.get("amount", 0)
+    bank = event.get("bank", "Unknown")
+    
+    title = f"🏦 Intra-Bank Payment: ${amount:,}"
+    lines = [
+        f"{payer} → {payee}",
+        f"at {bank}"
+    ]
+    
+    return title, lines, "🏦"
+
+
+@registry.register("CashPayment")
+def format_cash_payment(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
+    """Format cash payment events."""
+    payer = event.get("payer", "Unknown")
+    payee = event.get("payee", "Unknown")
+    amount = event.get("amount", 0)
+    
+    title = f"💵 Cash Payment: ${amount:,}"
+    lines = [f"{payer} → {payee}"]
+    
+    return title, lines, "💵"
+
+
+@registry.register("CashTransferred")
+def format_cash_transferred(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
+    """Format cash transfer events."""
+    from_agent = event.get("frm", "Unknown")
+    to_agent = event.get("to", "Unknown")
+    amount = event.get("amount", 0)
+    
+    title = f"💵 Cash Transfer: ${amount:,}"
+    lines = [f"{from_agent} → {to_agent}"]
+    
+    return title, lines, "💵"
 
 
 @registry.register("InstrumentMerged")
