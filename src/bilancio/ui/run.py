@@ -88,8 +88,10 @@ def run_scenario(
     if not export.get('events_jsonl') and config.run.export.events_jsonl:
         export['events_jsonl'] = config.run.export.events_jsonl
     
-    # Show scenario header
-    console.print(show_scenario_header_renderable(config.name, config.description))
+    # Show scenario header with agent list
+    header_renderables = show_scenario_header_renderable(config.name, config.description, config.agents)
+    for renderable in header_renderables:
+        console.print(renderable)
     
     # Show initial state
     console.print("\n[bold cyan]📅 Day 0 (After Setup)[/bold cyan]")

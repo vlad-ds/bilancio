@@ -24,35 +24,71 @@ from bilancio.core.errors import DefaultError, ValidationError
 console = Console()
 
 
-def show_scenario_header_renderable(name: str, description: Optional[str] = None) -> Panel:
-    """Return a renderable for scenario header.
+def show_scenario_header_renderable(name: str, description: Optional[str] = None, agents: Optional[Any] = None) -> List[RenderableType]:
+    """Return renderables for scenario header including agent list.
     
     Args:
         name: Scenario name
         description: Optional scenario description
+        agents: Optional list or dict of agent configs to display
         
     Returns:
-        Panel renderable
+        List of renderables
     """
+    renderables = []
+    
+    # Add scenario header panel
     header = Text(name, style="bold cyan")
     if description:
         header.append(f"\n{description}", style="dim")
     
-    return Panel(
+    renderables.append(Panel(
         header,
         title="Bilancio Scenario",
         border_style="cyan"
-    )
+    ))
+    
+    # Add agent list if provided
+    if agents:
+        from rich.table import Table
+        
+        agent_table = Table(title="Agents", box=None, show_header=False, padding=(0, 2))
+        agent_table.add_column("ID", style="bold yellow")
+        agent_table.add_column("Name", style="white")
+        agent_table.add_column("Type", style="cyan")
+        
+        # Handle both list and dict formats
+        if isinstance(agents, list):
+            # agents is a list of AgentSpec objects
+            for agent_config in agents:
+                agent_id = agent_config.id if hasattr(agent_config, 'id') else str(agent_config.get('id', 'unknown'))
+                agent_type = agent_config.kind if hasattr(agent_config, 'kind') else str(agent_config.get('kind', 'unknown'))
+                agent_name = agent_config.name if hasattr(agent_config, 'name') else str(agent_config.get('name', agent_id))
+                agent_table.add_row(agent_id, agent_name, f"({agent_type})")
+        elif isinstance(agents, dict):
+            # agents is a dictionary
+            for agent_id, agent_config in agents.items():
+                agent_type = agent_config.kind if hasattr(agent_config, 'kind') else str(agent_config.get('kind', 'unknown'))
+                agent_name = agent_config.name if hasattr(agent_config, 'name') else str(agent_config.get('name', agent_id))
+                agent_table.add_row(agent_id, agent_name, f"({agent_type})")
+        
+        renderables.append(Text())  # Empty line
+        renderables.append(agent_table)
+    
+    return renderables
 
 
-def show_scenario_header(name: str, description: Optional[str] = None) -> None:
+def show_scenario_header(name: str, description: Optional[str] = None, agents: Optional[Dict[str, Any]] = None) -> None:
     """Display scenario header.
     
     Args:
         name: Scenario name
         description: Optional scenario description
+        agents: Optional dict of agent configs to display
     """
-    console.print(show_scenario_header_renderable(name, description))
+    renderables = show_scenario_header_renderable(name, description, agents)
+    for renderable in renderables:
+        console.print(renderable)
 
 
 def show_day_summary_renderable(

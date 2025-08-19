@@ -1333,36 +1333,136 @@ def _build_events_summary_renderables(events: List[Dict[str, Any]]) -> List[Rend
 
 
 def _build_events_detailed_renderables(events: List[Dict[str, Any]]) -> List[RenderableType]:
-    """Build renderables for events in detailed format."""
+    """Build renderables for events in detailed format, organized by phases."""
+    # Import and use the phase-aware version
+    from bilancio.analysis.visualization_phases import build_events_detailed_with_phases
+    return build_events_detailed_with_phases(events, RICH_AVAILABLE)
+    
+def _build_events_detailed_renderables_old(events: List[Dict[str, Any]]) -> List[RenderableType]:
+    """Old version - kept for reference."""
     renderables = []
     
     # Use the formatter registry to format events nicely
     from bilancio.ui.render.formatters import registry
     
+    # Group events by phase
+    phases = {"A": [], "B": [], "C": [], "other": []}
     for event in events:
-        kind = event.get("kind", "Unknown")
-        if kind in ["PhaseA", "PhaseB", "PhaseC"]:
-            continue  # Skip phase markers
-        
-        # Format the event using the registry
-        title, lines, icon = registry.format(event)
-        
-        if RICH_AVAILABLE:
-            # Create a nice formatted display with icon and details
-            event_text = f"{icon} {title}"
-            if lines:
-                # Add indented details
-                for line in lines[:2]:  # Show first 2 lines for compactness
-                    event_text += f"\n   {line}"
-            renderables.append(Text(event_text))
+        phase = event.get("phase", "other")
+        if phase in ["A", "B", "C"]:
+            phases[phase].append(event)
         else:
-            # Simple text format
-            text = f"• {title}"
-            if lines:
-                text += " - " + ", ".join(lines[:2])
-            renderables.append(text)
+            phases["other"].append(event)
+    
+    # Display events organized by phase
+    if phases["A"]:
+        if RICH_AVAILABLE:
+            from rich.text import Text
+            phase_header = Text("\n⏰ Phase A - Morning Activities", style="bold cyan")
+            renderables.append(phase_header)
+        else:
+            renderables.append("\n⏰ Phase A - Morning Activities")
+        
+        for event in phases["A"]:
+            kind = event.get("kind", "Unknown")
+            if kind == "PhaseA":
+                continue  # Skip the phase marker itself</            
+            renderables.extend(_format_single_event(event, registry))
+    
+    if phases["B"]:
+        if RICH_AVAILABLE:
+            from rich.text import Text
+            phase_header = Text("\n🌅 Phase B - Business Hours", style="bold yellow")
+            renderables.append(phase_header)
+        else:
+            renderables.append("\n🌅 Phase B - Business Hours")
+            
+        for event in phases["B"]:
+            kind = event.get("kind", "Unknown")
+            if kind == "PhaseB":
+                continue  # Skip the phase marker itself
+            renderables.extend(_format_single_event(event, registry))
+    
+    if phases["C"]:
+        if RICH_AVAILABLE:
+            from rich.text import Text
+            phase_header = Text("\n🌙 Phase C - End of Day Clearing", style="bold green")
+            renderables.append(phase_header)
+        else:
+            renderables.append("\n🌙 Phase C - End of Day Clearing")
+            
+        for event in phases["C"]:
+            kind = event.get("kind", "Unknown")
+            if kind == "PhaseC":
+                continue  # Skip the phase marker itself
+            renderables.extend(_format_single_event(event, registry))
+    
+    # Display any events without phase markers
+    if phases["other"]:
+        for event in phases["other"]:
+            kind = event.get("kind", "Unknown")
+            if kind in ["PhaseA", "PhaseB", "PhaseC"]:
+                continue  # Skip phase markers
+            renderables.extend(_format_single_event(event, registry))
     
     return renderables
+
+
+def _format_single_event(event: Dict[str, Any], registry) -> List[RenderableType]:
+    """Format a single event and return renderables."""
+    renderables = []
+    
+    # Format the event using the registry
+    title, lines, icon = registry.format(event)
+    
+    if RICH_AVAILABLE:
+        from rich.text import Text
+        # Create a nice formatted display with icon and details
+        text = Text()
+        
+        # Add icon and title with color based on event type
+        if "Transfer" in title or "Payment" in title:
+            text.append(title, style="bold cyan")
+        elif "Settled" in title or "Cleared" in title:
+            text.append(title, style="bold green")
+        elif "Created" in title or "Minted" in title:
+            text.append(title, style="bold yellow")
+        elif "Consolidation" in title or "Split" in title:
+            text.append(title, style="dim italic")
+        else:
+            text.append(title, style="bold")
+        
+        # Add details with proper indentation and styling
+        if lines:
+            for i, line in enumerate(lines[:3]):  # Show up to 3 lines
+                text.append("\n   ")
+                if "→" in line or "←" in line:
+                    # Flow lines - make them prominent
+                    text.append(line, style="white")
+                elif ":" in line:
+                    # Split field and value for better formatting
+                    parts = line.split(":", 1)
+                    if len(parts) == 2:
+                        field, value = parts
+                        text.append(field + ":", style="dim")
+                        text.append(value, style="white")
+                    else:
+                        text.append(line, style="dim white")
+                elif line.startswith("("):
+                    # Technical explanations in parentheses - make them dimmer
+                    text.append(line, style="dim italic")
+                else:
+                    text.append(line, style="white")
+        
+        renderables.append(text)
+    else:
+        # Simple text format
+        text = f"• {title}"
+        if lines:
+            text += " - " + ", ".join(lines[:2])
+        renderables.append(text)
+    
+    return [renderables[0]] if renderables else []
 
 
 def _build_day_events_renderables(events: List[Dict[str, Any]]) -> List[RenderableType]:
