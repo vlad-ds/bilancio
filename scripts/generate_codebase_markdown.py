@@ -137,11 +137,20 @@ def get_git_history() -> str:
         return "Unable to retrieve git history (not a git repository or git not available)\n"
 
 
-def generate_markdown(output_file: str = "codebase_for_llm.md"):
+def generate_markdown(output_file: str = None):
     """Generate the markdown file with codebase content."""
     root_dir = Path.cwd()
     src_dir = root_dir / "src" / "bilancio"
     tests_dir = root_dir / "tests"
+    docs_dir = root_dir / "docs"
+    
+    # Default output file in docs directory
+    if output_file is None:
+        # Create docs directory if it doesn't exist
+        docs_dir.mkdir(exist_ok=True)
+        output_file = docs_dir / "codebase_for_llm.md"
+    else:
+        output_file = Path(output_file)
     
     with open(output_file, 'w', encoding='utf-8') as f:
         # Header

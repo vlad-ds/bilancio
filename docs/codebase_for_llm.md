@@ -15,10 +15,10 @@ This document contains the complete codebase structure and content for LLM inges
 ├── .gitignore
 ├── CLAUDE.md
 ├── README.md
-├── codebase_for_llm.md
 ├── docs
 │   ├── Money modeling software.pdf
 │   ├── SP239 Kalecki on Credit and Debt extended.pdf
+│   ├── codebase_for_llm.md
 │   ├── plans
 │   │   ├── 000_setup.md
 │   │   ├── 001_domain_system.md
@@ -36,6 +36,7 @@ This document contains the complete codebase structure and content for LLM inges
 │       ├── firm_delivery.yaml
 │       ├── interbank_netting.yaml
 │       ├── intraday_netting.yaml
+│       ├── rich_simulation.yaml
 │       ├── simple_bank.yaml
 │       └── two_banks_interbank.yaml
 ├── notebooks
@@ -43,7 +44,6 @@ This document contains the complete codebase structure and content for LLM inges
 │       ├── balance_sheet_display.ipynb
 │       └── pdf_example_with_firms.ipynb
 ├── out
-│   ├── interbank_balances.csv
 │   └── interbank_events.jsonl
 ├── pyproject.toml
 ├── scripts
@@ -117,17 +117,6 @@ This document contains the complete codebase structure and content for LLM inges
 │           ├── html_export.py
 │           ├── run.py
 │           └── wizard.py
-├── temp
-│   ├── balances.csv
-│   ├── events.jsonl
-│   ├── test_complete.html
-│   ├── test_debug.html
-│   ├── test_fixed_balances.html
-│   ├── test_from_template.yaml
-│   ├── test_no_duplicates.html
-│   ├── test_output.html
-│   ├── test_output.pdf
-│   └── test_output_fixed.html
 └── tests
     ├── analysis
     │   ├── __init__.py
@@ -141,8 +130,6 @@ This document contains the complete codebase structure and content for LLM inges
     │   ├── test_clearing_phase_c.py
     │   ├── test_day_simulation.py
     │   └── test_settlement_phase_b.py
-    ├── property
-    ├── scenarios
     ├── test_smoke.py
     ├── ui
     │   └── test_cli.py
@@ -156,7 +143,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-34 directories, 114 files
+31 directories, 104 files
 
 ```
 
@@ -692,6 +679,42 @@ Complete git history from oldest to newest:
   2. Initial actions including payables
   3. Correct initial balance sheets after setup
   4. Then the progression through simulation days
+  🤖 Generated with [Claude Code](https://claude.ai/code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **8e79e372** (2025-08-18) by vladgheorghe
+  fix: correct day labeling misalignment in CLI and HTML output
+  Previously, events from day N were shown under "Day N+1" header due to
+  mixing 1-based day counters with 0-based event days. This caused:
+  - Day 1 to appear empty with no events
+  - Payables due on Day 1 to show under Day 2
+  - Event summaries showing "Unknown" instead of actual event types
+  Changes:
+  - Use consistent 0-based day numbers for both labels and event filtering
+  - Skip day 0 in simulation loops (already shown as "Day 0 After Setup")
+  - Fix event summary to use 'kind' field instead of missing 'type' field
+  - Ensure HTML export respects actual event days
+  🤖 Generated with [Claude Code](https://claude.ai/code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **40d714ac** (2025-08-18) by vladgheorghe
+  feat: improve HTML export display and add rich simulation scenario
+  Major improvements to HTML export formatting and balance sheet display:
+  Display improvements:
+  - Show full agent balance sheets after each day's events (not just trial balance)
+  - Fix stock split event rendering with proper field names and shortened IDs
+  - Improve initial action display for create_stock and create_delivery_obligation
+  - Fix event categorization - settlement events now correctly appear in Phase B
+  - Add proper formatting for all event types (CashTransferred, StockTransferred, etc.)
+  - Fix Phase A to only show "Day begins" without spurious events
+  Rich simulation scenario:
+  - Comprehensive demo with stocks, payables, intra-bank and inter-bank payments
+  - Shows stock movements between firms and households
+  - Demonstrates both same-bank and cross-bank payment flows
+  - Includes dividend payments and multi-day settlement patterns
+  - Configured to display 6 key agents' balance sheets throughout
+  The HTML export now provides a complete view of how the financial system
+  evolves day by day, with full visibility into balance sheet changes.
   🤖 Generated with [Claude Code](https://claude.ai/code)
   Co-Authored-By: Claude <noreply@anthropic.com>
 
@@ -5772,7 +5795,7 @@ def show_day_summary(
                 # Summary mode - just count by type
                 event_counts = {}
                 for event in events_for_day:
-                    event_type = event.get("type", "Unknown")
+                    event_type = event.get("kind", event.get("type", "Unknown"))
                     event_counts[event_type] = event_counts.get(event_type, 0) + 1
                 
                 for event_type, count in sorted(event_counts.items()):
@@ -5970,6 +5993,11 @@ def export_to_html(
     # Capture each day's output
     for day_data in days_data:
         day_num = day_data['day']
+        
+        # Skip day 0 - it's already shown as "Day 0 (Initial Setup)"
+        if day_num == 0:
+            continue
+            
         console.print(f"\n[bold cyan]📅 Day {day_num}[/bold cyan]")
         
         # Show day events and balances
@@ -6020,6 +6048,11 @@ def _capture_initial_actions(console: Console, initial_actions: List[Dict]) -> N
             elif action_type == "create_payable":
                 due_text = f" (due Day {params['due_day']})" if 'due_day' in params else ""
                 console.print(f"  📝 Create payable: {params['from']} owes {params['to']} ${params['amount']:,}{due_text}", style="magenta")
+            elif action_type == "create_stock":
+                console.print(f"  📦 Create stock: {params['owner']} creates {params['quantity']:,} units of {params['sku']} @ ${params['unit_price']}/unit", style="yellow")
+            elif action_type == "create_delivery_obligation":
+                due_text = f" (due Day {params['due_day']})" if 'due_day' in params else ""
+                console.print(f"  🚚 Create delivery: {params['from']} owes {params['to']} {params['quantity']:,} units of {params['sku']} @ ${params['unit_price']}/unit{due_text}", style="yellow")
             else:
                 # Generic display for unknown action types
                 console.print(f"  📌 {action_type.replace('_', ' ').title()}: {params}")
@@ -6161,7 +6194,7 @@ def _capture_day_summary(
             # Summary mode
             event_counts = {}
             for event in events_to_show:
-                event_type = event.get("type", "Unknown")
+                event_type = event.get("kind", event.get("type", "Unknown"))
                 event_counts[event_type] = event_counts.get(event_type, 0) + 1
             
             for event_type, count in sorted(event_counts.items()):
@@ -6258,12 +6291,17 @@ def _capture_events_to_console(console: Console, events: List[Dict]) -> None:
             phase = "Phase C"
         elif event_phase == 'simulation':
             # Determine phase based on event type
-            if event_kind in ['ClientPayment', 'PayableSettled']:
+            if event_kind in ['ClientPayment', 'PayableSettled', 'CashTransferred', 'StockSplit', 
+                             'StockTransferred', 'DeliveryObligationCancelled', 'DeliveryObligationSettled',
+                             'InstrumentsMerged', 'PaymentSettled', 'DeliverySettled']:
                 phase = "Phase B"
             elif event_kind in ['ReservesTransferred', 'InstrumentMerged', 'InterbankCleared']:
                 phase = "Phase C"
+            elif event_kind in ['PhaseEnded', 'DayEnded']:
+                phase = "Day End"
             else:
-                phase = "Phase A"
+                # Only PhaseA event should be in Phase A
+                phase = "Phase A" if event_kind == 'PhaseA' else "Other"
         else:
             phase = "Other"
         
@@ -6316,10 +6354,26 @@ def _display_single_event(console: Console, event: Dict) -> None:
         "InstrumentMerged": ("🔀", "dim", "Instruments merged"),
         "InterbankCleared": ("🏦", "cyan", "Interbank cleared: {debtor_bank} → {creditor_bank}: ${amount} (netted)"),
         
+        # Stock events
+        "StockCreated": ("🏭", "yellow", "Stock created: {owner} gets {qty} {sku}"),
+        "StockSplit": ("📊", "blue", "Stock split: {original_id} → {new_id}: {split_qty} {sku} (keeping {remaining_qty})"),
+        "StockTransferred": ("📦", "green", "Stock transferred: {frm} → {to}: {qty} {sku}"),
+        "DeliveryObligationCreated": ("📝", "magenta", "Delivery obligation created: {from} → {to}: {qty} {sku} (due day {due_day})"),
+        "DeliveryObligationCancelled": ("  └─", "dim", "Delivery obligation removed from books"),
+        "DeliveryObligationSettled": ("✅", "green", "Delivery settled: {debtor} → {creditor}: {qty} {sku}"),
+        "DeliverySettled": ("✅", "green", "Delivery settled: {debtor} → {creditor}: {qty} {sku}"),
+        
+        # Cash transfer events
+        "CashTransferred": ("💵", "green", "Cash transferred: {from} → {to}: ${amount}"),
+        "InstrumentsMerged": ("🔀", "dim", "Instruments merged"),
+        "PaymentSettled": ("✅", "green", "Payment settled: {from} → {to}: ${amount}"),
+        
         # Phase events
         "PhaseA": ("⏰", "yellow", "Phase A: Day begins"),
         "PhaseB": ("💳", "green", "Phase B: Settlement (fulfilling due obligations)"),
         "PhaseC": ("📋", "cyan", "Phase C: Intraday netting"),
+        "PhaseEnded": ("", "dim", ""),
+        "DayEnded": ("🌙", "dim", "Day ended"),
         
         # Legacy/alternative names
         "reserves_minted": ("🏦", "cyan", "Reserves minted: ${amount} to {to}"),
@@ -6339,6 +6393,14 @@ def _display_single_event(console: Console, event: Dict) -> None:
         if template and not template.startswith("Phase"):  # Don't show template for phase events
             # Format the template with event data
             text = template
+            
+            # Special handling for StockSplit to shorten IDs
+            if event_type == "StockSplit":
+                if 'original_id' in event:
+                    event['original_id'] = event['original_id'].split('_')[-1][:8] if event['original_id'] else 'N/A'
+                if 'new_id' in event:
+                    event['new_id'] = event['new_id'].split('_')[-1][:8] if event['new_id'] else 'N/A'
+            
             for key, value in event.items():
                 if key == "amount":
                     text = text.replace(f"${{{key}}}", f"${value}")
@@ -6610,48 +6672,51 @@ def run_step_mode(
     Returns:
         List of day data dictionaries
     """
-    day = 0
     days_data = []
     
-    while day < max_days:
-        # Prompt to continue
+    for _ in range(max_days):
+        # Get the current day before running 
+        day_before = system.state.day
+        
+        # Prompt to continue (ask about the next day which is day_before + 1)
         console.print()
-        if not Confirm.ask(f"[cyan]Run day {day + 1}?[/cyan]", default=True):
+        if not Confirm.ask(f"[cyan]Run day {day_before + 1}?[/cyan]", default=True):
             console.print("[yellow]Simulation stopped by user[/yellow]")
             break
         
         try:
             # Run the next day
             day_report = run_day(system)
-            day += 1
             
             # Check invariants if requested
             if check_invariants == "daily":
                 system.assert_invariants()
             
-            # Show day summary
-            console.print(f"\n[bold cyan]📅 Day {day}[/bold cyan]")
-            show_day_summary(system, agent_ids, show)
-            
-            # Collect day data for HTML export  
-            # For display Day N, we want simulation events from system day N-1
-            day_events = [e for e in system.state.events 
-                         if e.get("day") == day - 1 and e.get("phase") == "simulation"]
-            
-            # Capture current balance state for this day
-            day_balances = {}
-            if agent_ids:
-                from bilancio.analysis.balances import agent_balance
-                for agent_id in agent_ids:
-                    day_balances[agent_id] = agent_balance(system, agent_id)
-            
-            days_data.append({
-                'day': day,
-                'events': day_events,
-                'quiet': day_report.quiet,
-                'stable': day_report.quiet and not day_report.has_open_obligations,
-                'balances': day_balances
-            })
+            # Skip day 0 - it's already shown as "Day 0 (After Setup)"
+            if day_before >= 1:
+                # Show day summary
+                console.print(f"\n[bold cyan]📅 Day {day_before}[/bold cyan]")
+                show_day_summary(system, agent_ids, show, day=day_before)
+                
+                # Collect day data for HTML export  
+                # Use the actual event day
+                day_events = [e for e in system.state.events 
+                             if e.get("day") == day_before and e.get("phase") == "simulation"]
+                
+                # Capture current balance state for this day
+                day_balances = {}
+                if agent_ids:
+                    from bilancio.analysis.balances import agent_balance
+                    for agent_id in agent_ids:
+                        day_balances[agent_id] = agent_balance(system, agent_id)
+                
+                days_data.append({
+                    'day': day_before,  # Use actual event day, not 1-based counter
+                    'events': day_events,
+                    'quiet': day_report.quiet,
+                    'stable': day_report.quiet and not day_report.has_open_obligations,
+                    'balances': day_balances
+                })
             
             # Check if we've reached a stable state
             if day_report.quiet and not day_report.has_open_obligations:
@@ -6661,10 +6726,10 @@ def run_step_mode(
         except DefaultError as e:
             show_error_panel(
                 error=e,
-                phase=f"day_{day + 1}",
+                phase=f"day_{system.state.day}",
                 context={
                     "scenario": scenario_name,
-                    "day": day + 1,
+                    "day": system.state.day,
                     "phase": system.state.phase
                 }
             )
@@ -6673,10 +6738,10 @@ def run_step_mode(
         except ValidationError as e:
             show_error_panel(
                 error=e,
-                phase=f"day_{day + 1}",
+                phase=f"day_{system.state.day}",
                 context={
                     "scenario": scenario_name,
-                    "day": day + 1,
+                    "day": system.state.day,
                     "phase": system.state.phase
                 }
             )
@@ -6685,10 +6750,10 @@ def run_step_mode(
         except Exception as e:
             show_error_panel(
                 error=e,
-                phase=f"day_{day + 1}",
+                phase=f"day_{system.state.day}",
                 context={
                     "scenario": scenario_name,
-                    "day": day + 1
+                    "day": system.state.day
                 }
             )
             break
@@ -6736,7 +6801,7 @@ def run_until_stable_mode(
         consecutive_quiet = 0
         days_data = []
         
-        for day_num in range(1, max_days + 1):
+        for _ in range(max_days):
             # Run the next day
             day_before = system.state.day
             run_day(system)
@@ -6747,51 +6812,53 @@ def run_until_stable_mode(
             report = DayReport(day=day_before, impacted=impacted)
             reports.append(report)
             
-            # Display this day's results immediately (with correct balance state)
-            console.print(f"[bold cyan]📅 Day {day_num}[/bold cyan]")
-            
-            # Check invariants if requested
-            if check_invariants == "daily":
-                try:
-                    system.assert_invariants()
-                except Exception as e:
-                    console.print(f"[yellow]⚠ Invariant check failed: {e}[/yellow]")
-            
-            # Show events and balances for this specific day
-            # Note: events are stored with 0-based day numbers
-            show_day_summary(system, agent_ids, show, day=day_before)
-            
-            # Collect day data for HTML export
-            # We want simulation events from the day that was just displayed
-            # show_day_summary was called with day=day_before
-            day_events = [e for e in system.state.events 
-                         if e.get("day") == day_before and e.get("phase") == "simulation"]
-            is_stable = consecutive_quiet >= quiet_days and not _has_open_obligations(system)
-            
-            # Capture current balance state for this day
-            day_balances = {}
-            if agent_ids:
-                for agent_id in agent_ids:
-                    day_balances[agent_id] = agent_balance(system, agent_id)
-            
-            days_data.append({
-                'day': day_num,
-                'events': day_events,
-                'quiet': report.impacted == 0,
-                'stable': is_stable,
-                'balances': day_balances
-            })
-            
-            # Show activity summary
-            if report.impacted > 0:
-                console.print(f"[dim]Activity: {report.impacted} impactful events[/dim]")
-            else:
-                console.print("[dim]→ Quiet day (no activity)[/dim]")
-            
-            if report.notes:
-                console.print(f"[dim]Note: {report.notes}[/dim]")
-            
-            console.print()
+            # Skip day 0 - it's already shown as "Day 0 (After Setup)"
+            if day_before >= 1:
+                # Display this day's results immediately (with correct balance state)
+                console.print(f"[bold cyan]📅 Day {day_before}[/bold cyan]")
+                
+                # Check invariants if requested
+                if check_invariants == "daily":
+                    try:
+                        system.assert_invariants()
+                    except Exception as e:
+                        console.print(f"[yellow]⚠ Invariant check failed: {e}[/yellow]")
+                
+                # Show events and balances for this specific day
+                # Note: events are stored with 0-based day numbers
+                show_day_summary(system, agent_ids, show, day=day_before)
+                
+                # Collect day data for HTML export
+                # We want simulation events from the day that was just displayed
+                # show_day_summary was called with day=day_before
+                day_events = [e for e in system.state.events 
+                             if e.get("day") == day_before and e.get("phase") == "simulation"]
+                is_stable = consecutive_quiet >= quiet_days and not _has_open_obligations(system)
+                
+                # Capture current balance state for this day
+                day_balances = {}
+                if agent_ids:
+                    for agent_id in agent_ids:
+                        day_balances[agent_id] = agent_balance(system, agent_id)
+                
+                days_data.append({
+                    'day': day_before,  # Use actual event day, not 1-based counter
+                    'events': day_events,
+                    'quiet': report.impacted == 0,
+                    'stable': is_stable,
+                    'balances': day_balances
+                })
+                
+                # Show activity summary
+                if report.impacted > 0:
+                    console.print(f"[dim]Activity: {report.impacted} impactful events[/dim]")
+                else:
+                    console.print("[dim]→ Quiet day (no activity)[/dim]")
+                
+                if report.notes:
+                    console.print(f"[dim]Note: {report.notes}[/dim]")
+                
+                console.print()
             
             # Check for stable state
             if impacted == 0:
