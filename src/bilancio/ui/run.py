@@ -17,13 +17,16 @@ from bilancio.export.writers import write_balances_csv, write_events_jsonl
 
 from .display import (
     show_scenario_header,
+    show_scenario_header_renderable,
     show_day_summary,
+    show_day_summary_renderable,
     show_simulation_summary,
+    show_simulation_summary_renderable,
     show_error_panel
 )
 
 
-console = Console()
+console = Console(record=True, width=100)
 
 
 def run_scenario(
@@ -86,11 +89,13 @@ def run_scenario(
         export['events_jsonl'] = config.run.export.events_jsonl
     
     # Show scenario header
-    show_scenario_header(config.name, config.description)
+    console.print(show_scenario_header_renderable(config.name, config.description))
     
     # Show initial state
     console.print("\n[bold cyan]📅 Day 0 (After Setup)[/bold cyan]")
-    show_day_summary(system, agent_ids, show)
+    renderables = show_day_summary_renderable(system, agent_ids, show)
+    for renderable in renderables:
+        console.print(renderable)
     
     # Capture initial balance state for HTML export
     initial_balances = {}
@@ -138,17 +143,14 @@ def run_scenario(
     
     # Export to HTML if requested
     if html_output:
-        from .html_export import export_to_html
+        from rich.terminal_theme import MONOKAI
         html_output.parent.mkdir(parents=True, exist_ok=True)
-        export_to_html(
-            output_path=html_output,
-            system=system,
-            config=config,
-            days_data=days_data,
-            agent_ids=agent_ids,
-            show=show,
-            initial_balances=initial_balances
+        html_content = console.export_html(
+            theme=MONOKAI,
+            inline_styles=True
         )
+        with open(html_output, 'w', encoding='utf-8') as f:
+            f.write(html_content)
         console.print(f"[green]✓[/green] Exported colored output to HTML: {html_output}")
 
 
@@ -197,7 +199,9 @@ def run_step_mode(
             if day_before >= 1:
                 # Show day summary
                 console.print(f"\n[bold cyan]📅 Day {day_before}[/bold cyan]")
-                show_day_summary(system, agent_ids, show, day=day_before)
+                renderables = show_day_summary_renderable(system, agent_ids, show, day=day_before)
+                for renderable in renderables:
+                    console.print(renderable)
                 
                 # Collect day data for HTML export  
                 # Use the actual event day
@@ -261,7 +265,7 @@ def run_step_mode(
     
     # Show final summary
     console.print("\n[bold]Simulation Complete[/bold]")
-    show_simulation_summary(system)
+    console.print(show_simulation_summary_renderable(system))
     
     return days_data
     
@@ -327,7 +331,9 @@ def run_until_stable_mode(
                 
                 # Show events and balances for this specific day
                 # Note: events are stored with 0-based day numbers
-                show_day_summary(system, agent_ids, show, day=day_before)
+                renderables = show_day_summary_renderable(system, agent_ids, show, day=day_before)
+                for renderable in renderables:
+                    console.print(renderable)
                 
                 # Collect day data for HTML export
                 # We want simulation events from the day that was just displayed
@@ -409,6 +415,6 @@ def run_until_stable_mode(
     
     # Show final summary
     console.print("\n[bold]Simulation Complete[/bold]")
-    show_simulation_summary(system)
+    console.print(show_simulation_summary_renderable(system))
     
     return days_data

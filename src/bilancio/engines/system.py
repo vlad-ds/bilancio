@@ -10,7 +10,6 @@ from bilancio.core.ids import AgentId, InstrId, new_id
 from bilancio.domain.agent import Agent
 from bilancio.domain.instruments.base import Instrument
 from bilancio.domain.instruments.means_of_payment import Cash, ReserveDeposit
-# from bilancio.domain.instruments.nonfinancial import Deliverable  # DEPRECATED
 from bilancio.domain.instruments.delivery import DeliveryObligation
 from bilancio.domain.goods import StockLot
 from bilancio.domain.policy import PolicyEngine
@@ -303,7 +302,7 @@ class System:
         """Calculate total deposit amount for customer at bank"""
         return sum(self.state.contracts[cid].amount for cid in self.deposit_ids(customer_id, bank_id))
 
-    # ---- deliverable operations (DEPRECATED - use stock operations and delivery obligations instead)
+    # ---- obligation settlement
 
     def settle_obligation(self, contract_id: InstrId) -> None:
         """

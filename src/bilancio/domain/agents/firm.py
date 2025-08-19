@@ -11,7 +11,8 @@ class Firm(Agent):
     A firm/company agent that can:
     - Hold and transfer cash
     - Issue and receive payables
-    - Own and transfer deliverable goods (inventory, machines, etc.)
+    - Own and transfer stock inventory
+    - Create and settle delivery obligations
     - Participate in economic transactions
     
     This represents any business entity that isn't a bank or financial institution.
