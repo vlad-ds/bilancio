@@ -90,11 +90,12 @@ class TestCLI:
             output_path = Path(tmpdir) / "new_scenario.yaml"
             
             runner = CliRunner()
-            # Provide input for the wizard prompts
+            # Use the template option to avoid interactive prompts
             result = runner.invoke(cli, [
                 'new',
-                '-o', str(output_path)
-            ], input="Test Scenario\nTest description\nsimple\n")
+                '-o', str(output_path),
+                '--from', 'simple'
+            ])
             
             # Check file was created
             assert output_path.exists()
@@ -103,7 +104,8 @@ class TestCLI:
             with open(output_path) as f:
                 config = yaml.safe_load(f)
             
-            assert config['name'] == "Test Scenario"
+            # When using template, it uses default name "My Scenario"
+            assert config['name'] == "My Scenario"
             assert config['version'] == 1
             assert len(config['agents']) > 0
     

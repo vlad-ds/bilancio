@@ -12,9 +12,11 @@ try:
     from rich.columns import Columns
     from rich.text import Text
     from rich import box
+    from rich.console import RenderableType
     RICH_AVAILABLE = True
 except ImportError:
     RICH_AVAILABLE = False
+    RenderableType = Any
 
 from bilancio.analysis.balances import AgentBalance, agent_balance
 from bilancio.engines.system import System
@@ -27,11 +29,6 @@ def _format_currency(amount: int, show_sign: bool = False) -> str:
         formatted = f"+{formatted}"
     return formatted
 
-
-def _format_deliverable_amount(valued_amount: Decimal) -> str:
-    """Format deliverable monetary value."""
-    # Convert Decimal to int for currency formatting (assuming cents precision)
-    return _format_currency(int(valued_amount))
 
 
 def display_agent_balance_table(
@@ -170,7 +167,7 @@ def _display_rich_agent_balance(title: str, balance: AgentBalance) -> None:
         is_nonfinancial = False
         for sku in displayed_asset_skus:
             # This is a heuristic but works for current instrument types
-            if asset_type in ['deliverable', 'delivery_obligation']:
+            if asset_type in ['delivery_obligation']:
                 is_nonfinancial = True
                 break
         
@@ -198,7 +195,7 @@ def _display_rich_agent_balance(title: str, balance: AgentBalance) -> None:
         # Skip if this is a non-financial type we already displayed
         is_nonfinancial = False
         for sku in displayed_liability_skus:
-            if liability_type in ['deliverable', 'delivery_obligation']:
+            if liability_type in ['delivery_obligation']:
                 is_nonfinancial = True
                 break
         
@@ -294,7 +291,7 @@ def _display_simple_agent_balance(title: str, balance: AgentBalance) -> None:
     financial_asset_kinds = set()
     for asset_type in sorted(balance.assets_by_kind.keys()):
         # Skip non-financial types
-        is_nonfinancial = asset_type in ['deliverable', 'delivery_obligation']
+        is_nonfinancial = asset_type in ['delivery_obligation']
         
         if not is_nonfinancial and asset_type not in financial_asset_kinds:
             name = asset_type
@@ -322,7 +319,7 @@ def _display_simple_agent_balance(title: str, balance: AgentBalance) -> None:
     financial_liability_kinds = set()
     for liability_type in sorted(balance.liabilities_by_kind.keys()):
         # Skip non-financial types
-        is_nonfinancial = liability_type in ['deliverable', 'delivery_obligation']
+        is_nonfinancial = liability_type in ['delivery_obligation']
         
         if not is_nonfinancial and liability_type not in financial_liability_kinds:
             name = liability_type
@@ -416,7 +413,7 @@ def _display_rich_multiple_agent_balances(
         # Third: Add financial assets
         for asset_type in sorted(balance.assets_by_kind.keys()):
             # Skip non-financial types
-            if asset_type not in ['deliverable', 'delivery_obligation']:
+            if asset_type not in ['delivery_obligation']:
                 name = asset_type
                 if len(name) > 19:
                     name = name[:16] + "..."
@@ -446,7 +443,7 @@ def _display_rich_multiple_agent_balances(
         # Second: Add financial liabilities
         for liability_type in sorted(balance.liabilities_by_kind.keys()):
             # Skip non-financial types
-            if liability_type not in ['deliverable', 'delivery_obligation']:
+            if liability_type not in ['delivery_obligation']:
                 name = liability_type
                 if len(name) > 19:
                     name = name[:16] + "..."
@@ -462,7 +459,7 @@ def _display_rich_multiple_agent_balances(
             Text(_format_currency(balance.total_financial_assets), style="bold green")
         )
         
-        # Add valued deliverables total if present
+        # Add valued delivery obligations total if present
         if balance.total_nonfinancial_value is not None and balance.total_nonfinancial_value > 0:
             table.add_row(
                 Text("Total Valued", style="bold green"),
@@ -566,7 +563,7 @@ def _display_simple_multiple_agent_balances(
         # Third: Add financial assets
         for asset_type in sorted(balance.assets_by_kind.keys()):
             # Skip non-financial types
-            if asset_type not in ['deliverable', 'delivery_obligation']:
+            if asset_type not in ['delivery_obligation']:
                 amount = _format_currency(balance.assets_by_kind[asset_type])
                 asset_name = asset_type
                 if len(asset_name + " " + amount) > col_width:
@@ -589,7 +586,7 @@ def _display_simple_multiple_agent_balances(
         # Second: Add financial liabilities
         for liability_type in sorted(balance.liabilities_by_kind.keys()):
             # Skip non-financial types
-            if liability_type not in ['deliverable', 'delivery_obligation']:
+            if liability_type not in ['delivery_obligation']:
                 amount = _format_currency(balance.liabilities_by_kind[liability_type])
                 liability_name = liability_type
                 if len(liability_name + " " + amount) > col_width:
@@ -599,7 +596,7 @@ def _display_simple_multiple_agent_balances(
         data.append(("", ""))
         data.append(("Total Financial", _format_currency(balance.total_financial_assets)))
         
-        # Add valued deliverables total if present
+        # Add valued delivery obligations total if present
         if balance.total_nonfinancial_value is not None and balance.total_nonfinancial_value > 0:
             data.append(("Total Valued", _format_currency(int(balance.total_nonfinancial_value))))
             total_assets = balance.total_financial_assets + int(balance.total_nonfinancial_value)
@@ -882,3 +879,592 @@ def display_events_for_day(system: System, day: int) -> None:
         return
     
     _display_day_events(events, console)
+
+
+# ============================================================================
+# New Renderable-returning Functions for HTML Export
+# ============================================================================
+
+def display_agent_balance_table_renderable(
+    system: System,
+    agent_id: str,
+    format: str = 'rich',
+    title: Optional[str] = None
+) -> Union[RenderableType, str]:
+    """
+    Return a renderable for a single agent's balance sheet as a T-account style table.
+    
+    Args:
+        system: The bilancio system instance
+        agent_id: ID of the agent to display
+        format: Display format ('rich' or 'simple')
+        title: Optional custom title for the table
+        
+    Returns:
+        Rich Table renderable for rich format, or string for simple format
+    """
+    if format == 'rich' and not RICH_AVAILABLE:
+        format = 'simple'
+    
+    # Get agent balance
+    balance = agent_balance(system, agent_id)
+    
+    if format == 'rich':
+        # Get agent info
+        agent = system.state.agents[agent_id]
+        if title is None:
+            # Show both name and ID for clarity
+            if agent.name and agent.name != agent_id:
+                title = f"{agent.name} [{agent_id}] ({agent.kind})"
+            else:
+                title = f"{agent_id} ({agent.kind})"
+        
+        return _create_rich_agent_balance_table(title, balance)
+    else:
+        # Return simple text format as string
+        return _build_simple_agent_balance_string(balance, system, agent_id, title)
+
+
+def display_multiple_agent_balances_renderable(
+    system: System,
+    items: List[Union[str, AgentBalance]], 
+    format: str = 'rich'
+) -> Union[RenderableType, str]:
+    """
+    Return renderables for multiple agent balance sheets side by side for comparison.
+    
+    Args:
+        system: The bilancio system instance
+        items: List of agent IDs (str) or AgentBalance instances
+        format: Display format ('rich' or 'simple')
+        
+    Returns:
+        Rich Columns renderable for rich format, or string for simple format
+    """
+    if format == 'rich' and not RICH_AVAILABLE:
+        format = 'simple'
+    
+    # Convert agent IDs to balance objects if needed
+    balances = []
+    for item in items:
+        if isinstance(item, str):
+            balances.append(agent_balance(system, item))
+        else:
+            balances.append(item)
+    
+    if format == 'rich':
+        # Create individual tables for each balance
+        tables = []
+        for balance in balances:
+            # Get agent name if system is available
+            if system and balance.agent_id in system.state.agents:
+                agent = system.state.agents[balance.agent_id]
+                # Show both name and ID for clarity
+                if agent.name and agent.name != balance.agent_id:
+                    title = f"{agent.name} [{balance.agent_id}]\n({agent.kind})"
+                else:
+                    title = f"{balance.agent_id}\n({agent.kind})"
+            else:
+                title = f"{balance.agent_id}"
+            
+            table = _create_compact_rich_balance_table(title, balance)
+            tables.append(table)
+        
+        return Columns(tables, equal=True, expand=True)
+    else:
+        # Return simple text format as string
+        return _build_simple_multiple_agent_balances_string(balances, system)
+
+
+def display_events_renderable(events: List[Dict[str, Any]], format: str = 'detailed') -> List[RenderableType]:
+    """
+    Return renderables for system events in a nicely formatted way.
+    
+    Args:
+        events: List of event dictionaries from sys.state.events
+        format: Display format ('detailed' or 'summary')
+        
+    Returns:
+        List of Rich renderables (or strings for simple format)
+    """
+    if not events:
+        if RICH_AVAILABLE:
+            return [Text("No events to display.", style="dim")]
+        else:
+            return ["No events to display."]
+    
+    if format == 'summary':
+        return _build_events_summary_renderables(events)
+    else:
+        return _build_events_detailed_renderables(events)
+
+
+def display_events_for_day_renderable(system: System, day: int) -> List[RenderableType]:
+    """
+    Return renderables for all events that occurred on a specific simulation day.
+    
+    Args:
+        system: The bilancio system instance
+        day: The simulation day to display events for
+        
+    Returns:
+        List of Rich renderables (or strings for simple format)
+    """
+    events = [e for e in system.state.events if e.get("day") == day]
+    
+    if not events:
+        if RICH_AVAILABLE:
+            return [Text("  No events occurred on this day.", style="dim")]
+        else:
+            return ["  No events occurred on this day."]
+    
+    return _build_day_events_renderables(events)
+
+
+# ============================================================================
+# Helper Functions for New Renderable Functions
+# ============================================================================
+
+def _create_rich_agent_balance_table(title: str, balance: AgentBalance) -> Table:
+    """Create a Rich Table for a single agent balance (returns table instead of printing)."""
+    # Create the main table with wider columns to avoid truncation
+    table = Table(title=title, box=box.ROUNDED, title_style="bold cyan")
+    table.add_column("ASSETS", style="green", width=35, no_wrap=False)
+    table.add_column("Amount", justify="right", style="green", width=15, no_wrap=True)
+    table.add_column("LIABILITIES", style="red", width=35, no_wrap=False)
+    table.add_column("Amount", justify="right", style="red", width=15, no_wrap=True)
+    
+    asset_rows = []
+    
+    # First: Add inventory (stocks owned) - these are physical assets
+    if hasattr(balance, 'inventory_by_sku'):
+        for sku, data in balance.inventory_by_sku.items():
+            qty = data['quantity']
+            if qty > 0:
+                name = f"{sku} [{qty} unit{'s' if qty != 1 else ''}]"
+                amount = _format_currency(int(data['value']))
+                asset_rows.append((name, amount))
+    
+    # Second: Add non-financial assets (rights to receive goods)
+    displayed_asset_skus = set()
+    for sku, data in balance.nonfinancial_assets_by_kind.items():
+        qty = data['quantity']
+        if qty > 0:
+            name = f"{sku} receivable [{qty} unit{'s' if qty != 1 else ''}]"
+            amount = _format_currency(int(data['value']))
+            asset_rows.append((name, amount))
+            displayed_asset_skus.add(sku)
+    
+    # Third: Add financial assets (everything else in assets_by_kind)
+    financial_asset_kinds = set()
+    for asset_type in sorted(balance.assets_by_kind.keys()):
+        # Skip if this is a non-financial type we already displayed
+        is_nonfinancial = False
+        for sku in displayed_asset_skus:
+            # This is a heuristic but works for current instrument types
+            if asset_type in ['delivery_obligation']:
+                is_nonfinancial = True
+                break
+        
+        if not is_nonfinancial and asset_type not in financial_asset_kinds:
+            name = asset_type
+            amount = _format_currency(balance.assets_by_kind[asset_type])
+            asset_rows.append((name, amount))
+            financial_asset_kinds.add(asset_type)
+    
+    liability_rows = []
+    
+    # First: Add non-financial liabilities (obligations to deliver goods)
+    displayed_liability_skus = set()
+    for sku, data in balance.nonfinancial_liabilities_by_kind.items():
+        qty = data['quantity']
+        if qty > 0:
+            name = f"{sku} obligation [{qty} unit{'s' if qty != 1 else ''}]"
+            amount = _format_currency(int(data['value']))
+            liability_rows.append((name, amount))
+            displayed_liability_skus.add(sku)
+    
+    # Second: Add financial liabilities (everything else in liabilities_by_kind)
+    financial_liability_kinds = set()
+    for liability_type in sorted(balance.liabilities_by_kind.keys()):
+        # Skip if this is a non-financial type we already displayed
+        is_nonfinancial = False
+        for sku in displayed_liability_skus:
+            if liability_type in ['delivery_obligation']:
+                is_nonfinancial = True
+                break
+        
+        if not is_nonfinancial and liability_type not in financial_liability_kinds:
+            name = liability_type
+            amount = _format_currency(balance.liabilities_by_kind[liability_type])
+            liability_rows.append((name, amount))
+            financial_liability_kinds.add(liability_type)
+    
+    # Determine the maximum number of rows needed
+    max_rows = max(len(asset_rows), len(liability_rows), 1)
+    
+    for i in range(max_rows):
+        asset_name, asset_amount = asset_rows[i] if i < len(asset_rows) else ("", "")
+        liability_name, liability_amount = liability_rows[i] if i < len(liability_rows) else ("", "")
+        
+        table.add_row(asset_name, asset_amount, liability_name, liability_amount)
+    
+    # Add separator and totals
+    table.add_row("", "", "", "", end_section=True)
+    table.add_row(
+        Text("TOTAL FINANCIAL", style="bold green"),
+        Text(_format_currency(balance.total_financial_assets), style="bold green"),
+        Text("TOTAL FINANCIAL", style="bold red"),
+        Text(_format_currency(balance.total_financial_liabilities), style="bold red")
+    )
+    
+    # Add valued non-financial total if present
+    if balance.total_nonfinancial_value is not None and balance.total_nonfinancial_value > 0:
+        table.add_row(
+            Text("TOTAL VALUED DELIV.", style="bold green"),
+            Text(_format_currency(int(balance.total_nonfinancial_value)), style="bold green"),
+            "",
+            ""
+        )
+        total_assets = balance.total_financial_assets + int(balance.total_nonfinancial_value)
+        table.add_row(
+            Text("TOTAL ASSETS", style="bold green"),
+            Text(_format_currency(total_assets), style="bold green"),
+            "",
+            ""
+        )
+    
+    # Add visual separation before net worth
+    table.add_row("", "", "", "", end_section=True)
+    
+    # Add net worth with clear separation
+    net_financial = balance.net_financial
+    net_worth_style = "bold green" if net_financial >= 0 else "bold red"
+    table.add_row(
+        "",
+        "",
+        Text("NET FINANCIAL", style="bold blue"),
+        Text(_format_currency(net_financial, show_sign=True), style=net_worth_style)
+    )
+    
+    return table
+
+
+def _create_compact_rich_balance_table(title: str, balance: AgentBalance) -> Table:
+    """Create a compact Rich Table for multiple balance display."""
+    table = Table(title=title, box=box.ROUNDED, title_style="bold cyan", width=35)
+    table.add_column("Item", style="white", width=20)
+    table.add_column("Amount", justify="right", style="white", width=12)
+    
+    # Add assets
+    table.add_row(Text("ASSETS", style="bold green underline"), "")
+    
+    # First: Add inventory (stocks owned)
+    if hasattr(balance, 'inventory_by_sku'):
+        for sku, data in balance.inventory_by_sku.items():
+            qty = data['quantity']
+            if qty > 0:
+                name = f"{sku} [{qty}]"
+                if len(name) > 19:
+                    name = name[:16] + "..."
+                amount = _format_currency(int(data['value']))
+                table.add_row(
+                    Text(name, style="green"),
+                    Text(amount, style="green")
+                )
+    
+    # Second: Add non-financial assets (rights to receive goods)
+    for sku, data in balance.nonfinancial_assets_by_kind.items():
+        qty = data['quantity']
+        if qty > 0:
+            name = f"{sku} recv [{qty}]"
+            if len(name) > 19:
+                name = name[:16] + "..."
+            amount = _format_currency(int(data['value']))
+            table.add_row(
+                Text(name, style="green"),
+                Text(amount, style="green")
+            )
+    
+    # Third: Add financial assets
+    for asset_type in sorted(balance.assets_by_kind.keys()):
+        # Skip non-financial types
+        if asset_type not in ['delivery_obligation']:
+            name = asset_type
+            if len(name) > 19:
+                name = name[:16] + "..."
+            table.add_row(
+                Text(name, style="green"),
+                Text(_format_currency(balance.assets_by_kind[asset_type]), style="green")
+            )
+    
+    table.add_row("", "", end_section=True)
+    
+    # Add liabilities
+    table.add_row(Text("LIABILITIES", style="bold red underline"), "")
+    
+    # First: Add non-financial liabilities (obligations to deliver goods)
+    for sku, data in balance.nonfinancial_liabilities_by_kind.items():
+        qty = data['quantity']
+        if qty > 0:
+            name = f"{sku} oblig [{qty}]"
+            if len(name) > 19:
+                name = name[:16] + "..."
+            amount = _format_currency(int(data['value']))
+            table.add_row(
+                Text(name, style="red"),
+                Text(amount, style="red")
+            )
+    
+    # Second: Add financial liabilities
+    for liability_type in sorted(balance.liabilities_by_kind.keys()):
+        # Skip non-financial types
+        if liability_type not in ['delivery_obligation']:
+            name = liability_type
+            if len(name) > 19:
+                name = name[:16] + "..."
+            table.add_row(
+                Text(name, style="red"),
+                Text(_format_currency(balance.liabilities_by_kind[liability_type]), style="red")
+            )
+    
+    # Add totals and net worth
+    table.add_row("", "", end_section=True)
+    table.add_row(
+        Text("Total Financial", style="bold green"),
+        Text(_format_currency(balance.total_financial_assets), style="bold green")
+    )
+    table.add_row(
+        Text("Total Liab.", style="bold red"),
+        Text(_format_currency(balance.total_financial_liabilities), style="bold red")
+    )
+    
+    net_worth_style = "bold green" if balance.net_financial >= 0 else "bold red"
+    table.add_row(
+        Text("Net Financial", style="bold blue"),
+        Text(_format_currency(balance.net_financial, show_sign=True), style=net_worth_style)
+    )
+    
+    return table
+
+
+def _build_simple_agent_balance_string(
+    balance: AgentBalance, 
+    system: Optional[System] = None, 
+    agent_id: Optional[str] = None,
+    title: Optional[str] = None
+) -> str:
+    """Build a simple text format balance sheet string."""
+    lines = []
+    
+    # Get title
+    if title is None:
+        if system and agent_id and agent_id in system.state.agents:
+            agent = system.state.agents[agent_id]
+            if agent.name and agent.name != agent_id:
+                title = f"{agent.name} [{agent_id}] ({agent.kind})"
+            else:
+                title = f"{agent_id} ({agent.kind})"
+        else:
+            title = f"Agent {balance.agent_id}"
+    
+    lines.append(f"\n{title}")
+    lines.append("=" * 70)
+    lines.append(f"{'ASSETS':<30} {'Amount':>12} | {'LIABILITIES':<30} {'Amount':>12}")
+    lines.append("-" * 70)
+    
+    # Simplified balance sheet representation for simple format
+    lines.append(f"{'Total Financial':<30} {_format_currency(balance.total_financial_assets):>12} | "
+          f"{'Total Financial':<30} {_format_currency(balance.total_financial_liabilities):>12}")
+    
+    lines.append("-" * 70)
+    lines.append(f"{'':>44} | {'NET FINANCIAL':<30} {_format_currency(balance.net_financial, show_sign=True):>12}")
+    
+    return "\n".join(lines)
+
+
+def _build_simple_multiple_agent_balances_string(
+    balances: List[AgentBalance], 
+    system: Optional[System] = None
+) -> str:
+    """Build a simple text format for multiple agent balances."""
+    lines = []
+    lines.append("\nMultiple Agent Balances (Simplified View)")
+    lines.append("=" * 60)
+    
+    for balance in balances:
+        if system and balance.agent_id in system.state.agents:
+            agent = system.state.agents[balance.agent_id]
+            header = f"{agent.name or balance.agent_id} ({agent.kind})"
+        else:
+            header = balance.agent_id
+        
+        lines.append(f"{header}: Net Financial = {_format_currency(balance.net_financial, show_sign=True)}")
+    
+    return "\n".join(lines)
+
+
+def _build_events_summary_renderables(events: List[Dict[str, Any]]) -> List[RenderableType]:
+    """Build renderables for events in summary format."""
+    renderables = []
+    
+    for event in events:
+        kind = event.get("kind", "Unknown")
+        day = event.get("day", "?")
+        
+        if kind == "PayableSettled":
+            text = f"Day {day}: 💰 {event['debtor']} → {event['creditor']}: ${event['amount']}"
+        elif kind == "DeliveryObligationSettled":
+            qty = event.get('qty', event.get('quantity', 'N/A'))
+            text = f"Day {day}: 📦 {event['debtor']} → {event['creditor']}: {qty} {event.get('sku', 'items')}"
+        elif kind == "StockTransferred":
+            text = f"Day {day}: 🚚 {event['frm']} → {event['to']}: {event['qty']} {event['sku']}"
+        elif kind == "CashTransferred":
+            text = f"Day {day}: 💵 {event['frm']} → {event['to']}: ${event['amount']}"
+        else:
+            continue  # Skip other events in summary mode
+        
+        if RICH_AVAILABLE:
+            renderables.append(Text(text))
+        else:
+            renderables.append(text)
+    
+    return renderables
+
+
+def _build_events_detailed_renderables(events: List[Dict[str, Any]]) -> List[RenderableType]:
+    """Build renderables for events in detailed format, organized by phases."""
+    # Import and use the phase-aware version
+    from bilancio.analysis.visualization_phases import build_events_detailed_with_phases
+    return build_events_detailed_with_phases(events, RICH_AVAILABLE)
+    
+def _build_events_detailed_renderables_old(events: List[Dict[str, Any]]) -> List[RenderableType]:
+    """Old version - kept for reference."""
+    renderables = []
+    
+    # Use the formatter registry to format events nicely
+    from bilancio.ui.render.formatters import registry
+    
+    # Group events by phase
+    phases = {"A": [], "B": [], "C": [], "other": []}
+    for event in events:
+        phase = event.get("phase", "other")
+        if phase in ["A", "B", "C"]:
+            phases[phase].append(event)
+        else:
+            phases["other"].append(event)
+    
+    # Display events organized by phase
+    if phases["A"]:
+        if RICH_AVAILABLE:
+            from rich.text import Text
+            phase_header = Text("\n⏰ Phase A - Morning Activities", style="bold cyan")
+            renderables.append(phase_header)
+        else:
+            renderables.append("\n⏰ Phase A - Morning Activities")
+        
+        for event in phases["A"]:
+            kind = event.get("kind", "Unknown")
+            if kind == "PhaseA":
+                continue  # Skip the phase marker itself</            
+            renderables.extend(_format_single_event(event, registry))
+    
+    if phases["B"]:
+        if RICH_AVAILABLE:
+            from rich.text import Text
+            phase_header = Text("\n🌅 Phase B - Business Hours", style="bold yellow")
+            renderables.append(phase_header)
+        else:
+            renderables.append("\n🌅 Phase B - Business Hours")
+            
+        for event in phases["B"]:
+            kind = event.get("kind", "Unknown")
+            if kind == "PhaseB":
+                continue  # Skip the phase marker itself
+            renderables.extend(_format_single_event(event, registry))
+    
+    if phases["C"]:
+        if RICH_AVAILABLE:
+            from rich.text import Text
+            phase_header = Text("\n🌙 Phase C - End of Day Clearing", style="bold green")
+            renderables.append(phase_header)
+        else:
+            renderables.append("\n🌙 Phase C - End of Day Clearing")
+            
+        for event in phases["C"]:
+            kind = event.get("kind", "Unknown")
+            if kind == "PhaseC":
+                continue  # Skip the phase marker itself
+            renderables.extend(_format_single_event(event, registry))
+    
+    # Display any events without phase markers
+    if phases["other"]:
+        for event in phases["other"]:
+            kind = event.get("kind", "Unknown")
+            if kind in ["PhaseA", "PhaseB", "PhaseC"]:
+                continue  # Skip phase markers
+            renderables.extend(_format_single_event(event, registry))
+    
+    return renderables
+
+
+def _format_single_event(event: Dict[str, Any], registry) -> List[RenderableType]:
+    """Format a single event and return renderables."""
+    renderables = []
+    
+    # Format the event using the registry
+    title, lines, icon = registry.format(event)
+    
+    if RICH_AVAILABLE:
+        from rich.text import Text
+        # Create a nice formatted display with icon and details
+        text = Text()
+        
+        # Add icon and title with color based on event type
+        if "Transfer" in title or "Payment" in title:
+            text.append(title, style="bold cyan")
+        elif "Settled" in title or "Cleared" in title:
+            text.append(title, style="bold green")
+        elif "Created" in title or "Minted" in title:
+            text.append(title, style="bold yellow")
+        elif "Consolidation" in title or "Split" in title:
+            text.append(title, style="dim italic")
+        else:
+            text.append(title, style="bold")
+        
+        # Add details with proper indentation and styling
+        if lines:
+            for i, line in enumerate(lines[:3]):  # Show up to 3 lines
+                text.append("\n   ")
+                if "→" in line or "←" in line:
+                    # Flow lines - make them prominent
+                    text.append(line, style="white")
+                elif ":" in line:
+                    # Split field and value for better formatting
+                    parts = line.split(":", 1)
+                    if len(parts) == 2:
+                        field, value = parts
+                        text.append(field + ":", style="dim")
+                        text.append(value, style="white")
+                    else:
+                        text.append(line, style="dim white")
+                elif line.startswith("("):
+                    # Technical explanations in parentheses - make them dimmer
+                    text.append(line, style="dim italic")
+                else:
+                    text.append(line, style="white")
+        
+        renderables.append(text)
+    else:
+        # Simple text format
+        text = f"• {title}"
+        if lines:
+            text += " - " + ", ".join(lines[:2])
+        renderables.append(text)
+    
+    return [renderables[0]] if renderables else []
+
+
+def _build_day_events_renderables(events: List[Dict[str, Any]]) -> List[RenderableType]:
+    """Build renderables for events in a single day."""
+    return _build_events_detailed_renderables(events)

@@ -1,0 +1,48 @@
+version: 1
+name: "sasa_scenario"
+description: "Firm A holds $100 cash and $100 deposit at Bank A; Firm B holds $100 deposit at Bank B. Firm A pays Firm B $150."
+
+agents:
+  - id: CB
+    kind: central_bank
+    name: Central Bank
+
+  - id: BANK_A
+    kind: bank
+    name: Bank A
+
+  - id: BANK_B
+    kind: bank
+    name: Bank B
+
+  - id: FIRM_A
+    kind: firm
+    name: Firm A
+
+  - id: FIRM_B
+    kind: firm
+    name: Firm B
+
+initial_actions:
+  # Provide reserves so interbank settlement can occur
+  - mint_reserves: {to: BANK_A, amount: 1000}
+  - mint_reserves: {to: BANK_B, amount: 1000}
+
+  # Fund firms with cash for deposits and liquidity
+  - mint_cash: {to: FIRM_A, amount: 200}
+  - mint_cash: {to: FIRM_B, amount: 100}
+
+  # Create initial deposits: $100 each at their respective banks
+  - deposit_cash: {customer: FIRM_A, bank: BANK_A, amount: 100}
+  - deposit_cash: {customer: FIRM_B, bank: BANK_B, amount: 100}
+
+  # Firm A owes Firm B $150 due on day 1
+  - create_payable: {from: FIRM_A, to: FIRM_B, amount: 150, due_day: 1}
+
+run:
+  mode: until_stable
+  max_days: 10
+  quiet_days: 2
+  show:
+    balances: [CB, BANK_A, BANK_B, FIRM_A, FIRM_B]
+    events: detailed

@@ -48,3 +48,17 @@
   - Include descriptive messages explaining what each step does
 - **Make notebooks self-documenting** - The output should tell a clear story of what's happening without needing to read the code
 - When I tell you to implement a plan from @docs/plans/, always make sure you start from main with clean git status - if not, stop and tell me. Then, create a new branch with the name of the plan and start work.
+
+## UI/Rendering Work
+- **ALWAYS TEST HTML OUTPUT**: When making any changes to rendering/UI/display code:
+  1. Rebuild the HTML after each change: `uv run bilancio run examples/scenarios/simple_bank.yaml --max-days 3 --html temp/demo.html`
+  2. Open it directly in the browser: `open temp/demo.html`
+  3. Provide the user with the CLI command to run in their terminal for testing
+- **VERIFY COMPLETENESS**: After generating HTML:
+  1. Read the source YAML file to understand what should be displayed
+  2. Read the generated HTML file to check all information is present
+  3. Ensure ALL events are displayed (setup events, payable creation, phase events, etc.)
+  4. Verify agent list is shown at the top
+  5. Think carefully about what might be missing
+- **Verify visual output**: Read the generated HTML file to ensure events, tables, and formatting display correctly
+- **Test with real scenarios**: Use actual scenario files to test rendering changes, not just unit tests

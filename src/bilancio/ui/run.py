@@ -17,13 +17,16 @@ from bilancio.export.writers import write_balances_csv, write_events_jsonl
 
 from .display import (
     show_scenario_header,
+    show_scenario_header_renderable,
     show_day_summary,
+    show_day_summary_renderable,
     show_simulation_summary,
+    show_simulation_summary_renderable,
     show_error_panel
 )
 
 
-console = Console()
+console = Console(record=True, width=100)
 
 
 def run_scenario(
@@ -34,7 +37,8 @@ def run_scenario(
     show: str = "detailed",
     agent_ids: Optional[List[str]] = None,
     check_invariants: str = "setup",
-    export: Optional[Dict[str, str]] = None
+    export: Optional[Dict[str, str]] = None,
+    html_output: Optional[Path] = None
 ) -> None:
     """Run a Bilancio simulation scenario.
     
@@ -47,6 +51,7 @@ def run_scenario(
         agent_ids: List of agent IDs to show balances for
         check_invariants: "setup", "daily", or "none"
         export: Dictionary with export paths (balances_csv, events_jsonl)
+        html_output: Optional path to export HTML with colored output
     """
     # Load configuration
     console.print("[dim]Loading scenario...[/dim]")
@@ -83,15 +88,30 @@ def run_scenario(
     if not export.get('events_jsonl') and config.run.export.events_jsonl:
         export['events_jsonl'] = config.run.export.events_jsonl
     
-    # Show scenario header
-    show_scenario_header(config.name, config.description)
+    # Show scenario header with agent list
+    header_renderables = show_scenario_header_renderable(config.name, config.description, config.agents)
+    for renderable in header_renderables:
+        console.print(renderable)
     
     # Show initial state
     console.print("\n[bold cyan]📅 Day 0 (After Setup)[/bold cyan]")
-    show_day_summary(system, agent_ids, show)
+    renderables = show_day_summary_renderable(system, agent_ids, show)
+    for renderable in renderables:
+        console.print(renderable)
+    
+    # Capture initial balance state for HTML export
+    initial_balances = {}
+    from bilancio.analysis.balances import agent_balance
+    # Capture balances for all agents that we might display
+    capture_ids = agent_ids if agent_ids else [a.id for a in system.state.agents.values()]
+    for agent_id in capture_ids:
+        initial_balances[agent_id] = agent_balance(system, agent_id)
+    
+    # Track day data for PDF export
+    days_data = []
     
     if mode == "step":
-        run_step_mode(
+        days_data = run_step_mode(
             system=system,
             max_days=max_days,
             show=show,
@@ -100,7 +120,7 @@ def run_scenario(
             scenario_name=config.name
         )
     else:
-        run_until_stable_mode(
+        days_data = run_until_stable_mode(
             system=system,
             max_days=max_days,
             quiet_days=quiet_days,
@@ -122,6 +142,18 @@ def run_scenario(
         export_path.parent.mkdir(parents=True, exist_ok=True)
         write_events_jsonl(system, export_path)
         console.print(f"[green]✓[/green] Exported events to {export_path}")
+    
+    # Export to HTML if requested
+    if html_output:
+        from rich.terminal_theme import MONOKAI
+        html_output.parent.mkdir(parents=True, exist_ok=True)
+        html_content = console.export_html(
+            theme=MONOKAI,
+            inline_styles=True
+        )
+        with open(html_output, 'w', encoding='utf-8') as f:
+            f.write(html_content)
+        console.print(f"[green]✓[/green] Exported colored output to HTML: {html_output}")
 
 
 def run_step_mode(
@@ -131,7 +163,7 @@ def run_step_mode(
     agent_ids: Optional[List[str]],
     check_invariants: str,
     scenario_name: str
-) -> None:
+) -> List[Dict[str, Any]]:
     """Run simulation in step-by-step mode.
     
     Args:
@@ -141,28 +173,57 @@ def run_step_mode(
         agent_ids: Agent IDs to show balances for
         check_invariants: Invariant checking mode
         scenario_name: Name of the scenario for error context
-    """
-    day = 0
     
-    while day < max_days:
-        # Prompt to continue
+    Returns:
+        List of day data dictionaries
+    """
+    days_data = []
+    
+    for _ in range(max_days):
+        # Get the current day before running 
+        day_before = system.state.day
+        
+        # Prompt to continue (ask about the next day which is day_before + 1)
         console.print()
-        if not Confirm.ask(f"[cyan]Run day {day + 1}?[/cyan]", default=True):
+        if not Confirm.ask(f"[cyan]Run day {day_before + 1}?[/cyan]", default=True):
             console.print("[yellow]Simulation stopped by user[/yellow]")
             break
         
         try:
             # Run the next day
             day_report = run_day(system)
-            day += 1
             
             # Check invariants if requested
             if check_invariants == "daily":
                 system.assert_invariants()
             
-            # Show day summary
-            console.print(f"\n[bold cyan]📅 Day {day}[/bold cyan]")
-            show_day_summary(system, agent_ids, show)
+            # Skip day 0 - it's already shown as "Day 0 (After Setup)"
+            if day_before >= 1:
+                # Show day summary
+                console.print(f"\n[bold cyan]📅 Day {day_before}[/bold cyan]")
+                renderables = show_day_summary_renderable(system, agent_ids, show, day=day_before)
+                for renderable in renderables:
+                    console.print(renderable)
+                
+                # Collect day data for HTML export  
+                # Use the actual event day
+                day_events = [e for e in system.state.events 
+                             if e.get("day") == day_before and e.get("phase") == "simulation"]
+                
+                # Capture current balance state for this day
+                day_balances = {}
+                if agent_ids:
+                    from bilancio.analysis.balances import agent_balance
+                    for agent_id in agent_ids:
+                        day_balances[agent_id] = agent_balance(system, agent_id)
+                
+                days_data.append({
+                    'day': day_before,  # Use actual event day, not 1-based counter
+                    'events': day_events,
+                    'quiet': day_report.quiet,
+                    'stable': day_report.quiet and not day_report.has_open_obligations,
+                    'balances': day_balances
+                })
             
             # Check if we've reached a stable state
             if day_report.quiet and not day_report.has_open_obligations:
@@ -172,10 +233,10 @@ def run_step_mode(
         except DefaultError as e:
             show_error_panel(
                 error=e,
-                phase=f"day_{day + 1}",
+                phase=f"day_{system.state.day}",
                 context={
                     "scenario": scenario_name,
-                    "day": day + 1,
+                    "day": system.state.day,
                     "phase": system.state.phase
                 }
             )
@@ -184,10 +245,10 @@ def run_step_mode(
         except ValidationError as e:
             show_error_panel(
                 error=e,
-                phase=f"day_{day + 1}",
+                phase=f"day_{system.state.day}",
                 context={
                     "scenario": scenario_name,
-                    "day": day + 1,
+                    "day": system.state.day,
                     "phase": system.state.phase
                 }
             )
@@ -196,17 +257,19 @@ def run_step_mode(
         except Exception as e:
             show_error_panel(
                 error=e,
-                phase=f"day_{day + 1}",
+                phase=f"day_{system.state.day}",
                 context={
                     "scenario": scenario_name,
-                    "day": day + 1
+                    "day": system.state.day
                 }
             )
             break
     
     # Show final summary
     console.print("\n[bold]Simulation Complete[/bold]")
-    show_simulation_summary(system)
+    console.print(show_simulation_summary_renderable(system))
+    
+    return days_data
 
 
 def run_until_stable_mode(
@@ -217,7 +280,7 @@ def run_until_stable_mode(
     agent_ids: Optional[List[str]],
     check_invariants: str,
     scenario_name: str
-) -> None:
+) -> List[Dict[str, Any]]:
     """Run simulation until stable state is reached.
     
     Args:
@@ -228,6 +291,9 @@ def run_until_stable_mode(
         agent_ids: Agent IDs to show balances for
         check_invariants: Invariant checking mode
         scenario_name: Name of the scenario for error context
+    
+    Returns:
+        List of day data dictionaries
     """
     console.print(f"\n[dim]Running simulation until stable (max {max_days} days)...[/dim]\n")
     
@@ -238,8 +304,9 @@ def run_until_stable_mode(
         
         reports = []
         consecutive_quiet = 0
+        days_data = []
         
-        for day_num in range(1, max_days + 1):
+        for _ in range(max_days):
             # Run the next day
             day_before = system.state.day
             run_day(system)
@@ -250,30 +317,55 @@ def run_until_stable_mode(
             report = DayReport(day=day_before, impacted=impacted)
             reports.append(report)
             
-            # Display this day's results immediately (with correct balance state)
-            console.print(f"[bold cyan]📅 Day {day_num}[/bold cyan]")
-            
-            # Check invariants if requested
-            if check_invariants == "daily":
-                try:
-                    system.assert_invariants()
-                except Exception as e:
-                    console.print(f"[yellow]⚠ Invariant check failed: {e}[/yellow]")
-            
-            # Show events and balances for this specific day
-            # Note: events are stored with 0-based day numbers
-            show_day_summary(system, agent_ids, show, day=day_before)
-            
-            # Show activity summary
-            if report.impacted > 0:
-                console.print(f"[dim]Activity: {report.impacted} impactful events[/dim]")
-            else:
-                console.print("[dim]→ Quiet day (no activity)[/dim]")
-            
-            if report.notes:
-                console.print(f"[dim]Note: {report.notes}[/dim]")
-            
-            console.print()
+            # Skip day 0 - it's already shown as "Day 0 (After Setup)"
+            if day_before >= 1:
+                # Display this day's results immediately (with correct balance state)
+                console.print(f"[bold cyan]📅 Day {day_before}[/bold cyan]")
+                
+                # Check invariants if requested
+                if check_invariants == "daily":
+                    try:
+                        system.assert_invariants()
+                    except Exception as e:
+                        console.print(f"[yellow]⚠ Invariant check failed: {e}[/yellow]")
+                
+                # Show events and balances for this specific day
+                # Note: events are stored with 0-based day numbers
+                renderables = show_day_summary_renderable(system, agent_ids, show, day=day_before)
+                for renderable in renderables:
+                    console.print(renderable)
+                
+                # Collect day data for HTML export
+                # We want simulation events from the day that was just displayed
+                # show_day_summary was called with day=day_before
+                day_events = [e for e in system.state.events 
+                             if e.get("day") == day_before and e.get("phase") == "simulation"]
+                is_stable = consecutive_quiet >= quiet_days and not _has_open_obligations(system)
+                
+                # Capture current balance state for this day
+                day_balances = {}
+                if agent_ids:
+                    for agent_id in agent_ids:
+                        day_balances[agent_id] = agent_balance(system, agent_id)
+                
+                days_data.append({
+                    'day': day_before,  # Use actual event day, not 1-based counter
+                    'events': day_events,
+                    'quiet': report.impacted == 0,
+                    'stable': is_stable,
+                    'balances': day_balances
+                })
+                
+                # Show activity summary
+                if report.impacted > 0:
+                    console.print(f"[dim]Activity: {report.impacted} impactful events[/dim]")
+                else:
+                    console.print("[dim]→ Quiet day (no activity)[/dim]")
+                
+                if report.notes:
+                    console.print(f"[dim]Note: {report.notes}[/dim]")
+                
+                console.print()
             
             # Check for stable state
             if impacted == 0:
@@ -323,4 +415,6 @@ def run_until_stable_mode(
     
     # Show final summary
     console.print("\n[bold]Simulation Complete[/bold]")
-    show_simulation_summary(system)
+    console.print(show_simulation_summary_renderable(system))
+    
+    return days_data
