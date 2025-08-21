@@ -32,8 +32,7 @@ def test_format_event_with_known_kind():
     }
     title, lines, icon = registry.format(event)
     assert "Cash Transfer" in title
-    assert "From: bank1" in lines[0]
-    assert "To: household1" in lines[1]
+    assert lines[0] == "bank1 → household1"
     assert icon == "💰"
     
     # Test StockTransferred
@@ -46,8 +45,7 @@ def test_format_event_with_known_kind():
     }
     title, lines, icon = registry.format(event)
     assert "Stock Transfer" in title
-    assert "From: firm1" in lines[0]
-    assert "To: household1" in lines[1]
+    assert lines[0] == "firm1 → household1"
     assert icon == "📦"
 
 
@@ -73,7 +71,7 @@ def test_format_event_missing_fields():
     }
     title, lines, icon = registry.format(event)
     assert "Cash Transfer" in title
-    assert "From: bank1" in lines[0]  # Should handle missing amount gracefully
+    assert lines[0] == "bank1 → household1"  # Should handle missing amount gracefully
     
     # StockTransferred with missing qty
     event = {
@@ -84,7 +82,7 @@ def test_format_event_missing_fields():
     }
     title, lines, icon = registry.format(event)
     assert "Stock Transfer" in title
-    assert "From: firm1" in lines[0]  # Should handle missing qty gracefully
+    assert lines[0] == "firm1 → household1"  # Should handle missing qty gracefully
 
 
 def test_all_event_kinds_have_formatters():

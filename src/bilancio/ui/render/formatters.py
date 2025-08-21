@@ -226,19 +226,6 @@ def format_cash_payment(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     return title, lines, "💵"
 
 
-@registry.register("CashTransferred")
-def format_cash_transferred(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
-    """Format cash transfer events."""
-    from_agent = event.get("frm", "Unknown")
-    to_agent = event.get("to", "Unknown")
-    amount = event.get("amount", 0)
-    
-    title = f"💵 Cash Transfer: ${amount:,}"
-    lines = [f"{from_agent} → {to_agent}"]
-    
-    return title, lines, "💵"
-
-
 @registry.register("InstrumentMerged")
 def format_instrument_merged(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     """Format instrument merge events (cash consolidation)."""

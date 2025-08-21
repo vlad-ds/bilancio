@@ -71,6 +71,7 @@ def test_console_record_html_export():
     """Test that Console with record=True can export HTML."""
     from rich.console import Console
     from rich.table import Table
+    from rich.terminal_theme import MONOKAI
     
     # Create a console with recording enabled
     console = Console(record=True, width=100)
@@ -85,7 +86,7 @@ def test_console_record_html_export():
     console.print("[bold green]Success![/bold green]")
     
     # Export to HTML
-    html = console.export_html(theme="MONOKAI")
+    html = console.export_html(theme=MONOKAI)
     
     # Verify HTML content
     assert html is not None

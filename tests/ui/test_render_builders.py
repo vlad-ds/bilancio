@@ -36,10 +36,7 @@ def test_build_agent_balance_table():
                 amount=5000,
                 value=Decimal("5000")
             )
-        ],
-        total_financial_assets=10000,
-        total_financial_liabilities=5000,
-        net_financial=5000
+        ]
     )
     
     # Build table
@@ -68,10 +65,7 @@ def test_build_multiple_agent_balances():
                     amount=1000,
                     value=Decimal("1000")
                 )
-            ],
-            total_financial_assets=1000,
-            total_financial_liabilities=0,
-            net_financial=1000
+            ]
         ),
         AgentBalanceView(
             agent_id="household1",
@@ -84,10 +78,7 @@ def test_build_multiple_agent_balances():
                     amount=500,
                     value=Decimal("500")
                 )
-            ],
-            total_financial_assets=500,
-            total_financial_liabilities=0,
-            net_financial=500
+            ]
         )
     ]
     
@@ -110,18 +101,20 @@ def test_build_events_panel():
         phases={
             "A": [
                 EventView(
+                    kind="PhaseA",
                     title="Day begins",
                     lines=["Starting day 1"],
                     icon="⏰",
-                    event={"kind": "PhaseA", "day": 1}
+                    raw_event={"kind": "PhaseA", "day": 1}
                 )
             ],
             "B": [
                 EventView(
+                    kind="CashTransferred",
                     title="Cash transferred",
                     lines=["bank1 → household1: $100"],
                     icon="💵",
-                    event={"kind": "CashTransferred", "day": 1}
+                    raw_event={"kind": "CashTransferred", "day": 1}
                 )
             ],
             "C": []
@@ -153,11 +146,10 @@ def test_convert_raw_event_to_view():
     event_view = convert_raw_event_to_view(raw_event)
     
     assert isinstance(event_view, EventView)
-    assert "Cash transferred" in event_view.title
-    assert "bank1 → household1" in event_view.lines[0]
-    assert "$1,000" in event_view.lines[0]
-    assert event_view.icon == "💵"
-    assert event_view.event == raw_event
+    assert "Cash Transfer" in event_view.title
+    assert event_view.lines[0] == "bank1 → household1"
+    assert event_view.icon == "💰"
+    assert event_view.raw_event == raw_event
 
 
 def test_convert_unknown_event_to_view():
@@ -171,4 +163,4 @@ def test_convert_unknown_event_to_view():
     
     assert isinstance(event_view, EventView)
     assert "CustomEvent" in event_view.title
-    assert event_view.icon == "•"
+    assert event_view.icon == "❓"

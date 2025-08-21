@@ -46,6 +46,10 @@ This document contains the complete codebase structure and content for LLM inges
 ├── out
 │   └── interbank_events.jsonl
 ├── pyproject.toml
+├── rich_simulation.html
+├── rich_simulation_final.html
+├── rich_simulation_fixed.html
+├── rich_simulation_improved.html
 ├── scripts
 │   └── generate_codebase_markdown.py
 ├── src
@@ -117,6 +121,21 @@ This document contains the complete codebase structure and content for LLM inges
 │           ├── html_export.py
 │           ├── run.py
 │           └── wizard.py
+<<<<<<< Updated upstream:docs/codebase_for_llm.md
+=======
+├── temp
+│   ├── balances.csv
+│   ├── events.jsonl
+│   ├── test_complete.html
+│   ├── test_debug.html
+│   ├── test_fixed_balances.html
+│   ├── test_from_template.yaml
+│   ├── test_no_duplicates.html
+│   ├── test_output.html
+│   ├── test_output.pdf
+│   └── test_output_fixed.html
+├── test_fixed.html
+>>>>>>> Stashed changes:codebase_for_llm.md
 └── tests
     ├── analysis
     │   ├── __init__.py
@@ -143,7 +162,11 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
+<<<<<<< Updated upstream:docs/codebase_for_llm.md
 31 directories, 104 files
+=======
+34 directories, 120 files
+>>>>>>> Stashed changes:codebase_for_llm.md
 
 ```
 

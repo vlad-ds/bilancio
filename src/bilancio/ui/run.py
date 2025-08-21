@@ -270,8 +270,6 @@ def run_step_mode(
     console.print(show_simulation_summary_renderable(system))
     
     return days_data
-    
-    return days_data
 
 
 def run_until_stable_mode(
