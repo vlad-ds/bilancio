@@ -26,7 +26,7 @@ from .display import (
 )
 
 
-console = Console(record=True, width=100)
+console = Console(record=True, width=120)
 
 
 def run_scenario(
@@ -38,7 +38,8 @@ def run_scenario(
     agent_ids: Optional[List[str]] = None,
     check_invariants: str = "setup",
     export: Optional[Dict[str, str]] = None,
-    html_output: Optional[Path] = None
+    html_output: Optional[Path] = None,
+    t_account: bool = False
 ) -> None:
     """Run a Bilancio simulation scenario.
     
@@ -47,7 +48,7 @@ def run_scenario(
         mode: "step" or "until_stable"
         max_days: Maximum days to simulate
         quiet_days: Required quiet days for stable state
-        show: "summary" or "detailed" for event display
+        show: "summary", "detailed" or "table" for event display
         agent_ids: List of agent IDs to show balances for
         check_invariants: "setup", "daily", or "none"
         export: Dictionary with export paths (balances_csv, events_jsonl)
@@ -95,7 +96,7 @@ def run_scenario(
     
     # Show initial state
     console.print("\n[bold cyan]📅 Day 0 (After Setup)[/bold cyan]")
-    renderables = show_day_summary_renderable(system, agent_ids, show)
+    renderables = show_day_summary_renderable(system, agent_ids, show, t_account=t_account)
     for renderable in renderables:
         console.print(renderable)
     
@@ -117,7 +118,8 @@ def run_scenario(
             show=show,
             agent_ids=agent_ids,
             check_invariants=check_invariants,
-            scenario_name=config.name
+            scenario_name=config.name,
+            t_account=t_account
         )
     else:
         days_data = run_until_stable_mode(
@@ -127,7 +129,8 @@ def run_scenario(
             show=show,
             agent_ids=agent_ids,
             check_invariants=check_invariants,
-            scenario_name=config.name
+            scenario_name=config.name,
+            t_account=t_account
         )
     
     # Export results if requested
@@ -145,12 +148,9 @@ def run_scenario(
     
     # Export to HTML if requested
     if html_output:
-        from rich.terminal_theme import MONOKAI
         html_output.parent.mkdir(parents=True, exist_ok=True)
-        html_content = console.export_html(
-            theme=MONOKAI,
-            inline_styles=True
-        )
+        # Export with default (light) terminal theme for max readability
+        html_content = console.export_html(inline_styles=True)
         with open(html_output, 'w', encoding='utf-8') as f:
             f.write(html_content)
         console.print(f"[green]✓[/green] Exported colored output to HTML: {html_output}")
@@ -162,7 +162,8 @@ def run_step_mode(
     show: str,
     agent_ids: Optional[List[str]],
     check_invariants: str,
-    scenario_name: str
+    scenario_name: str,
+    t_account: bool = False
 ) -> List[Dict[str, Any]]:
     """Run simulation in step-by-step mode.
     
@@ -201,7 +202,7 @@ def run_step_mode(
             if day_before >= 1:
                 # Show day summary
                 console.print(f"\n[bold cyan]📅 Day {day_before}[/bold cyan]")
-                renderables = show_day_summary_renderable(system, agent_ids, show, day=day_before)
+                renderables = show_day_summary_renderable(system, agent_ids, show, day=day_before, t_account=t_account)
                 for renderable in renderables:
                     console.print(renderable)
                 
@@ -279,7 +280,8 @@ def run_until_stable_mode(
     show: str,
     agent_ids: Optional[List[str]],
     check_invariants: str,
-    scenario_name: str
+    scenario_name: str,
+    t_account: bool = False
 ) -> List[Dict[str, Any]]:
     """Run simulation until stable state is reached.
     
@@ -331,7 +333,7 @@ def run_until_stable_mode(
                 
                 # Show events and balances for this specific day
                 # Note: events are stored with 0-based day numbers
-                renderables = show_day_summary_renderable(system, agent_ids, show, day=day_before)
+                renderables = show_day_summary_renderable(system, agent_ids, show, day=day_before, t_account=t_account)
                 for renderable in renderables:
                     console.print(renderable)
                 
