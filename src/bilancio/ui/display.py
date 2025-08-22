@@ -17,7 +17,8 @@ from bilancio.analysis.visualization import (
     display_events_renderable,
     display_events_for_day_renderable,
     display_events_table_renderable,
-    display_agent_t_account_renderable
+    display_agent_t_account_renderable,
+    display_events_tables_by_phase_renderables
 )
 from bilancio.analysis.balances import system_trial_balance
 from bilancio.core.errors import DefaultError, ValidationError
@@ -120,7 +121,9 @@ def show_day_summary_renderable(
         if events_for_day:
             renderables.append(Text("\nEvents:", style="bold"))
             if event_mode == "table":
-                renderables.append(display_events_table_renderable(events_for_day))
+                # Show 3 separate tables by phase (A/B/C)
+                phase_tables = display_events_tables_by_phase_renderables(events_for_day, day=day)
+                renderables.extend(phase_tables)
             elif event_mode == "detailed":
                 event_renderables = display_events_renderable(events_for_day, format="detailed")
                 renderables.extend(event_renderables)
@@ -137,6 +140,7 @@ def show_day_summary_renderable(
         if system.state.events:
             renderables.append(Text("\nEvents:", style="bold"))
             if event_mode == "table":
+                # For all-events view (no day), show a single consolidated table without marker rows
                 renderables.append(display_events_table_renderable(system.state.events))
             elif event_mode == "detailed":
                 event_renderables = display_events_renderable(system.state.events, format="detailed")
