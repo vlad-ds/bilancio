@@ -136,12 +136,17 @@ def show_day_summary_renderable(
                 for event_type, count in sorted(event_counts.items()):
                     renderables.append(Text(f"  • {event_type}: {count}"))
     else:
-        # Show all recent events
+        # Show all recent events (initial view, typically setup/day 0)
         if system.state.events:
             renderables.append(Text("\nEvents:", style="bold"))
             if event_mode == "table":
-                # For all-events view (no day), show a single consolidated table without marker rows
-                renderables.append(display_events_table_renderable(system.state.events))
+                # Use phase-separated tables even in the initial no-day view.
+                # If these are setup events, this will render a single "Setup" table.
+                # Otherwise, it renders Phase B/C tables for the current day.
+                # Determine a representative day to label (default to 0 if any setup events exist).
+                rep_day = 0 if any(e.get("phase") == "setup" for e in system.state.events) else system.state.day
+                phase_tables = display_events_tables_by_phase_renderables(system.state.events, day=rep_day)
+                renderables.extend(phase_tables)
             elif event_mode == "detailed":
                 event_renderables = display_events_renderable(system.state.events, format="detailed")
                 renderables.extend(event_renderables)

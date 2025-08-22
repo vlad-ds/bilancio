@@ -666,9 +666,8 @@ def display_events_table(events: List[Dict[str, Any]], group_by_day: bool = True
     columns = ["Day", "Phase", "Kind", "From", "To", "SKU/Instr", "Qty", "Amount", "Notes"]
 
     # Sort events deterministically
-    # Drop phase marker events from rows
+    # Drop phase marker events; preserve original insertion (chronological) order
     evs = [e for e in events if e.get("kind") not in ("PhaseA", "PhaseB", "PhaseC")]
-    evs = sorted(evs, key=lambda e: (e.get("day", -1), str(e.get("phase", "")), str(e.get("kind", ""))))
 
     if RICH_AVAILABLE:
         from rich.table import Table as RichTable
@@ -785,9 +784,8 @@ def display_events_table_renderable(events: List[Dict[str, Any]]) -> RenderableT
         return Text("No events to display.", style="dim") if RICH_AVAILABLE else "No events to display."
 
     columns = ["Day", "Phase", "Kind", "From", "To", "SKU/Instr", "Qty", "Amount", "Notes"]
-    # Drop phase marker events from rows
+    # Drop phase marker events; preserve original insertion (chronological) order
     evs = [e for e in events if e.get("kind") not in ("PhaseA", "PhaseB", "PhaseC")]
-    evs = sorted(evs, key=lambda e: (e.get("day", -1), str(e.get("phase", "")), str(e.get("kind", ""))))
 
     if RICH_AVAILABLE:
         from rich.table import Table as RichTable
@@ -903,10 +901,14 @@ def display_events_tables_by_phase_renderables(events: List[Dict[str, Any]], day
         from rich import box as rich_box
         from rich.text import Text as RichText
     
-    # Group by phase markers
+    # If these are setup-phase events (day 0), render as a single "Setup" table
+    if any(e.get("phase") == "setup" for e in events):
+        return _build_single_setup_table(events, day)
+
+    # Group by phase markers in original order
     buckets = {"A": [], "B": [], "C": []}
     current = "A"
-    for e in sorted(events, key=lambda x: (x.get("day", -1), x.get("kind", ""))):
+    for e in events:
         kind = e.get("kind")
         if kind == "PhaseA":
             current = "A"; continue
@@ -999,11 +1001,80 @@ def display_events_tables_by_phase_renderables(events: List[Dict[str, Any]], day
         return table
 
     renderables: List[RenderableType] = []
-    for phase in ("A", "B", "C"):
-        rows = buckets[phase]
-        # Always show the table even if empty? For now, only show non-empty to reduce clutter.
-        renderables.append(build_table(phase, rows))
+    # Phase A is intentionally empty for now; only include if it has rows
+    if buckets["A"]:
+        renderables.append(build_table("A", buckets["A"]))
+    # Phase B: settlements
+    renderables.append(build_table("B", buckets["B"]))
+    # Phase C: clearing
+    renderables.append(build_table("C", buckets["C"]))
     return renderables
+
+
+def _build_single_setup_table(events: List[Dict[str, Any]], day: Optional[int] = None) -> List[RenderableType]:
+    """Render a single setup table for setup-phase events (day 0)."""
+    rows = [e for e in events if e.get("phase") == "setup" and e.get("kind") not in ("PhaseA","PhaseB","PhaseC")]
+    title = "Setup"
+    if day is not None:
+        title = f"{title} (Day {day})"
+    if not RICH_AVAILABLE:
+        header = ["Kind", "From", "To", "SKU/Instr", "Qty", "Amount", "Notes"]
+        out = [title, " | ".join(header), "-" * 80]
+        for e in rows:
+            kind = str(e.get("kind", ""))
+            if kind in ("CashDeposited", "CashWithdrawn"):
+                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+                frm = e.get("payer"); to = e.get("payee")
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                frm = e.get("debtor_bank"); to = e.get("creditor_bank")
+            elif kind == "StockCreated":
+                frm = e.get("owner"); to = None
+            else:
+                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+                to = e.get("to") or e.get("creditor") or e.get("payee")
+            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+            qty = e.get("qty") or e.get("quantity") or "—"
+            amt = e.get("amount") or "—"
+            notes = ""
+            out.append(" | ".join(map(str, [kind, frm or "—", to or "—", sku, qty, amt, notes])))
+        return ["\n".join(out)]
+
+    from rich.table import Table as RichTable
+    from rich import box as rich_box
+    table = RichTable(title=title, box=rich_box.HEAVY, show_lines=True)
+    table.add_column("Kind", justify="left")
+    table.add_column("From", justify="left")
+    table.add_column("To", justify="left")
+    table.add_column("SKU/Instr", justify="left")
+    table.add_column("Qty", justify="right")
+    table.add_column("Amount", justify="right")
+    table.add_column("Notes", justify="left")
+    try:
+        table.row_styles = ["on #ffffff", "on #e6f2ff"]
+    except Exception:
+        pass
+    for e in rows:
+        kind = str(e.get("kind", ""))
+        if kind in ("CashDeposited", "CashWithdrawn"):
+            frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+            to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+        elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+            frm = e.get("payer"); to = e.get("payee")
+        elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+            frm = e.get("debtor_bank"); to = e.get("creditor_bank")
+        elif kind == "StockCreated":
+            frm = e.get("owner"); to = None
+        else:
+            frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+            to = e.get("to") or e.get("creditor") or e.get("payee")
+        sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+        qty = e.get("qty") or e.get("quantity") or "—"
+        amt = e.get("amount") or "—"
+        notes = ""
+        table.add_row(kind, str(frm or "—"), str(to or "—"), str(sku), str(qty), str(amt), notes)
+    return [table]
 
 
 # ============================================================================
