@@ -8,69 +8,88 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+import math
+from decimal import Decimal
+import html as _html
 
 from bilancio.engines.system import System
 from bilancio.analysis.visualization import build_t_account_rows
 from bilancio.analysis.balances import AgentBalance
 
 
-CSS = """
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5}
-.container{max-width:1400px;margin:0 auto;padding:20px}
-header{background:#fff;border-radius:8px;padding:24px;margin-bottom:24px;box-shadow:0 2px 4px rgba(0,0,0,0.1)}
-h1{color:#2563eb;font-size:28px;margin-bottom:8px}
-h2{color:#475569;font-size:20px;margin-bottom:16px}
-h3{color:#334155;font-size:18px;margin-bottom:12px}
-h4{color:#475569;font-size:16px;margin:8px 0;font-weight:600}
-.description{color:#64748b;font-style:italic;margin-bottom:16px}
-.meta{display:flex;gap:24px;color:#64748b;font-size:14px}
-.meta span{display:inline-block}
-.t-account{background:#fff;border-radius:8px;padding:20px;margin-bottom:20px;box-shadow:0 2px 4px rgba(0,0,0,0.1)}
-.t-account .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-.t-account table.side{width:100%;border-collapse:collapse;font-size:14px}
-.t-account th,.t-account td{border-bottom:1px solid #e5e7eb;border-right:1px solid #eef2f7;padding:8px;text-align:left}
-.t-account th:last-child,.t-account td:last-child{border-right:none}
-.t-account tbody tr:nth-child(even){background:#fafafa}
-.t-account th{background:#f9fafb;font-weight:600;color:#374151}
-.t-account td.qty,.t-account td.val,.t-account td.mat{text-align:right;white-space:nowrap}
-.t-account td.name{font-weight:500}
-.t-account td.empty{text-align:center;color:#9ca3af}
-.assets-side h4{color:#16a34a}
-.liabilities-side h4{color:#dc2626}
-.events-table{background:#fff;border-radius:8px;padding:20px;margin-bottom:24px;box-shadow:0 2px 4px rgba(0,0,0,0.1)}
-.events-table table{width:100%;border-collapse:collapse;font-size:14px}
-.events-table th,.events-table td{border-bottom:1px solid #e5e7eb;border-right:1px solid #eef2f7;padding:8px;text-align:left}
-.events-table th:last-child,.events-table td:last-child{border-right:none}
-.events-table tbody tr:nth-child(even){background:#f7f9fc}
-.events-table th{background:#f9fafb;font-weight:600;color:#374151}
-.events-table td.qty,.events-table td.amount{text-align:center;white-space:nowrap}
-.events-table td.event-kind{font-weight:500;color:#3b82f6}
-.events-table td.notes{font-size:13px;color:#64748b}
-.agents>h2{margin-bottom:20px;padding:0 20px}
-.day-section{margin-bottom:40px;padding-bottom:40px;border-bottom:2px solid #e5e7eb}
-.day-section:last-child{border-bottom:none}
-.day-header{color:#1f2937;font-size:24px;margin-bottom:24px;padding:12px 0;border-bottom:1px solid #e5e7eb}
-.events-section{margin-bottom:24px}
-.balances-section{margin-top:24px}
-.balances-section>h3{margin-bottom:20px;color:#374151;font-size:20px}
-footer{text-align:center;color:#9ca3af;font-size:14px;margin-top:40px;padding:20px}
-@media (max-width:768px){.t-account .grid{grid-template-columns:1fr}.meta{flex-direction:column;gap:8px}}
-"""
+def _load_css() -> str:
+    """Load export CSS from assets with a safe inline fallback.
+
+    Keeps styling out of Python while remaining robust if the file is missing.
+    """
+    asset_path = Path(__file__).with_name("assets").joinpath("export.css")
+    try:
+        return asset_path.read_text(encoding="utf-8")
+    except Exception:
+        # Minimal fallback to keep the page readable if asset is missing.
+        return "body{font-family:system-ui,Arial,sans-serif;padding:16px;background:#f5f5f5;color:#333}table{border-collapse:collapse;width:100%}th,td{border:1px solid #e5e7eb;padding:6px}tbody tr:nth-child(even){background:#fafafa}h1,h2,h3{margin:.5rem 0}"
 
 
-def _html_escape(s: Any) -> str:
-    return ("" if s is None else str(s)).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+def _html_escape(value: Any) -> str:
+    """Escape text for safe HTML display, including quotes.
+
+    Uses stdlib html.escape and additionally escapes single quotes.
+    """
+    if value is None:
+        return ""
+    text = str(value)
+    # html.escape handles & < > and ", then we also escape single quotes
+    return _html.escape(text, quote=True).replace("'", "&#x27;")
+
+
+def _safe_int_conversion(value: Any) -> Optional[int]:
+    """Safely convert value to int.
+
+    - Accepts int, float, Decimal, and stringified digits
+    - Returns None for None
+    - Raises ValueError for invalid values
+    """
+    if value is None:
+        return None
+    # Fast path for ints
+    if isinstance(value, int):
+        return value
+    # Floats/Decimals lose precision but we accept truncation for display
+    if isinstance(value, (float, Decimal)):
+        # Guard against NaN/Inf
+        if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
+            raise ValueError("Invalid numeric value: NaN/Inf")
+        return int(value)
+    # Strings: allow simple digit strings and formatted numbers with commas
+    if isinstance(value, str):
+        s = value.strip().replace(",", "")
+        if s == "":
+            return None
+        try:
+            return int(s)
+        except Exception as e:
+            raise ValueError(f"Invalid numeric value: {value}") from e
+    # Objects with __int__
+    if hasattr(value, "__int__"):
+        try:
+            return int(value)  # type: ignore[arg-type]
+        except Exception as e:
+            raise ValueError(f"Invalid numeric value: {value}") from e
+    raise ValueError(f"Cannot convert {type(value)} to int")
 
 
 def _format_amount(v: Any) -> str:
     if v in (None, "—", "-"):
         return "—"
     try:
-        return f"{int(v):,}"
-    except Exception:
+        iv = _safe_int_conversion(v)
+        if iv is None:
+            return "—"
+        return f"{iv:,}"
+    except ValueError:
+        # As a last resort, try float -> int formatting without erroring
         try:
-            return f"{float(v):,.0f}"
+            return f"{int(float(v)):,}"
         except Exception:
             return _html_escape(v)
 
@@ -83,8 +102,17 @@ def _render_t_account_from_rows(title: str, assets_rows: List[dict], liabs_rows:
         val = row.get('value_minor')
         cpty = row.get('counterparty_name') or "—"
         mat = row.get('maturity') or "—"
-        qty_s = "—" if qty in (None, "") else f"{int(qty):,}"
-        val_s = "—" if val in (None, "") else f"{int(val):,}"
+        # Robust numeric formatting with safe conversion
+        try:
+            qiv = _safe_int_conversion(qty)
+        except ValueError:
+            qiv = None
+        try:
+            viv = _safe_int_conversion(val)
+        except ValueError:
+            viv = None
+        qty_s = "—" if qiv in (None, "") else f"{qiv:,}"
+        val_s = "—" if viv in (None, "") else f"{viv:,}"
         return (
             f"<tr>"
             f"<td class=\"name\">{_html_escape(row.get('name',''))}</td>"
@@ -148,47 +176,67 @@ def _build_rows_from_balance(balance: AgentBalance) -> (List[dict], List[dict]):
         qty = data.get('quantity', 0)
         val = data.get('value', 0)
         try:
-            val_i = int(val)
-        except Exception:
-            val_i = int(float(val)) if val is not None else None
-        if qty and qty > 0:
-            assets.append({'name': str(sku), 'quantity': int(qty), 'value_minor': val_i, 'counterparty_name': '—', 'maturity': '—'})
+            val_i = _safe_int_conversion(val)
+        except ValueError:
+            val_i = None
+        try:
+            qty_i = _safe_int_conversion(qty)
+        except ValueError:
+            qty_i = None
+        if qty_i and qty_i > 0:
+            assets.append({'name': str(sku), 'quantity': qty_i, 'value_minor': val_i, 'counterparty_name': '—', 'maturity': '—'})
 
     # Non-financial assets receivable
     for sku, data in balance.nonfinancial_assets_by_kind.items():
         qty = data.get('quantity', 0)
         val = data.get('value', 0)
         try:
-            val_i = int(val)
-        except Exception:
-            val_i = int(float(val)) if val is not None else None
-        if qty and qty > 0:
-            assets.append({'name': f"{sku} receivable", 'quantity': int(qty), 'value_minor': val_i, 'counterparty_name': '—', 'maturity': '—'})
+            val_i = _safe_int_conversion(val)
+        except ValueError:
+            val_i = None
+        try:
+            qty_i = _safe_int_conversion(qty)
+        except ValueError:
+            qty_i = None
+        if qty_i and qty_i > 0:
+            assets.append({'name': f"{sku} receivable", 'quantity': qty_i, 'value_minor': val_i, 'counterparty_name': '—', 'maturity': '—'})
 
     # Financial assets by kind (skip non-financial kinds)
     for kind, amount in balance.assets_by_kind.items():
         if kind == 'delivery_obligation':
             continue
-        if amount and amount > 0:
-            assets.append({'name': kind, 'quantity': None, 'value_minor': int(amount), 'counterparty_name': '—', 'maturity': 'on-demand' if kind in ('cash','bank_deposit','reserve_deposit') else '—'})
+        try:
+            amount_i = _safe_int_conversion(amount)
+        except ValueError:
+            amount_i = None
+        if amount_i and amount_i > 0:
+            assets.append({'name': kind, 'quantity': None, 'value_minor': amount_i, 'counterparty_name': '—', 'maturity': 'on-demand' if kind in ('cash','bank_deposit','reserve_deposit') else '—'})
 
     # Non-financial liabilities
     for sku, data in balance.nonfinancial_liabilities_by_kind.items():
         qty = data.get('quantity', 0)
         val = data.get('value', 0)
         try:
-            val_i = int(val)
-        except Exception:
-            val_i = int(float(val)) if val is not None else None
-        if qty and qty > 0:
-            liabs.append({'name': f"{sku} obligation", 'quantity': int(qty), 'value_minor': val_i, 'counterparty_name': '—', 'maturity': '—'})
+            val_i = _safe_int_conversion(val)
+        except ValueError:
+            val_i = None
+        try:
+            qty_i = _safe_int_conversion(qty)
+        except ValueError:
+            qty_i = None
+        if qty_i and qty_i > 0:
+            liabs.append({'name': f"{sku} obligation", 'quantity': qty_i, 'value_minor': val_i, 'counterparty_name': '—', 'maturity': '—'})
 
     # Financial liabilities
     for kind, amount in balance.liabilities_by_kind.items():
         if kind == 'delivery_obligation':
             continue
-        if amount and amount > 0:
-            liabs.append({'name': kind, 'quantity': None, 'value_minor': int(amount), 'counterparty_name': '—', 'maturity': 'on-demand' if kind in ('cash','bank_deposit','reserve_deposit') else '—'})
+        try:
+            amount_i = _safe_int_conversion(amount)
+        except ValueError:
+            amount_i = None
+        if amount_i and amount_i > 0:
+            liabs.append({'name': kind, 'quantity': None, 'value_minor': amount_i, 'counterparty_name': '—', 'maturity': 'on-demand' if kind in ('cash','bank_deposit','reserve_deposit') else '—'})
 
     # Ordering similar to render layer
     def asset_key(row):
@@ -334,7 +382,7 @@ def export_pretty_html(
     html_parts.append("<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\">")
     html_parts.append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">")
     html_parts.append(f"<title>Bilancio Simulation - { _html_escape(scenario_name) }</title>")
-    html_parts.append(f"<style>{CSS}</style></head><body>")
+    html_parts.append(f"<style>{_load_css()}</style></head><body>")
     html_parts.append("<div class=\"container\">")
     html_parts.append("<header>")
     html_parts.append("<h1>Bilancio Simulation</h1>")
