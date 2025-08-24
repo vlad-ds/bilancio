@@ -154,3 +154,45 @@ class TestCLI:
             # Check files have content
             assert balances_path.stat().st_size > 0
             assert events_path.stat().st_size > 0
+
+    def test_run_with_html_export(self, tmp_path):
+        """Test running scenario with --html export option."""
+        scenario = {
+            "version": 1,
+            "name": "HTML Export Test",
+            "agents": [
+                {"id": "CB", "kind": "central_bank", "name": "CB"},
+                {"id": "H1", "kind": "household", "name": "Alice"}
+            ],
+            "initial_actions": [
+                {"mint_cash": {"to": "H1", "amount": 1000}}
+            ],
+            "run": {
+                "mode": "until_stable",
+                "max_days": 1,
+                "quiet_days": 1,
+                "show": {
+                    "balances": ["CB", "H1"]
+                }
+            }
+        }
+
+        scenario_path = tmp_path / "scenario.yaml"
+        html_path = tmp_path / "out.html"
+
+        import yaml
+        with open(scenario_path, 'w') as f:
+            yaml.dump(scenario, f)
+
+        runner = CliRunner()
+        result = runner.invoke(cli, [
+            'run', str(scenario_path),
+            '--max-days', '1',
+            '--quiet-days', '1',
+            '--html', str(html_path)
+        ])
+
+        assert result.exit_code == 0
+        assert html_path.exists()
+        content = html_path.read_text(encoding='utf-8')
+        assert 'Bilancio Simulation' in content

@@ -6,6 +6,8 @@ from collections import defaultdict
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Union
 from dataclasses import dataclass
+import math
+from typing import Optional
 
 try:
     from rich.console import Console
@@ -1106,6 +1108,23 @@ def _format_agent(agent_id: str, system: System) -> str:
     return agent_id
 
 
+def parse_day_from_maturity(maturity_str: Optional[str]) -> int:
+    """Parse a day number from maturity strings like 'Day 42'.
+
+    Returns an integer day. If the input cannot be parsed, returns a large
+    sentinel value to sort unknown maturities last.
+    """
+    if not isinstance(maturity_str, str):
+        return math.inf  # type: ignore[return-value]
+    s = maturity_str.strip()
+    if not s.startswith("Day "):
+        return math.inf  # type: ignore[return-value]
+    try:
+        return int(s[4:].strip())
+    except Exception:
+        return math.inf  # type: ignore[return-value]
+
+
 def build_t_account_rows(system: System, agent_id: str) -> TAccount:
     """Build detailed T-account rows from system state for an agent."""
     assets: List[BalanceRow] = []
@@ -1202,14 +1221,7 @@ def build_t_account_rows(system: System, agent_id: str) -> TAccount:
         if row.quantity is not None and row.counterparty_name == "—":
             return (0, 0, row.name or "")
         if row.name.endswith("receivable"):
-            # try to parse maturity day number
-            mat = row.maturity or ""
-            day_num = 10**9
-            if isinstance(mat, str) and mat.startswith("Day "):
-                try:
-                    day_num = int(mat.split(" ")[1])
-                except Exception:
-                    pass
+            day_num = parse_day_from_maturity(row.maturity)
             return (1, day_num, row.name)
         return (2, financial_order.get(row.name, 99), row.name)
 
@@ -1217,13 +1229,7 @@ def build_t_account_rows(system: System, agent_id: str) -> TAccount:
         # Obligations (name ends with 'obligation') by due day, then financial by order
         financial_order = {"payable": 0, "bank_deposit": 1, "reserve_deposit": 2, "cash": 3}
         if row.name.endswith("obligation"):
-            mat = row.maturity or ""
-            day_num = 10**9
-            if isinstance(mat, str) and mat.startswith("Day "):
-                try:
-                    day_num = int(mat.split(" ")[1])
-                except Exception:
-                    pass
+            day_num = parse_day_from_maturity(row.maturity)
             return (0, day_num, row.name)
         return (1, financial_order.get(row.name, 99), row.name)
 
