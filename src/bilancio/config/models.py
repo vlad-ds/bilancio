@@ -241,7 +241,7 @@ class ShowConfig(BaseModel):
         None,
         description="Agent IDs to show balances for"
     )
-    events: Literal["summary", "detailed"] = Field(
+    events: Literal["summary", "detailed", "table"] = Field(
         "detailed",
         description="Event display mode"
     )

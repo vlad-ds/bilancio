@@ -29,7 +29,7 @@ def cli():
               help='Maximum days to simulate')
 @click.option('--quiet-days', type=int, default=2,
               help='Required quiet days for stable state')
-@click.option('--show', type=click.Choice(['summary', 'detailed']),
+@click.option('--show', type=click.Choice(['summary', 'detailed', 'table']),
               default='detailed', help='Event display mode')
 @click.option('--agents', type=str, default=None,
               help='Comma-separated list of agent IDs to show balances for')
@@ -43,6 +43,7 @@ def cli():
               default=None, help='Path to export events JSONL')
 @click.option('--html', type=click.Path(path_type=Path),
               default=None, help='Path to export colored output as HTML')
+@click.option('--t-account/--no-t-account', default=False, help='Use detailed T-account layout for balances')
 def run(scenario_file: Path, 
         mode: str,
         max_days: int,
@@ -52,7 +53,8 @@ def run(scenario_file: Path,
         check_invariants: str,
         export_balances: Optional[Path],
         export_events: Optional[Path],
-        html: Optional[Path]):
+        html: Optional[Path],
+        t_account: bool):
     """Run a Bilancio simulation scenario.
     
     Load a scenario from a YAML file and run the simulation either
@@ -80,7 +82,8 @@ def run(scenario_file: Path,
             agent_ids=agent_ids,
             check_invariants=check_invariants,
             export=export,
-            html_output=html
+            html_output=html,
+            t_account=t_account
         )
         
     except FileNotFoundError as e:

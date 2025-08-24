@@ -26,7 +26,7 @@ from .display import (
 )
 
 
-console = Console(record=True, width=100)
+console = Console(record=True, width=120)
 
 
 def run_scenario(
@@ -38,7 +38,8 @@ def run_scenario(
     agent_ids: Optional[List[str]] = None,
     check_invariants: str = "setup",
     export: Optional[Dict[str, str]] = None,
-    html_output: Optional[Path] = None
+    html_output: Optional[Path] = None,
+    t_account: bool = False
 ) -> None:
     """Run a Bilancio simulation scenario.
     
@@ -47,7 +48,7 @@ def run_scenario(
         mode: "step" or "until_stable"
         max_days: Maximum days to simulate
         quiet_days: Required quiet days for stable state
-        show: "summary" or "detailed" for event display
+        show: "summary", "detailed" or "table" for event display
         agent_ids: List of agent IDs to show balances for
         check_invariants: "setup", "daily", or "none"
         export: Dictionary with export paths (balances_csv, events_jsonl)
@@ -95,17 +96,33 @@ def run_scenario(
     
     # Show initial state
     console.print("\n[bold cyan]📅 Day 0 (After Setup)[/bold cyan]")
-    renderables = show_day_summary_renderable(system, agent_ids, show)
+    renderables = show_day_summary_renderable(system, agent_ids, show, t_account=t_account)
     for renderable in renderables:
         console.print(renderable)
     
     # Capture initial balance state for HTML export
-    initial_balances = {}
+    initial_balances: Dict[str, Any] = {}
+    initial_rows: Dict[str, Dict[str, list]] = {}
     from bilancio.analysis.balances import agent_balance
+    from bilancio.analysis.visualization import build_t_account_rows
     # Capture balances for all agents that we might display
     capture_ids = agent_ids if agent_ids else [a.id for a in system.state.agents.values()]
     for agent_id in capture_ids:
         initial_balances[agent_id] = agent_balance(system, agent_id)
+        # also capture detailed rows with counterparties at setup
+        acct = build_t_account_rows(system, agent_id)
+        def to_row(r):
+            return {
+                'name': getattr(r, 'name', ''),
+                'quantity': getattr(r, 'quantity', None),
+                'value_minor': getattr(r, 'value_minor', None),
+                'counterparty_name': getattr(r, 'counterparty_name', None),
+                'maturity': getattr(r, 'maturity', None),
+            }
+        initial_rows[agent_id] = {
+            'assets': [to_row(r) for r in acct.assets],
+            'liabs': [to_row(r) for r in acct.liabilities],
+        }
     
     # Track day data for PDF export
     days_data = []
@@ -117,7 +134,8 @@ def run_scenario(
             show=show,
             agent_ids=agent_ids,
             check_invariants=check_invariants,
-            scenario_name=config.name
+            scenario_name=config.name,
+            t_account=t_account
         )
     else:
         days_data = run_until_stable_mode(
@@ -127,7 +145,8 @@ def run_scenario(
             show=show,
             agent_ids=agent_ids,
             check_invariants=check_invariants,
-            scenario_name=config.name
+            scenario_name=config.name,
+            t_account=t_account
         )
     
     # Export results if requested
@@ -143,17 +162,22 @@ def run_scenario(
         write_events_jsonl(system, export_path)
         console.print(f"[green]✓[/green] Exported events to {export_path}")
     
-    # Export to HTML if requested
+    # Export to HTML if requested (semantic HTML for readability)
     if html_output:
-        from rich.terminal_theme import MONOKAI
-        html_output.parent.mkdir(parents=True, exist_ok=True)
-        html_content = console.export_html(
-            theme=MONOKAI,
-            inline_styles=True
+        from .html_export import export_pretty_html
+        export_pretty_html(
+            system=system,
+            out_path=html_output,
+            scenario_name=config.name,
+            description=config.description,
+            agent_ids=agent_ids,
+            initial_balances=initial_balances,
+            days_data=days_data,
+            initial_rows=initial_rows,
+            max_days=max_days,
+            quiet_days=quiet_days,
         )
-        with open(html_output, 'w', encoding='utf-8') as f:
-            f.write(html_content)
-        console.print(f"[green]✓[/green] Exported colored output to HTML: {html_output}")
+        console.print(f"[green]✓[/green] Exported HTML report: {html_output}")
 
 
 def run_step_mode(
@@ -162,7 +186,8 @@ def run_step_mode(
     show: str,
     agent_ids: Optional[List[str]],
     check_invariants: str,
-    scenario_name: str
+    scenario_name: str,
+    t_account: bool = False
 ) -> List[Dict[str, Any]]:
     """Run simulation in step-by-step mode.
     
@@ -201,7 +226,7 @@ def run_step_mode(
             if day_before >= 1:
                 # Show day summary
                 console.print(f"\n[bold cyan]📅 Day {day_before}[/bold cyan]")
-                renderables = show_day_summary_renderable(system, agent_ids, show, day=day_before)
+                renderables = show_day_summary_renderable(system, agent_ids, show, day=day_before, t_account=t_account)
                 for renderable in renderables:
                     console.print(renderable)
                 
@@ -211,18 +236,34 @@ def run_step_mode(
                              if e.get("day") == day_before and e.get("phase") == "simulation"]
                 
                 # Capture current balance state for this day
-                day_balances = {}
+                day_balances: Dict[str, Any] = {}
+                day_rows: Dict[str, Dict[str, list]] = {}
                 if agent_ids:
                     from bilancio.analysis.balances import agent_balance
+                    from bilancio.analysis.visualization import build_t_account_rows
                     for agent_id in agent_ids:
                         day_balances[agent_id] = agent_balance(system, agent_id)
+                        acct = build_t_account_rows(system, agent_id)
+                        def to_row(r):
+                            return {
+                                'name': getattr(r, 'name', ''),
+                                'quantity': getattr(r, 'quantity', None),
+                                'value_minor': getattr(r, 'value_minor', None),
+                                'counterparty_name': getattr(r, 'counterparty_name', None),
+                                'maturity': getattr(r, 'maturity', None),
+                            }
+                        day_rows[agent_id] = {
+                            'assets': [to_row(r) for r in acct.assets],
+                            'liabs': [to_row(r) for r in acct.liabilities],
+                        }
                 
                 days_data.append({
                     'day': day_before,  # Use actual event day, not 1-based counter
                     'events': day_events,
                     'quiet': day_report.quiet,
                     'stable': day_report.quiet and not day_report.has_open_obligations,
-                    'balances': day_balances
+                    'balances': day_balances,
+                    'rows': day_rows
                 })
             
             # Check if we've reached a stable state
@@ -279,7 +320,8 @@ def run_until_stable_mode(
     show: str,
     agent_ids: Optional[List[str]],
     check_invariants: str,
-    scenario_name: str
+    scenario_name: str,
+    t_account: bool = False
 ) -> List[Dict[str, Any]]:
     """Run simulation until stable state is reached.
     
@@ -331,7 +373,7 @@ def run_until_stable_mode(
                 
                 # Show events and balances for this specific day
                 # Note: events are stored with 0-based day numbers
-                renderables = show_day_summary_renderable(system, agent_ids, show, day=day_before)
+                renderables = show_day_summary_renderable(system, agent_ids, show, day=day_before, t_account=t_account)
                 for renderable in renderables:
                     console.print(renderable)
                 
@@ -343,17 +385,33 @@ def run_until_stable_mode(
                 is_stable = consecutive_quiet >= quiet_days and not _has_open_obligations(system)
                 
                 # Capture current balance state for this day
-                day_balances = {}
+                day_balances: Dict[str, Any] = {}
+                day_rows: Dict[str, Dict[str, list]] = {}
                 if agent_ids:
+                    from bilancio.analysis.visualization import build_t_account_rows
                     for agent_id in agent_ids:
                         day_balances[agent_id] = agent_balance(system, agent_id)
+                        acct = build_t_account_rows(system, agent_id)
+                        def to_row(r):
+                            return {
+                                'name': getattr(r, 'name', ''),
+                                'quantity': getattr(r, 'quantity', None),
+                                'value_minor': getattr(r, 'value_minor', None),
+                                'counterparty_name': getattr(r, 'counterparty_name', None),
+                                'maturity': getattr(r, 'maturity', None),
+                            }
+                        day_rows[agent_id] = {
+                            'assets': [to_row(r) for r in acct.assets],
+                            'liabs': [to_row(r) for r in acct.liabilities],
+                        }
                 
                 days_data.append({
                     'day': day_before,  # Use actual event day, not 1-based counter
                     'events': day_events,
                     'quiet': report.impacted == 0,
                     'stable': is_stable,
-                    'balances': day_balances
+                    'balances': day_balances,
+                    'rows': day_rows
                 })
                 
                 # Show activity summary

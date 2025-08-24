@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections import defaultdict
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Union
+from dataclasses import dataclass
 
 try:
     from rich.console import Console
@@ -649,6 +650,681 @@ def display_events(events: List[Dict[str, Any]], format: str = 'detailed') -> No
         _display_events_summary(events, console)
     else:
         _display_events_detailed(events, console)
+
+
+def display_events_table(events: List[Dict[str, Any]], group_by_day: bool = True) -> None:
+    """Render events as a table with canonical columns.
+
+    Falls back to simple text when Rich is not available.
+    """
+    console = Console() if RICH_AVAILABLE else None
+
+    if not events:
+        _print("No events to display.", console)
+        return
+
+    columns = ["Day", "Phase", "Kind", "From", "To", "SKU/Instr", "Qty", "Amount", "Notes"]
+
+    # Sort events deterministically
+    # Drop phase marker events; preserve original insertion (chronological) order
+    evs = [e for e in events if e.get("kind") not in ("PhaseA", "PhaseB", "PhaseC")]
+
+    if RICH_AVAILABLE:
+        from rich.table import Table as RichTable
+        from rich import box as rich_box
+        table = RichTable(title="Events", box=rich_box.HEAVY, show_lines=True)
+        # Column definitions with better alignment
+        table.add_column("Day", justify="right")
+        table.add_column("Phase", justify="left")
+        table.add_column("Kind", justify="left")
+        table.add_column("From", justify="left")
+        table.add_column("To", justify="left")
+        table.add_column("SKU/Instr", justify="left")
+        table.add_column("Qty", justify="right")
+        table.add_column("Amount", justify="right")
+        table.add_column("Notes", justify="left")
+        # Alternate row shading for readability
+        try:
+            table.row_styles = ["on #ffffff", "on #e6f2ff"]
+        except Exception:
+            pass
+
+        for e in evs:
+            kind = str(e.get("kind", ""))
+            # Canonical from/to mapping by kind
+            if kind in ("CashDeposited", "CashWithdrawn"):
+                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+                frm = e.get("payer")
+                to = e.get("payee")
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                frm = e.get("debtor_bank")
+                to = e.get("creditor_bank")
+            elif kind == "StockCreated":
+                frm = e.get("owner")
+                to = None
+            else:
+                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+                to = e.get("to") or e.get("creditor") or e.get("payee")
+            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+            qty = e.get("qty") or e.get("quantity") or "—"
+            amt = e.get("amount") or "—"
+
+            notes = ""
+            if kind == "ClientPayment":
+                notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
+                if 'due_day' in e:
+                    notes += f"; due {e.get('due_day')}"
+
+            table.add_row(
+                str(e.get("day", "—")),
+                str(e.get("phase", "—")),
+                kind,
+                str(frm or "—"),
+                str(to or "—"),
+                str(sku),
+                str(qty),
+                str(amt),
+                notes,
+            )
+
+        console.print(table) if console else print(table)
+    else:
+        # Simple header + rows
+        header = " | ".join(columns)
+        print(header)
+        print("-" * len(header))
+        for e in evs:
+            kind = str(e.get("kind", ""))
+            if kind in ("CashDeposited", "CashWithdrawn"):
+                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+                frm = e.get("payer")
+                to = e.get("payee")
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                frm = e.get("debtor_bank")
+                to = e.get("creditor_bank")
+            elif kind == "StockCreated":
+                frm = e.get("owner")
+                to = None
+            else:
+                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+                to = e.get("to") or e.get("creditor") or e.get("payee")
+            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+            qty = e.get("qty") or e.get("quantity") or "—"
+            amt = e.get("amount") or "—"
+            notes = ""
+            if kind == "ClientPayment":
+                notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
+                if 'due_day' in e:
+                    notes += f"; due {e.get('due_day')}"
+            row = [
+                str(e.get("day", "—")),
+                str(e.get("phase", "—")),
+                kind,
+                str(frm or "—"),
+                str(to or "—"),
+                str(sku),
+                str(qty),
+                str(amt),
+                notes,
+            ]
+            print(" | ".join(row))
+
+
+def display_events_table_renderable(events: List[Dict[str, Any]]) -> RenderableType:
+    """Return a Rich Table renderable (or string) for events table."""
+    if not events:
+        return Text("No events to display.", style="dim") if RICH_AVAILABLE else "No events to display."
+
+    columns = ["Day", "Phase", "Kind", "From", "To", "SKU/Instr", "Qty", "Amount", "Notes"]
+    # Drop phase marker events; preserve original insertion (chronological) order
+    evs = [e for e in events if e.get("kind") not in ("PhaseA", "PhaseB", "PhaseC")]
+
+    if RICH_AVAILABLE:
+        from rich.table import Table as RichTable
+        from rich import box as rich_box
+        table = RichTable(title="Events", box=rich_box.HEAVY, show_lines=True)
+        table.add_column("Day", justify="right")
+        table.add_column("Phase", justify="left")
+        table.add_column("Kind", justify="left")
+        table.add_column("From", justify="left")
+        table.add_column("To", justify="left")
+        table.add_column("SKU/Instr", justify="left")
+        table.add_column("Qty", justify="right")
+        table.add_column("Amount", justify="right")
+        table.add_column("Notes", justify="left")
+        try:
+            table.row_styles = ["on #ffffff", "on #e6f2ff"]
+        except Exception:
+            pass
+
+        for e in evs:
+            kind = str(e.get("kind", ""))
+            if kind in ("CashDeposited", "CashWithdrawn"):
+                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+                frm = e.get("payer")
+                to = e.get("payee")
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                frm = e.get("debtor_bank")
+                to = e.get("creditor_bank")
+            elif kind == "StockCreated":
+                frm = e.get("owner")
+                to = None
+            else:
+                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+                to = e.get("to") or e.get("creditor") or e.get("payee")
+            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+            qty = e.get("qty") or e.get("quantity") or "—"
+            amt = e.get("amount") or "—"
+            notes = ""
+            if kind == "ClientPayment":
+                notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
+                if 'due_day' in e:
+                    notes += f"; due {e.get('due_day')}"
+
+            table.add_row(
+                str(e.get("day", "—")),
+                str(e.get("phase", "—")),
+                kind,
+                str(frm or "—"),
+                str(to or "—"),
+                str(sku),
+                str(qty),
+                str(amt),
+                notes,
+            )
+        return table
+    else:
+        header = " | ".join(columns)
+        lines = [header, "-" * len(header)]
+        for e in evs:
+            kind = str(e.get("kind", ""))
+            if kind in ("CashDeposited", "CashWithdrawn"):
+                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+                frm = e.get("payer")
+                to = e.get("payee")
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                frm = e.get("debtor_bank")
+                to = e.get("creditor_bank")
+            elif kind == "StockCreated":
+                frm = e.get("owner")
+                to = None
+            else:
+                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+                to = e.get("to") or e.get("creditor") or e.get("payee")
+            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+            qty = e.get("qty") or e.get("quantity") or "—"
+            amt = e.get("amount") or "—"
+            notes = ""
+            if kind == "ClientPayment":
+                notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
+                if 'due_day' in e:
+                    notes += f"; due {e.get('due_day')}"
+            row = [
+                str(e.get("day", "—")),
+                str(e.get("phase", "—")),
+                kind,
+                str(frm or "—"),
+                str(to or "—"),
+                str(sku),
+                str(qty),
+                str(amt),
+                notes,
+            ]
+            lines.append(" | ".join(row))
+        return "\n".join(lines)
+
+
+def display_events_tables_by_phase_renderables(events: List[Dict[str, Any]], day: Optional[int] = None) -> List[RenderableType]:
+    """Return three event tables (A, B, C) using phase markers as section dividers.
+
+    - Excludes PhaseA/PhaseB/PhaseC events from rows.
+    - Titles indicate the phase and optional day.
+    """
+    if RICH_AVAILABLE:
+        from rich.table import Table as RichTable
+        from rich import box as rich_box
+        from rich.text import Text as RichText
+    
+    # If these are setup-phase events (day 0), render as a single "Setup" table
+    if any(e.get("phase") == "setup" for e in events):
+        return _build_single_setup_table(events, day)
+
+    # Group by phase markers in original order
+    buckets = {"A": [], "B": [], "C": []}
+    current = "A"
+    for e in events:
+        kind = e.get("kind")
+        if kind == "PhaseA":
+            current = "A"; continue
+        if kind == "PhaseB":
+            current = "B"; continue
+        if kind == "PhaseC":
+            current = "C"; continue
+        buckets[current].append(e)
+
+    def build_table(phase: str, rows: List[Dict[str, Any]]):
+        title_parts = {
+            "A": "Phase A — Start of day",
+            "B": "Phase B — Settlement",
+            "C": "Phase C — Clearing"
+        }
+        title = title_parts.get(phase, f"Phase {phase}")
+        if day is not None:
+            title = f"{title} (Day {day})"
+
+        if not RICH_AVAILABLE:
+            # Simple text fallback
+            header = ["Kind", "From", "To", "SKU/Instr", "Qty", "Amount", "Notes"]
+            out = [f"{title}", " | ".join(header), "-" * 80]
+            for e in rows:
+                kind = str(e.get("kind", ""))
+                # map from/to like in table renderers
+                if kind in ("CashDeposited", "CashWithdrawn"):
+                    frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+                    to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+                elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+                    frm = e.get("payer"); to = e.get("payee")
+                elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                    frm = e.get("debtor_bank"); to = e.get("creditor_bank")
+                elif kind == "StockCreated":
+                    frm = e.get("owner"); to = None
+                else:
+                    frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+                    to = e.get("to") or e.get("creditor") or e.get("payee")
+                sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+                qty = e.get("qty") or e.get("quantity") or "—"
+                amt = e.get("amount") or "—"
+                notes = ""
+                if kind == "ClientPayment":
+                    notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
+                elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                    notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
+                    if 'due_day' in e:
+                        notes += f"; due {e.get('due_day')}"
+                out.append(" | ".join(map(str, [kind, frm or "—", to or "—", sku, qty, amt, notes])))
+            return "\n".join(out)
+
+        # Rich table
+        table = RichTable(title=title, box=rich_box.HEAVY, show_lines=True)
+        table.add_column("Kind", justify="left")
+        table.add_column("From", justify="left")
+        table.add_column("To", justify="left")
+        table.add_column("SKU/Instr", justify="left")
+        table.add_column("Qty", justify="right")
+        table.add_column("Amount", justify="right")
+        table.add_column("Notes", justify="left")
+        try:
+            table.row_styles = ["on #ffffff", "on #e6f2ff"] if phase != "C" else ["on #ffffff", "on #fff2cc"]
+        except Exception:
+            pass
+        for e in rows:
+            kind = str(e.get("kind", ""))
+            if kind in ("CashDeposited", "CashWithdrawn"):
+                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+                frm = e.get("payer"); to = e.get("payee")
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                frm = e.get("debtor_bank"); to = e.get("creditor_bank")
+            elif kind == "StockCreated":
+                frm = e.get("owner"); to = None
+            else:
+                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+                to = e.get("to") or e.get("creditor") or e.get("payee")
+            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+            qty = e.get("qty") or e.get("quantity") or "—"
+            amt = e.get("amount") or "—"
+            notes = ""
+            if kind == "ClientPayment":
+                notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
+                if 'due_day' in e:
+                    notes += f"; due {e.get('due_day')}"
+            table.add_row(kind, str(frm or "—"), str(to or "—"), str(sku), str(qty), str(amt), notes)
+        return table
+
+    renderables: List[RenderableType] = []
+    # Phase A is intentionally empty for now; only include if it has rows
+    if buckets["A"]:
+        renderables.append(build_table("A", buckets["A"]))
+    # Phase B: settlements
+    renderables.append(build_table("B", buckets["B"]))
+    # Phase C: clearing
+    renderables.append(build_table("C", buckets["C"]))
+    return renderables
+
+
+def _build_single_setup_table(events: List[Dict[str, Any]], day: Optional[int] = None) -> List[RenderableType]:
+    """Render a single setup table for setup-phase events (day 0)."""
+    rows = [e for e in events if e.get("phase") == "setup" and e.get("kind") not in ("PhaseA","PhaseB","PhaseC")]
+    title = "Setup"
+    if day is not None:
+        title = f"{title} (Day {day})"
+    if not RICH_AVAILABLE:
+        header = ["Kind", "From", "To", "SKU/Instr", "Qty", "Amount", "Notes"]
+        out = [title, " | ".join(header), "-" * 80]
+        for e in rows:
+            kind = str(e.get("kind", ""))
+            if kind in ("CashDeposited", "CashWithdrawn"):
+                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+                frm = e.get("payer"); to = e.get("payee")
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                frm = e.get("debtor_bank"); to = e.get("creditor_bank")
+            elif kind == "StockCreated":
+                frm = e.get("owner"); to = None
+            else:
+                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+                to = e.get("to") or e.get("creditor") or e.get("payee")
+            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+            qty = e.get("qty") or e.get("quantity") or "—"
+            amt = e.get("amount") or "—"
+            notes = ""
+            out.append(" | ".join(map(str, [kind, frm or "—", to or "—", sku, qty, amt, notes])))
+        return ["\n".join(out)]
+
+    from rich.table import Table as RichTable
+    from rich import box as rich_box
+    table = RichTable(title=title, box=rich_box.HEAVY, show_lines=True)
+    table.add_column("Kind", justify="left")
+    table.add_column("From", justify="left")
+    table.add_column("To", justify="left")
+    table.add_column("SKU/Instr", justify="left")
+    table.add_column("Qty", justify="right")
+    table.add_column("Amount", justify="right")
+    table.add_column("Notes", justify="left")
+    try:
+        table.row_styles = ["on #ffffff", "on #e6f2ff"]
+    except Exception:
+        pass
+    for e in rows:
+        kind = str(e.get("kind", ""))
+        if kind in ("CashDeposited", "CashWithdrawn"):
+            frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+            to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+        elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+            frm = e.get("payer"); to = e.get("payee")
+        elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+            frm = e.get("debtor_bank"); to = e.get("creditor_bank")
+        elif kind == "StockCreated":
+            frm = e.get("owner"); to = None
+        else:
+            frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+            to = e.get("to") or e.get("creditor") or e.get("payee")
+        sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+        qty = e.get("qty") or e.get("quantity") or "—"
+        amt = e.get("amount") or "—"
+        notes = ""
+        table.add_row(kind, str(frm or "—"), str(to or "—"), str(sku), str(qty), str(amt), notes)
+    return [table]
+
+
+# ============================================================================
+# T-account builder and renderers (detailed with Qty/Value/Counterparty/Maturity)
+# ============================================================================
+
+@dataclass
+class BalanceRow:
+    name: str
+    quantity: Optional[int]
+    value_minor: Optional[int]
+    counterparty_name: Optional[str]
+    maturity: Optional[str]
+
+
+@dataclass
+class TAccount:
+    assets: List[BalanceRow]
+    liabilities: List[BalanceRow]
+
+
+def _format_agent(agent_id: str, system: System) -> str:
+    """Format agent as 'Name [ID]' if available."""
+    ag = system.state.agents.get(agent_id)
+    if ag is None:
+        return agent_id
+    if ag.name and ag.name != agent_id:
+        return f"{ag.name} [{agent_id}]"
+    return agent_id
+
+
+def build_t_account_rows(system: System, agent_id: str) -> TAccount:
+    """Build detailed T-account rows from system state for an agent."""
+    assets: List[BalanceRow] = []
+    liabilities: List[BalanceRow] = []
+
+    agent = system.state.agents[agent_id]
+
+    # Inventory (stocks owned) as assets
+    for stock_id in agent.stock_ids:
+        lot = system.state.stocks[stock_id]
+        try:
+            value_minor = int(lot.value)
+        except Exception:
+            # Fallback for Decimals
+            value_minor = int(float(lot.value))
+        assets.append(BalanceRow(
+            name=f"{lot.sku}",
+            quantity=int(lot.quantity),
+            value_minor=value_minor,
+            counterparty_name="—",
+            maturity="—",
+        ))
+
+    # Contracts as assets (held by agent)
+    for cid in agent.asset_ids:
+        c = system.state.contracts[cid]
+        if c.kind == "delivery_obligation":
+            # Receivable goods
+            # valued_amount is Decimal
+            valued = getattr(c, 'valued_amount', None)
+            try:
+                valued_minor = int(valued) if valued is not None else None
+            except Exception:
+                valued_minor = int(float(valued)) if valued is not None else None
+            counterparty = _format_agent(c.liability_issuer_id, system)
+            maturity = f"Day {getattr(c, 'due_day', '—')}"
+            assets.append(BalanceRow(
+                name=f"{getattr(c, 'sku', 'goods')} receivable",
+                quantity=int(c.amount) if c.amount is not None else None,
+                value_minor=valued_minor,
+                counterparty_name=counterparty,
+                maturity=maturity,
+            ))
+        else:
+            # Financial assets
+            counterparty = _format_agent(c.liability_issuer_id, system)
+            maturity = "on-demand" if c.kind in ("cash", "bank_deposit", "reserve_deposit") else (
+                f"Day {getattr(c, 'due_day', '—')}" if hasattr(c, 'due_day') else "—"
+            )
+            assets.append(BalanceRow(
+                name=f"{c.kind}",
+                quantity=None,
+                value_minor=int(c.amount) if c.amount is not None else None,
+                counterparty_name=counterparty if c.kind != "cash" else "—",
+                maturity=maturity,
+            ))
+
+    # Contracts as liabilities (issued by agent)
+    for cid in agent.liability_ids:
+        c = system.state.contracts[cid]
+        if c.kind == "delivery_obligation":
+            valued = getattr(c, 'valued_amount', None)
+            try:
+                valued_minor = int(valued) if valued is not None else None
+            except Exception:
+                valued_minor = int(float(valued)) if valued is not None else None
+            counterparty = _format_agent(c.asset_holder_id, system)
+            maturity = f"Day {getattr(c, 'due_day', '—')}"
+            liabilities.append(BalanceRow(
+                name=f"{getattr(c, 'sku', 'goods')} obligation",
+                quantity=int(c.amount) if c.amount is not None else None,
+                value_minor=valued_minor,
+                counterparty_name=counterparty,
+                maturity=maturity,
+            ))
+        else:
+            counterparty = _format_agent(c.asset_holder_id, system)
+            maturity = "on-demand" if c.kind in ("cash", "bank_deposit", "reserve_deposit") else (
+                f"Day {getattr(c, 'due_day', '—')}" if hasattr(c, 'due_day') else "—"
+            )
+            liabilities.append(BalanceRow(
+                name=f"{c.kind}",
+                quantity=None,
+                value_minor=int(c.amount) if c.amount is not None else None,
+                counterparty_name=counterparty,
+                maturity=maturity,
+            ))
+
+    # Ordering within each side
+    def sort_key_assets(row: BalanceRow):
+        # Inventory first (has quantity and counterparty '—' and maturity '—'),
+        # then receivables (name ends with 'receivable'), then financial by kind order
+        financial_order = {"cash": 0, "bank_deposit": 1, "reserve_deposit": 2, "payable": 3}
+        if row.quantity is not None and row.counterparty_name == "—":
+            return (0, 0, row.name or "")
+        if row.name.endswith("receivable"):
+            # try to parse maturity day number
+            mat = row.maturity or ""
+            day_num = 10**9
+            if isinstance(mat, str) and mat.startswith("Day "):
+                try:
+                    day_num = int(mat.split(" ")[1])
+                except Exception:
+                    pass
+            return (1, day_num, row.name)
+        return (2, financial_order.get(row.name, 99), row.name)
+
+    def sort_key_liabs(row: BalanceRow):
+        # Obligations (name ends with 'obligation') by due day, then financial by order
+        financial_order = {"payable": 0, "bank_deposit": 1, "reserve_deposit": 2, "cash": 3}
+        if row.name.endswith("obligation"):
+            mat = row.maturity or ""
+            day_num = 10**9
+            if isinstance(mat, str) and mat.startswith("Day "):
+                try:
+                    day_num = int(mat.split(" ")[1])
+                except Exception:
+                    pass
+            return (0, day_num, row.name)
+        return (1, financial_order.get(row.name, 99), row.name)
+
+    assets.sort(key=sort_key_assets)
+    liabilities.sort(key=sort_key_liabs)
+
+    return TAccount(assets=assets, liabilities=liabilities)
+
+
+def display_agent_t_account(system: System, agent_id: str, format: str = 'rich') -> None:
+    """Display detailed T-account table for an agent."""
+    if format == 'rich' and not RICH_AVAILABLE:
+        format = 'simple'
+    if format == 'rich':
+        table = display_agent_t_account_renderable(system, agent_id)
+        Console().print(table)
+    else:
+        # Simple ASCII fallback
+        acct = build_t_account_rows(system, agent_id)
+        columns = ["Name", "Qty", "Value", "Counterparty", "Maturity"]
+        # Prepare rows
+        max_rows = max(len(acct.assets), len(acct.liabilities))
+        header = " | ".join([f"Assets:{c}" for c in columns] + [f"Liabilities:{c}" for c in columns])
+        print(header)
+        print("-" * len(header))
+        for i in range(max_rows):
+            a = acct.assets[i] if i < len(acct.assets) else None
+            l = acct.liabilities[i] if i < len(acct.liabilities) else None
+            def fmt_qty(r): return f"{r.quantity:,}" if (r and r.quantity is not None) else "—"
+            def fmt_val(r):
+                if not r or r.value_minor is None: return "—"
+                return _format_currency(int(r.value_minor))
+            def cells(r):
+                if not r: return ("", "", "", "", "")
+                return (r.name, fmt_qty(r), fmt_val(r), r.counterparty_name or "—", r.maturity or "—")
+            row = list(cells(a) + cells(l))
+            print(" | ".join(str(x) for x in row))
+
+
+def display_agent_t_account_renderable(system: System, agent_id: str) -> RenderableType:
+    """Return a Rich Table renderable for detailed T-account."""
+    if not RICH_AVAILABLE:
+        # Fallback to string
+        acct = build_t_account_rows(system, agent_id)
+        lines = []
+        columns = ["Name", "Qty", "Value", "Counterparty", "Maturity"]
+        lines.append(" | ".join([f"Assets:{c}" for c in columns] + [f"Liabilities:{c}" for c in columns]))
+        max_rows = max(len(acct.assets), len(acct.liabilities))
+        for i in range(max_rows):
+            a = acct.assets[i] if i < len(acct.assets) else None
+            l = acct.liabilities[i] if i < len(acct.liabilities) else None
+            def fmt_qty(r): return f"{r.quantity:,}" if (r and r.quantity is not None) else "—"
+            def fmt_val(r):
+                if not r or r.value_minor is None: return "—"
+                return _format_currency(int(r.value_minor))
+            def cells(r):
+                if not r: return ("", "", "", "", "")
+                return (r.name, fmt_qty(r), fmt_val(r), r.counterparty_name or "—", r.maturity or "—")
+            row = list(cells(a) + cells(l))
+            lines.append(" | ".join(str(x) for x in row))
+        return "\n".join(lines)
+
+    # Rich path
+    from rich.table import Table as RichTable
+    from rich import box as rich_box
+    acct = build_t_account_rows(system, agent_id)
+
+    ag = system.state.agents[agent_id]
+    title = f"{ag.name} [{agent_id}] ({ag.kind})" if ag.name and ag.name != agent_id else f"{agent_id} ({ag.kind})"
+
+    table = RichTable(title=title, box=rich_box.HEAVY, title_style="bold cyan", show_lines=True)
+    # Add 10 columns: 5 for assets, 5 for liabilities
+    table.add_column("Name", style="green", justify="left")
+    table.add_column("Qty", style="green", justify="right")
+    table.add_column("Value", style="green", justify="right")
+    table.add_column("Counterparty", style="green", justify="left")
+    table.add_column("Maturity", style="green", justify="right")
+    table.add_column("Name", style="red", justify="left")
+    table.add_column("Qty", style="red", justify="right")
+    table.add_column("Value", style="red", justify="right")
+    table.add_column("Counterparty", style="red", justify="left")
+    table.add_column("Maturity", style="red", justify="right")
+    try:
+        table.row_styles = ["on #ffffff", "on #fff2cc"]
+    except Exception:
+        pass
+
+    def fmt_qty(r): return f"{r.quantity:,}" if (r and r.quantity is not None) else "—"
+    def fmt_val(r):
+        if not r or r.value_minor is None: return "—"
+        return _format_currency(int(r.value_minor))
+    def cells(r):
+        if not r: return ("", "", "", "", "")
+        return (r.name, fmt_qty(r), fmt_val(r), r.counterparty_name or "—", r.maturity or "—")
+
+    max_rows = max(len(acct.assets), len(acct.liabilities))
+    for i in range(max_rows):
+        a = acct.assets[i] if i < len(acct.assets) else None
+        l = acct.liabilities[i] if i < len(acct.liabilities) else None
+        table.add_row(*cells(a), *cells(l))
+    return table
 
 
 def _print(text: str, console: Optional['Console'] = None) -> None:

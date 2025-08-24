@@ -15,7 +15,10 @@ from bilancio.analysis.visualization import (
     display_agent_balance_table_renderable,
     display_multiple_agent_balances_renderable,
     display_events_renderable,
-    display_events_for_day_renderable
+    display_events_for_day_renderable,
+    display_events_table_renderable,
+    display_agent_t_account_renderable,
+    display_events_tables_by_phase_renderables
 )
 from bilancio.analysis.balances import system_trial_balance
 from bilancio.core.errors import DefaultError, ValidationError
@@ -95,7 +98,8 @@ def show_day_summary_renderable(
     system: System,
     agent_ids: Optional[List[str]] = None,
     event_mode: str = "detailed",
-    day: Optional[int] = None
+    day: Optional[int] = None,
+    t_account: bool = False
 ) -> List[RenderableType]:
     """Return renderables for a simulation day summary.
     
@@ -116,7 +120,11 @@ def show_day_summary_renderable(
         events_for_day = [e for e in system.state.events if e.get("day") == day]
         if events_for_day:
             renderables.append(Text("\nEvents:", style="bold"))
-            if event_mode == "detailed":
+            if event_mode == "table":
+                # Show 3 separate tables by phase (A/B/C)
+                phase_tables = display_events_tables_by_phase_renderables(events_for_day, day=day)
+                renderables.extend(phase_tables)
+            elif event_mode == "detailed":
                 event_renderables = display_events_renderable(events_for_day, format="detailed")
                 renderables.extend(event_renderables)
             else:
@@ -125,27 +133,53 @@ def show_day_summary_renderable(
                 for event in events_for_day:
                     event_type = event.get("kind", "Unknown")
                     event_counts[event_type] = event_counts.get(event_type, 0) + 1
-                
                 for event_type, count in sorted(event_counts.items()):
                     renderables.append(Text(f"  • {event_type}: {count}"))
     else:
-        # Show all recent events
+        # Show all recent events (initial view, typically setup/day 0)
         if system.state.events:
             renderables.append(Text("\nEvents:", style="bold"))
-            event_renderables = display_events_renderable(system.state.events, format="detailed")
-            renderables.extend(event_renderables)
+            if event_mode == "table":
+                # Use phase-separated tables even in the initial no-day view.
+                # If these are setup events, this will render a single "Setup" table.
+                # Otherwise, it renders Phase B/C tables for the current day.
+                # Determine a representative day to label (default to 0 if any setup events exist).
+                rep_day = 0 if any(e.get("phase") == "setup" for e in system.state.events) else system.state.day
+                phase_tables = display_events_tables_by_phase_renderables(system.state.events, day=rep_day)
+                renderables.extend(phase_tables)
+            elif event_mode == "detailed":
+                event_renderables = display_events_renderable(system.state.events, format="detailed")
+                renderables.extend(event_renderables)
+            else:
+                # Summary mode
+                event_counts = {}
+                for event in system.state.events:
+                    event_type = event.get("kind", "Unknown")
+                    event_counts[event_type] = event_counts.get(event_type, 0) + 1
+                for event_type, count in sorted(event_counts.items()):
+                    renderables.append(Text(f"  • {event_type}: {count}"))
     
     # Show balances
     if agent_ids:
         renderables.append(Text("\nBalances:", style="bold"))
         if len(agent_ids) == 1:
             # Single agent - show detailed balance
-            balance_renderable = display_agent_balance_table_renderable(system, agent_ids[0], format="rich")
+            if t_account:
+                balance_renderable = display_agent_t_account_renderable(system, agent_ids[0])
+            else:
+                balance_renderable = display_agent_balance_table_renderable(system, agent_ids[0], format="rich")
             renderables.append(balance_renderable)
         else:
-            # Multiple agents - show side by side
-            balance_renderable = display_multiple_agent_balances_renderable(system, agent_ids, format="rich")
-            renderables.append(balance_renderable)
+            # Multiple agents
+            if t_account:
+                # Render one T-account per agent, stacked for readability
+                for aid in agent_ids:
+                    renderables.append(display_agent_t_account_renderable(system, aid))
+                    renderables.append(Text(""))  # spacing
+            else:
+                # Show compact legacy tables side by side
+                balance_renderable = display_multiple_agent_balances_renderable(system, agent_ids, format="rich")
+                renderables.append(balance_renderable)
     else:
         # Show system trial balance
         renderables.append(Text("\nSystem Trial Balance:", style="bold"))
@@ -178,7 +212,8 @@ def show_day_summary(
     system: System,
     agent_ids: Optional[List[str]] = None,
     event_mode: str = "detailed",
-    day: Optional[int] = None
+    day: Optional[int] = None,
+    t_account: bool = False
 ) -> None:
     """Display summary for a simulation day.
     
@@ -188,7 +223,7 @@ def show_day_summary(
         event_mode: "summary" or "detailed"
         day: Day number to display events for (None for all)
     """
-    renderables = show_day_summary_renderable(system, agent_ids, event_mode, day)
+    renderables = show_day_summary_renderable(system, agent_ids, event_mode, day, t_account)
     for renderable in renderables:
         console.print(renderable)
 
