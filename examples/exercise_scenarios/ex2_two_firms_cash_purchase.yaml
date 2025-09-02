@@ -1,0 +1,32 @@
+version: 1
+name: "Ex2: Two firms, cash purchase — day 1"
+description: "Firm 1 buys goods worth 100 from Firm 2 for cash. Delivery and payment occur on day 1."
+
+agents:
+  - id: CB
+    kind: central_bank
+    name: Central Bank
+  - id: F1
+    kind: firm
+    name: Firm One
+  - id: F2
+    kind: firm
+    name: Firm Two
+
+initial_actions:
+  # Endowments
+  - mint_cash: {to: F1, amount: 100}
+  - create_stock: {owner: F2, sku: GOODS, quantity: 1, unit_price: "100"}
+
+  # Day-1 settlement via matched promises
+  - create_delivery_obligation: {from: F2, to: F1, sku: GOODS, quantity: 1, unit_price: "100", due_day: 1}
+  - create_payable: {from: F1, to: F2, amount: 100, due_day: 1}
+
+run:
+  mode: until_stable
+  max_days: 5
+  quiet_days: 2
+  show:
+    balances: [CB, F1, F2]
+    events: detailed
+

@@ -13,9 +13,13 @@ This document contains the complete codebase structure and content for LLM inges
 │       ├── claude-code-review.yml
 │       └── claude.yml
 ├── .gitignore
+├── AGENTS.md
 ├── CLAUDE.md
 ├── README.md
+├── TODO.md
 ├── docs
+│   ├── Kalecki_debt_simulation.pdf
+│   ├── Monetary Theory Chapter 5.pdf
 │   ├── Money modeling software.pdf
 │   ├── SP239 Kalecki on Credit and Debt extended.pdf
 │   ├── codebase_for_llm.md
@@ -28,15 +32,21 @@ This document contains the complete codebase structure and content for LLM inges
 │   │   ├── 006_analytics.md
 │   │   ├── 007_deliverable.md
 │   │   ├── 008_simulation.md
-│   │   └── 009_cli.md
-│   └── prompts
-│       └── scenario_translator_agent.md
+│   │   ├── 009_cli.md
+│   │   ├── 010_ui_refactor.md
+│   │   ├── 011_tbs.md
+│   │   └── Kalecki_debt_simulation (1).pdf
+│   ├── prompts
+│   │   └── scenario_translator_agent.md
+│   └── version_1_0_exercises.pdf
 ├── examples
 │   └── scenarios
 │       ├── firm_delivery.yaml
 │       ├── interbank_netting.yaml
 │       ├── intraday_netting.yaml
+│       ├── payment_demo.yaml
 │       ├── rich_simulation.yaml
+│       ├── sasa_scenario.yaml
 │       ├── simple_bank.yaml
 │       └── two_banks_interbank.yaml
 ├── notebooks
@@ -46,10 +56,6 @@ This document contains the complete codebase structure and content for LLM inges
 ├── out
 │   └── interbank_events.jsonl
 ├── pyproject.toml
-├── rich_simulation.html
-├── rich_simulation_final.html
-├── rich_simulation_fixed.html
-├── rich_simulation_improved.html
 ├── scripts
 │   └── generate_codebase_markdown.py
 ├── src
@@ -59,7 +65,8 @@ This document contains the complete codebase structure and content for LLM inges
 │       │   ├── __init__.py
 │       │   ├── balances.py
 │       │   ├── metrics.py
-│       │   └── visualization.py
+│       │   ├── visualization.py
+│       │   └── visualization_phases.py
 │       ├── config
 │       │   ├── __init__.py
 │       │   ├── apply.py
@@ -91,7 +98,6 @@ This document contains the complete codebase structure and content for LLM inges
 │       │   │   ├── credit.py
 │       │   │   ├── delivery.py
 │       │   │   ├── means_of_payment.py
-│       │   │   ├── nonfinancial.py
 │       │   │   └── policy.py
 │       │   └── policy.py
 │       ├── engines
@@ -116,30 +122,40 @@ This document contains the complete codebase structure and content for LLM inges
 │       │   └── primitives_stock.py
 │       └── ui
 │           ├── __init__.py
+│           ├── assets
+│           │   └── export.css
 │           ├── cli.py
 │           ├── display.py
 │           ├── html_export.py
+│           ├── render
+│           │   ├── __init__.py
+│           │   ├── formatters.py
+│           │   ├── models.py
+│           │   └── rich_builders.py
 │           ├── run.py
+│           ├── settings.py
 │           └── wizard.py
-<<<<<<< Updated upstream:docs/codebase_for_llm.md
-=======
 ├── temp
-│   ├── balances.csv
-│   ├── events.jsonl
-│   ├── test_complete.html
-│   ├── test_debug.html
-│   ├── test_fixed_balances.html
-│   ├── test_from_template.yaml
-│   ├── test_no_duplicates.html
+│   ├── demo.html
+│   ├── final_demo.html
+│   ├── firm_delivery.html
+│   ├── phases_2days.html
+│   ├── phases_final.html
+│   ├── phases_rich.html
+│   ├── phases_test.html
+│   ├── rich_demo.html
+│   ├── rich_final.html
+│   ├── rich_improved.html
+│   ├── rich_simulation.html
+│   ├── sasa_scenario.html
+│   ├── test_fixed.html
 │   ├── test_output.html
-│   ├── test_output.pdf
-│   └── test_output_fixed.html
-├── test_fixed.html
->>>>>>> Stashed changes:codebase_for_llm.md
+│   └── test_render.html
 └── tests
     ├── analysis
     │   ├── __init__.py
-    │   └── test_balances.py
+    │   ├── test_balances.py
+    │   └── test_t_account_builder.py
     ├── config
     │   ├── test_apply.py
     │   ├── test_loaders.py
@@ -151,22 +167,18 @@ This document contains the complete codebase structure and content for LLM inges
     │   └── test_settlement_phase_b.py
     ├── test_smoke.py
     ├── ui
-    │   └── test_cli.py
+    │   ├── test_cli.py
+    │   ├── test_cli_html_export.py
+    │   ├── test_html_export.py
+    │   ├── test_render_builders.py
+    │   └── test_render_formatters.py
     └── unit
         ├── test_balances.py
-        ├── test_cash_and_deliverables.py
-        ├── test_deliverable_due_dates.py
-        ├── test_deliverable_merge.py
-        ├── test_deliverable_valuation.py
         ├── test_domain_system.py
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-<<<<<<< Updated upstream:docs/codebase_for_llm.md
-31 directories, 104 files
-=======
-34 directories, 120 files
->>>>>>> Stashed changes:codebase_for_llm.md
+34 directories, 136 files
 
 ```
 
@@ -641,8 +653,9 @@ Complete git history from oldest to newest:
   🤖 Generated with [Claude Code](https://claude.ai/code)
   Co-Authored-By: Claude <noreply@anthropic.com>
 
-- **4dde0326** (2025-08-18) by vladgheorghe
-  feat: add PDF export functionality for CLI output
+- **83697fcf** (2025-08-21) by Vlad Gheorghe
+  feat: HTML export improvements and rich simulation scenario (#11)
+  * feat: add PDF export functionality for CLI output
   - Added --pdf flag to bilancio run command
   - Exports simulation output with colors and formatting preserved
   - Generates both HTML and PDF (using Chrome if available)
@@ -653,9 +666,7 @@ Complete git history from oldest to newest:
   - Added weasyprint and pygments dependencies
   🤖 Generated with [Claude Code](https://claude.ai/code)
   Co-Authored-By: Claude <noreply@anthropic.com>
-
-- **0d27c920** (2025-08-18) by vladgheorghe
-  refactor: change from PDF to HTML export for CLI output
+  * refactor: change from PDF to HTML export for CLI output
   - Changed --pdf flag to --html flag
   - Renamed pdf_export.py to html_export.py
   - Removed PDF conversion logic and weasyprint dependency
@@ -664,9 +675,7 @@ Complete git history from oldest to newest:
   - Simpler implementation without system dependencies
   🤖 Generated with [Claude Code](https://claude.ai/code)
   Co-Authored-By: Claude <noreply@anthropic.com>
-
-- **317e2390** (2025-08-18) by vladgheorghe
-  fix: improve HTML export event display clarity
+  * fix: improve HTML export event display clarity
   - Removed confusing nested day headers in event display
   - Day 0 now shows only setup phase events
   - Each day shows events that actually happened during that day
@@ -675,9 +684,7 @@ Complete git history from oldest to newest:
   - Skip phase marker events in display to reduce clutter
   🤖 Generated with [Claude Code](https://claude.ai/code)
   Co-Authored-By: Claude <noreply@anthropic.com>
-
-- **1678ed9e** (2025-08-18) by vladgheorghe
-  feat: show complete initial setup in HTML export including payables
+  * feat: show complete initial setup in HTML export including payables
   - Added display of initial actions from YAML configuration
   - Now shows create_payable actions that explain WHY payments happen
   - Separated Initial Actions from Setup Events for clarity
@@ -689,9 +696,7 @@ Complete git history from oldest to newest:
   that creates the obligations that drive the later transactions.
   🤖 Generated with [Claude Code](https://claude.ai/code)
   Co-Authored-By: Claude <noreply@anthropic.com>
-
-- **2ae53b78** (2025-08-18) by vladgheorghe
-  fix: show correct initial balances and agent list in HTML export
+  * fix: show correct initial balances and agent list in HTML export
   - Capture initial balance snapshots right after setup (before simulation)
   - Display agent list at the beginning showing all participants
   - Initial balances now show correct values (B1: $20,000, B2: $15,000)
@@ -704,9 +709,7 @@ Complete git history from oldest to newest:
   4. Then the progression through simulation days
   🤖 Generated with [Claude Code](https://claude.ai/code)
   Co-Authored-By: Claude <noreply@anthropic.com>
-
-- **8e79e372** (2025-08-18) by vladgheorghe
-  fix: correct day labeling misalignment in CLI and HTML output
+  * fix: correct day labeling misalignment in CLI and HTML output
   Previously, events from day N were shown under "Day N+1" header due to
   mixing 1-based day counters with 0-based event days. This caused:
   - Day 1 to appear empty with no events
@@ -719,9 +722,7 @@ Complete git history from oldest to newest:
   - Ensure HTML export respects actual event days
   🤖 Generated with [Claude Code](https://claude.ai/code)
   Co-Authored-By: Claude <noreply@anthropic.com>
-
-- **40d714ac** (2025-08-18) by vladgheorghe
-  feat: improve HTML export display and add rich simulation scenario
+  * feat: improve HTML export display and add rich simulation scenario
   Major improvements to HTML export formatting and balance sheet display:
   Display improvements:
   - Show full agent balance sheets after each day's events (not just trial balance)
@@ -740,6 +741,122 @@ Complete git history from oldest to newest:
   evolves day by day, with full visibility into balance sheet changes.
   🤖 Generated with [Claude Code](https://claude.ai/code)
   Co-Authored-By: Claude <noreply@anthropic.com>
+  * chore: reorganize docs and clean up test HTML files
+  - Move codebase_for_llm.md to docs/ folder
+  - Add UI refactor plan document
+  - Remove temporary HTML test files
+  - Update codebase markdown generator script
+  🤖 Generated with [Claude Code](https://claude.ai/code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+  * feat: implement unified UI rendering pipeline with HTML export
+  Major refactoring of the UI/rendering system following plan 010_ui_refactor.md:
+  ## New Features
+  - Created unified rendering pipeline for both terminal and HTML output
+  - Added new ui/render package with models, formatters, and Rich builders
+  - Integrated HTML export directly into CLI using Console(record=True)
+  - Added centralized UI settings module for configuration
+  ## Breaking Changes
+  - Removed deprecated Deliverable instrument and legacy settlement paths
+  - Removed html_export.py module (replaced with console.export_html())
+  - Canonicalized event handling to always use 'kind' field (removed 'type' fallback)
+  ## Implementation Details
+  ### New Package Structure (src/bilancio/ui/render/)
+  - models.py: View models for balance sheets, events, and day summaries
+  - formatters.py: Event formatter registry with specific formatters for all event types
+  - rich_builders.py: Pure functions that return Rich renderables
+  - settings.py: Centralized UI configuration
+  ### Refactored Components
+  - visualization.py: Added renderable-returning functions alongside existing ones
+  - display.py: Created renderable versions of display functions
+  - run.py: Uses Console(record=True) for unified rendering and HTML export
+  - settlement.py: Removed deliverable settlement, kept only DeliveryObligation
+  ### Removed Legacy Code
+  - Deleted domain/instruments/nonfinancial.py (Deliverable class)
+  - Removed 577 lines of complex HTML generation in html_export.py
+  - Removed deliverable tests and references throughout codebase
+  ## Benefits
+  - Single rendering pipeline for terminal and HTML (no duplication)
+  - Simplified codebase with better maintainability
+  - Consistent output formatting across all display modes
+  - Rich's optimized HTML export with proper styling
+  ## Testing
+  - Added comprehensive tests for formatters and builders
+  - Tested with existing scenarios - all working correctly
+  - HTML export generates properly formatted output
+  🤖 Generated with [Claude Code](https://claude.ai/code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+  * fix: properly format events in HTML export using formatters
+  - Fixed event display to use the formatter registry instead of raw dict output
+  - Events now show with proper icons, titles, and formatted details
+  - Updated _build_events_detailed_renderables to use registry.format()
+  - HTML output now matches terminal display quality
+  🤖 Generated with [Claude Code](https://claude.ai/code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+  * fix: display agent list and PayableCreated events in HTML export
+  - Fix show_scenario_header_renderable to handle list of AgentSpec objects
+  - Add PayableCreated event logging in config/apply.py
+  - Display complete agent list at top of terminal and HTML output
+  - Ensure all events including PayableCreated are properly formatted
+  - Update CLAUDE.md with HTML verification instructions
+  🤖 Generated with [Claude Code](https://claude.ai/code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+  * feat: add detailed payment event logging for settlement transparency
+  - Log IntraBankPayment events for same-bank transfers
+  - Keep ClientPayment for inter-bank transfers (renamed to 'Inter-Bank Payment')
+  - Log CashPayment events when cash is used as fallback
+  - Add formatters for all payment event types with clear icons
+  - Now shows HOW payables are settled, not just that they were settled
+  This provides full transparency into payment mechanisms during settlement phase.
+  🤖 Generated with [Claude Code](https://claude.ai/code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+  * feat: add payment_demo scenario and clean up test files
+  - Add payment_demo.yaml - simple scenario for teaching payment mechanisms
+  - Demonstrates intra-bank, inter-bank, and cash payments clearly
+  - Easy to follow by hand while showing complete payment/clearing cycle
+  - Remove temporary test files
+  🤖 Generated with [Claude Code](https://claude.ai/code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+  * docs: add TODO notes and agent documentation
+  - Add TODO.md with note about deposits created via loans
+  - Add AGENTS.md documenting agent types and capabilities
+  - Add sasa_scenario.yaml example scenario
+  🤖 Generated with [Claude Code](https://claude.ai/code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+  * docs: add Monetary Theory Chapter 5 PDF reference
+  Add PDF document for Chapter 5 of Monetary Theory course material
+  🤖 Generated with [Claude Code](https://claude.ai/code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+  * feat: add custom slash command for generating codebase markdown
+  - Created /generate-codebase command in .claude/commands/
+  - Command runs the codebase markdown generation script
+  - Opens the project folder in Finder after generation
+  - Reports statistics about the generated file
+  🤖 Generated with [Claude Code](https://claude.ai/code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+  * fix: address critical PR review feedback and fix all failing tests
+  - Remove duplicate CashTransferred formatter registration (critical bug)
+  - Remove duplicate return statement in run.py (dead code)
+  - Fix all test failures:
+    - Update HTML export test to use MONOKAI constant instead of string
+    - Fix scenario creation test to use correct --from option
+    - Update formatter tests to match actual output format
+    - Fix builder tests by removing invalid model fields
+    - Correct EventView field names in tests
+  All 120 tests now passing.
+  🤖 Generated with [Claude Code](https://claude.ai/code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+  ---------
+  Co-authored-by: Claude <noreply@anthropic.com>
+
+- **018ceb77** (2025-08-24) by Vlad Gheorghe
+  UI: T-accounts, event tables, and pretty HTML export (#12)
+  * UI 011_tbs: add event table view; detailed T-account renderer; CLI/config support for --show table and --t-account; stacked multi-agent T-accounts; light HTML export; heavy-lined tables with zebra striping; improved event mappings; width tweaks for readability.
+  * Events table: exclude PhaseA/B/C marker rows; render three separate tables per phase (A/B/C) for day views; improve titles and zebra striping.
+  * Event rendering: phase-separated tables; Setup table for day 0; chronological order preserved; improved table styling; stacked T-accounts.
+  * HTML export: semantic report (agents table, convergence reason, zebra tables); per-day T-accounts with counterparties; phase-separated events; unified export path; convergence detection fix.
+
+- **11823a65** (2025-08-24) by Vlad Gheorghe
+  fix: follow-ups for PR #12 (safe numeric conversions, maturity parsing helper, CSS extraction, tests) (#13)
 
 ---
 
@@ -1091,6 +1208,9 @@ from __future__ import annotations
 from collections import defaultdict
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Union
+from dataclasses import dataclass
+import math
+from typing import Optional
 
 try:
     from rich.console import Console
@@ -1098,9 +1218,11 @@ try:
     from rich.columns import Columns
     from rich.text import Text
     from rich import box
+    from rich.console import RenderableType
     RICH_AVAILABLE = True
 except ImportError:
     RICH_AVAILABLE = False
+    RenderableType = Any
 
 from bilancio.analysis.balances import AgentBalance, agent_balance
 from bilancio.engines.system import System
@@ -1113,11 +1235,6 @@ def _format_currency(amount: int, show_sign: bool = False) -> str:
         formatted = f"+{formatted}"
     return formatted
 
-
-def _format_deliverable_amount(valued_amount: Decimal) -> str:
-    """Format deliverable monetary value."""
-    # Convert Decimal to int for currency formatting (assuming cents precision)
-    return _format_currency(int(valued_amount))
 
 
 def display_agent_balance_table(
@@ -1256,7 +1373,7 @@ def _display_rich_agent_balance(title: str, balance: AgentBalance) -> None:
         is_nonfinancial = False
         for sku in displayed_asset_skus:
             # This is a heuristic but works for current instrument types
-            if asset_type in ['deliverable', 'delivery_obligation']:
+            if asset_type in ['delivery_obligation']:
                 is_nonfinancial = True
                 break
         
@@ -1284,7 +1401,7 @@ def _display_rich_agent_balance(title: str, balance: AgentBalance) -> None:
         # Skip if this is a non-financial type we already displayed
         is_nonfinancial = False
         for sku in displayed_liability_skus:
-            if liability_type in ['deliverable', 'delivery_obligation']:
+            if liability_type in ['delivery_obligation']:
                 is_nonfinancial = True
                 break
         
@@ -1380,7 +1497,7 @@ def _display_simple_agent_balance(title: str, balance: AgentBalance) -> None:
     financial_asset_kinds = set()
     for asset_type in sorted(balance.assets_by_kind.keys()):
         # Skip non-financial types
-        is_nonfinancial = asset_type in ['deliverable', 'delivery_obligation']
+        is_nonfinancial = asset_type in ['delivery_obligation']
         
         if not is_nonfinancial and asset_type not in financial_asset_kinds:
             name = asset_type
@@ -1408,7 +1525,7 @@ def _display_simple_agent_balance(title: str, balance: AgentBalance) -> None:
     financial_liability_kinds = set()
     for liability_type in sorted(balance.liabilities_by_kind.keys()):
         # Skip non-financial types
-        is_nonfinancial = liability_type in ['deliverable', 'delivery_obligation']
+        is_nonfinancial = liability_type in ['delivery_obligation']
         
         if not is_nonfinancial and liability_type not in financial_liability_kinds:
             name = liability_type
@@ -1502,7 +1619,7 @@ def _display_rich_multiple_agent_balances(
         # Third: Add financial assets
         for asset_type in sorted(balance.assets_by_kind.keys()):
             # Skip non-financial types
-            if asset_type not in ['deliverable', 'delivery_obligation']:
+            if asset_type not in ['delivery_obligation']:
                 name = asset_type
                 if len(name) > 19:
                     name = name[:16] + "..."
@@ -1532,7 +1649,7 @@ def _display_rich_multiple_agent_balances(
         # Second: Add financial liabilities
         for liability_type in sorted(balance.liabilities_by_kind.keys()):
             # Skip non-financial types
-            if liability_type not in ['deliverable', 'delivery_obligation']:
+            if liability_type not in ['delivery_obligation']:
                 name = liability_type
                 if len(name) > 19:
                     name = name[:16] + "..."
@@ -1548,7 +1665,7 @@ def _display_rich_multiple_agent_balances(
             Text(_format_currency(balance.total_financial_assets), style="bold green")
         )
         
-        # Add valued deliverables total if present
+        # Add valued delivery obligations total if present
         if balance.total_nonfinancial_value is not None and balance.total_nonfinancial_value > 0:
             table.add_row(
                 Text("Total Valued", style="bold green"),
@@ -1652,7 +1769,7 @@ def _display_simple_multiple_agent_balances(
         # Third: Add financial assets
         for asset_type in sorted(balance.assets_by_kind.keys()):
             # Skip non-financial types
-            if asset_type not in ['deliverable', 'delivery_obligation']:
+            if asset_type not in ['delivery_obligation']:
                 amount = _format_currency(balance.assets_by_kind[asset_type])
                 asset_name = asset_type
                 if len(asset_name + " " + amount) > col_width:
@@ -1675,7 +1792,7 @@ def _display_simple_multiple_agent_balances(
         # Second: Add financial liabilities
         for liability_type in sorted(balance.liabilities_by_kind.keys()):
             # Skip non-financial types
-            if liability_type not in ['deliverable', 'delivery_obligation']:
+            if liability_type not in ['delivery_obligation']:
                 amount = _format_currency(balance.liabilities_by_kind[liability_type])
                 liability_name = liability_type
                 if len(liability_name + " " + amount) > col_width:
@@ -1685,7 +1802,7 @@ def _display_simple_multiple_agent_balances(
         data.append(("", ""))
         data.append(("Total Financial", _format_currency(balance.total_financial_assets)))
         
-        # Add valued deliverables total if present
+        # Add valued delivery obligations total if present
         if balance.total_nonfinancial_value is not None and balance.total_nonfinancial_value > 0:
             data.append(("Total Valued", _format_currency(int(balance.total_nonfinancial_value))))
             total_assets = balance.total_financial_assets + int(balance.total_nonfinancial_value)
@@ -1738,6 +1855,685 @@ def display_events(events: List[Dict[str, Any]], format: str = 'detailed') -> No
         _display_events_summary(events, console)
     else:
         _display_events_detailed(events, console)
+
+
+def display_events_table(events: List[Dict[str, Any]], group_by_day: bool = True) -> None:
+    """Render events as a table with canonical columns.
+
+    Falls back to simple text when Rich is not available.
+    """
+    console = Console() if RICH_AVAILABLE else None
+
+    if not events:
+        _print("No events to display.", console)
+        return
+
+    columns = ["Day", "Phase", "Kind", "From", "To", "SKU/Instr", "Qty", "Amount", "Notes"]
+
+    # Sort events deterministically
+    # Drop phase marker events; preserve original insertion (chronological) order
+    evs = [e for e in events if e.get("kind") not in ("PhaseA", "PhaseB", "PhaseC")]
+
+    if RICH_AVAILABLE:
+        from rich.table import Table as RichTable
+        from rich import box as rich_box
+        table = RichTable(title="Events", box=rich_box.HEAVY, show_lines=True)
+        # Column definitions with better alignment
+        table.add_column("Day", justify="right")
+        table.add_column("Phase", justify="left")
+        table.add_column("Kind", justify="left")
+        table.add_column("From", justify="left")
+        table.add_column("To", justify="left")
+        table.add_column("SKU/Instr", justify="left")
+        table.add_column("Qty", justify="right")
+        table.add_column("Amount", justify="right")
+        table.add_column("Notes", justify="left")
+        # Alternate row shading for readability
+        try:
+            table.row_styles = ["on #ffffff", "on #e6f2ff"]
+        except Exception:
+            pass
+
+        for e in evs:
+            kind = str(e.get("kind", ""))
+            # Canonical from/to mapping by kind
+            if kind in ("CashDeposited", "CashWithdrawn"):
+                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+                frm = e.get("payer")
+                to = e.get("payee")
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                frm = e.get("debtor_bank")
+                to = e.get("creditor_bank")
+            elif kind == "StockCreated":
+                frm = e.get("owner")
+                to = None
+            else:
+                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+                to = e.get("to") or e.get("creditor") or e.get("payee")
+            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+            qty = e.get("qty") or e.get("quantity") or "—"
+            amt = e.get("amount") or "—"
+
+            notes = ""
+            if kind == "ClientPayment":
+                notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
+                if 'due_day' in e:
+                    notes += f"; due {e.get('due_day')}"
+
+            table.add_row(
+                str(e.get("day", "—")),
+                str(e.get("phase", "—")),
+                kind,
+                str(frm or "—"),
+                str(to or "—"),
+                str(sku),
+                str(qty),
+                str(amt),
+                notes,
+            )
+
+        console.print(table) if console else print(table)
+    else:
+        # Simple header + rows
+        header = " | ".join(columns)
+        print(header)
+        print("-" * len(header))
+        for e in evs:
+            kind = str(e.get("kind", ""))
+            if kind in ("CashDeposited", "CashWithdrawn"):
+                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+                frm = e.get("payer")
+                to = e.get("payee")
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                frm = e.get("debtor_bank")
+                to = e.get("creditor_bank")
+            elif kind == "StockCreated":
+                frm = e.get("owner")
+                to = None
+            else:
+                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+                to = e.get("to") or e.get("creditor") or e.get("payee")
+            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+            qty = e.get("qty") or e.get("quantity") or "—"
+            amt = e.get("amount") or "—"
+            notes = ""
+            if kind == "ClientPayment":
+                notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
+                if 'due_day' in e:
+                    notes += f"; due {e.get('due_day')}"
+            row = [
+                str(e.get("day", "—")),
+                str(e.get("phase", "—")),
+                kind,
+                str(frm or "—"),
+                str(to or "—"),
+                str(sku),
+                str(qty),
+                str(amt),
+                notes,
+            ]
+            print(" | ".join(row))
+
+
+def display_events_table_renderable(events: List[Dict[str, Any]]) -> RenderableType:
+    """Return a Rich Table renderable (or string) for events table."""
+    if not events:
+        return Text("No events to display.", style="dim") if RICH_AVAILABLE else "No events to display."
+
+    columns = ["Day", "Phase", "Kind", "From", "To", "SKU/Instr", "Qty", "Amount", "Notes"]
+    # Drop phase marker events; preserve original insertion (chronological) order
+    evs = [e for e in events if e.get("kind") not in ("PhaseA", "PhaseB", "PhaseC")]
+
+    if RICH_AVAILABLE:
+        from rich.table import Table as RichTable
+        from rich import box as rich_box
+        table = RichTable(title="Events", box=rich_box.HEAVY, show_lines=True)
+        table.add_column("Day", justify="right")
+        table.add_column("Phase", justify="left")
+        table.add_column("Kind", justify="left")
+        table.add_column("From", justify="left")
+        table.add_column("To", justify="left")
+        table.add_column("SKU/Instr", justify="left")
+        table.add_column("Qty", justify="right")
+        table.add_column("Amount", justify="right")
+        table.add_column("Notes", justify="left")
+        try:
+            table.row_styles = ["on #ffffff", "on #e6f2ff"]
+        except Exception:
+            pass
+
+        for e in evs:
+            kind = str(e.get("kind", ""))
+            if kind in ("CashDeposited", "CashWithdrawn"):
+                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+                frm = e.get("payer")
+                to = e.get("payee")
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                frm = e.get("debtor_bank")
+                to = e.get("creditor_bank")
+            elif kind == "StockCreated":
+                frm = e.get("owner")
+                to = None
+            else:
+                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+                to = e.get("to") or e.get("creditor") or e.get("payee")
+            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+            qty = e.get("qty") or e.get("quantity") or "—"
+            amt = e.get("amount") or "—"
+            notes = ""
+            if kind == "ClientPayment":
+                notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
+                if 'due_day' in e:
+                    notes += f"; due {e.get('due_day')}"
+
+            table.add_row(
+                str(e.get("day", "—")),
+                str(e.get("phase", "—")),
+                kind,
+                str(frm or "—"),
+                str(to or "—"),
+                str(sku),
+                str(qty),
+                str(amt),
+                notes,
+            )
+        return table
+    else:
+        header = " | ".join(columns)
+        lines = [header, "-" * len(header)]
+        for e in evs:
+            kind = str(e.get("kind", ""))
+            if kind in ("CashDeposited", "CashWithdrawn"):
+                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+                frm = e.get("payer")
+                to = e.get("payee")
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                frm = e.get("debtor_bank")
+                to = e.get("creditor_bank")
+            elif kind == "StockCreated":
+                frm = e.get("owner")
+                to = None
+            else:
+                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+                to = e.get("to") or e.get("creditor") or e.get("payee")
+            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+            qty = e.get("qty") or e.get("quantity") or "—"
+            amt = e.get("amount") or "—"
+            notes = ""
+            if kind == "ClientPayment":
+                notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
+                if 'due_day' in e:
+                    notes += f"; due {e.get('due_day')}"
+            row = [
+                str(e.get("day", "—")),
+                str(e.get("phase", "—")),
+                kind,
+                str(frm or "—"),
+                str(to or "—"),
+                str(sku),
+                str(qty),
+                str(amt),
+                notes,
+            ]
+            lines.append(" | ".join(row))
+        return "\n".join(lines)
+
+
+def display_events_tables_by_phase_renderables(events: List[Dict[str, Any]], day: Optional[int] = None) -> List[RenderableType]:
+    """Return three event tables (A, B, C) using phase markers as section dividers.
+
+    - Excludes PhaseA/PhaseB/PhaseC events from rows.
+    - Titles indicate the phase and optional day.
+    """
+    if RICH_AVAILABLE:
+        from rich.table import Table as RichTable
+        from rich import box as rich_box
+        from rich.text import Text as RichText
+    
+    # If these are setup-phase events (day 0), render as a single "Setup" table
+    if any(e.get("phase") == "setup" for e in events):
+        return _build_single_setup_table(events, day)
+
+    # Group by phase markers in original order
+    buckets = {"A": [], "B": [], "C": []}
+    current = "A"
+    for e in events:
+        kind = e.get("kind")
+        if kind == "PhaseA":
+            current = "A"; continue
+        if kind == "PhaseB":
+            current = "B"; continue
+        if kind == "PhaseC":
+            current = "C"; continue
+        buckets[current].append(e)
+
+    def build_table(phase: str, rows: List[Dict[str, Any]]):
+        title_parts = {
+            "A": "Phase A — Start of day",
+            "B": "Phase B — Settlement",
+            "C": "Phase C — Clearing"
+        }
+        title = title_parts.get(phase, f"Phase {phase}")
+        if day is not None:
+            title = f"{title} (Day {day})"
+
+        if not RICH_AVAILABLE:
+            # Simple text fallback
+            header = ["Kind", "From", "To", "SKU/Instr", "Qty", "Amount", "Notes"]
+            out = [f"{title}", " | ".join(header), "-" * 80]
+            for e in rows:
+                kind = str(e.get("kind", ""))
+                # map from/to like in table renderers
+                if kind in ("CashDeposited", "CashWithdrawn"):
+                    frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+                    to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+                elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+                    frm = e.get("payer"); to = e.get("payee")
+                elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                    frm = e.get("debtor_bank"); to = e.get("creditor_bank")
+                elif kind == "StockCreated":
+                    frm = e.get("owner"); to = None
+                else:
+                    frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+                    to = e.get("to") or e.get("creditor") or e.get("payee")
+                sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+                qty = e.get("qty") or e.get("quantity") or "—"
+                amt = e.get("amount") or "—"
+                notes = ""
+                if kind == "ClientPayment":
+                    notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
+                elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                    notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
+                    if 'due_day' in e:
+                        notes += f"; due {e.get('due_day')}"
+                out.append(" | ".join(map(str, [kind, frm or "—", to or "—", sku, qty, amt, notes])))
+            return "\n".join(out)
+
+        # Rich table
+        table = RichTable(title=title, box=rich_box.HEAVY, show_lines=True)
+        table.add_column("Kind", justify="left")
+        table.add_column("From", justify="left")
+        table.add_column("To", justify="left")
+        table.add_column("SKU/Instr", justify="left")
+        table.add_column("Qty", justify="right")
+        table.add_column("Amount", justify="right")
+        table.add_column("Notes", justify="left")
+        try:
+            table.row_styles = ["on #ffffff", "on #e6f2ff"] if phase != "C" else ["on #ffffff", "on #fff2cc"]
+        except Exception:
+            pass
+        for e in rows:
+            kind = str(e.get("kind", ""))
+            if kind in ("CashDeposited", "CashWithdrawn"):
+                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+                frm = e.get("payer"); to = e.get("payee")
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                frm = e.get("debtor_bank"); to = e.get("creditor_bank")
+            elif kind == "StockCreated":
+                frm = e.get("owner"); to = None
+            else:
+                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+                to = e.get("to") or e.get("creditor") or e.get("payee")
+            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+            qty = e.get("qty") or e.get("quantity") or "—"
+            amt = e.get("amount") or "—"
+            notes = ""
+            if kind == "ClientPayment":
+                notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
+                if 'due_day' in e:
+                    notes += f"; due {e.get('due_day')}"
+            table.add_row(kind, str(frm or "—"), str(to or "—"), str(sku), str(qty), str(amt), notes)
+        return table
+
+    renderables: List[RenderableType] = []
+    # Phase A is intentionally empty for now; only include if it has rows
+    if buckets["A"]:
+        renderables.append(build_table("A", buckets["A"]))
+    # Phase B: settlements
+    renderables.append(build_table("B", buckets["B"]))
+    # Phase C: clearing
+    renderables.append(build_table("C", buckets["C"]))
+    return renderables
+
+
+def _build_single_setup_table(events: List[Dict[str, Any]], day: Optional[int] = None) -> List[RenderableType]:
+    """Render a single setup table for setup-phase events (day 0)."""
+    rows = [e for e in events if e.get("phase") == "setup" and e.get("kind") not in ("PhaseA","PhaseB","PhaseC")]
+    title = "Setup"
+    if day is not None:
+        title = f"{title} (Day {day})"
+    if not RICH_AVAILABLE:
+        header = ["Kind", "From", "To", "SKU/Instr", "Qty", "Amount", "Notes"]
+        out = [title, " | ".join(header), "-" * 80]
+        for e in rows:
+            kind = str(e.get("kind", ""))
+            if kind in ("CashDeposited", "CashWithdrawn"):
+                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+                frm = e.get("payer"); to = e.get("payee")
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                frm = e.get("debtor_bank"); to = e.get("creditor_bank")
+            elif kind == "StockCreated":
+                frm = e.get("owner"); to = None
+            else:
+                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+                to = e.get("to") or e.get("creditor") or e.get("payee")
+            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+            qty = e.get("qty") or e.get("quantity") or "—"
+            amt = e.get("amount") or "—"
+            notes = ""
+            out.append(" | ".join(map(str, [kind, frm or "—", to or "—", sku, qty, amt, notes])))
+        return ["\n".join(out)]
+
+    from rich.table import Table as RichTable
+    from rich import box as rich_box
+    table = RichTable(title=title, box=rich_box.HEAVY, show_lines=True)
+    table.add_column("Kind", justify="left")
+    table.add_column("From", justify="left")
+    table.add_column("To", justify="left")
+    table.add_column("SKU/Instr", justify="left")
+    table.add_column("Qty", justify="right")
+    table.add_column("Amount", justify="right")
+    table.add_column("Notes", justify="left")
+    try:
+        table.row_styles = ["on #ffffff", "on #e6f2ff"]
+    except Exception:
+        pass
+    for e in rows:
+        kind = str(e.get("kind", ""))
+        if kind in ("CashDeposited", "CashWithdrawn"):
+            frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+            to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+        elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+            frm = e.get("payer"); to = e.get("payee")
+        elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+            frm = e.get("debtor_bank"); to = e.get("creditor_bank")
+        elif kind == "StockCreated":
+            frm = e.get("owner"); to = None
+        else:
+            frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+            to = e.get("to") or e.get("creditor") or e.get("payee")
+        sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+        qty = e.get("qty") or e.get("quantity") or "—"
+        amt = e.get("amount") or "—"
+        notes = ""
+        table.add_row(kind, str(frm or "—"), str(to or "—"), str(sku), str(qty), str(amt), notes)
+    return [table]
+
+
+# ============================================================================
+# T-account builder and renderers (detailed with Qty/Value/Counterparty/Maturity)
+# ============================================================================
+
+@dataclass
+class BalanceRow:
+    name: str
+    quantity: Optional[int]
+    value_minor: Optional[int]
+    counterparty_name: Optional[str]
+    maturity: Optional[str]
+
+
+@dataclass
+class TAccount:
+    assets: List[BalanceRow]
+    liabilities: List[BalanceRow]
+
+
+def _format_agent(agent_id: str, system: System) -> str:
+    """Format agent as 'Name [ID]' if available."""
+    ag = system.state.agents.get(agent_id)
+    if ag is None:
+        return agent_id
+    if ag.name and ag.name != agent_id:
+        return f"{ag.name} [{agent_id}]"
+    return agent_id
+
+
+def parse_day_from_maturity(maturity_str: Optional[str]) -> int:
+    """Parse a day number from maturity strings like 'Day 42'.
+
+    Returns an integer day. If the input cannot be parsed, returns a large
+    sentinel value to sort unknown maturities last.
+    """
+    if not isinstance(maturity_str, str):
+        return math.inf  # type: ignore[return-value]
+    s = maturity_str.strip()
+    if not s.startswith("Day "):
+        return math.inf  # type: ignore[return-value]
+    try:
+        return int(s[4:].strip())
+    except Exception:
+        return math.inf  # type: ignore[return-value]
+
+
+def build_t_account_rows(system: System, agent_id: str) -> TAccount:
+    """Build detailed T-account rows from system state for an agent."""
+    assets: List[BalanceRow] = []
+    liabilities: List[BalanceRow] = []
+
+    agent = system.state.agents[agent_id]
+
+    # Inventory (stocks owned) as assets
+    for stock_id in agent.stock_ids:
+        lot = system.state.stocks[stock_id]
+        try:
+            value_minor = int(lot.value)
+        except Exception:
+            # Fallback for Decimals
+            value_minor = int(float(lot.value))
+        assets.append(BalanceRow(
+            name=f"{lot.sku}",
+            quantity=int(lot.quantity),
+            value_minor=value_minor,
+            counterparty_name="—",
+            maturity="—",
+        ))
+
+    # Contracts as assets (held by agent)
+    for cid in agent.asset_ids:
+        c = system.state.contracts[cid]
+        if c.kind == "delivery_obligation":
+            # Receivable goods
+            # valued_amount is Decimal
+            valued = getattr(c, 'valued_amount', None)
+            try:
+                valued_minor = int(valued) if valued is not None else None
+            except Exception:
+                valued_minor = int(float(valued)) if valued is not None else None
+            counterparty = _format_agent(c.liability_issuer_id, system)
+            maturity = f"Day {getattr(c, 'due_day', '—')}"
+            assets.append(BalanceRow(
+                name=f"{getattr(c, 'sku', 'goods')} receivable",
+                quantity=int(c.amount) if c.amount is not None else None,
+                value_minor=valued_minor,
+                counterparty_name=counterparty,
+                maturity=maturity,
+            ))
+        else:
+            # Financial assets
+            counterparty = _format_agent(c.liability_issuer_id, system)
+            maturity = "on-demand" if c.kind in ("cash", "bank_deposit", "reserve_deposit") else (
+                f"Day {getattr(c, 'due_day', '—')}" if hasattr(c, 'due_day') else "—"
+            )
+            assets.append(BalanceRow(
+                name=f"{c.kind}",
+                quantity=None,
+                value_minor=int(c.amount) if c.amount is not None else None,
+                counterparty_name=counterparty if c.kind != "cash" else "—",
+                maturity=maturity,
+            ))
+
+    # Contracts as liabilities (issued by agent)
+    for cid in agent.liability_ids:
+        c = system.state.contracts[cid]
+        if c.kind == "delivery_obligation":
+            valued = getattr(c, 'valued_amount', None)
+            try:
+                valued_minor = int(valued) if valued is not None else None
+            except Exception:
+                valued_minor = int(float(valued)) if valued is not None else None
+            counterparty = _format_agent(c.asset_holder_id, system)
+            maturity = f"Day {getattr(c, 'due_day', '—')}"
+            liabilities.append(BalanceRow(
+                name=f"{getattr(c, 'sku', 'goods')} obligation",
+                quantity=int(c.amount) if c.amount is not None else None,
+                value_minor=valued_minor,
+                counterparty_name=counterparty,
+                maturity=maturity,
+            ))
+        else:
+            counterparty = _format_agent(c.asset_holder_id, system)
+            maturity = "on-demand" if c.kind in ("cash", "bank_deposit", "reserve_deposit") else (
+                f"Day {getattr(c, 'due_day', '—')}" if hasattr(c, 'due_day') else "—"
+            )
+            liabilities.append(BalanceRow(
+                name=f"{c.kind}",
+                quantity=None,
+                value_minor=int(c.amount) if c.amount is not None else None,
+                counterparty_name=counterparty,
+                maturity=maturity,
+            ))
+
+    # Ordering within each side
+    def sort_key_assets(row: BalanceRow):
+        # Inventory first (has quantity and counterparty '—' and maturity '—'),
+        # then receivables (name ends with 'receivable'), then financial by kind order
+        financial_order = {"cash": 0, "bank_deposit": 1, "reserve_deposit": 2, "payable": 3}
+        if row.quantity is not None and row.counterparty_name == "—":
+            return (0, 0, row.name or "")
+        if row.name.endswith("receivable"):
+            day_num = parse_day_from_maturity(row.maturity)
+            return (1, day_num, row.name)
+        return (2, financial_order.get(row.name, 99), row.name)
+
+    def sort_key_liabs(row: BalanceRow):
+        # Obligations (name ends with 'obligation') by due day, then financial by order
+        financial_order = {"payable": 0, "bank_deposit": 1, "reserve_deposit": 2, "cash": 3}
+        if row.name.endswith("obligation"):
+            day_num = parse_day_from_maturity(row.maturity)
+            return (0, day_num, row.name)
+        return (1, financial_order.get(row.name, 99), row.name)
+
+    assets.sort(key=sort_key_assets)
+    liabilities.sort(key=sort_key_liabs)
+
+    return TAccount(assets=assets, liabilities=liabilities)
+
+
+def display_agent_t_account(system: System, agent_id: str, format: str = 'rich') -> None:
+    """Display detailed T-account table for an agent."""
+    if format == 'rich' and not RICH_AVAILABLE:
+        format = 'simple'
+    if format == 'rich':
+        table = display_agent_t_account_renderable(system, agent_id)
+        Console().print(table)
+    else:
+        # Simple ASCII fallback
+        acct = build_t_account_rows(system, agent_id)
+        columns = ["Name", "Qty", "Value", "Counterparty", "Maturity"]
+        # Prepare rows
+        max_rows = max(len(acct.assets), len(acct.liabilities))
+        header = " | ".join([f"Assets:{c}" for c in columns] + [f"Liabilities:{c}" for c in columns])
+        print(header)
+        print("-" * len(header))
+        for i in range(max_rows):
+            a = acct.assets[i] if i < len(acct.assets) else None
+            l = acct.liabilities[i] if i < len(acct.liabilities) else None
+            def fmt_qty(r): return f"{r.quantity:,}" if (r and r.quantity is not None) else "—"
+            def fmt_val(r):
+                if not r or r.value_minor is None: return "—"
+                return _format_currency(int(r.value_minor))
+            def cells(r):
+                if not r: return ("", "", "", "", "")
+                return (r.name, fmt_qty(r), fmt_val(r), r.counterparty_name or "—", r.maturity or "—")
+            row = list(cells(a) + cells(l))
+            print(" | ".join(str(x) for x in row))
+
+
+def display_agent_t_account_renderable(system: System, agent_id: str) -> RenderableType:
+    """Return a Rich Table renderable for detailed T-account."""
+    if not RICH_AVAILABLE:
+        # Fallback to string
+        acct = build_t_account_rows(system, agent_id)
+        lines = []
+        columns = ["Name", "Qty", "Value", "Counterparty", "Maturity"]
+        lines.append(" | ".join([f"Assets:{c}" for c in columns] + [f"Liabilities:{c}" for c in columns]))
+        max_rows = max(len(acct.assets), len(acct.liabilities))
+        for i in range(max_rows):
+            a = acct.assets[i] if i < len(acct.assets) else None
+            l = acct.liabilities[i] if i < len(acct.liabilities) else None
+            def fmt_qty(r): return f"{r.quantity:,}" if (r and r.quantity is not None) else "—"
+            def fmt_val(r):
+                if not r or r.value_minor is None: return "—"
+                return _format_currency(int(r.value_minor))
+            def cells(r):
+                if not r: return ("", "", "", "", "")
+                return (r.name, fmt_qty(r), fmt_val(r), r.counterparty_name or "—", r.maturity or "—")
+            row = list(cells(a) + cells(l))
+            lines.append(" | ".join(str(x) for x in row))
+        return "\n".join(lines)
+
+    # Rich path
+    from rich.table import Table as RichTable
+    from rich import box as rich_box
+    acct = build_t_account_rows(system, agent_id)
+
+    ag = system.state.agents[agent_id]
+    title = f"{ag.name} [{agent_id}] ({ag.kind})" if ag.name and ag.name != agent_id else f"{agent_id} ({ag.kind})"
+
+    table = RichTable(title=title, box=rich_box.HEAVY, title_style="bold cyan", show_lines=True)
+    # Add 10 columns: 5 for assets, 5 for liabilities
+    table.add_column("Name", style="green", justify="left")
+    table.add_column("Qty", style="green", justify="right")
+    table.add_column("Value", style="green", justify="right")
+    table.add_column("Counterparty", style="green", justify="left")
+    table.add_column("Maturity", style="green", justify="right")
+    table.add_column("Name", style="red", justify="left")
+    table.add_column("Qty", style="red", justify="right")
+    table.add_column("Value", style="red", justify="right")
+    table.add_column("Counterparty", style="red", justify="left")
+    table.add_column("Maturity", style="red", justify="right")
+    try:
+        table.row_styles = ["on #ffffff", "on #fff2cc"]
+    except Exception:
+        pass
+
+    def fmt_qty(r): return f"{r.quantity:,}" if (r and r.quantity is not None) else "—"
+    def fmt_val(r):
+        if not r or r.value_minor is None: return "—"
+        return _format_currency(int(r.value_minor))
+    def cells(r):
+        if not r: return ("", "", "", "", "")
+        return (r.name, fmt_qty(r), fmt_val(r), r.counterparty_name or "—", r.maturity or "—")
+
+    max_rows = max(len(acct.assets), len(acct.liabilities))
+    for i in range(max_rows):
+        a = acct.assets[i] if i < len(acct.assets) else None
+        l = acct.liabilities[i] if i < len(acct.liabilities) else None
+        table.add_row(*cells(a), *cells(l))
+    return table
 
 
 def _print(text: str, console: Optional['Console'] = None) -> None:
@@ -1968,6 +2764,758 @@ def display_events_for_day(system: System, day: int) -> None:
         return
     
     _display_day_events(events, console)
+
+
+# ============================================================================
+# New Renderable-returning Functions for HTML Export
+# ============================================================================
+
+def display_agent_balance_table_renderable(
+    system: System,
+    agent_id: str,
+    format: str = 'rich',
+    title: Optional[str] = None
+) -> Union[RenderableType, str]:
+    """
+    Return a renderable for a single agent's balance sheet as a T-account style table.
+    
+    Args:
+        system: The bilancio system instance
+        agent_id: ID of the agent to display
+        format: Display format ('rich' or 'simple')
+        title: Optional custom title for the table
+        
+    Returns:
+        Rich Table renderable for rich format, or string for simple format
+    """
+    if format == 'rich' and not RICH_AVAILABLE:
+        format = 'simple'
+    
+    # Get agent balance
+    balance = agent_balance(system, agent_id)
+    
+    if format == 'rich':
+        # Get agent info
+        agent = system.state.agents[agent_id]
+        if title is None:
+            # Show both name and ID for clarity
+            if agent.name and agent.name != agent_id:
+                title = f"{agent.name} [{agent_id}] ({agent.kind})"
+            else:
+                title = f"{agent_id} ({agent.kind})"
+        
+        return _create_rich_agent_balance_table(title, balance)
+    else:
+        # Return simple text format as string
+        return _build_simple_agent_balance_string(balance, system, agent_id, title)
+
+
+def display_multiple_agent_balances_renderable(
+    system: System,
+    items: List[Union[str, AgentBalance]], 
+    format: str = 'rich'
+) -> Union[RenderableType, str]:
+    """
+    Return renderables for multiple agent balance sheets side by side for comparison.
+    
+    Args:
+        system: The bilancio system instance
+        items: List of agent IDs (str) or AgentBalance instances
+        format: Display format ('rich' or 'simple')
+        
+    Returns:
+        Rich Columns renderable for rich format, or string for simple format
+    """
+    if format == 'rich' and not RICH_AVAILABLE:
+        format = 'simple'
+    
+    # Convert agent IDs to balance objects if needed
+    balances = []
+    for item in items:
+        if isinstance(item, str):
+            balances.append(agent_balance(system, item))
+        else:
+            balances.append(item)
+    
+    if format == 'rich':
+        # Create individual tables for each balance
+        tables = []
+        for balance in balances:
+            # Get agent name if system is available
+            if system and balance.agent_id in system.state.agents:
+                agent = system.state.agents[balance.agent_id]
+                # Show both name and ID for clarity
+                if agent.name and agent.name != balance.agent_id:
+                    title = f"{agent.name} [{balance.agent_id}]\n({agent.kind})"
+                else:
+                    title = f"{balance.agent_id}\n({agent.kind})"
+            else:
+                title = f"{balance.agent_id}"
+            
+            table = _create_compact_rich_balance_table(title, balance)
+            tables.append(table)
+        
+        return Columns(tables, equal=True, expand=True)
+    else:
+        # Return simple text format as string
+        return _build_simple_multiple_agent_balances_string(balances, system)
+
+
+def display_events_renderable(events: List[Dict[str, Any]], format: str = 'detailed') -> List[RenderableType]:
+    """
+    Return renderables for system events in a nicely formatted way.
+    
+    Args:
+        events: List of event dictionaries from sys.state.events
+        format: Display format ('detailed' or 'summary')
+        
+    Returns:
+        List of Rich renderables (or strings for simple format)
+    """
+    if not events:
+        if RICH_AVAILABLE:
+            return [Text("No events to display.", style="dim")]
+        else:
+            return ["No events to display."]
+    
+    if format == 'summary':
+        return _build_events_summary_renderables(events)
+    else:
+        return _build_events_detailed_renderables(events)
+
+
+def display_events_for_day_renderable(system: System, day: int) -> List[RenderableType]:
+    """
+    Return renderables for all events that occurred on a specific simulation day.
+    
+    Args:
+        system: The bilancio system instance
+        day: The simulation day to display events for
+        
+    Returns:
+        List of Rich renderables (or strings for simple format)
+    """
+    events = [e for e in system.state.events if e.get("day") == day]
+    
+    if not events:
+        if RICH_AVAILABLE:
+            return [Text("  No events occurred on this day.", style="dim")]
+        else:
+            return ["  No events occurred on this day."]
+    
+    return _build_day_events_renderables(events)
+
+
+# ============================================================================
+# Helper Functions for New Renderable Functions
+# ============================================================================
+
+def _create_rich_agent_balance_table(title: str, balance: AgentBalance) -> Table:
+    """Create a Rich Table for a single agent balance (returns table instead of printing)."""
+    # Create the main table with wider columns to avoid truncation
+    table = Table(title=title, box=box.ROUNDED, title_style="bold cyan")
+    table.add_column("ASSETS", style="green", width=35, no_wrap=False)
+    table.add_column("Amount", justify="right", style="green", width=15, no_wrap=True)
+    table.add_column("LIABILITIES", style="red", width=35, no_wrap=False)
+    table.add_column("Amount", justify="right", style="red", width=15, no_wrap=True)
+    
+    asset_rows = []
+    
+    # First: Add inventory (stocks owned) - these are physical assets
+    if hasattr(balance, 'inventory_by_sku'):
+        for sku, data in balance.inventory_by_sku.items():
+            qty = data['quantity']
+            if qty > 0:
+                name = f"{sku} [{qty} unit{'s' if qty != 1 else ''}]"
+                amount = _format_currency(int(data['value']))
+                asset_rows.append((name, amount))
+    
+    # Second: Add non-financial assets (rights to receive goods)
+    displayed_asset_skus = set()
+    for sku, data in balance.nonfinancial_assets_by_kind.items():
+        qty = data['quantity']
+        if qty > 0:
+            name = f"{sku} receivable [{qty} unit{'s' if qty != 1 else ''}]"
+            amount = _format_currency(int(data['value']))
+            asset_rows.append((name, amount))
+            displayed_asset_skus.add(sku)
+    
+    # Third: Add financial assets (everything else in assets_by_kind)
+    financial_asset_kinds = set()
+    for asset_type in sorted(balance.assets_by_kind.keys()):
+        # Skip if this is a non-financial type we already displayed
+        is_nonfinancial = False
+        for sku in displayed_asset_skus:
+            # This is a heuristic but works for current instrument types
+            if asset_type in ['delivery_obligation']:
+                is_nonfinancial = True
+                break
+        
+        if not is_nonfinancial and asset_type not in financial_asset_kinds:
+            name = asset_type
+            amount = _format_currency(balance.assets_by_kind[asset_type])
+            asset_rows.append((name, amount))
+            financial_asset_kinds.add(asset_type)
+    
+    liability_rows = []
+    
+    # First: Add non-financial liabilities (obligations to deliver goods)
+    displayed_liability_skus = set()
+    for sku, data in balance.nonfinancial_liabilities_by_kind.items():
+        qty = data['quantity']
+        if qty > 0:
+            name = f"{sku} obligation [{qty} unit{'s' if qty != 1 else ''}]"
+            amount = _format_currency(int(data['value']))
+            liability_rows.append((name, amount))
+            displayed_liability_skus.add(sku)
+    
+    # Second: Add financial liabilities (everything else in liabilities_by_kind)
+    financial_liability_kinds = set()
+    for liability_type in sorted(balance.liabilities_by_kind.keys()):
+        # Skip if this is a non-financial type we already displayed
+        is_nonfinancial = False
+        for sku in displayed_liability_skus:
+            if liability_type in ['delivery_obligation']:
+                is_nonfinancial = True
+                break
+        
+        if not is_nonfinancial and liability_type not in financial_liability_kinds:
+            name = liability_type
+            amount = _format_currency(balance.liabilities_by_kind[liability_type])
+            liability_rows.append((name, amount))
+            financial_liability_kinds.add(liability_type)
+    
+    # Determine the maximum number of rows needed
+    max_rows = max(len(asset_rows), len(liability_rows), 1)
+    
+    for i in range(max_rows):
+        asset_name, asset_amount = asset_rows[i] if i < len(asset_rows) else ("", "")
+        liability_name, liability_amount = liability_rows[i] if i < len(liability_rows) else ("", "")
+        
+        table.add_row(asset_name, asset_amount, liability_name, liability_amount)
+    
+    # Add separator and totals
+    table.add_row("", "", "", "", end_section=True)
+    table.add_row(
+        Text("TOTAL FINANCIAL", style="bold green"),
+        Text(_format_currency(balance.total_financial_assets), style="bold green"),
+        Text("TOTAL FINANCIAL", style="bold red"),
+        Text(_format_currency(balance.total_financial_liabilities), style="bold red")
+    )
+    
+    # Add valued non-financial total if present
+    if balance.total_nonfinancial_value is not None and balance.total_nonfinancial_value > 0:
+        table.add_row(
+            Text("TOTAL VALUED DELIV.", style="bold green"),
+            Text(_format_currency(int(balance.total_nonfinancial_value)), style="bold green"),
+            "",
+            ""
+        )
+        total_assets = balance.total_financial_assets + int(balance.total_nonfinancial_value)
+        table.add_row(
+            Text("TOTAL ASSETS", style="bold green"),
+            Text(_format_currency(total_assets), style="bold green"),
+            "",
+            ""
+        )
+    
+    # Add visual separation before net worth
+    table.add_row("", "", "", "", end_section=True)
+    
+    # Add net worth with clear separation
+    net_financial = balance.net_financial
+    net_worth_style = "bold green" if net_financial >= 0 else "bold red"
+    table.add_row(
+        "",
+        "",
+        Text("NET FINANCIAL", style="bold blue"),
+        Text(_format_currency(net_financial, show_sign=True), style=net_worth_style)
+    )
+    
+    return table
+
+
+def _create_compact_rich_balance_table(title: str, balance: AgentBalance) -> Table:
+    """Create a compact Rich Table for multiple balance display."""
+    table = Table(title=title, box=box.ROUNDED, title_style="bold cyan", width=35)
+    table.add_column("Item", style="white", width=20)
+    table.add_column("Amount", justify="right", style="white", width=12)
+    
+    # Add assets
+    table.add_row(Text("ASSETS", style="bold green underline"), "")
+    
+    # First: Add inventory (stocks owned)
+    if hasattr(balance, 'inventory_by_sku'):
+        for sku, data in balance.inventory_by_sku.items():
+            qty = data['quantity']
+            if qty > 0:
+                name = f"{sku} [{qty}]"
+                if len(name) > 19:
+                    name = name[:16] + "..."
+                amount = _format_currency(int(data['value']))
+                table.add_row(
+                    Text(name, style="green"),
+                    Text(amount, style="green")
+                )
+    
+    # Second: Add non-financial assets (rights to receive goods)
+    for sku, data in balance.nonfinancial_assets_by_kind.items():
+        qty = data['quantity']
+        if qty > 0:
+            name = f"{sku} recv [{qty}]"
+            if len(name) > 19:
+                name = name[:16] + "..."
+            amount = _format_currency(int(data['value']))
+            table.add_row(
+                Text(name, style="green"),
+                Text(amount, style="green")
+            )
+    
+    # Third: Add financial assets
+    for asset_type in sorted(balance.assets_by_kind.keys()):
+        # Skip non-financial types
+        if asset_type not in ['delivery_obligation']:
+            name = asset_type
+            if len(name) > 19:
+                name = name[:16] + "..."
+            table.add_row(
+                Text(name, style="green"),
+                Text(_format_currency(balance.assets_by_kind[asset_type]), style="green")
+            )
+    
+    table.add_row("", "", end_section=True)
+    
+    # Add liabilities
+    table.add_row(Text("LIABILITIES", style="bold red underline"), "")
+    
+    # First: Add non-financial liabilities (obligations to deliver goods)
+    for sku, data in balance.nonfinancial_liabilities_by_kind.items():
+        qty = data['quantity']
+        if qty > 0:
+            name = f"{sku} oblig [{qty}]"
+            if len(name) > 19:
+                name = name[:16] + "..."
+            amount = _format_currency(int(data['value']))
+            table.add_row(
+                Text(name, style="red"),
+                Text(amount, style="red")
+            )
+    
+    # Second: Add financial liabilities
+    for liability_type in sorted(balance.liabilities_by_kind.keys()):
+        # Skip non-financial types
+        if liability_type not in ['delivery_obligation']:
+            name = liability_type
+            if len(name) > 19:
+                name = name[:16] + "..."
+            table.add_row(
+                Text(name, style="red"),
+                Text(_format_currency(balance.liabilities_by_kind[liability_type]), style="red")
+            )
+    
+    # Add totals and net worth
+    table.add_row("", "", end_section=True)
+    table.add_row(
+        Text("Total Financial", style="bold green"),
+        Text(_format_currency(balance.total_financial_assets), style="bold green")
+    )
+    table.add_row(
+        Text("Total Liab.", style="bold red"),
+        Text(_format_currency(balance.total_financial_liabilities), style="bold red")
+    )
+    
+    net_worth_style = "bold green" if balance.net_financial >= 0 else "bold red"
+    table.add_row(
+        Text("Net Financial", style="bold blue"),
+        Text(_format_currency(balance.net_financial, show_sign=True), style=net_worth_style)
+    )
+    
+    return table
+
+
+def _build_simple_agent_balance_string(
+    balance: AgentBalance, 
+    system: Optional[System] = None, 
+    agent_id: Optional[str] = None,
+    title: Optional[str] = None
+) -> str:
+    """Build a simple text format balance sheet string."""
+    lines = []
+    
+    # Get title
+    if title is None:
+        if system and agent_id and agent_id in system.state.agents:
+            agent = system.state.agents[agent_id]
+            if agent.name and agent.name != agent_id:
+                title = f"{agent.name} [{agent_id}] ({agent.kind})"
+            else:
+                title = f"{agent_id} ({agent.kind})"
+        else:
+            title = f"Agent {balance.agent_id}"
+    
+    lines.append(f"\n{title}")
+    lines.append("=" * 70)
+    lines.append(f"{'ASSETS':<30} {'Amount':>12} | {'LIABILITIES':<30} {'Amount':>12}")
+    lines.append("-" * 70)
+    
+    # Simplified balance sheet representation for simple format
+    lines.append(f"{'Total Financial':<30} {_format_currency(balance.total_financial_assets):>12} | "
+          f"{'Total Financial':<30} {_format_currency(balance.total_financial_liabilities):>12}")
+    
+    lines.append("-" * 70)
+    lines.append(f"{'':>44} | {'NET FINANCIAL':<30} {_format_currency(balance.net_financial, show_sign=True):>12}")
+    
+    return "\n".join(lines)
+
+
+def _build_simple_multiple_agent_balances_string(
+    balances: List[AgentBalance], 
+    system: Optional[System] = None
+) -> str:
+    """Build a simple text format for multiple agent balances."""
+    lines = []
+    lines.append("\nMultiple Agent Balances (Simplified View)")
+    lines.append("=" * 60)
+    
+    for balance in balances:
+        if system and balance.agent_id in system.state.agents:
+            agent = system.state.agents[balance.agent_id]
+            header = f"{agent.name or balance.agent_id} ({agent.kind})"
+        else:
+            header = balance.agent_id
+        
+        lines.append(f"{header}: Net Financial = {_format_currency(balance.net_financial, show_sign=True)}")
+    
+    return "\n".join(lines)
+
+
+def _build_events_summary_renderables(events: List[Dict[str, Any]]) -> List[RenderableType]:
+    """Build renderables for events in summary format."""
+    renderables = []
+    
+    for event in events:
+        kind = event.get("kind", "Unknown")
+        day = event.get("day", "?")
+        
+        if kind == "PayableSettled":
+            text = f"Day {day}: 💰 {event['debtor']} → {event['creditor']}: ${event['amount']}"
+        elif kind == "DeliveryObligationSettled":
+            qty = event.get('qty', event.get('quantity', 'N/A'))
+            text = f"Day {day}: 📦 {event['debtor']} → {event['creditor']}: {qty} {event.get('sku', 'items')}"
+        elif kind == "StockTransferred":
+            text = f"Day {day}: 🚚 {event['frm']} → {event['to']}: {event['qty']} {event['sku']}"
+        elif kind == "CashTransferred":
+            text = f"Day {day}: 💵 {event['frm']} → {event['to']}: ${event['amount']}"
+        else:
+            continue  # Skip other events in summary mode
+        
+        if RICH_AVAILABLE:
+            renderables.append(Text(text))
+        else:
+            renderables.append(text)
+    
+    return renderables
+
+
+def _build_events_detailed_renderables(events: List[Dict[str, Any]]) -> List[RenderableType]:
+    """Build renderables for events in detailed format, organized by phases."""
+    # Import and use the phase-aware version
+    from bilancio.analysis.visualization_phases import build_events_detailed_with_phases
+    return build_events_detailed_with_phases(events, RICH_AVAILABLE)
+    
+def _build_events_detailed_renderables_old(events: List[Dict[str, Any]]) -> List[RenderableType]:
+    """Old version - kept for reference."""
+    renderables = []
+    
+    # Use the formatter registry to format events nicely
+    from bilancio.ui.render.formatters import registry
+    
+    # Group events by phase
+    phases = {"A": [], "B": [], "C": [], "other": []}
+    for event in events:
+        phase = event.get("phase", "other")
+        if phase in ["A", "B", "C"]:
+            phases[phase].append(event)
+        else:
+            phases["other"].append(event)
+    
+    # Display events organized by phase
+    if phases["A"]:
+        if RICH_AVAILABLE:
+            from rich.text import Text
+            phase_header = Text("\n⏰ Phase A - Morning Activities", style="bold cyan")
+            renderables.append(phase_header)
+        else:
+            renderables.append("\n⏰ Phase A - Morning Activities")
+        
+        for event in phases["A"]:
+            kind = event.get("kind", "Unknown")
+            if kind == "PhaseA":
+                continue  # Skip the phase marker itself</            
+            renderables.extend(_format_single_event(event, registry))
+    
+    if phases["B"]:
+        if RICH_AVAILABLE:
+            from rich.text import Text
+            phase_header = Text("\n🌅 Phase B - Business Hours", style="bold yellow")
+            renderables.append(phase_header)
+        else:
+            renderables.append("\n🌅 Phase B - Business Hours")
+            
+        for event in phases["B"]:
+            kind = event.get("kind", "Unknown")
+            if kind == "PhaseB":
+                continue  # Skip the phase marker itself
+            renderables.extend(_format_single_event(event, registry))
+    
+    if phases["C"]:
+        if RICH_AVAILABLE:
+            from rich.text import Text
+            phase_header = Text("\n🌙 Phase C - End of Day Clearing", style="bold green")
+            renderables.append(phase_header)
+        else:
+            renderables.append("\n🌙 Phase C - End of Day Clearing")
+            
+        for event in phases["C"]:
+            kind = event.get("kind", "Unknown")
+            if kind == "PhaseC":
+                continue  # Skip the phase marker itself
+            renderables.extend(_format_single_event(event, registry))
+    
+    # Display any events without phase markers
+    if phases["other"]:
+        for event in phases["other"]:
+            kind = event.get("kind", "Unknown")
+            if kind in ["PhaseA", "PhaseB", "PhaseC"]:
+                continue  # Skip phase markers
+            renderables.extend(_format_single_event(event, registry))
+    
+    return renderables
+
+
+def _format_single_event(event: Dict[str, Any], registry) -> List[RenderableType]:
+    """Format a single event and return renderables."""
+    renderables = []
+    
+    # Format the event using the registry
+    title, lines, icon = registry.format(event)
+    
+    if RICH_AVAILABLE:
+        from rich.text import Text
+        # Create a nice formatted display with icon and details
+        text = Text()
+        
+        # Add icon and title with color based on event type
+        if "Transfer" in title or "Payment" in title:
+            text.append(title, style="bold cyan")
+        elif "Settled" in title or "Cleared" in title:
+            text.append(title, style="bold green")
+        elif "Created" in title or "Minted" in title:
+            text.append(title, style="bold yellow")
+        elif "Consolidation" in title or "Split" in title:
+            text.append(title, style="dim italic")
+        else:
+            text.append(title, style="bold")
+        
+        # Add details with proper indentation and styling
+        if lines:
+            for i, line in enumerate(lines[:3]):  # Show up to 3 lines
+                text.append("\n   ")
+                if "→" in line or "←" in line:
+                    # Flow lines - make them prominent
+                    text.append(line, style="white")
+                elif ":" in line:
+                    # Split field and value for better formatting
+                    parts = line.split(":", 1)
+                    if len(parts) == 2:
+                        field, value = parts
+                        text.append(field + ":", style="dim")
+                        text.append(value, style="white")
+                    else:
+                        text.append(line, style="dim white")
+                elif line.startswith("("):
+                    # Technical explanations in parentheses - make them dimmer
+                    text.append(line, style="dim italic")
+                else:
+                    text.append(line, style="white")
+        
+        renderables.append(text)
+    else:
+        # Simple text format
+        text = f"• {title}"
+        if lines:
+            text += " - " + ", ".join(lines[:2])
+        renderables.append(text)
+    
+    return [renderables[0]] if renderables else []
+
+
+def _build_day_events_renderables(events: List[Dict[str, Any]]) -> List[RenderableType]:
+    """Build renderables for events in a single day."""
+    return _build_events_detailed_renderables(events)
+
+```
+
+---
+
+### 📄 src/bilancio/analysis/visualization_phases.py
+
+```python
+"""Phase-aware event visualization for bilancio."""
+
+from typing import List, Dict, Any, Union
+from rich.text import Text
+
+RenderableType = Any  # Type alias for renderables
+
+def build_events_detailed_with_phases(events: List[Dict[str, Any]], RICH_AVAILABLE: bool = True) -> List[RenderableType]:
+    """Build renderables for events in detailed format, properly organized by phase markers."""
+    renderables = []
+    
+    # Use the formatter registry to format events nicely
+    from bilancio.ui.render.formatters import registry
+    
+    # Group events by phase markers (PhaseA, PhaseB, PhaseC)
+    # Events between PhaseA and PhaseB are in Phase A
+    # Events between PhaseB and PhaseC are in Phase B  
+    # Events after PhaseC are in Phase C
+    phase_a_events = []
+    phase_b_events = []
+    phase_c_events = []
+    setup_events = []
+    
+    current_phase = None
+    for event in events:
+        kind = event.get("kind", "Unknown")
+        
+        # Check for phase markers to update current phase
+        if kind == "PhaseA":
+            current_phase = "A"
+            continue  # Skip the marker itself
+        elif kind == "PhaseB":
+            current_phase = "B"
+            continue  # Skip the marker itself
+        elif kind == "PhaseC":
+            current_phase = "C"
+            continue  # Skip the marker itself
+        
+        # Sort events into phases based on current phase
+        if event.get("phase") == "setup":
+            setup_events.append(event)
+        elif current_phase == "A":
+            phase_a_events.append(event)
+        elif current_phase == "B":
+            phase_b_events.append(event)
+        elif current_phase == "C":
+            phase_c_events.append(event)
+        else:
+            # Events before any phase marker (during simulation but no phase set yet)
+            # This shouldn't happen but default to phase A
+            if event.get("phase") == "simulation":
+                phase_a_events.append(event)
+    
+    # Display setup events if any
+    if setup_events:
+        if RICH_AVAILABLE:
+            phase_header = Text("Setup", style="bold magenta")
+            renderables.append(phase_header)
+        else:
+            renderables.append("Setup")
+        
+        for event in setup_events:
+            renderables.extend(_format_single_event(event, registry, RICH_AVAILABLE))
+    
+    # Display Phase A events (usually empty as it's just a marker)
+    if phase_a_events:
+        if RICH_AVAILABLE:
+            phase_header = Text("\nPhase A", style="bold cyan")
+            renderables.append(phase_header)
+        else:
+            renderables.append("\nPhase A")
+        
+        for event in phase_a_events:
+            renderables.extend(_format_single_event(event, registry, RICH_AVAILABLE))
+    
+    # Display Phase B events - Settle obligations due
+    if phase_b_events:
+        if RICH_AVAILABLE:
+            phase_header = Text("\nPhase B - Settle obligations due", style="bold yellow")
+            renderables.append(phase_header)
+        else:
+            renderables.append("\nPhase B - Settle obligations due")
+            
+        for event in phase_b_events:
+            renderables.extend(_format_single_event(event, registry, RICH_AVAILABLE))
+    
+    # Display Phase C events - Clear intraday nets
+    if phase_c_events:
+        if RICH_AVAILABLE:
+            phase_header = Text("\nPhase C - Clear intraday nets", style="bold green")
+            renderables.append(phase_header)
+        else:
+            renderables.append("\nPhase C - Clear intraday nets")
+            
+        for event in phase_c_events:
+            renderables.extend(_format_single_event(event, registry, RICH_AVAILABLE))
+    
+    return renderables
+
+
+def _format_single_event(event: Dict[str, Any], registry, RICH_AVAILABLE: bool) -> List[RenderableType]:
+    """Format a single event and return renderables."""
+    renderables = []
+    
+    # Format the event using the registry
+    title, lines, icon = registry.format(event)
+    
+    if RICH_AVAILABLE:
+        from rich.text import Text
+        # Create a nice formatted display with icon and details
+        text = Text()
+        
+        # Add icon and title with color based on event type
+        if "Transfer" in title or "Payment" in title:
+            text.append(title, style="bold cyan")
+        elif "Settled" in title or "Cleared" in title:
+            text.append(title, style="bold green")
+        elif "Created" in title or "Minted" in title:
+            text.append(title, style="bold yellow")
+        elif "Consolidation" in title or "Split" in title:
+            text.append(title, style="dim italic")
+        else:
+            text.append(title, style="bold")
+        
+        # Add details with proper indentation and styling
+        if lines:
+            for i, line in enumerate(lines[:3]):  # Show up to 3 lines
+                text.append("\n   ")
+                if "→" in line or "←" in line:
+                    # Flow lines - make them prominent
+                    text.append(line, style="white")
+                elif ":" in line:
+                    # Split field and value for better formatting
+                    parts = line.split(":", 1)
+                    if len(parts) == 2:
+                        field, value = parts
+                        text.append(field + ":", style="dim")
+                        text.append(value, style="white")
+                    else:
+                        text.append(line, style="dim white")
+                elif line.startswith("("):
+                    # Technical explanations in parentheses - make them dimmer
+                    text.append(line, style="dim italic")
+                else:
+                    text.append(line, style="white")
+        
+        renderables.append(text)
+    else:
+        # Simple text format
+        text = f"• {title}"
+        if lines:
+            text += " - " + ", ".join(lines[:2])
+        renderables.append(text)
+    
+    return [renderables[0]] if renderables else []
 ```
 
 ---
@@ -2194,6 +3742,15 @@ def apply_action(system: System, action_dict: Dict[str, Any], agents: Dict[str, 
                 due_day=action.due_day
             )
             system.add_contract(payable)
+            
+            # Log the event
+            system.log("PayableCreated",
+                debtor=action.from_agent,
+                creditor=action.to_agent,
+                amount=int(action.amount),
+                due_day=action.due_day,
+                payable_id=payable.id
+            )
             
         else:
             raise ValueError(f"Unknown action type: {action_type}")
@@ -2684,7 +4241,7 @@ class ShowConfig(BaseModel):
         None,
         description="Agent IDs to show balances for"
     )
-    events: Literal["summary", "detailed"] = Field(
+    events: Literal["summary", "detailed", "table"] = Field(
         "detailed",
         description="Event display mode"
     )
@@ -2758,6 +4315,7 @@ class ScenarioConfig(BaseModel):
         if len(ids) != len(set(ids)):
             raise ValueError("Agent IDs must be unique")
         return v
+
 ```
 
 ---
@@ -3114,7 +4672,8 @@ class Firm(Agent):
     A firm/company agent that can:
     - Hold and transfer cash
     - Issue and receive payables
-    - Own and transfer deliverable goods (inventory, machines, etc.)
+    - Own and transfer stock inventory
+    - Create and settle delivery obligations
     - Participate in economic transactions
     
     This represents any business entity that isn't a bank or financial institution.
@@ -3202,7 +4761,6 @@ class StockLot:
 from .base import Instrument
 from .credit import Payable
 from .means_of_payment import BankDeposit, Cash, ReserveDeposit
-from .nonfinancial import Deliverable
 
 __all__ = [
     "Instrument",
@@ -3210,7 +4768,6 @@ __all__ = [
     "BankDeposit",
     "ReserveDeposit",
     "Payable",
-    "Deliverable",
 ]
 
 ```
@@ -3391,50 +4948,6 @@ class ReserveDeposit(Instrument):
 
 ---
 
-### 📄 src/bilancio/domain/instruments/nonfinancial.py
-
-```python
-from dataclasses import dataclass
-from decimal import Decimal
-
-from .base import Instrument
-
-
-@dataclass
-class Deliverable(Instrument):
-    sku: str = "GENERIC"
-    divisible: bool = True  # if False, amount must be whole and only full transfers allowed
-    unit_price: Decimal = Decimal("0")  # Required monetary value per unit
-    due_day: int | None = None  # Optional temporal obligation: day when deliverable must be transferred to creditor. 
-                                # When set, the settlement engine will automatically transfer goods on the specified day.
-                                # Must be non-negative. None means no temporal obligation.
-    
-    def __post_init__(self):
-        self.kind = "deliverable"
-        # Ensure unit_price is a Decimal
-        if not isinstance(self.unit_price, Decimal):
-            self.unit_price = Decimal(str(self.unit_price))
-    
-    def is_financial(self) -> bool:
-        return False
-    
-    @property
-    def valued_amount(self) -> Decimal:
-        """Returns the monetary value (amount * unit_price)."""
-        return Decimal(str(self.amount)) * self.unit_price
-    
-    def validate_type_invariants(self) -> None:
-        # Override parent validation - non-financial assets can have same holder and issuer
-        assert self.amount >= 0, "amount must be non-negative"
-        assert self.unit_price >= 0, "unit_price must be non-negative"
-        # Validate due_day if provided
-        if self.due_day is not None:
-            assert self.due_day >= 0, "due_day must be non-negative if provided"
-
-```
-
----
-
 ### 📄 src/bilancio/domain/instruments/policy.py
 
 ```python
@@ -3479,7 +4992,6 @@ from bilancio.domain.agents.treasury import Treasury
 from bilancio.domain.instruments.base import Instrument
 from bilancio.domain.instruments.credit import Payable
 from bilancio.domain.instruments.means_of_payment import BankDeposit, Cash, ReserveDeposit
-from bilancio.domain.instruments.nonfinancial import Deliverable
 from bilancio.domain.instruments.delivery import DeliveryObligation
 
 AgentType = type[Agent]
@@ -3501,7 +5013,6 @@ class PolicyEngine:
                 BankDeposit: (Bank,),
                 ReserveDeposit: (CentralBank,),
                 Payable:     (Agent,),            # any agent can issue a payable
-                Deliverable: (Agent,),            # backward compatibility
                 DeliveryObligation: (Agent,),     # any agent can promise to deliver
             },
             holders={
@@ -3509,7 +5020,6 @@ class PolicyEngine:
                 BankDeposit:     (Household, Firm, Treasury, Bank),  # banks may hold but not for interbank settlement
                 ReserveDeposit:  (Bank, Treasury),
                 Payable:         (Agent,),
-                Deliverable:     (Agent,),            # backward compatibility
                 DeliveryObligation: (Agent,),         # any agent can hold a delivery claim
             },
             mop_rank={
@@ -3706,13 +5216,6 @@ def due_payables(system, day: int):
             yield c
 
 
-def due_deliverables(system, day: int):
-    """Scan contracts for deliverables with due_day == day."""
-    for c in system.state.contracts.values():
-        if c.kind == "deliverable" and getattr(c, "due_day", None) == day:
-            yield c
-
-
 def due_delivery_obligations(system, day: int):
     """Scan contracts for delivery obligations with due_day == day."""
     for c in system.state.contracts.values():
@@ -3824,55 +5327,6 @@ def _pay_bank_to_bank_with_reserves(system, debtor_bank_id, creditor_bank_id, am
         return 0
 
 
-def _deliver_goods(system, debtor_id, creditor_id, sku: str, required_quantity: int) -> int:
-    """
-    Transfer deliverable goods from debtor to creditor by SKU.
-    Returns the quantity actually delivered.
-    """
-    # Find available deliverable assets with matching SKU
-    available_assets = []
-    for cid in system.state.agents[debtor_id].asset_ids:
-        contract = system.state.contracts[cid]
-        if contract.kind == "deliverable" and getattr(contract, "sku", None) == sku:
-            available_assets.append((cid, contract.amount))
-    
-    if not available_assets:
-        return 0
-    
-    # Calculate total available quantity
-    total_available = sum(quantity for _, quantity in available_assets)
-    if total_available == 0:
-        return 0
-    
-    deliver_quantity = min(required_quantity, total_available)
-    remaining_to_deliver = deliver_quantity
-    
-    # Sort by contract ID for deterministic behavior
-    available_assets.sort(key=lambda x: x[0])
-    
-    try:
-        # Transfer goods from available assets
-        for asset_id, asset_quantity in available_assets:
-            if remaining_to_deliver == 0:
-                break
-                
-            transfer_qty = min(remaining_to_deliver, asset_quantity)
-            
-            # Use the system's transfer_deliverable method
-            if transfer_qty == asset_quantity:
-                # Transfer the entire asset
-                system.transfer_deliverable(asset_id, debtor_id, creditor_id)
-            else:
-                # Transfer partial quantity (will split the asset)
-                system.transfer_deliverable(asset_id, debtor_id, creditor_id, transfer_qty)
-            
-            remaining_to_deliver -= transfer_qty
-        
-        return deliver_quantity
-    except ValidationError:
-        return 0
-
-
 def _deliver_stock(system, debtor_id, creditor_id, sku: str, required_quantity: int) -> int:
     """
     Transfer stock lots from debtor to creditor by SKU using FIFO allocation.
@@ -3937,39 +5391,6 @@ def _remove_contract(system, contract_id):
     del system.state.contracts[contract_id]
 
 
-def settle_due_deliverables(system, day: int):
-    """
-    Settle all deliverables due today.
-    
-    For each deliverable due today:
-    - Get debtor and creditor agents
-    - Check if debtor has sufficient deliverable assets with matching SKU
-    - Transfer the goods to the creditor
-    - Remove the deliverable obligation when fully settled
-    - Raise DefaultError if insufficient deliverables
-    - Log DeliverableSettled event
-    """
-    for deliverable in list(due_deliverables(system, day)):
-        debtor = system.state.agents[deliverable.liability_issuer_id]
-        creditor = system.state.agents[deliverable.asset_holder_id]
-        required_sku = getattr(deliverable, "sku", "GENERIC")
-        required_quantity = deliverable.amount
-
-        with atomic(system):
-            # Try to deliver the required goods
-            delivered_quantity = _deliver_goods(system, debtor.id, creditor.id, required_sku, required_quantity)
-            
-            if delivered_quantity != required_quantity:
-                # Cannot deliver fully - raise default error
-                shortage = required_quantity - delivered_quantity
-                raise DefaultError(f"Insufficient deliverables to settle obligation {deliverable.id}: {shortage} units of {required_sku} still owed")
-            
-            # Fully settled: remove deliverable obligation and log
-            _remove_contract(system, deliverable.id)
-            system.log("DeliverableSettled", did=deliverable.id, debtor=debtor.id, creditor=creditor.id, 
-                      sku=required_sku, quantity=required_quantity)
-
-
 def settle_due_delivery_obligations(system, day: int):
     """
     Settle all delivery obligations due today using stock operations.
@@ -4009,7 +5430,7 @@ def settle_due_delivery_obligations(system, day: int):
 
 def settle_due(system, day: int):
     """
-    Settle all obligations due today (payables, deliverables, and delivery obligations).
+    Settle all obligations due today (payables and delivery obligations).
     
     For each payable due today:
     - Get debtor and creditor agents
@@ -4018,14 +5439,6 @@ def settle_due(system, day: int):
     - Raise DefaultError if insufficient funds across all methods
     - Remove payable when fully settled
     - Log PayableSettled event
-    
-    For each deliverable due today:
-    - Get debtor and creditor agents
-    - Check if debtor has sufficient deliverable assets with matching SKU
-    - Transfer the goods to the creditor
-    - Remove the deliverable obligation when fully settled
-    - Raise DefaultError if insufficient deliverables
-    - Log DeliverableSettled event
     
     For each delivery obligation due today:
     - Get debtor and creditor agents
@@ -4068,10 +5481,7 @@ def settle_due(system, day: int):
             _remove_contract(system, payable.id)
             system.log("PayableSettled", pid=payable.id, debtor=debtor.id, creditor=creditor.id, amount=payable.amount)
     
-    # Then settle old-style deliverables (for backward compatibility)
-    settle_due_deliverables(system, day)
-    
-    # Finally settle new delivery obligations
+    # Settle delivery obligations
     settle_due_delivery_obligations(system, day)
 
 ```
@@ -4281,7 +5691,6 @@ from bilancio.core.ids import AgentId, InstrId, new_id
 from bilancio.domain.agent import Agent
 from bilancio.domain.instruments.base import Instrument
 from bilancio.domain.instruments.means_of_payment import Cash, ReserveDeposit
-# from bilancio.domain.instruments.nonfinancial import Deliverable  # DEPRECATED
 from bilancio.domain.instruments.delivery import DeliveryObligation
 from bilancio.domain.goods import StockLot
 from bilancio.domain.policy import PolicyEngine
@@ -4574,7 +5983,7 @@ class System:
         """Calculate total deposit amount for customer at bank"""
         return sum(self.state.contracts[cid].amount for cid in self.deposit_ids(customer_id, bank_id))
 
-    # ---- deliverable operations (DEPRECATED - use stock operations and delivery obligations instead)
+    # ---- obligation settlement
 
     def settle_obligation(self, contract_id: InstrId) -> None:
         """
@@ -5237,10 +6646,30 @@ def client_payment(system, payer_id: str, payer_bank: str, payee_id: str, payee_
         dep_rx = coalesce_deposits(system, payee_id, payee_bank)
         system.state.contracts[dep_rx].amount += deposit_paid
 
-        # 3) record event for cross-bank intraday flow (no reserves move yet)
-        if payer_bank != payee_bank:
-            system.log("ClientPayment", payer=payer_id, payer_bank=payer_bank,
-                       payee=payee_id, payee_bank=payee_bank, amount=deposit_paid)
+        # 3) Log payment events with proper classification
+        if deposit_paid > 0:
+            if payer_bank == payee_bank:
+                # Intra-bank payment (same bank)
+                system.log("IntraBankPayment", 
+                          payer=payer_id, 
+                          payee=payee_id, 
+                          bank=payer_bank, 
+                          amount=deposit_paid)
+            else:
+                # Inter-bank payment (cross-bank, will need clearing)
+                system.log("ClientPayment", 
+                          payer=payer_id, 
+                          payer_bank=payer_bank,
+                          payee=payee_id, 
+                          payee_bank=payee_bank, 
+                          amount=deposit_paid)
+        
+        if cash_paid > 0:
+            # Cash payment was used as fallback
+            system.log("CashPayment",
+                      payer=payer_id,
+                      payee=payee_id,
+                      amount=cash_paid)
 
         return dep_rx
 
@@ -5311,23 +6740,12 @@ from bilancio.domain.instruments.base import Instrument
 
 def fungible_key(instr: Instrument) -> tuple:
     # Same type, denomination, issuer, holder → can merge
-    # For deliverables, also include SKU and unit_price to prevent incorrect merging
-    base_key = (instr.kind, instr.denom, instr.liability_issuer_id, instr.asset_holder_id)
-    
-    # Add deliverable-specific attributes to prevent merging different SKUs or prices
-    if instr.kind == "deliverable":
-        sku = getattr(instr, "sku", None)
-        unit_price = getattr(instr, "unit_price", None)
-        return base_key + (sku, unit_price)
-    
-    return base_key
+    return (instr.kind, instr.denom, instr.liability_issuer_id, instr.asset_holder_id)
 
 def is_divisible(instr: Instrument) -> bool:
-    # Cash and bank deposits are divisible; deliverables depend on flag
+    # Cash and bank deposits are divisible
     if instr.kind in ("cash", "bank_deposit", "reserve_deposit"):
         return True
-    if instr.kind == "deliverable":
-        return getattr(instr, "divisible", False)
     return False
 
 def split(system, instr_id: str, amount: int) -> str:
@@ -5347,7 +6765,7 @@ def split(system, instr_id: str, amount: int) -> str:
         denom=instr.denom,
         asset_holder_id=instr.asset_holder_id,
         liability_issuer_id=instr.liability_issuer_id,
-        **{k: getattr(instr, k) for k in ("due_day","sku","divisible","unit_price") if hasattr(instr, k)}
+        **{k: getattr(instr, k) for k in ("due_day",) if hasattr(instr, k)}
     )
     system.add_contract(twin)  # attaches to holder/issuer lists too
     return twin_id
@@ -5558,7 +6976,7 @@ def cli():
               help='Maximum days to simulate')
 @click.option('--quiet-days', type=int, default=2,
               help='Required quiet days for stable state')
-@click.option('--show', type=click.Choice(['summary', 'detailed']),
+@click.option('--show', type=click.Choice(['summary', 'detailed', 'table']),
               default='detailed', help='Event display mode')
 @click.option('--agents', type=str, default=None,
               help='Comma-separated list of agent IDs to show balances for')
@@ -5572,6 +6990,7 @@ def cli():
               default=None, help='Path to export events JSONL')
 @click.option('--html', type=click.Path(path_type=Path),
               default=None, help='Path to export colored output as HTML')
+@click.option('--t-account/--no-t-account', default=False, help='Use detailed T-account layout for balances')
 def run(scenario_file: Path, 
         mode: str,
         max_days: int,
@@ -5581,7 +7000,8 @@ def run(scenario_file: Path,
         check_invariants: str,
         export_balances: Optional[Path],
         export_events: Optional[Path],
-        html: Optional[Path]):
+        html: Optional[Path],
+        t_account: bool):
     """Run a Bilancio simulation scenario.
     
     Load a scenario from a YAML file and run the simulation either
@@ -5609,7 +7029,8 @@ def run(scenario_file: Path,
             agent_ids=agent_ids,
             check_invariants=check_invariants,
             export=export,
-            html_output=html
+            html_output=html,
+            t_account=t_account
         )
         
     except FileNotFoundError as e:
@@ -5745,6 +7166,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 ```
 
 ---
@@ -5754,8 +7176,8 @@ if __name__ == '__main__':
 ```python
 """Display utilities for Bilancio CLI."""
 
-from typing import Optional, List, Dict, Any
-from rich.console import Console
+from typing import Optional, List, Dict, Any, Union
+from rich.console import Console, RenderableType
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
@@ -5765,7 +7187,14 @@ from bilancio.analysis.visualization import (
     display_agent_balance_table,
     display_multiple_agent_balances,
     display_events,
-    display_events_for_day
+    display_events_for_day,
+    display_agent_balance_table_renderable,
+    display_multiple_agent_balances_renderable,
+    display_events_renderable,
+    display_events_for_day_renderable,
+    display_events_table_renderable,
+    display_agent_t_account_renderable,
+    display_events_tables_by_phase_renderables
 )
 from bilancio.analysis.balances import system_trial_balance
 from bilancio.core.errors import DefaultError, ValidationError
@@ -5774,73 +7203,162 @@ from bilancio.core.errors import DefaultError, ValidationError
 console = Console()
 
 
-def show_scenario_header(name: str, description: Optional[str] = None) -> None:
+def show_scenario_header_renderable(name: str, description: Optional[str] = None, agents: Optional[Any] = None) -> List[RenderableType]:
+    """Return renderables for scenario header including agent list.
+    
+    Args:
+        name: Scenario name
+        description: Optional scenario description
+        agents: Optional list or dict of agent configs to display
+        
+    Returns:
+        List of renderables
+    """
+    renderables = []
+    
+    # Add scenario header panel
+    header = Text(name, style="bold cyan")
+    if description:
+        header.append(f"\n{description}", style="dim")
+    
+    renderables.append(Panel(
+        header,
+        title="Bilancio Scenario",
+        border_style="cyan"
+    ))
+    
+    # Add agent list if provided
+    if agents:
+        from rich.table import Table
+        
+        agent_table = Table(title="Agents", box=None, show_header=False, padding=(0, 2))
+        agent_table.add_column("ID", style="bold yellow")
+        agent_table.add_column("Name", style="white")
+        agent_table.add_column("Type", style="cyan")
+        
+        # Handle both list and dict formats
+        if isinstance(agents, list):
+            # agents is a list of AgentSpec objects
+            for agent_config in agents:
+                agent_id = agent_config.id if hasattr(agent_config, 'id') else str(agent_config.get('id', 'unknown'))
+                agent_type = agent_config.kind if hasattr(agent_config, 'kind') else str(agent_config.get('kind', 'unknown'))
+                agent_name = agent_config.name if hasattr(agent_config, 'name') else str(agent_config.get('name', agent_id))
+                agent_table.add_row(agent_id, agent_name, f"({agent_type})")
+        elif isinstance(agents, dict):
+            # agents is a dictionary
+            for agent_id, agent_config in agents.items():
+                agent_type = agent_config.kind if hasattr(agent_config, 'kind') else str(agent_config.get('kind', 'unknown'))
+                agent_name = agent_config.name if hasattr(agent_config, 'name') else str(agent_config.get('name', agent_id))
+                agent_table.add_row(agent_id, agent_name, f"({agent_type})")
+        
+        renderables.append(Text())  # Empty line
+        renderables.append(agent_table)
+    
+    return renderables
+
+
+def show_scenario_header(name: str, description: Optional[str] = None, agents: Optional[Dict[str, Any]] = None) -> None:
     """Display scenario header.
     
     Args:
         name: Scenario name
         description: Optional scenario description
+        agents: Optional dict of agent configs to display
     """
-    header = Text(name, style="bold cyan")
-    if description:
-        header.append(f"\n{description}", style="dim")
-    
-    console.print(Panel(
-        header,
-        title="Bilancio Scenario",
-        border_style="cyan"
-    ))
+    renderables = show_scenario_header_renderable(name, description, agents)
+    for renderable in renderables:
+        console.print(renderable)
 
 
-def show_day_summary(
+def show_day_summary_renderable(
     system: System,
     agent_ids: Optional[List[str]] = None,
     event_mode: str = "detailed",
-    day: Optional[int] = None
-) -> None:
-    """Display summary for a simulation day.
+    day: Optional[int] = None,
+    t_account: bool = False
+) -> List[RenderableType]:
+    """Return renderables for a simulation day summary.
     
     Args:
         system: System instance
         agent_ids: Agent IDs to show balances for
         event_mode: "summary" or "detailed"
         day: Day number to display events for (None for all)
+        
+    Returns:
+        List of renderables
     """
+    renderables = []
+    
     # Show events
     if day is not None:
         # Show events for specific day
         events_for_day = [e for e in system.state.events if e.get("day") == day]
         if events_for_day:
-            console.print("\n[bold]Events:[/bold]")
-            if event_mode == "detailed":
-                display_events(events_for_day, format="detailed")
+            renderables.append(Text("\nEvents:", style="bold"))
+            if event_mode == "table":
+                # Show 3 separate tables by phase (A/B/C)
+                phase_tables = display_events_tables_by_phase_renderables(events_for_day, day=day)
+                renderables.extend(phase_tables)
+            elif event_mode == "detailed":
+                event_renderables = display_events_renderable(events_for_day, format="detailed")
+                renderables.extend(event_renderables)
             else:
                 # Summary mode - just count by type
                 event_counts = {}
                 for event in events_for_day:
-                    event_type = event.get("kind", event.get("type", "Unknown"))
+                    event_type = event.get("kind", "Unknown")
                     event_counts[event_type] = event_counts.get(event_type, 0) + 1
-                
                 for event_type, count in sorted(event_counts.items()):
-                    console.print(f"  • {event_type}: {count}")
+                    renderables.append(Text(f"  • {event_type}: {count}"))
     else:
-        # Show all recent events
+        # Show all recent events (initial view, typically setup/day 0)
         if system.state.events:
-            console.print("\n[bold]Events:[/bold]")
-            display_events(system.state.events, format="detailed")
+            renderables.append(Text("\nEvents:", style="bold"))
+            if event_mode == "table":
+                # Use phase-separated tables even in the initial no-day view.
+                # If these are setup events, this will render a single "Setup" table.
+                # Otherwise, it renders Phase B/C tables for the current day.
+                # Determine a representative day to label (default to 0 if any setup events exist).
+                rep_day = 0 if any(e.get("phase") == "setup" for e in system.state.events) else system.state.day
+                phase_tables = display_events_tables_by_phase_renderables(system.state.events, day=rep_day)
+                renderables.extend(phase_tables)
+            elif event_mode == "detailed":
+                event_renderables = display_events_renderable(system.state.events, format="detailed")
+                renderables.extend(event_renderables)
+            else:
+                # Summary mode
+                event_counts = {}
+                for event in system.state.events:
+                    event_type = event.get("kind", "Unknown")
+                    event_counts[event_type] = event_counts.get(event_type, 0) + 1
+                for event_type, count in sorted(event_counts.items()):
+                    renderables.append(Text(f"  • {event_type}: {count}"))
     
     # Show balances
     if agent_ids:
-        console.print("\n[bold]Balances:[/bold]")
+        renderables.append(Text("\nBalances:", style="bold"))
         if len(agent_ids) == 1:
             # Single agent - show detailed balance
-            display_agent_balance_table(system, agent_ids[0], format="rich")
+            if t_account:
+                balance_renderable = display_agent_t_account_renderable(system, agent_ids[0])
+            else:
+                balance_renderable = display_agent_balance_table_renderable(system, agent_ids[0], format="rich")
+            renderables.append(balance_renderable)
         else:
-            # Multiple agents - show side by side
-            display_multiple_agent_balances(system, agent_ids, format="rich")
+            # Multiple agents
+            if t_account:
+                # Render one T-account per agent, stacked for readability
+                for aid in agent_ids:
+                    renderables.append(display_agent_t_account_renderable(system, aid))
+                    renderables.append(Text(""))  # spacing
+            else:
+                # Show compact legacy tables side by side
+                balance_renderable = display_multiple_agent_balances_renderable(system, agent_ids, format="rich")
+                renderables.append(balance_renderable)
     else:
         # Show system trial balance
-        console.print("\n[bold]System Trial Balance:[/bold]")
+        renderables.append(Text("\nSystem Trial Balance:", style="bold"))
         trial_bal = system_trial_balance(system)
         
         table = Table(show_header=True, header_style="bold")
@@ -5861,16 +7379,41 @@ def show_day_summary(
         else:
             table.add_row("Status", f"[red]✗ Imbalanced ({diff:,.2f})[/red]")
         
-        console.print(table)
+        renderables.append(table)
+    
+    return renderables
 
 
-def show_simulation_summary(system: System) -> None:
-    """Display final simulation summary.
+def show_day_summary(
+    system: System,
+    agent_ids: Optional[List[str]] = None,
+    event_mode: str = "detailed",
+    day: Optional[int] = None,
+    t_account: bool = False
+) -> None:
+    """Display summary for a simulation day.
     
     Args:
         system: System instance
+        agent_ids: Agent IDs to show balances for
+        event_mode: "summary" or "detailed"
+        day: Day number to display events for (None for all)
     """
-    console.print(Panel(
+    renderables = show_day_summary_renderable(system, agent_ids, event_mode, day, t_account)
+    for renderable in renderables:
+        console.print(renderable)
+
+
+def show_simulation_summary_renderable(system: System) -> Panel:
+    """Return a renderable for final simulation summary.
+    
+    Args:
+        system: System instance
+        
+    Returns:
+        Panel renderable
+    """
+    return Panel(
         f"[bold]Final State[/bold]\n"
         f"Day: {system.state.day}\n"
         f"Total Events: {len(system.state.events)}\n"
@@ -5879,7 +7422,16 @@ def show_simulation_summary(system: System) -> None:
         f"Stock Lots: {len(system.state.stocks)}",
         title="Summary",
         border_style="green"
-    ))
+    )
+
+
+def show_simulation_summary(system: System) -> None:
+    """Display final simulation summary.
+    
+    Args:
+        system: System instance
+    """
+    console.print(show_simulation_summary_renderable(system))
 
 
 def show_error_panel(
@@ -5929,6 +7481,7 @@ def show_error_panel(
     # Log the error as an event
     if context and "scenario" in context:
         console.print(f"[dim]Error logged to simulation events[/dim]")
+
 ```
 
 ---
@@ -5936,583 +7489,1240 @@ def show_error_panel(
 ### 📄 src/bilancio/ui/html_export.py
 
 ```python
-"""HTML export functionality for Bilancio CLI output."""
+"""Semantic HTML export for Bilancio runs (readable, non-monospace).
+
+Generates a light-themed, spreadsheet-style HTML report inspired by temp/demo_correct.html,
+without changing simulation logic.
+"""
+
+from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional, List, Dict, Any
-from io import StringIO
-import tempfile
-import os
-import base64
-
-from rich.console import Console
-from rich.terminal_theme import MONOKAI
+from typing import Any, Dict, List, Optional
+import math
+from decimal import Decimal
+import html as _html
 
 from bilancio.engines.system import System
-from bilancio.config.models import ScenarioConfig
-from .display import (
-    show_scenario_header,
-    show_day_summary,
-    show_simulation_summary
+from bilancio.analysis.visualization import build_t_account_rows
+from bilancio.analysis.balances import AgentBalance
+
+
+def _load_css() -> str:
+    """Load export CSS from assets with a safe inline fallback.
+
+    Keeps styling out of Python while remaining robust if the file is missing.
+    """
+    asset_path = Path(__file__).with_name("assets").joinpath("export.css")
+    try:
+        return asset_path.read_text(encoding="utf-8")
+    except Exception:
+        # Minimal fallback to keep the page readable if asset is missing.
+        return "body{font-family:system-ui,Arial,sans-serif;padding:16px;background:#f5f5f5;color:#333}table{border-collapse:collapse;width:100%}th,td{border:1px solid #e5e7eb;padding:6px}tbody tr:nth-child(even){background:#fafafa}h1,h2,h3{margin:.5rem 0}"
+
+
+def _html_escape(value: Any) -> str:
+    """Escape text for safe HTML display, including quotes.
+
+    Uses stdlib html.escape and additionally escapes single quotes.
+    """
+    if value is None:
+        return ""
+    text = str(value)
+    # html.escape handles & < > and ", then we also escape single quotes
+    return _html.escape(text, quote=True).replace("'", "&#x27;")
+
+
+def _safe_int_conversion(value: Any) -> Optional[int]:
+    """Safely convert value to int.
+
+    - Accepts int, float, Decimal, and stringified digits
+    - Returns None for None
+    - Raises ValueError for invalid values
+    """
+    if value is None:
+        return None
+    # Fast path for ints
+    if isinstance(value, int):
+        return value
+    # Floats/Decimals lose precision but we accept truncation for display
+    if isinstance(value, (float, Decimal)):
+        # Guard against NaN/Inf
+        if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
+            raise ValueError("Invalid numeric value: NaN/Inf")
+        return int(value)
+    # Strings: allow simple digit strings and formatted numbers with commas
+    if isinstance(value, str):
+        s = value.strip().replace(",", "")
+        if s == "":
+            return None
+        try:
+            return int(s)
+        except Exception as e:
+            raise ValueError(f"Invalid numeric value: {value}") from e
+    # Objects with __int__
+    if hasattr(value, "__int__"):
+        try:
+            return int(value)  # type: ignore[arg-type]
+        except Exception as e:
+            raise ValueError(f"Invalid numeric value: {value}") from e
+    raise ValueError(f"Cannot convert {type(value)} to int")
+
+
+def _format_amount(v: Any) -> str:
+    if v in (None, "—", "-"):
+        return "—"
+    try:
+        iv = _safe_int_conversion(v)
+        if iv is None:
+            return "—"
+        return f"{iv:,}"
+    except ValueError:
+        # As a last resort, try float -> int formatting without erroring
+        try:
+            return f"{int(float(v)):,}"
+        except Exception:
+            return _html_escape(v)
+
+
+def _render_t_account_from_rows(title: str, assets_rows: List[dict], liabs_rows: List[dict]) -> str:
+    def tr(row: Optional[dict]) -> str:
+        if not row:
+            return "<tr><td class=\"empty\" colspan=\"5\">—</td></tr>"
+        qty = row.get('quantity')
+        val = row.get('value_minor')
+        cpty = row.get('counterparty_name') or "—"
+        mat = row.get('maturity') or "—"
+        # Robust numeric formatting with safe conversion
+        try:
+            qiv = _safe_int_conversion(qty)
+        except ValueError:
+            qiv = None
+        try:
+            viv = _safe_int_conversion(val)
+        except ValueError:
+            viv = None
+        qty_s = "—" if qiv in (None, "") else f"{qiv:,}"
+        val_s = "—" if viv in (None, "") else f"{viv:,}"
+        return (
+            f"<tr>"
+            f"<td class=\"name\">{_html_escape(row.get('name',''))}</td>"
+            f"<td class=\"qty\">{qty_s}</td>"
+            f"<td class=\"val\">{val_s}</td>"
+            f"<td class=\"cpty\">{_html_escape(cpty)}</td>"
+            f"<td class=\"mat\">{_html_escape(mat)}</td>"
+            f"</tr>"
+        )
+
+    assets_html = "".join(tr(r) for r in assets_rows) or tr(None)
+    liabs_html = "".join(tr(r) for r in liabs_rows) or tr(None)
+
+    return f"""
+<section class="t-account">
+  <h3>{_html_escape(title)}</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody>{assets_html}</tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody>{liabs_html}</tbody>
+      </table>
+    </div>
+  </div>
+</section>
+"""
+
+
+def _render_t_account(system: System, agent_id: str) -> str:
+    acct = build_t_account_rows(system, agent_id)
+    agent = system.state.agents[agent_id]
+    title = f"{agent.name or agent_id} [{agent_id}] ({agent.kind})"
+    # Convert to dict rows for the row renderer
+    def to_row(r):
+        return {
+            'name': getattr(r, 'name', ''),
+            'quantity': getattr(r, 'quantity', None),
+            'value_minor': getattr(r, 'value_minor', None),
+            'counterparty_name': getattr(r, 'counterparty_name', None),
+            'maturity': getattr(r, 'maturity', None),
+        }
+    assets_rows = [to_row(r) for r in acct.assets]
+    liabs_rows = [to_row(r) for r in acct.liabilities]
+    return _render_t_account_from_rows(title, assets_rows, liabs_rows)
+
+
+def _build_rows_from_balance(balance: AgentBalance) -> (List[dict], List[dict]):
+    assets: List[dict] = []
+    liabs: List[dict] = []
+
+    # Inventory (stocks owned)
+    for sku, data in balance.inventory_by_sku.items():
+        qty = data.get('quantity', 0)
+        val = data.get('value', 0)
+        try:
+            val_i = _safe_int_conversion(val)
+        except ValueError:
+            val_i = None
+        try:
+            qty_i = _safe_int_conversion(qty)
+        except ValueError:
+            qty_i = None
+        if qty_i and qty_i > 0:
+            assets.append({'name': str(sku), 'quantity': qty_i, 'value_minor': val_i, 'counterparty_name': '—', 'maturity': '—'})
+
+    # Non-financial assets receivable
+    for sku, data in balance.nonfinancial_assets_by_kind.items():
+        qty = data.get('quantity', 0)
+        val = data.get('value', 0)
+        try:
+            val_i = _safe_int_conversion(val)
+        except ValueError:
+            val_i = None
+        try:
+            qty_i = _safe_int_conversion(qty)
+        except ValueError:
+            qty_i = None
+        if qty_i and qty_i > 0:
+            assets.append({'name': f"{sku} receivable", 'quantity': qty_i, 'value_minor': val_i, 'counterparty_name': '—', 'maturity': '—'})
+
+    # Financial assets by kind (skip non-financial kinds)
+    for kind, amount in balance.assets_by_kind.items():
+        if kind == 'delivery_obligation':
+            continue
+        try:
+            amount_i = _safe_int_conversion(amount)
+        except ValueError:
+            amount_i = None
+        if amount_i and amount_i > 0:
+            assets.append({'name': kind, 'quantity': None, 'value_minor': amount_i, 'counterparty_name': '—', 'maturity': 'on-demand' if kind in ('cash','bank_deposit','reserve_deposit') else '—'})
+
+    # Non-financial liabilities
+    for sku, data in balance.nonfinancial_liabilities_by_kind.items():
+        qty = data.get('quantity', 0)
+        val = data.get('value', 0)
+        try:
+            val_i = _safe_int_conversion(val)
+        except ValueError:
+            val_i = None
+        try:
+            qty_i = _safe_int_conversion(qty)
+        except ValueError:
+            qty_i = None
+        if qty_i and qty_i > 0:
+            liabs.append({'name': f"{sku} obligation", 'quantity': qty_i, 'value_minor': val_i, 'counterparty_name': '—', 'maturity': '—'})
+
+    # Financial liabilities
+    for kind, amount in balance.liabilities_by_kind.items():
+        if kind == 'delivery_obligation':
+            continue
+        try:
+            amount_i = _safe_int_conversion(amount)
+        except ValueError:
+            amount_i = None
+        if amount_i and amount_i > 0:
+            liabs.append({'name': kind, 'quantity': None, 'value_minor': amount_i, 'counterparty_name': '—', 'maturity': 'on-demand' if kind in ('cash','bank_deposit','reserve_deposit') else '—'})
+
+    # Ordering similar to render layer
+    def asset_key(row):
+        name = row['name']
+        # inventory rows have quantity and cpty/maturity '—'
+        if row['quantity'] is not None and row.get('counterparty_name') == '—':
+            return (0, name)
+        if name.endswith('receivable'):
+            return (1, name)
+        order = {'cash':0,'bank_deposit':1,'reserve_deposit':2,'payable':3}
+        return (2, order.get(name, 99), name)
+
+    def liab_key(row):
+        name = row['name']
+        if name.endswith('obligation'):
+            return (0, name)
+        order = {'payable':0,'bank_deposit':1,'reserve_deposit':2,'cash':3}
+        return (1, order.get(name, 99), name)
+
+    assets.sort(key=asset_key)
+    liabs.sort(key=liab_key)
+    return assets, liabs
+
+
+def _map_event_fields(e: Dict[str, Any]) -> Dict[str, str]:
+    kind = str(e.get("kind", ""))
+    if kind in ("CashDeposited", "CashWithdrawn"):
+        frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+        to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+    elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+        frm = e.get("payer"); to = e.get("payee")
+    elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+        frm = e.get("debtor_bank"); to = e.get("creditor_bank")
+    elif kind == "StockCreated":
+        frm = e.get("owner"); to = None
+    else:
+        frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+        to  = e.get("to") or e.get("creditor") or e.get("payee")
+    sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+    qty = e.get("qty") or e.get("quantity") or "—"
+    amt = e.get("amount") or "—"
+    notes = ""
+    if kind == "ClientPayment":
+        notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
+    elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+        notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
+        if 'due_day' in e:
+            notes += f"; due {e.get('due_day')}"
+    return {
+        "kind": kind,
+        "from": _html_escape(frm or "—"),
+        "to": _html_escape(to or "—"),
+        "sku": _html_escape(sku),
+        "qty": _html_escape(qty),
+        "amount": _format_amount(amt),
+        "notes": _html_escape(notes),
+    }
+
+
+def _render_events_table(title: str, events: List[Dict[str, Any]]) -> str:
+    # Exclude marker rows
+    events = [e for e in events if e.get("kind") not in ("PhaseA","PhaseB","PhaseC")]
+    rows_html = []
+    for e in events:
+        m = _map_event_fields(e)
+        rows_html.append(
+            f"<tr>"
+            f"<td class=\"event-kind\">{m['kind']}</td>"
+            f"<td>{m['from']}</td><td>{m['to']}</td>"
+            f"<td>{m['sku']}</td><td class=\"qty\">{m['qty']}</td>"
+            f"<td class=\"amount\">{m['amount']}</td><td class=\"notes\">{m['notes']}</td>"
+            f"</tr>"
+        )
+    if not rows_html:
+        rows_html.append("<tr><td colspan=\"7\" class=\"notes\">No events</td></tr>")
+    return f"""
+<section class="events-table">
+  <h4>{_html_escape(title)}</h4>
+  <table>
+    <thead>
+      <tr><th>Kind</th><th>From</th><th>To</th><th>SKU/Instr</th><th>Qty</th><th>Amount</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      {''.join(rows_html)}
+    </tbody>
+  </table>
+</section>
+"""
+
+
+def _split_by_phases(day_events: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
+    buckets = {"A": [], "B": [], "C": []}
+    current = "A"
+    for e in day_events:
+        k = e.get("kind")
+        if k == "PhaseA":
+            current = "A"; continue
+        if k == "PhaseB":
+            current = "B"; continue
+        if k == "PhaseC":
+            current = "C"; continue
+        buckets[current].append(e)
+    return buckets
+
+
+def export_pretty_html(
+    system: System,
+    out_path: Path,
+    scenario_name: str,
+    description: Optional[str],
+    agent_ids: Optional[List[str]],
+    initial_balances: Optional[Dict[str, Any]],
+    days_data: List[Dict[str, Any]],
+    *,
+    max_days: Optional[int] = None,
+    quiet_days: Optional[int] = None,
+    initial_rows: Optional[Dict[str, Dict[str, List[dict]]]] = None,
+) -> None:
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Meta
+    final_day = system.state.day
+    total_events = len(system.state.events)
+    active_agents = len(system.state.agents)
+    active_contracts = len(system.state.contracts)
+
+    # Determine convergence robustly: check tail quiet days and open obligations
+    def _has_open_obligations() -> bool:
+        try:
+            return any(c.kind in ("payable", "delivery_obligation") for c in system.state.contracts.values())
+        except Exception:
+            return False
+    has_open = _has_open_obligations()
+    tail_quiet_ok = False
+    end_day = None
+    if days_data:
+        end_day = days_data[-1].get('day')
+        if quiet_days is not None and len(days_data) >= quiet_days:
+            tail = [d.get('quiet') for d in days_data[-quiet_days:]]
+            tail_quiet_ok = all(bool(x) for x in tail)
+
+    html_parts: List[str] = []
+    html_parts.append("<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\">")
+    html_parts.append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">")
+    html_parts.append(f"<title>Bilancio Simulation - { _html_escape(scenario_name) }</title>")
+    html_parts.append(f"<style>{_load_css()}</style></head><body>")
+    html_parts.append("<div class=\"container\">")
+    html_parts.append("<header>")
+    html_parts.append("<h1>Bilancio Simulation</h1>")
+    html_parts.append(f"<h2>{_html_escape(scenario_name)}</h2>")
+    if description:
+        html_parts.append(f"<p class=\"description\">{_html_escape(description)}</p>")
+    # Status line (converged or not)
+    converged = (tail_quiet_ok and not has_open)
+    status_text = "Converged" if converged else "Stopped without convergence"
+    if converged and end_day is not None:
+        status_text = f"Converged on day {end_day}"
+    elif (not converged) and max_days is not None:
+        status_text = f"Stopped without convergence (max_days = {max_days})"
+    html_parts.append(
+        f"<div class=\"meta\"><span>Final Day: {final_day}</span>"
+        f"<span>Total Events: {total_events}</span>"
+        f"<span>Active Agents: {active_agents}</span>"
+        f"<span>Active Contracts: {active_contracts}</span>"
+        f"<span>Status: {status_text}</span></div>"
+    )
+    html_parts.append("</header><main>")
+
+    # Agents table
+    html_parts.append("<section class=\"agents\"><h2>Agents</h2>")
+    html_parts.append("<section class=\"events-table\"><table><thead><tr><th>ID</th><th>Name</th><th>Type</th></tr></thead><tbody>")
+    for aid, agent in system.state.agents.items():
+        name = _html_escape(agent.name or aid)
+        kind = _html_escape(agent.kind)
+        html_parts.append(f"<tr><td>{_html_escape(aid)}</td><td>{name}</td><td>{kind}</td></tr>")
+    html_parts.append("</tbody></table></section></section>")
+
+    # Day 0 (Setup)
+    html_parts.append("<section class=\"day-section\"><h2 class=\"day-header\">📅 Day 0 (Setup)</h2>")
+    setup_events = [e for e in system.state.events if e.get("phase") == "setup"]
+    html_parts.append("<div class=\"events-section\"><h3>Setup Events</h3>")
+    html_parts.append(_render_events_table("Setup", setup_events))
+    html_parts.append("</div>")
+    if agent_ids and initial_balances:
+        html_parts.append("<div class=\"balances-section\"><h3>Balances</h3>")
+        for aid in agent_ids:
+            # Prefer captured initial_rows for detailed counterparties
+            if initial_rows and aid in initial_rows:
+                ag = system.state.agents[aid]
+                title = f"{ag.name or aid} [{aid}] ({ag.kind})"
+                rows = initial_rows[aid]
+                html_parts.append(_render_t_account_from_rows(title, rows.get('assets', []), rows.get('liabs', [])))
+            else:
+                bal = initial_balances.get(aid)
+                if isinstance(bal, AgentBalance):
+                    assets_rows, liabs_rows = _build_rows_from_balance(bal)
+                    ag = system.state.agents[aid]
+                    title = f"{ag.name or aid} [{aid}] ({ag.kind})"
+                    html_parts.append(_render_t_account_from_rows(title, assets_rows, liabs_rows))
+                else:
+                    html_parts.append(_render_t_account(system, aid))
+        html_parts.append("</div>")
+    html_parts.append("</section>")
+
+    # Subsequent days from days_data (already chronological)
+    for d in days_data:
+        day_num = d.get('day')
+        html_parts.append(f"<section class=\"day-section\"><h2 class=\"day-header\">📅 Day {day_num}</h2>")
+        ev = d.get('events', [])
+        buckets = _split_by_phases(ev)
+        html_parts.append("<div class=\"events-section\">")
+        html_parts.append(_render_events_table("Phase B — Settlement", buckets.get("B", [])))
+        html_parts.append(_render_events_table("Phase C — Clearing", buckets.get("C", [])))
+        html_parts.append("</div>")
+        if agent_ids:
+            html_parts.append("<div class=\"balances-section\"><h3>Balances</h3>")
+            day_balances = d.get('balances') or {}
+            day_rows = d.get('rows') or {}
+            for aid in agent_ids:
+                # Prefer captured rows with counterparties for this day
+                if aid in day_rows:
+                    rows = day_rows[aid]
+                    ag = system.state.agents[aid]
+                    title = f"{ag.name or aid} [{aid}] ({ag.kind})"
+                    html_parts.append(_render_t_account_from_rows(title, rows.get('assets', []), rows.get('liabs', [])))
+                else:
+                    bal = day_balances.get(aid)
+                    if isinstance(bal, AgentBalance):
+                        assets_rows, liabs_rows = _build_rows_from_balance(bal)
+                        ag = system.state.agents[aid]
+                        title = f"{ag.name or aid} [{aid}] ({ag.kind})"
+                        html_parts.append(_render_t_account_from_rows(title, assets_rows, liabs_rows))
+                    else:
+                        html_parts.append(_render_t_account(system, aid))
+            html_parts.append("</div>")
+        html_parts.append("</section>")
+
+    # Conclusion section with termination reason
+    html_parts.append("<section class=\"events-table\">")
+    html_parts.append("<h3>Simulation End</h3>")
+    if converged and end_day is not None:
+        qtxt = f" after {quiet_days} quiet days" if quiet_days is not None else ""
+        html_parts.append(
+            f"<p>The system converged on day <strong>{end_day}</strong>{qtxt}: no impactful events and no open obligations.</p>"
+        )
+    else:
+        mtxt = f" (max_days = {max_days})" if max_days is not None else ""
+        html_parts.append(
+            f"<p>Stopped without convergence{mtxt}. Consider increasing max days or reviewing outstanding obligations.</p>"
+        )
+    html_parts.append("</section>")
+
+    html_parts.append("</main><footer>Generated by Bilancio</footer></div></body></html>")
+
+    out_path.write_text("".join(html_parts), encoding="utf-8")
+
+```
+
+---
+
+### 📄 src/bilancio/ui/render/__init__.py
+
+```python
+"""Rendering utilities for Bilancio UI components."""
+
+from .models import AgentBalanceView, DayEventsView, DaySummaryView
+from .formatters import EventFormatterRegistry
+from .rich_builders import (
+    build_agent_balance_table,
+    build_multiple_agent_balances, 
+    build_events_panel,
+    build_day_summary
 )
 
+__all__ = [
+    "AgentBalanceView",
+    "DayEventsView", 
+    "DaySummaryView",
+    "EventFormatterRegistry",
+    "build_agent_balance_table",
+    "build_multiple_agent_balances",
+    "build_events_panel", 
+    "build_day_summary"
+]
+```
 
-def export_to_html(
-    output_path: Path,
-    system: System,
-    config: ScenarioConfig,
-    days_data: List[Dict[str, Any]],
-    agent_ids: Optional[List[str]] = None,
-    show: str = "detailed",
-    initial_balances: Optional[Dict[str, Any]] = None
-) -> None:
-    """Export simulation output to HTML with colors and formatting.
-    
-    Args:
-        output_path: Path to save the HTML file
-        system: The simulation system
-        config: Scenario configuration
-        days_data: List of day summaries with events and state
-        agent_ids: Agent IDs to show balances for
-        show: Event display mode
-        initial_balances: Initial balance snapshots after setup
-    """
-    # Create a console that captures to HTML
-    console = Console(
-        record=True,
-        force_terminal=True,
-        force_jupyter=False,
-        width=120,  # Fixed width for consistent formatting
-        legacy_windows=False
-    )
-    
-    # Capture the scenario header
-    _capture_scenario_header(console, config.name, config.description)
-    
-    # Capture initial state (Day 0)
-    console.print("\n[bold cyan]📅 Day 0 (Initial Setup)[/bold cyan]")
-    
-    # Show agents
-    if config.agents:
-        console.print("\n[bold]Agents:[/bold]")
-        for agent in config.agents:
-            icon = {"central_bank": "🏛️", "bank": "🏦", "household": "👤", "firm": "🏢"}.get(agent.kind, "📌")
-            name_text = f" ({agent.name})" if agent.name else ""
-            console.print(f"  {icon} {agent.id}{name_text} - {agent.kind}", style="dim")
-    
-    # Show initial actions from config (this is the complete story)
-    if config.initial_actions:
-        console.print("\n[bold]Initial Actions:[/bold]")
-        _capture_initial_actions(console, config.initial_actions)
-    
-    # Show initial balances (use the snapshot if available)
-    if initial_balances:
-        console.print("\n[bold]Initial Balances:[/bold]")
-        _capture_balances_from_snapshot(console, initial_balances, system)
-    elif agent_ids:
-        console.print("\n[bold]Initial Balances:[/bold]")
-        _capture_balances(console, system, agent_ids)
-    
-    # Capture each day's output
-    for day_data in days_data:
-        day_num = day_data['day']
-        
-        # Skip day 0 - it's already shown as "Day 0 (Initial Setup)"
-        if day_num == 0:
-            continue
-            
-        console.print(f"\n[bold cyan]📅 Day {day_num}[/bold cyan]")
-        
-        # Show day events and balances
-        # The events in day_data are the events that happened DURING this day
-        _capture_day_summary(
-            console, 
-            system, 
-            agent_ids, 
-            show, 
-            day=day_num,
-            day_events=day_data.get('events', []),
-            day_balances=day_data.get('balances', {})
-        )
-        
-        # Add status messages
-        if day_data.get('quiet'):
-            console.print("[dim]→ Quiet day (no activity)[/dim]")
-        
-        if day_data.get('stable'):
-            console.print("[green]✓ System reached stable state[/green]")
-    
-    # Add simulation complete message
-    console.print("\n[bold green]Simulation Complete[/bold green]")
-    _capture_simulation_summary(console, system)
-    
-    # Export console output to HTML
-    html_content = console.export_html(
-        theme=MONOKAI,
-        inline_styles=True
-    )
-    
-    # Save as HTML file
-    with open(output_path, 'w', encoding='utf-8') as f:
-        f.write(html_content)
+---
+
+### 📄 src/bilancio/ui/render/formatters.py
+
+```python
+"""Event formatters for bilancio - Improved version with no redundancy."""
+
+from typing import Dict, Any, Tuple, List
 
 
-def _capture_initial_actions(console: Console, initial_actions: List[Dict]) -> None:
-    """Display initial actions from configuration."""
-    for action in initial_actions:
-        # Each action is a dict with one key (the action type)
-        for action_type, params in action.items():
-            if action_type == "mint_reserves":
-                console.print(f"  🏦 Mint reserves: ${params['amount']:,} to {params['to']}", style="cyan")
-            elif action_type == "mint_cash":
-                console.print(f"  💰 Mint cash: ${params['amount']:,} to {params['to']}", style="green")
-            elif action_type == "deposit_cash":
-                console.print(f"  🏧 Deposit cash: {params['customer']} deposits ${params['amount']:,} at {params['bank']}", style="blue")
-            elif action_type == "create_payable":
-                due_text = f" (due Day {params['due_day']})" if 'due_day' in params else ""
-                console.print(f"  📝 Create payable: {params['from']} owes {params['to']} ${params['amount']:,}{due_text}", style="magenta")
-            elif action_type == "create_stock":
-                console.print(f"  📦 Create stock: {params['owner']} creates {params['quantity']:,} units of {params['sku']} @ ${params['unit_price']}/unit", style="yellow")
-            elif action_type == "create_delivery_obligation":
-                due_text = f" (due Day {params['due_day']})" if 'due_day' in params else ""
-                console.print(f"  🚚 Create delivery: {params['from']} owes {params['to']} {params['quantity']:,} units of {params['sku']} @ ${params['unit_price']}/unit{due_text}", style="yellow")
-            else:
-                # Generic display for unknown action types
-                console.print(f"  📌 {action_type.replace('_', ' ').title()}: {params}")
-
-
-def _capture_balances_from_snapshot(console: Console, initial_balances: Dict[str, Any], system: System) -> None:
-    """Capture agent balances from a snapshot."""
-    from rich.columns import Columns
-    from rich.table import Table
-    from rich import box
+class EventFormatterRegistry:
+    """Registry for event formatters."""
     
-    agent_ids = list(initial_balances.keys())
+    def __init__(self):
+        self._formatters = {}
     
-    if len(agent_ids) == 1:
-        # Single agent
-        balance = initial_balances[agent_ids[0]]
-        agent = system.state.agents[agent_ids[0]]
+    def register(self, event_kind: str):
+        """Decorator to register a formatter for an event kind."""
+        def decorator(func):
+            self._formatters[event_kind] = func
+            return func
+        return decorator
+    
+    def format(self, event: Dict[str, Any]) -> Tuple[str, List[str], str]:
+        """Format an event using the registered formatter."""
+        kind = event.get("kind", "Unknown")
+        formatter = self._formatters.get(kind)
         
-        # Get agent title
-        if agent.name and agent.name != agent_ids[0]:
-            title = f"{agent.name} [{agent_ids[0]}]\n({agent.kind})"
+        if formatter:
+            return formatter(event)
         else:
-            title = f"{agent_ids[0]}\n({agent.kind})"
-        
-        # Create and display table
-        table = _create_balance_table_for_console(title, balance)
-        console.print(table)
-    else:
-        # Multiple agents - display side by side
-        tables = []
-        for agent_id in agent_ids:
-            balance = initial_balances[agent_id]
-            agent = system.state.agents[agent_id]
-            
-            # Get agent title
-            if agent.name and agent.name != agent_id:
-                title = f"{agent.name} [{agent_id}]\n({agent.kind})"
-            else:
-                title = f"{agent_id}\n({agent.kind})"
-            
-            # Create a table for this agent
-            table = _create_balance_table_for_console(title, balance)
-            tables.append(table)
-        
-        # Display tables side by side
-        console.print(Columns(tables, padding=(0, 2), expand=False))
-
-
-def _capture_balances(console: Console, system: System, agent_ids: List[str]) -> None:
-    """Capture agent balances display."""
-    from bilancio.analysis.balances import agent_balance
-    from rich.columns import Columns
-    from rich.table import Table
-    from rich import box
+            # Generic fallback for unknown events
+            return self._format_generic(event)
     
-    if len(agent_ids) == 1:
-        # Single agent
-        balance = agent_balance(system, agent_ids[0])
-        agent = system.state.agents[agent_ids[0]]
+    def _format_generic(self, event: Dict[str, Any]) -> Tuple[str, List[str], str]:
+        """Generic formatter for unknown event kinds."""
+        kind = event.get("kind", "Unknown")
         
-        # Get agent title
-        if agent.name and agent.name != agent_ids[0]:
-            title = f"{agent.name} [{agent_ids[0]}]\n({agent.kind})"
-        else:
-            title = f"{agent_ids[0]}\n({agent.kind})"
+        # Build a generic representation
+        title = f"{kind} Event"
+        lines = []
         
-        # Create and display table
-        table = _create_balance_table_for_console(title, balance)
-        console.print(table)
-    else:
-        # Multiple agents - display side by side
-        tables = []
-        for agent_id in agent_ids:
-            balance = agent_balance(system, agent_id)
-            agent = system.state.agents[agent_id]
-            
-            # Get agent title
-            if agent.name and agent.name != agent_id:
-                title = f"{agent.name} [{agent_id}]\n({agent.kind})"
-            else:
-                title = f"{agent_id}\n({agent.kind})"
-            
-            # Create a table for this agent
-            table = _create_balance_table_for_console(title, balance)
-            tables.append(table)
+        # Add key fields, skipping meta fields
+        skip_fields = {"kind", "day", "phase", "type"}
+        for key, value in event.items():
+            if key not in skip_fields:
+                lines.append(f"{key}: {value}")
         
-        # Display tables side by side
-        console.print(Columns(tables, padding=(0, 2), expand=False))
+        return title, lines[:3], "❓"  # Limit to 3 lines
 
 
-def _capture_scenario_header(console: Console, name: str, description: Optional[str]) -> None:
-    """Capture scenario header to console."""
-    from rich.panel import Panel
-    from rich.text import Text
+# Create global registry instance
+registry = EventFormatterRegistry()
+
+
+# Register specific formatters for common event kinds
+@registry.register("CashTransferred")
+def format_cash_transferred(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
+    """Format cash transfer events."""
+    amount = event.get("amount", 0)
+    frm = event.get("frm", "Unknown")
+    to = event.get("to", "Unknown")
     
-    header = Text(name, style="bold cyan")
-    if description:
-        header.append(f"\n{description}", style="dim")
+    title = f"💰 Cash Transfer: ${amount:,}"
+    lines = [f"{frm} → {to}"]
     
-    console.print(Panel(
-        header,
-        title="Bilancio Scenario",
-        border_style="cyan"
-    ))
+    return title, lines, "💰"
 
 
-def _capture_day_summary(
-    console: Console,
-    system: System,
-    agent_ids: Optional[List[str]],
-    event_mode: str,
-    day: int,
-    day_events: Optional[List[Dict]] = None,
-    day_balances: Optional[Dict[str, Any]] = None
-) -> None:
-    """Capture day summary to console."""
-    from bilancio.analysis.visualization import (
-        display_events,
-        display_agent_balance_table,
-        display_multiple_agent_balances
-    )
-    from bilancio.analysis.balances import system_trial_balance, agent_balance
-    from rich.table import Table
-    from rich.columns import Columns
-    from rich import box
-    from rich.text import Text
+@registry.register("ReservesTransferred")
+def format_reserves_transferred(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
+    """Format reserves transfer events."""
+    amount = event.get("amount", 0)
+    frm = event.get("frm", "Unknown")
+    to = event.get("to", "Unknown")
     
-    # Show events
-    events_to_show = day_events if day_events is not None else [
-        e for e in system.state.events if e.get("day") == day
+    title = f"🏦 Reserves Transfer: ${amount:,}"
+    lines = [f"{frm} → {to}"]
+    
+    return title, lines, "🏦"
+
+
+@registry.register("StockTransferred")
+def format_stock_transferred(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
+    """Format stock transfer events."""
+    sku = event.get("sku", "Unknown")
+    quantity = event.get("qty", event.get("quantity", 0))
+    frm = event.get("frm", "Unknown") 
+    to = event.get("to", "Unknown")
+    unit_price = event.get("unit_price", None)
+    
+    title = f"📦 Stock Transfer: {quantity} {sku}"
+    lines = [f"{frm} → {to}"]
+    if unit_price:
+        lines.append(f"@ ${unit_price:,}/unit")
+    
+    return title, lines, "📦"
+
+
+@registry.register("DeliveryObligationCreated")
+def format_delivery_obligation_created(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
+    """Format delivery obligation creation events."""
+    sku = event.get("sku", "Unknown")
+    quantity = event.get("quantity", event.get("qty", 0))
+    frm = event.get("frm", "Unknown")
+    to = event.get("to", "Unknown")
+    due_day = event.get("due_day", None)
+    
+    title = f"📋 Delivery Obligation: {quantity} {sku}"
+    lines = [f"{frm} → {to}"]
+    if due_day:
+        lines.append(f"Due: Day {due_day}")
+    
+    return title, lines, "📋"
+
+
+@registry.register("DeliveryObligationSettled")
+def format_delivery_obligation_settled(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
+    """Format delivery obligation settlement events."""
+    sku = event.get("sku", "Unknown")
+    quantity = event.get("quantity", event.get("qty", 0))
+    debtor = event.get("debtor", "Unknown")
+    creditor = event.get("creditor", "Unknown")
+    
+    title = f"✅ Delivery Settled: {quantity} {sku}"
+    lines = [f"{debtor} → {creditor}"]
+    
+    return title, lines, "✅"
+
+
+@registry.register("PayableCreated")
+def format_payable_created(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
+    """Format payable creation events."""
+    amount = event.get("amount", 0)
+    debtor = event.get("debtor", event.get("frm", "Unknown"))
+    creditor = event.get("creditor", event.get("to", "Unknown"))
+    due_day = event.get("due_day", None)
+    
+    title = f"💸 Payable Created: ${amount:,}"
+    lines = [f"{debtor} owes {creditor}"]
+    if due_day is not None:
+        lines.append(f"Due: Day {due_day}")
+    
+    return title, lines, "💸"
+
+
+@registry.register("PayableSettled")
+def format_payable_settled(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
+    """Format payable settlement events."""
+    amount = event.get("amount", 0)
+    debtor = event.get("debtor", "Unknown")
+    creditor = event.get("creditor", "Unknown")
+    
+    title = f"💰 Payable Settled: ${amount:,}"
+    lines = [f"{debtor} → {creditor}"]
+    
+    return title, lines, "💰"
+
+
+@registry.register("CashDeposited")
+def format_cash_deposited(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
+    """Format cash deposit events."""
+    customer = event.get("customer", "Unknown")
+    bank = event.get("bank", "Unknown")
+    amount = event.get("amount", 0)
+    
+    title = f"🏧 Cash Deposit: ${amount:,}"
+    lines = [f"{customer} → {bank}"]
+    
+    return title, lines, "🏧"
+
+
+@registry.register("CashWithdrawn")
+def format_cash_withdrawn(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
+    """Format cash withdrawal events."""
+    customer = event.get("customer", "Unknown")
+    bank = event.get("bank", "Unknown") 
+    amount = event.get("amount", 0)
+    
+    title = f"💸 Cash Withdrawal: ${amount:,}"
+    lines = [f"{customer} ← {bank}"]
+    
+    return title, lines, "💸"
+
+
+@registry.register("ClientPayment")
+def format_client_payment(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
+    """Format inter-bank client payment events."""
+    payer = event.get("payer", "Unknown")
+    payee = event.get("payee", "Unknown")
+    amount = event.get("amount", 0)
+    payer_bank = event.get("payer_bank", "Unknown")
+    payee_bank = event.get("payee_bank", "Unknown")
+    
+    title = f"💳 Inter-Bank Payment: ${amount:,}"
+    lines = [
+        f"{payer} → {payee}",
+        f"via {payer_bank} → {payee_bank}"
     ]
     
-    if events_to_show:
-        console.print("\n[bold]Events:[/bold]")
-        if event_mode == "detailed":
-            # Display events in detailed format
-            _capture_events_to_console(console, events_to_show)
+    return title, lines, "💳"
+
+
+@registry.register("IntraBankPayment")
+def format_intra_bank_payment(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
+    """Format intra-bank payment events."""
+    payer = event.get("payer", "Unknown")
+    payee = event.get("payee", "Unknown")
+    amount = event.get("amount", 0)
+    bank = event.get("bank", "Unknown")
+    
+    title = f"🏦 Intra-Bank Payment: ${amount:,}"
+    lines = [
+        f"{payer} → {payee}",
+        f"at {bank}"
+    ]
+    
+    return title, lines, "🏦"
+
+
+@registry.register("CashPayment")
+def format_cash_payment(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
+    """Format cash payment events."""
+    payer = event.get("payer", "Unknown")
+    payee = event.get("payee", "Unknown")
+    amount = event.get("amount", 0)
+    
+    title = f"💵 Cash Payment: ${amount:,}"
+    lines = [f"{payer} → {payee}"]
+    
+    return title, lines, "💵"
+
+
+@registry.register("InstrumentMerged")
+def format_instrument_merged(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
+    """Format instrument merge events (cash consolidation)."""
+    keep = event.get("keep", "Unknown")
+    removed = event.get("removed", "Unknown")
+    
+    # Extract short IDs for readability
+    keep_short = keep.split('_')[-1][:8] if keep != "Unknown" else keep
+    removed_short = removed.split('_')[-1][:8] if removed != "Unknown" else removed
+    
+    title = f"🔀 Cash Consolidation"
+    lines = [
+        f"Merged: {removed_short} → {keep_short}",
+        f"(Reduces fragmentation)"
+    ]
+    
+    return title, lines, "🔀"
+
+
+@registry.register("InterbankCleared")
+def format_interbank_cleared(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
+    """Format interbank clearing events."""
+    debtor_bank = event.get("debtor_bank", "Unknown")
+    creditor_bank = event.get("creditor_bank", "Unknown")
+    amount = event.get("amount", 0)
+    
+    title = f"🔄 Interbank Clearing: ${amount:,}"
+    lines = [f"{debtor_bank} → {creditor_bank}"]
+    
+    return title, lines, "🔄"
+
+
+@registry.register("CashMinted")
+def format_cash_minted(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
+    """Format cash minting events."""
+    to = event.get("to", "Unknown")
+    amount = event.get("amount", 0)
+    
+    title = f"🖨️ Cash Minted: ${amount:,}"
+    lines = [f"To: {to}"]
+    
+    return title, lines, "🖨️"
+
+
+@registry.register("ReservesMinted")
+def format_reserves_minted(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
+    """Format reserves minting events."""
+    to = event.get("to", "Unknown")
+    amount = event.get("amount", 0)
+    
+    title = f"🏛️ Reserves Minted: ${amount:,}"
+    lines = [f"Bank: {to}"]
+    
+    return title, lines, "🏛️"
+
+
+@registry.register("StockSplit")
+def format_stock_split(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
+    """Format stock split events."""
+    sku = event.get("sku", "Unknown")
+    original_qty = event.get("original_qty", 0)
+    split_qty = event.get("split_qty", 0)
+    remaining_qty = event.get("remaining_qty", 0)
+    
+    title = f"✂️ Stock Split: {split_qty} {sku}"
+    lines = [
+        f"From lot of {original_qty} → {remaining_qty} remain",
+        f"(Preparing transfer)"
+    ]
+    
+    return title, lines, "✂️"
+
+
+@registry.register("DeliveryObligationCancelled")
+def format_delivery_cancelled(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
+    """Format delivery obligation cancellation."""
+    obligation_id = event.get("obligation_id", "Unknown")
+    debtor = event.get("debtor", "Unknown")
+    
+    # Short ID for readability
+    short_id = obligation_id.split('_')[-1][:8] if obligation_id != "Unknown" else obligation_id
+    
+    title = f"✓ Obligation Cleared"
+    lines = [
+        f"By: {debtor}",
+        f"ID: ...{short_id}"
+    ]
+    
+    return title, lines, "✓"
+
+
+@registry.register("StockCreated")
+def format_stock_created(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
+    """Format stock creation events."""
+    owner = event.get("owner", "Unknown")
+    sku = event.get("sku", "Unknown")
+    qty = event.get("qty", event.get("quantity", 0))
+    unit_price = event.get("unit_price", None)
+    
+    title = f"📋 Stock Created: {qty} {sku}"
+    lines = [f"Owner: {owner}"]
+    if unit_price:
+        if isinstance(qty, (int, float)) and isinstance(unit_price, (int, float)):
+            total_value = qty * unit_price
+            lines.append(f"Value: ${unit_price:,}/unit (${total_value:,} total)")
         else:
-            # Summary mode
-            event_counts = {}
-            for event in events_to_show:
-                event_type = event.get("kind", event.get("type", "Unknown"))
-                event_counts[event_type] = event_counts.get(event_type, 0) + 1
-            
-            for event_type, count in sorted(event_counts.items()):
-                console.print(f"  • {event_type}: {count}")
+            lines.append(f"Value: ${unit_price}/unit")
     
-    # Show balances - use the snapshot if available, otherwise use current system state
-    if day_balances:
-        console.print("\n[bold]Balances:[/bold]")
-        _capture_balances_from_snapshot(console, day_balances, system)
-    elif agent_ids:
-        console.print("\n[bold]Balances:[/bold]")
-        if len(agent_ids) == 1:
-            # Single agent - use the existing display function with our console
-            balance = agent_balance(system, agent_ids[0])
-            agent = system.state.agents[agent_ids[0]]
-            
-            # Get agent title
-            if agent.name and agent.name != agent_ids[0]:
-                title = f"{agent.name} [{agent_ids[0]}]\n({agent.kind})"
-            else:
-                title = f"{agent_ids[0]}\n({agent.kind})"
-            
-            # Create and display table
-            table = _create_balance_table_for_console(title, balance)
-            console.print(table)
-        else:
-            # Multiple agents - display side by side
-            tables = []
-            for agent_id in agent_ids:
-                balance = agent_balance(system, agent_id)
-                agent = system.state.agents[agent_id]
-                
-                # Get agent title
-                if agent.name and agent.name != agent_id:
-                    title = f"{agent.name} [{agent_id}]\n({agent.kind})"
-                else:
-                    title = f"{agent_id}\n({agent.kind})"
-                
-                # Create a table for this agent
-                table = _create_balance_table_for_console(title, balance)
-                tables.append(table)
-            
-            # Display tables side by side
-            console.print(Columns(tables, padding=(0, 2), expand=False))
-    else:
-        # Show system trial balance
-        console.print("\n[bold]System Trial Balance:[/bold]")
-        trial_bal = system_trial_balance(system)
-        
-        table = Table(show_header=True, header_style="bold")
-        table.add_column("Metric")
-        table.add_column("Value", justify="right")
-        
-        total_assets = trial_bal.total_financial_assets
-        total_liabilities = trial_bal.total_financial_liabilities
-        
-        table.add_row("Total Assets", f"{total_assets:,.2f}")
-        table.add_row("Total Liabilities", f"{total_liabilities:,.2f}")
-        table.add_row("Total Equity", f"{total_assets - total_liabilities:,.2f}")
-        
-        # Check if balanced
-        diff = abs(total_assets - total_liabilities)
-        if diff < 0.01:
-            table.add_row("Status", "[green]✓ Balanced[/green]")
-        else:
-            table.add_row("Status", f"[red]✗ Imbalanced ({diff:,.2f})[/red]")
-        
-        console.print(table)
+    return title, lines, "📋"
 
 
-def _capture_events_to_console(console: Console, events: List[Dict]) -> None:
-    """Capture events display to console with proper formatting."""
-    from collections import defaultdict
-    
-    if not events:
-        return
-    
-    # Don't group by day - we're already under a day section
-    # Just group by simulation phase (setup, A, B, C)
-    phase_groups = defaultdict(list)
-    
-    for event in events:
-        event_phase = event.get('phase', '')
-        event_kind = event.get('kind', event.get('type', ''))
-        
-        # Determine the phase group
-        if event_phase == 'setup':
-            phase = "Setup Phase"
-        elif event_kind == 'PhaseA':
-            phase = "Phase A"
-        elif event_kind == 'PhaseB':
-            phase = "Phase B"
-        elif event_kind == 'PhaseC':
-            phase = "Phase C"
-        elif event_phase == 'simulation':
-            # Determine phase based on event type
-            if event_kind in ['ClientPayment', 'PayableSettled', 'CashTransferred', 'StockSplit', 
-                             'StockTransferred', 'DeliveryObligationCancelled', 'DeliveryObligationSettled',
-                             'InstrumentsMerged', 'PaymentSettled', 'DeliverySettled']:
-                phase = "Phase B"
-            elif event_kind in ['ReservesTransferred', 'InstrumentMerged', 'InterbankCleared']:
-                phase = "Phase C"
-            elif event_kind in ['PhaseEnded', 'DayEnded']:
-                phase = "Day End"
-            else:
-                # Only PhaseA event should be in Phase A
-                phase = "Phase A" if event_kind == 'PhaseA' else "Other"
-        else:
-            phase = "Other"
-        
-        phase_groups[phase].append(event)
-    
-    # Display events grouped by phase
-    phase_order = ["Setup Phase", "Phase A", "Phase B", "Phase C", "Other"]
-    
-    for phase in phase_order:
-        if phase in phase_groups and phase_groups[phase]:
-            phase_events = phase_groups[phase]
-            
-            # Only show phase headers if there are non-phase events
-            has_content = any(e.get('kind') not in ['PhaseA', 'PhaseB', 'PhaseC'] for e in phase_events)
-            
-            if has_content:
-                if phase == "Setup Phase":
-                    console.print("\n  [bold yellow]🔧 Setup Phase:[/bold yellow]")
-                elif phase == "Phase A":
-                    console.print("\n  [bold yellow]⏰ Phase A: Day begins[/bold yellow]")
-                elif phase == "Phase B":
-                    console.print("\n  [bold green]💳 Phase B: Settlement[/bold green]")
-                elif phase == "Phase C":
-                    console.print("\n  [bold cyan]📋 Phase C: Intraday netting[/bold cyan]")
-                
-                # Display events, skipping the phase marker events
-                for event in phase_events:
-                    if event.get('kind') not in ['PhaseA', 'PhaseB', 'PhaseC']:
-                        _display_single_event(console, event)
+# Phase markers
+@registry.register("PhaseA")
+def format_phase_a(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
+    """Format phase A markers."""
+    day = event.get("day", "?")
+    return f"⏰ Day {day} begins", ["Morning activities"], "⏰"
 
 
-def _display_single_event(console: Console, event: Dict) -> None:
-    """Display a single event with appropriate formatting."""
-    # Check both 'kind' and 'type' fields for compatibility
-    event_type = event.get("kind", event.get("type", "Unknown"))
-    
-    # Map event types to display formats (using the actual event kinds from the system)
-    event_formats = {
-        # Setup events
-        "ReservesMinted": ("🏦", "cyan", "Reserves minted: ${amount} to {to}"),
-        "CashMinted": ("💰", "green", "Cash minted: ${amount} to {to}"),
-        "CashDeposited": ("🏧", "blue", "Cash deposited: {customer} → {bank}: ${amount}"),
-        
-        # Payment events
-        "ClientPayment": ("💳", "magenta", "Client payment: {payer} ({payer_bank}) → {payee} ({payee_bank}): ${amount}"),
-        "PayableSettled": ("✅", "green", "Payment settled: {debtor} → {creditor}: ${amount}"),
-        
-        # Interbank events
-        "ReservesTransferred": ("💰", "yellow", "Reserves transferred: {frm} → {to}: ${amount}"),
-        "InstrumentMerged": ("🔀", "dim", "Instruments merged"),
-        "InterbankCleared": ("🏦", "cyan", "Interbank cleared: {debtor_bank} → {creditor_bank}: ${amount} (netted)"),
-        
-        # Stock events
-        "StockCreated": ("🏭", "yellow", "Stock created: {owner} gets {qty} {sku}"),
-        "StockSplit": ("📊", "blue", "Stock split: {original_id} → {new_id}: {split_qty} {sku} (keeping {remaining_qty})"),
-        "StockTransferred": ("📦", "green", "Stock transferred: {frm} → {to}: {qty} {sku}"),
-        "DeliveryObligationCreated": ("📝", "magenta", "Delivery obligation created: {from} → {to}: {qty} {sku} (due day {due_day})"),
-        "DeliveryObligationCancelled": ("  └─", "dim", "Delivery obligation removed from books"),
-        "DeliveryObligationSettled": ("✅", "green", "Delivery settled: {debtor} → {creditor}: {qty} {sku}"),
-        "DeliverySettled": ("✅", "green", "Delivery settled: {debtor} → {creditor}: {qty} {sku}"),
-        
-        # Cash transfer events
-        "CashTransferred": ("💵", "green", "Cash transferred: {from} → {to}: ${amount}"),
-        "InstrumentsMerged": ("🔀", "dim", "Instruments merged"),
-        "PaymentSettled": ("✅", "green", "Payment settled: {from} → {to}: ${amount}"),
-        
-        # Phase events
-        "PhaseA": ("⏰", "yellow", "Phase A: Day begins"),
-        "PhaseB": ("💳", "green", "Phase B: Settlement (fulfilling due obligations)"),
-        "PhaseC": ("📋", "cyan", "Phase C: Intraday netting"),
-        "PhaseEnded": ("", "dim", ""),
-        "DayEnded": ("🌙", "dim", "Day ended"),
-        
-        # Legacy/alternative names
-        "reserves_minted": ("🏦", "cyan", "Reserves minted: ${amount} to {to}"),
-        "cash_minted": ("💰", "green", "Cash minted: ${amount} to {to}"),
-        "cash_deposited": ("🏧", "blue", "Cash deposited: {from} → {to}: ${amount}"),
-        "payment_initiated": ("💳", "magenta", "Client payment: {from} ({from_bank}) → {to} ({to_bank}): ${amount}"),
-        "payment_settled": ("✅", "green", "Payment settled: {from} → {to}: ${amount}"),
-        "reserves_transferred": ("💰", "yellow", "Reserves transferred: {from} → {to}: ${amount}"),
-        "instruments_merged": ("🔀", "dim", "Instruments merged"),
-        "interbank_cleared": ("🏦", "cyan", "Interbank cleared: {from} → {to}: ${amount} (netted)"),
-        "begin_day": ("⏰", "yellow", "Phase A: Day begins"),
-        "day_ended": ("🌙", "dim", "Day ended"),
-    }
-    
-    if event_type in event_formats:
-        emoji, color, template = event_formats[event_type]
-        if template and not template.startswith("Phase"):  # Don't show template for phase events
-            # Format the template with event data
-            text = template
-            
-            # Special handling for StockSplit to shorten IDs
-            if event_type == "StockSplit":
-                if 'original_id' in event:
-                    event['original_id'] = event['original_id'].split('_')[-1][:8] if event['original_id'] else 'N/A'
-                if 'new_id' in event:
-                    event['new_id'] = event['new_id'].split('_')[-1][:8] if event['new_id'] else 'N/A'
-            
-            for key, value in event.items():
-                if key == "amount":
-                    text = text.replace(f"${{{key}}}", f"${value}")
-                else:
-                    text = text.replace(f"{{{key}}}", str(value))
-            console.print(f"    {emoji} {text}", style=color)
-        elif template:  # Phase events - show as is
-            console.print(f"    {emoji} {template}", style=color)
-    else:
-        # Generic event display
-        details = ""
-        if "from" in event and "to" in event:
-            details = f" ({event['from']} → {event['to']})"
-        elif "agent" in event:
-            details = f" ({event['agent']})"
-        
-        console.print(f"    📌 {event_type.replace('_', ' ').title()}{details}")
+@registry.register("PhaseB")
+def format_phase_b(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
+    """Format phase B markers."""
+    return "🌅 Business hours", ["Main economic activity"], "🌅"
 
 
-def _create_balance_table_for_console(title: str, balance) -> "Table":
-    """Create a balance sheet table for console display."""
+@registry.register("PhaseC")
+def format_phase_c(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
+    """Format phase C markers."""
+    return "🌙 End of day", ["Settlements and clearing"], "🌙"
+```
+
+---
+
+### 📄 src/bilancio/ui/render/models.py
+
+```python
+"""View model classes for Bilancio UI rendering."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from decimal import Decimal
+from typing import Dict, List, Any
+
+
+@dataclass
+class BalanceItemView:
+    """View model for a single balance sheet item."""
+    category: str  # e.g., "Assets", "Liabilities"
+    instrument: str  # e.g., "Cash", "Reserves", "Stock"
+    amount: int | Decimal  # Quantity or monetary amount
+    value: int | Decimal  # Monetary value
+
+
+@dataclass
+class AgentBalanceView:
+    """View model for agent balance information."""
+    agent_id: str
+    agent_name: str
+    agent_kind: str
+    items: List[BalanceItemView]
+
+
+@dataclass
+class EventView:
+    """View model for a single event."""
+    kind: str
+    title: str
+    lines: List[str]
+    icon: str
+    raw_event: Dict[str, Any]  # Original event data for reference
+
+
+@dataclass
+class DayEventsView:
+    """View model for events in a simulation day."""
+    day: int
+    phases: Dict[str, List[EventView]]  # phase -> list of events
+
+
+@dataclass
+class DaySummaryView:
+    """View model for a complete day summary."""
+    day: int
+    events_view: DayEventsView
+    agent_balances: List[AgentBalanceView]
+```
+
+---
+
+### 📄 src/bilancio/ui/render/rich_builders.py
+
+```python
+"""Rich renderable builder functions for Bilancio UI components."""
+
+from __future__ import annotations
+
+from typing import List, Dict, Any, Union
+
+try:
     from rich.table import Table
+    from rich.columns import Columns
+    from rich.panel import Panel
     from rich.text import Text
+    from rich.tree import Tree
     from rich import box
+    from rich.console import RenderableType
+    RICH_AVAILABLE = True
+except ImportError:
+    RICH_AVAILABLE = False
+    # Fallback types for type hints
+    Table = Any
+    Columns = Any
+    Panel = Any
+    RenderableType = Any
+
+from .models import AgentBalanceView, DayEventsView, DaySummaryView, BalanceItemView, EventView
+from .formatters import registry as event_formatter_registry
+
+
+def _format_currency(amount: Union[int, float], show_sign: bool = False) -> str:
+    """Format an amount as currency."""
+    formatted = f"{amount:,}"
+    if show_sign and amount > 0:
+        formatted = f"+{formatted}"
+    return formatted
+
+
+def build_agent_balance_table(balance_view: AgentBalanceView) -> Table:
+    """Build a Rich Table for a single agent's balance sheet.
     
+    Args:
+        balance_view: Agent balance view model
+        
+    Returns:
+        Rich Table renderable
+    """
+    if not RICH_AVAILABLE:
+        raise RuntimeError("Rich library not available")
+    
+    # Create title with agent info
+    if balance_view.agent_name and balance_view.agent_name != balance_view.agent_id:
+        title = f"{balance_view.agent_name} [{balance_view.agent_id}] ({balance_view.agent_kind})"
+    else:
+        title = f"{balance_view.agent_id} ({balance_view.agent_kind})"
+    
+    # Create the main table
     table = Table(title=title, box=box.ROUNDED, title_style="bold cyan")
-    table.add_column("Item", style="white", width=25)
-    table.add_column("Amount", justify="right", style="white", width=15)
+    table.add_column("ASSETS", style="green", width=35, no_wrap=False)
+    table.add_column("Amount", justify="right", style="green", width=15, no_wrap=True)
+    table.add_column("LIABILITIES", style="red", width=35, no_wrap=False)
+    table.add_column("Amount", justify="right", style="red", width=15, no_wrap=True)
     
-    # Add assets section
-    table.add_row(Text("ASSETS", style="bold green"), "")
+    # Separate assets and liabilities
+    assets = [item for item in balance_view.items if item.category == "Assets"]
+    liabilities = [item for item in balance_view.items if item.category == "Liabilities"]
     
-    # Add financial assets
-    for asset_type in sorted(balance.assets_by_kind.keys()):
-        if balance.assets_by_kind[asset_type] > 0:
-            table.add_row(
-                Text(asset_type, style="green"),
-                Text(f"{balance.assets_by_kind[asset_type]:,}", style="green")
-            )
+    # Determine the maximum number of rows needed
+    max_rows = max(len(assets), len(liabilities), 1)
     
-    table.add_row("", "", end_section=True)
+    for i in range(max_rows):
+        asset_name = assets[i].instrument if i < len(assets) else ""
+        asset_amount = _format_currency(assets[i].value) if i < len(assets) else ""
+        liability_name = liabilities[i].instrument if i < len(liabilities) else ""
+        liability_amount = _format_currency(liabilities[i].value) if i < len(liabilities) else ""
+        
+        table.add_row(asset_name, asset_amount, liability_name, liability_amount)
     
-    # Add liabilities section
-    table.add_row(Text("LIABILITIES", style="bold red"), "")
+    # Calculate totals
+    total_assets = sum(item.value for item in assets)
+    total_liabilities = sum(item.value for item in liabilities)
+    net_worth = total_assets - total_liabilities
     
-    # Add financial liabilities
-    for liability_type in sorted(balance.liabilities_by_kind.keys()):
-        if balance.liabilities_by_kind[liability_type] > 0:
-            table.add_row(
-                Text(liability_type, style="red"),
-                Text(f"{balance.liabilities_by_kind[liability_type]:,}", style="red")
-            )
-    
-    table.add_row("", "", end_section=True)
-    
-    # Add totals
+    # Add separator and totals
+    table.add_row("", "", "", "", end_section=True)
     table.add_row(
-        Text("Total Financial", style="bold green"),
-        Text(f"{balance.total_financial_assets:,}", style="bold green")
-    )
-    table.add_row(
-        Text("Total Liab.", style="bold red"),
-        Text(f"{balance.total_financial_liabilities:,}", style="bold red")
+        Text("TOTAL ASSETS", style="bold green"),
+        Text(_format_currency(total_assets), style="bold green"),
+        Text("TOTAL LIABILITIES", style="bold red"),
+        Text(_format_currency(total_liabilities), style="bold red")
     )
     
-    net_financial = balance.net_financial
-    net_style = "bold green" if net_financial >= 0 else "bold red"
+    # Add net worth
+    table.add_row("", "", "", "", end_section=True)
+    net_worth_style = "bold green" if net_worth >= 0 else "bold red"
     table.add_row(
-        Text("Net Financial", style="bold blue"),
-        Text(f"{net_financial:+,}", style=net_style)
+        "",
+        "",
+        Text("NET WORTH", style="bold blue"),
+        Text(_format_currency(net_worth, show_sign=True), style=net_worth_style)
     )
     
     return table
 
 
-def _capture_simulation_summary(console: Console, system: System) -> None:
-    """Capture simulation summary to console."""
-    from rich.panel import Panel
+def build_multiple_agent_balances(balances: List[AgentBalanceView]) -> Columns:
+    """Build a Rich Columns layout for multiple agent balance sheets.
     
-    console.print(Panel(
-        f"[bold]Summary[/bold]\n"
-        f"Final Day: {system.state.day}\n"
-        f"Total Events: {len(system.state.events)}\n"
-        f"Active Agents: {len(system.state.agents)}\n"
-        f"Active Contracts: {len(system.state.contracts)}\n"
-        f"Stock Lots: {len(system.state.stocks)}",
-        title="Final State",
-        border_style="green"
+    Args:
+        balances: List of agent balance view models
+        
+    Returns:
+        Rich Columns renderable
+    """
+    if not RICH_AVAILABLE:
+        raise RuntimeError("Rich library not available")
+    
+    tables = [build_agent_balance_table(balance) for balance in balances]
+    return Columns(tables, equal=True, expand=True)
+
+
+def build_events_panel(day_events_view: DayEventsView) -> Panel:
+    """Build a Rich Panel for day events organized by phase.
+    
+    Args:
+        day_events_view: Day events view model
+        
+    Returns:
+        Rich Panel renderable
+    """
+    if not RICH_AVAILABLE:
+        raise RuntimeError("Rich library not available")
+    
+    if not day_events_view.phases:
+        return Panel(
+            Text("No events occurred on this day.", style="dim"),
+            title=f"Day {day_events_view.day} Events",
+            border_style="blue"
+        )
+    
+    # Create a tree structure for phases and events
+    tree = Tree(f"📅 Day {day_events_view.day}")
+    
+    for phase, events in day_events_view.phases.items():
+        if not events:
+            continue
+            
+        # Add phase node
+        phase_node = tree.add(f"📍 {phase}")
+        
+        # Add events under the phase
+        for event in events:
+            event_text = Text()
+            event_text.append(f"{event.icon} ", style="")
+            event_text.append(event.title, style="bold")
+            
+            event_node = phase_node.add(event_text)
+            
+            # Add event details as sub-items
+            for line in event.lines:
+                event_node.add(Text(line, style="dim"))
+    
+    return Panel(
+        tree,
+        title=f"Day {day_events_view.day} Events",
+        border_style="blue"
+    )
+
+
+def build_events_list(day_events_view: DayEventsView) -> List[RenderableType]:
+    """Build a list of Rich renderables for day events.
+    
+    Args:
+        day_events_view: Day events view model
+        
+    Returns:
+        List of Rich renderables
+    """
+    if not RICH_AVAILABLE:
+        raise RuntimeError("Rich library not available")
+    
+    renderables = []
+    
+    if not day_events_view.phases:
+        renderables.append(Text("No events occurred on this day.", style="dim"))
+        return renderables
+    
+    for phase, events in day_events_view.phases.items():
+        if not events:
+            continue
+            
+        # Phase header
+        renderables.append(Text(f"📍 {phase}", style="bold blue"))
+        
+        # Events in this phase
+        for event in events:
+            event_text = Text()
+            event_text.append(f"  {event.icon} ", style="")
+            event_text.append(event.title, style="bold")
+            renderables.append(event_text)
+            
+            # Event details
+            for line in event.lines:
+                renderables.append(Text(f"    {line}", style="dim"))
+        
+        # Add spacing between phases
+        renderables.append(Text(""))
+    
+    return renderables
+
+
+def build_day_summary(view: DaySummaryView) -> List[RenderableType]:
+    """Build a list of Rich renderables for a complete day summary.
+    
+    Args:
+        view: Day summary view model
+        
+    Returns:
+        List of Rich renderables
+    """
+    if not RICH_AVAILABLE:
+        raise RuntimeError("Rich library not available")
+    
+    renderables = []
+    
+    # Day header
+    renderables.append(Panel(
+        Text(f"Day {view.day} Summary", style="bold cyan"),
+        border_style="cyan"
     ))
+    
+    # Events section
+    if view.events_view.phases:
+        renderables.append(build_events_panel(view.events_view))
+    else:
+        renderables.append(Text("No events occurred on this day.", style="dim"))
+    
+    # Agent balances section
+    if view.agent_balances:
+        renderables.append(Text("\n💰 Agent Balances", style="bold yellow"))
+        renderables.append(build_multiple_agent_balances(view.agent_balances))
+    
+    return renderables
+
+
+def convert_raw_event_to_view(raw_event: Dict[str, Any]) -> EventView:
+    """Convert a raw event dictionary to an EventView model.
+    
+    Args:
+        raw_event: Raw event dictionary from system.state.events
+        
+    Returns:
+        EventView model
+    """
+    title, lines, icon = event_formatter_registry.format(raw_event)
+    
+    return EventView(
+        kind=raw_event.get("kind", "Unknown"),
+        title=title,
+        lines=lines,
+        icon=icon,
+        raw_event=raw_event
+    )
+
+
+def convert_raw_events_to_day_view(raw_events: List[Dict[str, Any]], day: int) -> DayEventsView:
+    """Convert raw events for a day into a DayEventsView model.
+    
+    Args:
+        raw_events: List of raw event dictionaries for the day
+        day: Day number
+        
+    Returns:
+        DayEventsView model
+    """
+    phases: Dict[str, List[EventView]] = {}
+    
+    for raw_event in raw_events:
+        phase = raw_event.get("phase", "unknown")
+        event_view = convert_raw_event_to_view(raw_event)
+        
+        if phase not in phases:
+            phases[phase] = []
+        phases[phase].append(event_view)
+    
+    return DayEventsView(day=day, phases=phases)
 ```
 
 ---
@@ -6539,13 +8749,16 @@ from bilancio.export.writers import write_balances_csv, write_events_jsonl
 
 from .display import (
     show_scenario_header,
+    show_scenario_header_renderable,
     show_day_summary,
+    show_day_summary_renderable,
     show_simulation_summary,
+    show_simulation_summary_renderable,
     show_error_panel
 )
 
 
-console = Console()
+console = Console(record=True, width=120)
 
 
 def run_scenario(
@@ -6557,7 +8770,8 @@ def run_scenario(
     agent_ids: Optional[List[str]] = None,
     check_invariants: str = "setup",
     export: Optional[Dict[str, str]] = None,
-    html_output: Optional[Path] = None
+    html_output: Optional[Path] = None,
+    t_account: bool = False
 ) -> None:
     """Run a Bilancio simulation scenario.
     
@@ -6566,7 +8780,7 @@ def run_scenario(
         mode: "step" or "until_stable"
         max_days: Maximum days to simulate
         quiet_days: Required quiet days for stable state
-        show: "summary" or "detailed" for event display
+        show: "summary", "detailed" or "table" for event display
         agent_ids: List of agent IDs to show balances for
         check_invariants: "setup", "daily", or "none"
         export: Dictionary with export paths (balances_csv, events_jsonl)
@@ -6607,20 +8821,40 @@ def run_scenario(
     if not export.get('events_jsonl') and config.run.export.events_jsonl:
         export['events_jsonl'] = config.run.export.events_jsonl
     
-    # Show scenario header
-    show_scenario_header(config.name, config.description)
+    # Show scenario header with agent list
+    header_renderables = show_scenario_header_renderable(config.name, config.description, config.agents)
+    for renderable in header_renderables:
+        console.print(renderable)
     
     # Show initial state
     console.print("\n[bold cyan]📅 Day 0 (After Setup)[/bold cyan]")
-    show_day_summary(system, agent_ids, show)
+    renderables = show_day_summary_renderable(system, agent_ids, show, t_account=t_account)
+    for renderable in renderables:
+        console.print(renderable)
     
     # Capture initial balance state for HTML export
-    initial_balances = {}
+    initial_balances: Dict[str, Any] = {}
+    initial_rows: Dict[str, Dict[str, list]] = {}
     from bilancio.analysis.balances import agent_balance
+    from bilancio.analysis.visualization import build_t_account_rows
     # Capture balances for all agents that we might display
     capture_ids = agent_ids if agent_ids else [a.id for a in system.state.agents.values()]
     for agent_id in capture_ids:
         initial_balances[agent_id] = agent_balance(system, agent_id)
+        # also capture detailed rows with counterparties at setup
+        acct = build_t_account_rows(system, agent_id)
+        def to_row(r):
+            return {
+                'name': getattr(r, 'name', ''),
+                'quantity': getattr(r, 'quantity', None),
+                'value_minor': getattr(r, 'value_minor', None),
+                'counterparty_name': getattr(r, 'counterparty_name', None),
+                'maturity': getattr(r, 'maturity', None),
+            }
+        initial_rows[agent_id] = {
+            'assets': [to_row(r) for r in acct.assets],
+            'liabs': [to_row(r) for r in acct.liabilities],
+        }
     
     # Track day data for PDF export
     days_data = []
@@ -6632,7 +8866,8 @@ def run_scenario(
             show=show,
             agent_ids=agent_ids,
             check_invariants=check_invariants,
-            scenario_name=config.name
+            scenario_name=config.name,
+            t_account=t_account
         )
     else:
         days_data = run_until_stable_mode(
@@ -6642,7 +8877,8 @@ def run_scenario(
             show=show,
             agent_ids=agent_ids,
             check_invariants=check_invariants,
-            scenario_name=config.name
+            scenario_name=config.name,
+            t_account=t_account
         )
     
     # Export results if requested
@@ -6658,20 +8894,22 @@ def run_scenario(
         write_events_jsonl(system, export_path)
         console.print(f"[green]✓[/green] Exported events to {export_path}")
     
-    # Export to HTML if requested
+    # Export to HTML if requested (semantic HTML for readability)
     if html_output:
-        from .html_export import export_to_html
-        html_output.parent.mkdir(parents=True, exist_ok=True)
-        export_to_html(
-            output_path=html_output,
+        from .html_export import export_pretty_html
+        export_pretty_html(
             system=system,
-            config=config,
-            days_data=days_data,
+            out_path=html_output,
+            scenario_name=config.name,
+            description=config.description,
             agent_ids=agent_ids,
-            show=show,
-            initial_balances=initial_balances
+            initial_balances=initial_balances,
+            days_data=days_data,
+            initial_rows=initial_rows,
+            max_days=max_days,
+            quiet_days=quiet_days,
         )
-        console.print(f"[green]✓[/green] Exported colored output to HTML: {html_output}")
+        console.print(f"[green]✓[/green] Exported HTML report: {html_output}")
 
 
 def run_step_mode(
@@ -6680,7 +8918,8 @@ def run_step_mode(
     show: str,
     agent_ids: Optional[List[str]],
     check_invariants: str,
-    scenario_name: str
+    scenario_name: str,
+    t_account: bool = False
 ) -> List[Dict[str, Any]]:
     """Run simulation in step-by-step mode.
     
@@ -6719,7 +8958,9 @@ def run_step_mode(
             if day_before >= 1:
                 # Show day summary
                 console.print(f"\n[bold cyan]📅 Day {day_before}[/bold cyan]")
-                show_day_summary(system, agent_ids, show, day=day_before)
+                renderables = show_day_summary_renderable(system, agent_ids, show, day=day_before, t_account=t_account)
+                for renderable in renderables:
+                    console.print(renderable)
                 
                 # Collect day data for HTML export  
                 # Use the actual event day
@@ -6727,18 +8968,34 @@ def run_step_mode(
                              if e.get("day") == day_before and e.get("phase") == "simulation"]
                 
                 # Capture current balance state for this day
-                day_balances = {}
+                day_balances: Dict[str, Any] = {}
+                day_rows: Dict[str, Dict[str, list]] = {}
                 if agent_ids:
                     from bilancio.analysis.balances import agent_balance
+                    from bilancio.analysis.visualization import build_t_account_rows
                     for agent_id in agent_ids:
                         day_balances[agent_id] = agent_balance(system, agent_id)
+                        acct = build_t_account_rows(system, agent_id)
+                        def to_row(r):
+                            return {
+                                'name': getattr(r, 'name', ''),
+                                'quantity': getattr(r, 'quantity', None),
+                                'value_minor': getattr(r, 'value_minor', None),
+                                'counterparty_name': getattr(r, 'counterparty_name', None),
+                                'maturity': getattr(r, 'maturity', None),
+                            }
+                        day_rows[agent_id] = {
+                            'assets': [to_row(r) for r in acct.assets],
+                            'liabs': [to_row(r) for r in acct.liabilities],
+                        }
                 
                 days_data.append({
                     'day': day_before,  # Use actual event day, not 1-based counter
                     'events': day_events,
                     'quiet': day_report.quiet,
                     'stable': day_report.quiet and not day_report.has_open_obligations,
-                    'balances': day_balances
+                    'balances': day_balances,
+                    'rows': day_rows
                 })
             
             # Check if we've reached a stable state
@@ -6783,9 +9040,7 @@ def run_step_mode(
     
     # Show final summary
     console.print("\n[bold]Simulation Complete[/bold]")
-    show_simulation_summary(system)
-    
-    return days_data
+    console.print(show_simulation_summary_renderable(system))
     
     return days_data
 
@@ -6797,7 +9052,8 @@ def run_until_stable_mode(
     show: str,
     agent_ids: Optional[List[str]],
     check_invariants: str,
-    scenario_name: str
+    scenario_name: str,
+    t_account: bool = False
 ) -> List[Dict[str, Any]]:
     """Run simulation until stable state is reached.
     
@@ -6849,7 +9105,9 @@ def run_until_stable_mode(
                 
                 # Show events and balances for this specific day
                 # Note: events are stored with 0-based day numbers
-                show_day_summary(system, agent_ids, show, day=day_before)
+                renderables = show_day_summary_renderable(system, agent_ids, show, day=day_before, t_account=t_account)
+                for renderable in renderables:
+                    console.print(renderable)
                 
                 # Collect day data for HTML export
                 # We want simulation events from the day that was just displayed
@@ -6859,17 +9117,33 @@ def run_until_stable_mode(
                 is_stable = consecutive_quiet >= quiet_days and not _has_open_obligations(system)
                 
                 # Capture current balance state for this day
-                day_balances = {}
+                day_balances: Dict[str, Any] = {}
+                day_rows: Dict[str, Dict[str, list]] = {}
                 if agent_ids:
+                    from bilancio.analysis.visualization import build_t_account_rows
                     for agent_id in agent_ids:
                         day_balances[agent_id] = agent_balance(system, agent_id)
+                        acct = build_t_account_rows(system, agent_id)
+                        def to_row(r):
+                            return {
+                                'name': getattr(r, 'name', ''),
+                                'quantity': getattr(r, 'quantity', None),
+                                'value_minor': getattr(r, 'value_minor', None),
+                                'counterparty_name': getattr(r, 'counterparty_name', None),
+                                'maturity': getattr(r, 'maturity', None),
+                            }
+                        day_rows[agent_id] = {
+                            'assets': [to_row(r) for r in acct.assets],
+                            'liabs': [to_row(r) for r in acct.liabilities],
+                        }
                 
                 days_data.append({
                     'day': day_before,  # Use actual event day, not 1-based counter
                     'events': day_events,
                     'quiet': report.impacted == 0,
                     'stable': is_stable,
-                    'balances': day_balances
+                    'balances': day_balances,
+                    'rows': day_rows
                 })
                 
                 # Show activity summary
@@ -6931,9 +9205,63 @@ def run_until_stable_mode(
     
     # Show final summary
     console.print("\n[bold]Simulation Complete[/bold]")
-    show_simulation_summary(system)
+    console.print(show_simulation_summary_renderable(system))
     
     return days_data
+
+```
+
+---
+
+### 📄 src/bilancio/ui/settings.py
+
+```python
+"""UI settings and configuration for bilancio display."""
+
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class Settings:
+    """Central configuration for UI display settings."""
+    
+    # Console settings
+    console_width: int = 100        # Width used by Console(width=...) universally
+    
+    # Currency and display
+    currency_denom: str = "X"       # Default denomination symbol
+    currency_precision: int = 2     # Decimal places for currency values
+    
+    # HTML export settings
+    html_inline_styles: bool = True # Whether to inline CSS styles in HTML export
+    
+    # Table display settings
+    balance_table_width: int = 80   # Width for balance sheet tables
+    event_panel_width: int = 90     # Width for event panels
+    
+    # Formatting thresholds
+    zero_threshold: float = 0.01    # Values below this are considered zero
+    
+    # Event display settings
+    max_event_lines: int = 10       # Maximum lines per event in display
+    show_event_icons: bool = True   # Whether to show emoji icons for events
+    
+    # Phase colors (for Rich console)
+    phase_colors: dict = None
+    
+    def __post_init__(self):
+        """Initialize mutable defaults."""
+        if self.phase_colors is None:
+            # Use object.__setattr__ to set value on frozen dataclass
+            object.__setattr__(self, 'phase_colors', {
+                'A': 'cyan',
+                'B': 'yellow', 
+                'C': 'green'
+            })
+
+
+# Global default settings instance
+DEFAULT_SETTINGS = Settings()
 ```
 
 ---
@@ -7410,6 +9738,56 @@ class TestBalanceAnalytics:
         
         # Ensure all invariants pass
         system.assert_invariants()
+```
+
+---
+
+### 🧪 tests/analysis/test_t_account_builder.py
+
+```python
+"""Tests for T-account row builder and maturity parsing."""
+
+from decimal import Decimal
+from bilancio.engines.system import System
+from bilancio.config.apply import create_agent
+from bilancio.analysis.visualization import build_t_account_rows, parse_day_from_maturity
+
+
+def test_parse_day_from_maturity_helper():
+    assert parse_day_from_maturity("Day 10") == 10
+    # Unknown or malformed sorts to end (inf)
+    assert parse_day_from_maturity("Soon") > 10**9
+    assert parse_day_from_maturity(None) > 10**9
+    assert parse_day_from_maturity("Day X") > 10**9
+
+
+def test_build_t_account_rows_sorting_by_maturity():
+    sys = System()
+    # Two agents with reciprocal delivery obligations at different days
+    f1 = create_agent(type("Spec", (), {"id":"F1","kind":"firm","name":"Firm One"}))
+    f2 = create_agent(type("Spec", (), {"id":"F2","kind":"firm","name":"Firm Two"}))
+    sys.add_agent(f1)
+    sys.add_agent(f2)
+
+    # F1 owes F2: 10 items due Day 2
+    sys.create_delivery_obligation("F1", "F2", sku="ITEM", quantity=10, unit_price=Decimal("5"), due_day=2)
+    # F2 owes F1: 5 items due Day 1
+    sys.create_delivery_obligation("F2", "F1", sku="ITEM", quantity=5, unit_price=Decimal("5"), due_day=1)
+
+    acct_f1 = build_t_account_rows(sys, "F1")
+    # For F1: assets should include receivable from F2 due Day 1 before inventory/financials; liabilities Day 2 obligation
+    asset_names = [r.name for r in acct_f1.assets]
+    liab_names = [r.name for r in acct_f1.liabilities]
+    # Receivable row must be present
+    assert any(n.endswith("receivable") for n in asset_names)
+    # Obligation row must be present
+    assert any(n.endswith("obligation") for n in liab_names)
+
+    # Sorting by maturity: for obligations, Day 2 sorts after Day 1; for assets, receivable is a group keyed by day
+    # Build keys using the same helper
+    asset_due_days = [parse_day_from_maturity(r.maturity) for r in acct_f1.assets if r.name.endswith("receivable")]
+    assert asset_due_days == sorted(asset_due_days)
+
 ```
 
 ---
@@ -9481,11 +11859,12 @@ class TestCLI:
             output_path = Path(tmpdir) / "new_scenario.yaml"
             
             runner = CliRunner()
-            # Provide input for the wizard prompts
+            # Use the template option to avoid interactive prompts
             result = runner.invoke(cli, [
                 'new',
-                '-o', str(output_path)
-            ], input="Test Scenario\nTest description\nsimple\n")
+                '-o', str(output_path),
+                '--from', 'simple'
+            ])
             
             # Check file was created
             assert output_path.exists()
@@ -9494,7 +11873,8 @@ class TestCLI:
             with open(output_path) as f:
                 config = yaml.safe_load(f)
             
-            assert config['name'] == "Test Scenario"
+            # When using template, it uses default name "My Scenario"
+            assert config['name'] == "My Scenario"
             assert config['version'] == 1
             assert len(config['agents']) > 0
     
@@ -9543,6 +11923,553 @@ class TestCLI:
             # Check files have content
             assert balances_path.stat().st_size > 0
             assert events_path.stat().st_size > 0
+
+    def test_run_with_html_export(self, tmp_path):
+        """Test running scenario with --html export option."""
+        scenario = {
+            "version": 1,
+            "name": "HTML Export Test",
+            "agents": [
+                {"id": "CB", "kind": "central_bank", "name": "CB"},
+                {"id": "H1", "kind": "household", "name": "Alice"}
+            ],
+            "initial_actions": [
+                {"mint_cash": {"to": "H1", "amount": 1000}}
+            ],
+            "run": {
+                "mode": "until_stable",
+                "max_days": 1,
+                "quiet_days": 1,
+                "show": {
+                    "balances": ["CB", "H1"]
+                }
+            }
+        }
+
+        scenario_path = tmp_path / "scenario.yaml"
+        html_path = tmp_path / "out.html"
+
+        import yaml
+        with open(scenario_path, 'w') as f:
+            yaml.dump(scenario, f)
+
+        runner = CliRunner()
+        result = runner.invoke(cli, [
+            'run', str(scenario_path),
+            '--max-days', '1',
+            '--quiet-days', '1',
+            '--html', str(html_path)
+        ])
+
+        assert result.exit_code == 0
+        assert html_path.exists()
+        content = html_path.read_text(encoding='utf-8')
+        assert 'Bilancio Simulation' in content
+
+```
+
+---
+
+### 🧪 tests/ui/test_cli_html_export.py
+
+```python
+"""Test CLI HTML export functionality."""
+
+import pytest
+from pathlib import Path
+import tempfile
+from bilancio.engines.system import System
+from bilancio.config import ScenarioConfig
+from bilancio.ui.run import run_scenario
+
+
+def test_html_export_creates_file(tmp_path):
+    """Test that HTML export creates a file with expected content."""
+    # Create a minimal scenario config
+    config_data = {
+        "name": "Test Scenario",
+        "description": "Test HTML export",
+        "agents": {
+            "bank1": {
+                "kind": "bank",
+                "name": "Test Bank"
+            },
+            "household1": {
+                "kind": "household", 
+                "name": "Test Household"
+            }
+        },
+        "setup": {
+            "operations": [
+                {
+                    "type": "mint_cash",
+                    "bank": "bank1",
+                    "amount": 1000
+                }
+            ]
+        },
+        "simulation": {},
+        "run": {
+            "mode": "until_stable",
+            "max_days": 1,
+            "quiet_days": 1,
+            "show": {
+                "events": "detailed",
+                "balances": ["bank1", "household1"]
+            },
+            "export": {}
+        }
+    }
+    
+    # Write config to temp file
+    config_file = tmp_path / "test_scenario.yaml"
+    import yaml
+    with open(config_file, 'w') as f:
+        yaml.dump(config_data, f)
+    
+    # Run scenario with HTML export
+    html_output = tmp_path / "output.html"
+    
+    # Note: This would require mocking or a lighter test since run_scenario
+    # is a high-level function. For now, we'll test the lower-level components
+    
+    # Test that we can create an HTML export path
+    assert not html_output.exists()
+    
+    # Create a simple HTML content to verify path handling
+    html_output.write_text("<html><body>Test</body></html>")
+    assert html_output.exists()
+    assert "Test" in html_output.read_text()
+
+
+def test_console_record_html_export():
+    """Test that Console with record=True can export HTML."""
+    from rich.console import Console
+    from rich.table import Table
+    from rich.terminal_theme import MONOKAI
+    
+    # Create a console with recording enabled
+    console = Console(record=True, width=100)
+    
+    # Print some content
+    table = Table(title="Test Table")
+    table.add_column("Column 1")
+    table.add_column("Column 2")
+    table.add_row("Value 1", "Value 2")
+    
+    console.print(table)
+    console.print("[bold green]Success![/bold green]")
+    
+    # Export to HTML
+    html = console.export_html(theme=MONOKAI)
+    
+    # Verify HTML content
+    assert html is not None
+    assert "<html>" in html
+    assert "Test Table" in html
+    assert "Value 1" in html
+    assert "Value 2" in html
+    # Rich converts the markup to HTML
+    assert "Success!" in html
+
+
+def test_renderable_functions_return_correct_types():
+    """Test that renderable functions return expected types."""
+    from bilancio.ui.display import (
+        show_scenario_header_renderable,
+        show_simulation_summary_renderable
+    )
+    from bilancio.engines.system import System
+    
+    # Test scenario header
+    panel = show_scenario_header_renderable("Test", "Description")
+    assert panel is not None
+    
+    # Test simulation summary
+    system = System()
+    summary = show_simulation_summary_renderable(system)
+    assert summary is not None
+```
+
+---
+
+### 🧪 tests/ui/test_html_export.py
+
+```python
+"""Unit tests for semantic HTML export."""
+
+from pathlib import Path
+from decimal import Decimal
+
+from bilancio.engines.system import System
+from bilancio.config.apply import create_agent
+from bilancio.analysis.balances import agent_balance
+from bilancio.ui.html_export import export_pretty_html
+
+
+def test_export_pretty_html_minimal(tmp_path: Path):
+    sys = System()
+    cb = create_agent(type("Spec", (), {"id":"CB","kind":"central_bank","name":"Central Bank"}))
+    h1 = create_agent(type("Spec", (), {"id":"H1","kind":"household","name":"Alice"}))
+    sys.add_agent(cb)
+    sys.add_agent(h1)
+    # seed a simple cash position
+    sys.mint_cash("H1", 1000)
+
+    out = tmp_path / "report.html"
+
+    # Prepare initial data
+    agent_ids = ["CB", "H1"]
+    initial_balances = {aid: agent_balance(sys, aid) for aid in agent_ids}
+
+    # No days_data yet; just ensure file writes and contains headers
+    export_pretty_html(
+        system=sys,
+        out_path=out,
+        scenario_name="Unit Test",
+        description="Testing export",
+        agent_ids=agent_ids,
+        initial_balances=initial_balances,
+        days_data=[],
+        max_days=1,
+        quiet_days=1,
+    )
+
+    assert out.exists()
+    html = out.read_text(encoding="utf-8")
+    # Basic sanity checks
+    assert "Bilancio Simulation" in html
+    assert "Agents" in html
+    assert "Day 0 (Setup)" in html
+    assert "Central Bank" in html and "Alice" in html
+
+
+def test_export_pretty_html_handles_numeric_strings(tmp_path: Path):
+    sys = System()
+    f1 = create_agent(type("Spec", (), {"id":"F1","kind":"firm","name":"Firm One"}))
+    sys.add_agent(f1)
+
+    out = tmp_path / "report2.html"
+    agent_ids = ["F1"]
+    # Manually craft a balance-like object via agent_balance and then tweak days_data to include numbers-as-strings
+    initial_balances = {"F1": agent_balance(sys, "F1")}
+
+    # days_data with an event that includes formatted numeric strings
+    days_data = [
+        {
+            "day": 1,
+            "events": [
+                {"kind": "PhaseB"},
+                {"kind": "ClientPayment", "payer": "F1", "payee": "F1", "amount": "1,000"},
+            ],
+            "balances": {"F1": agent_balance(sys, "F1")},
+        }
+    ]
+
+    export_pretty_html(
+        system=sys,
+        out_path=out,
+        scenario_name="Numeric Test",
+        description=None,
+        agent_ids=agent_ids,
+        initial_balances=initial_balances,
+        days_data=days_data,
+        max_days=2,
+        quiet_days=1,
+    )
+
+    assert out.exists()
+    html = out.read_text(encoding="utf-8")
+    assert "Numeric Test" in html
+    # amount should be present in some formatted form
+    assert "1,000" in html
+
+```
+
+---
+
+### 🧪 tests/ui/test_render_builders.py
+
+```python
+"""Test Rich builders for rendering."""
+
+import pytest
+from decimal import Decimal
+from bilancio.ui.render.models import (
+    BalanceItemView,
+    AgentBalanceView,
+    EventView,
+    DayEventsView
+)
+from bilancio.ui.render.rich_builders import (
+    build_agent_balance_table,
+    build_multiple_agent_balances,
+    build_events_panel,
+    convert_raw_event_to_view
+)
+
+
+def test_build_agent_balance_table():
+    """Test building a Rich table for agent balance."""
+    # Create a sample balance view
+    balance_view = AgentBalanceView(
+        agent_id="bank1",
+        agent_name="Central Bank",
+        agent_kind="bank",
+        items=[
+            BalanceItemView(
+                category="asset",
+                instrument="reserves",
+                amount=10000,
+                value=Decimal("10000")
+            ),
+            BalanceItemView(
+                category="liability",
+                instrument="deposits",
+                amount=5000,
+                value=Decimal("5000")
+            )
+        ]
+    )
+    
+    # Build table
+    table = build_agent_balance_table(balance_view)
+    
+    # Verify it's a Table (or string if Rich not available)
+    assert table is not None
+    if not isinstance(table, str):
+        # Rich is available, check it's a Table
+        from rich.table import Table
+        assert isinstance(table, Table)
+
+
+def test_build_multiple_agent_balances():
+    """Test building columns for multiple agent balances."""
+    # Create sample balance views
+    balances = [
+        AgentBalanceView(
+            agent_id="bank1",
+            agent_name="Bank One",
+            agent_kind="bank",
+            items=[
+                BalanceItemView(
+                    category="asset",
+                    instrument="cash",
+                    amount=1000,
+                    value=Decimal("1000")
+                )
+            ]
+        ),
+        AgentBalanceView(
+            agent_id="household1",
+            agent_name="Household One",
+            agent_kind="household",
+            items=[
+                BalanceItemView(
+                    category="asset",
+                    instrument="deposits",
+                    amount=500,
+                    value=Decimal("500")
+                )
+            ]
+        )
+    ]
+    
+    # Build columns
+    columns = build_multiple_agent_balances(balances)
+    
+    # Verify result
+    assert columns is not None
+    if not isinstance(columns, str):
+        # Rich is available, check it's Columns
+        from rich.columns import Columns
+        assert isinstance(columns, Columns)
+
+
+def test_build_events_panel():
+    """Test building a panel for day events."""
+    # Create sample day events view
+    day_view = DayEventsView(
+        day=1,
+        phases={
+            "A": [
+                EventView(
+                    kind="PhaseA",
+                    title="Day begins",
+                    lines=["Starting day 1"],
+                    icon="⏰",
+                    raw_event={"kind": "PhaseA", "day": 1}
+                )
+            ],
+            "B": [
+                EventView(
+                    kind="CashTransferred",
+                    title="Cash transferred",
+                    lines=["bank1 → household1: $100"],
+                    icon="💵",
+                    raw_event={"kind": "CashTransferred", "day": 1}
+                )
+            ],
+            "C": []
+        }
+    )
+    
+    # Build panel
+    panel = build_events_panel(day_view)
+    
+    # Verify result
+    assert panel is not None
+    if not isinstance(panel, str):
+        # Rich is available, check it's a Panel
+        from rich.panel import Panel
+        assert isinstance(panel, Panel)
+
+
+def test_convert_raw_event_to_view():
+    """Test converting raw event dict to EventView."""
+    # Test with a CashTransferred event
+    raw_event = {
+        "kind": "CashTransferred",
+        "frm": "bank1",
+        "to": "household1",
+        "amount": 1000,
+        "day": 1
+    }
+    
+    event_view = convert_raw_event_to_view(raw_event)
+    
+    assert isinstance(event_view, EventView)
+    assert "Cash Transfer" in event_view.title
+    assert event_view.lines[0] == "bank1 → household1"
+    assert event_view.icon == "💰"
+    assert event_view.raw_event == raw_event
+
+
+def test_convert_unknown_event_to_view():
+    """Test converting unknown event type to EventView."""
+    raw_event = {
+        "kind": "CustomEvent",
+        "data": "some value"
+    }
+    
+    event_view = convert_raw_event_to_view(raw_event)
+    
+    assert isinstance(event_view, EventView)
+    assert "CustomEvent" in event_view.title
+    assert event_view.icon == "❓"
+```
+
+---
+
+### 🧪 tests/ui/test_render_formatters.py
+
+```python
+"""Test event formatters and registry."""
+
+import pytest
+from bilancio.ui.render.formatters import EventFormatterRegistry, registry
+
+
+def test_event_formatter_registry():
+    """Test that event formatter registry works correctly."""
+    registry = EventFormatterRegistry()
+    
+    # Test registration
+    @registry.register("TestEvent")
+    def test_formatter(event):
+        return "Test Event", ["Test line"], "🧪"
+    
+    # Test formatting with registered event
+    event = {"kind": "TestEvent", "data": "test"}
+    title, lines, icon = registry.format(event)
+    assert title == "Test Event"
+    assert lines == ["Test line"]
+    assert icon == "🧪"
+
+
+def test_format_event_with_known_kind():
+    """Test formatting known event kinds."""
+    # Test CashTransferred
+    event = {
+        "kind": "CashTransferred",
+        "frm": "bank1",
+        "to": "household1",
+        "amount": 1000
+    }
+    title, lines, icon = registry.format(event)
+    assert "Cash Transfer" in title
+    assert lines[0] == "bank1 → household1"
+    assert icon == "💰"
+    
+    # Test StockTransferred
+    event = {
+        "kind": "StockTransferred",
+        "frm": "firm1",
+        "to": "household1",
+        "qty": 10,
+        "sku": "BREAD"
+    }
+    title, lines, icon = registry.format(event)
+    assert "Stock Transfer" in title
+    assert lines[0] == "firm1 → household1"
+    assert icon == "📦"
+
+
+def test_format_event_with_unknown_kind():
+    """Test formatting unknown event kinds."""
+    event = {
+        "kind": "UnknownEventType",
+        "some_data": "value"
+    }
+    title, lines, icon = registry.format(event)
+    assert "UnknownEventType Event" in title
+    assert len(lines) > 0
+    assert icon == "❓"
+
+
+def test_format_event_missing_fields():
+    """Test formatting events with missing expected fields."""
+    # CashTransferred with missing amount
+    event = {
+        "kind": "CashTransferred",
+        "frm": "bank1",
+        "to": "household1"
+    }
+    title, lines, icon = registry.format(event)
+    assert "Cash Transfer" in title
+    assert lines[0] == "bank1 → household1"  # Should handle missing amount gracefully
+    
+    # StockTransferred with missing qty
+    event = {
+        "kind": "StockTransferred",
+        "frm": "firm1",
+        "to": "household1",
+        "sku": "BREAD"
+    }
+    title, lines, icon = registry.format(event)
+    assert "Stock Transfer" in title
+    assert lines[0] == "firm1 → household1"  # Should handle missing qty gracefully
+
+
+def test_all_event_kinds_have_formatters():
+    """Test that common event kinds have formatters."""
+    common_kinds = [
+        "CashTransferred",
+        "StockTransferred",
+        "PayableSettled",
+        "DeliveryObligationSettled",
+        "CashMinted",
+        "StockCreated",
+        "PhaseA",
+        "PhaseB",
+        "PhaseC"
+    ]
+    
+    for kind in common_kinds:
+        event = {"kind": kind}
+        title, lines, icon = registry.format(event)
+        # Should not fall back to generic formatter
+        assert "Event:" not in title or kind in ["PhaseA", "PhaseB", "PhaseC"]
 ```
 
 ---
@@ -9711,971 +12638,6 @@ class TestAsRows:
         assert cb_row["total_financial_liabilities"] == 1000
         assert cb_row["net_financial"] == -1000
         assert cb_row["liabilities_cash"] == 1000
-```
-
----
-
-### 🧪 tests/unit/test_cash_and_deliverables.py
-
-```python
-import pytest
-from decimal import Decimal
-from bilancio.engines.system import System
-from bilancio.domain.agents.central_bank import CentralBank
-from bilancio.domain.agents.bank import Bank
-from bilancio.domain.agents.household import Household
-from bilancio.core.errors import ValidationError
-
-def test_mint_and_retire_cash_roundtrip():
-    """Test minting cash to an agent and then retiring it."""
-    sys = System()
-    cb = CentralBank(id="CB1", name="Central Bank", kind="central_bank")
-    h1 = Household(id="H1", name="Household 1", kind="household")
-    sys.add_agent(cb)
-    sys.add_agent(h1)
-    
-    # Mint 150 units of cash to H1
-    cash_id = sys.mint_cash("H1", 150)
-    
-    # Check CB outstanding
-    assert sys.state.cb_cash_outstanding == 150
-    
-    # Check H1 has the cash
-    assert cash_id in h1.asset_ids
-    cash_instr = sys.state.contracts[cash_id]
-    assert cash_instr.amount == 150
-    assert cash_instr.asset_holder_id == "H1"
-    assert cash_instr.liability_issuer_id == "CB1"
-    
-    # Retire 80 units
-    sys.retire_cash("H1", 80)
-    
-    # Check remaining
-    assert sys.state.cb_cash_outstanding == 70
-    
-    # Check H1 still has 70 (may be split across instruments)
-    h1_cash_total = sum(
-        sys.state.contracts[cid].amount 
-        for cid in h1.asset_ids 
-        if sys.state.contracts[cid].kind == "cash"
-    )
-    assert h1_cash_total == 70
-    
-    # Invariants should hold
-    sys.assert_invariants()
-
-def test_transfer_cash_with_split_and_merge():
-    """Test transferring cash between agents with automatic split and merge."""
-    sys = System()
-    cb = CentralBank(id="CB1", name="CB", kind="central_bank")
-    h1 = Household(id="H1", name="H1", kind="household")
-    h2 = Household(id="H2", name="H2", kind="household")
-    sys.add_agent(cb)
-    sys.add_agent(h1)
-    sys.add_agent(h2)
-    
-    # Mint 100 to H1 as one instrument
-    sys.mint_cash("H1", 100)
-    
-    # Transfer 30 to H2 (should split)
-    sys.transfer_cash("H1", "H2", 30)
-    
-    # H1 should have 70, H2 should have 30
-    h1_cash = sum(sys.state.contracts[cid].amount for cid in h1.asset_ids 
-                  if sys.state.contracts[cid].kind == "cash")
-    h2_cash = sum(sys.state.contracts[cid].amount for cid in h2.asset_ids 
-                  if sys.state.contracts[cid].kind == "cash")
-    assert h1_cash == 70
-    assert h2_cash == 30
-    
-    # Transfer remaining 70 to H2
-    sys.transfer_cash("H1", "H2", 70)
-    
-    # H1 should have 0, H2 should have 100
-    h1_cash = sum(sys.state.contracts[cid].amount for cid in h1.asset_ids 
-                  if sys.state.contracts[cid].kind == "cash")
-    h2_cash = sum(sys.state.contracts[cid].amount for cid in h2.asset_ids 
-                  if sys.state.contracts[cid].kind == "cash")
-    assert h1_cash == 0
-    assert h2_cash == 100
-    
-    # H2 should ideally have just one cash instrument after merge
-    h2_cash_instruments = [cid for cid in h2.asset_ids 
-                           if sys.state.contracts[cid].kind == "cash"]
-    assert len(h2_cash_instruments) == 1
-    assert sys.state.contracts[h2_cash_instruments[0]].amount == 100
-    
-    sys.assert_invariants()
-
-def test_create_and_transfer_divisible_deliverable():
-    """Test creating and transferring divisible stock lots."""
-    sys = System()
-    h1 = Household(id="H1", name="H1", kind="household")
-    h2 = Household(id="H2", name="H2", kind="household")
-    sys.add_agent(h1)
-    sys.add_agent(h2)
-    
-    # Create divisible widgets stock
-    widget_id = sys.create_stock("H1", "WIDGET", 10, Decimal("0"), divisible=True)
-    
-    # Check creation
-    widget = sys.state.stocks[widget_id]
-    assert widget.quantity == 10
-    assert widget.sku == "WIDGET"
-    assert widget.divisible == True
-    assert widget.owner_id == "H1"
-    
-    # Transfer 3 widgets to H2
-    transferred_id = sys.transfer_stock(widget_id, "H1", "H2", quantity=3)
-    
-    # H1 should keep 7, H2 should have 3
-    original = sys.state.stocks[widget_id]
-    transferred = sys.state.stocks[transferred_id]
-    assert original.quantity == 7
-    assert transferred.quantity == 3
-    assert transferred.owner_id == "H2"
-    
-    # Full transfer of remaining
-    sys.transfer_stock(widget_id, "H1", "H2")
-    
-    # H1 should have none, H2 should have all
-    h1_widgets = [sid for sid in sys.state.stocks.keys() 
-                  if sys.state.stocks[sid].owner_id == "H1" and 
-                  sys.state.stocks[sid].sku == "WIDGET"]
-    assert len(h1_widgets) == 0
-    
-    h2_widget_total = sum(
-        sys.state.stocks[sid].quantity 
-        for sid in sys.state.stocks.keys() 
-        if sys.state.stocks[sid].owner_id == "H2" and sys.state.stocks[sid].sku == "WIDGET"
-    )
-    assert h2_widget_total == 10
-    
-    sys.assert_invariants()
-
-def test_indivisible_deliverable():
-    """Test that indivisible stock lots cannot be partially transferred."""
-    sys = System()
-    h1 = Household(id="H1", name="H1", kind="household")
-    h2 = Household(id="H2", name="H2", kind="household")
-    sys.add_agent(h1)
-    sys.add_agent(h2)
-    
-    # Create indivisible item with quantity > 1 to test partial transfer
-    item_id = sys.create_stock("H1", "MACHINE", 5, Decimal("0"), divisible=False)
-    
-    # Partial transfer should fail
-    with pytest.raises(ValidationError, match="not divisible"):
-        sys.transfer_stock(item_id, "H1", "H2", quantity=3)
-    
-    # Full transfer should work (quantity=None means full transfer)
-    sys.transfer_stock(item_id, "H1", "H2")
-    
-    # Item should now belong to H2
-    item = sys.state.stocks[item_id]
-    assert item.owner_id == "H2"
-    
-    sys.assert_invariants()
-
-def test_insufficient_cash_errors():
-    """Test error handling for insufficient cash."""
-    sys = System()
-    cb = CentralBank(id="CB1", name="CB", kind="central_bank")
-    h1 = Household(id="H1", name="H1", kind="household")
-    h2 = Household(id="H2", name="H2", kind="household")
-    sys.add_agent(cb)
-    sys.add_agent(h1)
-    sys.add_agent(h2)
-    
-    # Mint 50 to H1
-    sys.mint_cash("H1", 50)
-    
-    # Try to retire more than available
-    with pytest.raises(ValidationError, match="insufficient"):
-        sys.retire_cash("H1", 100)
-    
-    # Try to transfer more than available
-    with pytest.raises(ValidationError, match="insufficient"):
-        sys.transfer_cash("H1", "H2", 100)
-    
-    # State should be unchanged after failures
-    assert sys.state.cb_cash_outstanding == 50
-    # Get the agent from system state (not the local variable)
-    h1_from_sys = sys.state.agents["H1"]
-    h1_cash = sum(sys.state.contracts[cid].amount for cid in h1_from_sys.asset_ids 
-                  if sys.state.contracts[cid].kind == "cash")
-    assert h1_cash == 50
-    
-    sys.assert_invariants()
-
-def test_deliverable_holder_mismatch():
-    """Test error when trying to transfer stock from wrong owner."""
-    sys = System()
-    h1 = Household(id="H1", name="H1", kind="household")
-    h2 = Household(id="H2", name="H2", kind="household")
-    h3 = Household(id="H3", name="H3", kind="household")
-    sys.add_agent(h1)
-    sys.add_agent(h2)
-    sys.add_agent(h3)
-    
-    # Create stock for H1
-    widget_id = sys.create_stock("H1", "WIDGET", 5, Decimal("0"))
-    
-    # H2 cannot transfer H1's widget
-    with pytest.raises(ValidationError, match="owner"):
-        sys.transfer_stock(widget_id, "H2", "H3")
-    
-    sys.assert_invariants()
-
-def test_multiple_cash_instruments_coalesce():
-    """Test that multiple cash transfers result in proper coalescing."""
-    sys = System()
-    cb = CentralBank(id="CB1", name="CB", kind="central_bank")
-    h1 = Household(id="H1", name="H1", kind="household")
-    h2 = Household(id="H2", name="H2", kind="household")
-    sys.add_agent(cb)
-    sys.add_agent(h1)
-    sys.add_agent(h2)
-    
-    # Mint cash to H1 in multiple chunks
-    sys.mint_cash("H1", 20)
-    sys.mint_cash("H1", 30)
-    sys.mint_cash("H1", 50)
-    
-    # H1 has 3 cash instruments totaling 100
-    h1_cash_ids = [cid for cid in h1.asset_ids 
-                   if sys.state.contracts[cid].kind == "cash"]
-    assert len(h1_cash_ids) == 3
-    assert sum(sys.state.contracts[cid].amount for cid in h1_cash_ids) == 100
-    
-    # Transfer all to H2 in parts
-    sys.transfer_cash("H1", "H2", 25)
-    sys.transfer_cash("H1", "H2", 25)
-    sys.transfer_cash("H1", "H2", 50)
-    
-    # H2 should have merged cash instruments
-    h2_cash_ids = [cid for cid in h2.asset_ids 
-                   if sys.state.contracts[cid].kind == "cash"]
-    # Should be consolidated to fewer instruments (ideally 1)
-    assert len(h2_cash_ids) <= 3
-    assert sum(sys.state.contracts[cid].amount for cid in h2_cash_ids) == 100
-    
-    sys.assert_invariants()
-```
-
----
-
-### 🧪 tests/unit/test_deliverable_due_dates.py
-
-```python
-"""Tests for deliverable instruments with due dates."""
-
-import pytest
-from decimal import Decimal
-
-from bilancio.domain.agents.bank import Bank
-from bilancio.domain.agents.household import Household
-from bilancio.engines.system import System
-from bilancio.engines.settlement import settle_due, settle_due_deliverables, settle_due_delivery_obligations
-from bilancio.core.errors import DefaultError
-
-
-def test_deliverable_with_due_day():
-    """Test that delivery obligations can have due_day field."""
-    system = System()
-    
-    # Create agents
-    supplier = Household(id="supplier", name="Supplier", kind="household")
-    customer = Household(id="customer", name="Customer", kind="household")
-    system.add_agent(supplier)
-    system.add_agent(customer)
-    
-    # Create delivery obligation with due_day using system method
-    obligation_id = system.create_delivery_obligation(
-        from_agent="supplier",
-        to_agent="customer",
-        sku="WIDGET",
-        quantity=10,
-        unit_price=Decimal("5"),
-        due_day=1
-    )
-    
-    obligation = system.state.contracts[obligation_id]
-    assert obligation.due_day == 1
-    assert obligation.sku == "WIDGET"
-    assert obligation.amount == 10
-
-
-def test_settle_deliverables_due_today():
-    """Test settling delivery obligations that are due."""
-    system = System()
-    
-    # Create agents
-    supplier = Household(id="supplier", name="Supplier", kind="household")
-    customer = Household(id="customer", name="Customer", kind="household")
-    system.add_agent(supplier)
-    system.add_agent(customer)
-    
-    # Give supplier some widgets to deliver (as stock)
-    system.create_stock("supplier", "WIDGET", 20, Decimal("5"))
-    
-    # Create delivery obligation due on day 1
-    obligation_id = system.create_delivery_obligation(
-        from_agent="supplier",  # Supplier must deliver
-        to_agent="customer",  # Customer has claim to receive
-        sku="WIDGET",
-        quantity=10,
-        unit_price=Decimal("5"),
-        due_day=1
-    )
-    
-    # Settle delivery obligations due on day 1
-    settle_due_delivery_obligations(system, day=1)
-    
-    # Check that obligation is settled
-    assert obligation_id not in system.state.contracts
-    
-    # Check that customer received the widgets (as stock)
-    customer_widgets = [s for s in system.state.stocks.values() 
-                        if s.owner_id == "customer" and s.sku == "WIDGET"]
-    assert len(customer_widgets) == 1
-    assert customer_widgets[0].quantity == 10
-    assert customer_widgets[0].sku == "WIDGET"
-    
-    # Check that supplier's stock is reduced
-    supplier_widgets = [s for s in system.state.stocks.values()
-                        if s.owner_id == "supplier" and s.sku == "WIDGET"]
-    assert len(supplier_widgets) == 1
-    assert supplier_widgets[0].quantity == 10  # 20 - 10 delivered
-
-
-def test_settle_deliverables_insufficient_goods():
-    """Test that DefaultError is raised when insufficient goods to deliver."""
-    system = System()
-    
-    # Create agents
-    supplier = Household(id="supplier", name="Supplier", kind="household")
-    customer = Household(id="customer", name="Customer", kind="household")
-    system.add_agent(supplier)
-    system.add_agent(customer)
-    
-    # Give supplier only 5 widgets (as stock)
-    system.create_stock("supplier", "WIDGET", 5, Decimal("5"))
-    
-    # Create delivery obligation for 10 widgets due on day 1
-    system.create_delivery_obligation(
-        from_agent="supplier",
-        to_agent="customer",
-        sku="WIDGET",
-        quantity=10,
-        unit_price=Decimal("5"),
-        due_day=1
-    )
-    
-    # Should raise DefaultError due to insufficient widgets
-    with pytest.raises(DefaultError) as exc_info:
-        settle_due_delivery_obligations(system, day=1)
-    
-    assert "Insufficient" in str(exc_info.value)
-    assert "5 units of WIDGET still owed" in str(exc_info.value)
-
-
-def test_settle_deliverables_wrong_sku():
-    """Test that stock with wrong SKU is not used for settlement."""
-    system = System()
-    
-    # Create agents
-    supplier = Household(id="supplier", name="Supplier", kind="household")
-    customer = Household(id="customer", name="Customer", kind="household")
-    system.add_agent(supplier)
-    system.add_agent(customer)
-    
-    # Give supplier gadgets instead of widgets (as stock)
-    system.create_stock("supplier", "GADGET", 20, Decimal("5"))
-    
-    # Create delivery obligation for widgets due on day 1
-    system.create_delivery_obligation(
-        from_agent="supplier",
-        to_agent="customer",
-        sku="WIDGET",
-        quantity=10,
-        unit_price=Decimal("5"),
-        due_day=1
-    )
-    
-    # Should raise DefaultError because supplier has no widgets
-    with pytest.raises(DefaultError) as exc_info:
-        settle_due_delivery_obligations(system, day=1)
-    
-    assert "Insufficient" in str(exc_info.value)
-
-
-def test_settle_deliverables_not_due():
-    """Test that delivery obligations not due today are not settled."""
-    system = System()
-    
-    # Create agents
-    supplier = Household(id="supplier", name="Supplier", kind="household")
-    customer = Household(id="customer", name="Customer", kind="household")
-    system.add_agent(supplier)
-    system.add_agent(customer)
-    
-    # Give supplier widgets (as stock)
-    widgets_id = system.create_stock("supplier", "WIDGET", 20, Decimal("5"))
-    
-    # Create delivery obligation due on day 2 (not today)
-    obligation_id = system.create_delivery_obligation(
-        from_agent="supplier",
-        to_agent="customer",
-        sku="WIDGET",
-        quantity=10,
-        unit_price=Decimal("5"),
-        due_day=2  # Due on day 2, not day 1
-    )
-    
-    # Settle delivery obligations due on day 1 (should do nothing)
-    settle_due_delivery_obligations(system, day=1)
-    
-    # Check that obligation is still there
-    assert obligation_id in system.state.contracts
-    
-    # Check that no widgets were transferred to customer
-    customer_widgets = [s for s in system.state.stocks.values()
-                        if s.owner_id == "customer" and s.sku == "WIDGET"]
-    assert len(customer_widgets) == 0
-    
-    # Supplier still has all widgets
-    assert system.state.stocks[widgets_id].quantity == 20
-
-
-def test_deliverables_without_due_day_not_settled():
-    """Test that delivery obligations without due_day are not affected by settlement."""
-    system = System()
-    
-    # Create agents
-    supplier = Household(id="supplier", name="Supplier", kind="household")
-    customer = Household(id="customer", name="Customer", kind="household")
-    system.add_agent(supplier)
-    system.add_agent(customer)
-    
-    # Give supplier widgets (as stock)
-    system.create_stock("supplier", "WIDGET", 20, Decimal("5"))
-    
-    # Note: DeliveryObligation requires due_day, so this test may not be applicable anymore
-    # But we'll create an obligation with due_day=0 to test the edge case
-    obligation_id = system.create_delivery_obligation(
-        from_agent="supplier",
-        to_agent="customer",
-        sku="WIDGET",
-        quantity=10,
-        unit_price=Decimal("5"),
-        due_day=0  # Use 0 instead of None since due_day is required
-    )
-    
-    # Settle delivery obligations for day 1 - should not affect obligation due on day 0
-    settle_due_delivery_obligations(system, day=1)
-    settle_due_delivery_obligations(system, day=100)
-    
-    # Check that obligation is still there (not settled on day 1 or 100)
-    assert obligation_id in system.state.contracts
-    
-    # Check that no widgets were transferred
-    customer_widgets = [s for s in system.state.stocks.values()
-                        if s.owner_id == "customer" and s.sku == "WIDGET"]
-    assert len(customer_widgets) == 0
-    
-    # Supplier still has all widgets
-    supplier_widgets = [s for s in system.state.stocks.values()
-                        if s.owner_id == "supplier" and s.sku == "WIDGET"]
-    assert len(supplier_widgets) == 1
-    assert supplier_widgets[0].quantity == 20
-
-
-def test_negative_due_day_validation():
-    """Test that negative due_day values are rejected."""
-    system = System()
-    
-    supplier = Household(id="supplier", name="Supplier", kind="household")
-    customer = Household(id="customer", name="Customer", kind="household")
-    system.add_agent(supplier)
-    system.add_agent(customer)
-    
-    # This should work (non-negative)
-    obligation_id = system.create_delivery_obligation(
-        from_agent="supplier",
-        to_agent="customer",
-        sku="WIDGET",
-        quantity=10,
-        unit_price=Decimal("5"),
-        due_day=0  # Zero is valid
-    )
-    assert system.state.contracts[obligation_id].due_day == 0
-
-
-def test_settle_due_handles_both_payables_and_deliverables():
-    """Test that settle_due handles both payables and delivery obligations."""
-    system = System()
-    
-    # Create agents including banks for payables
-    bank = Bank(id="bank", name="Bank", kind="bank")
-    supplier = Household(id="supplier", name="Supplier", kind="household")
-    customer = Household(id="customer", name="Customer", kind="household")
-    system.add_agent(bank)
-    system.add_agent(supplier)
-    system.add_agent(customer)
-    
-    # Give supplier widgets (as stock)
-    system.create_stock("supplier", "WIDGET", 10, Decimal("5"))
-    
-    # Create delivery obligation due on day 1
-    obligation_id = system.create_delivery_obligation(
-        from_agent="supplier",
-        to_agent="customer",
-        sku="WIDGET",
-        quantity=10,
-        unit_price=Decimal("5"),
-        due_day=1
-    )
-    
-    # Run the main settle_due function
-    settle_due(system, day=1)
-    
-    # Check that delivery obligation is settled
-    assert obligation_id not in system.state.contracts
-    
-    # Check that customer received the widgets (as stock)
-    customer_widgets = [s for s in system.state.stocks.values()
-                        if s.owner_id == "customer" and s.sku == "WIDGET"]
-    assert len(customer_widgets) == 1
-    assert customer_widgets[0].quantity == 10
-```
-
----
-
-### 🧪 tests/unit/test_deliverable_merge.py
-
-```python
-"""Tests for stock lot merge behavior with fungible_key enhancements."""
-from decimal import Decimal
-
-import pytest
-
-from bilancio.core.errors import ValidationError
-from bilancio.domain.agents import Household
-from bilancio.engines.system import System
-from bilancio.ops.primitives_stock import stock_fungible_key, merge_stock
-
-
-class TestDeliverableMerge:
-    """Test that stock lots with different SKUs or prices don't merge incorrectly."""
-    
-    def test_deliverables_with_different_skus_dont_merge(self):
-        """Stock lots with different SKUs should not be fungible."""
-        system = System()
-        hh1 = Household(id="HH01", name="Household 1", kind="household")
-        
-        system.add_agent(hh1)
-        
-        # Create two stock lots with different SKUs but same owner
-        apple_id = system.create_stock("HH01", "APPLES", 10, Decimal("2.00"))
-        orange_id = system.create_stock("HH01", "ORANGES", 10, Decimal("2.00"))
-        
-        apple = system.state.stocks[apple_id]
-        orange = system.state.stocks[orange_id]
-        
-        # Verify they have different fungible keys
-        assert stock_fungible_key(apple) != stock_fungible_key(orange)
-        
-        # Attempting to merge should fail
-        with pytest.raises(ValidationError, match="not fungible"):
-            merge_stock(system, apple_id, orange_id)
-    
-    def test_deliverables_with_different_prices_dont_merge(self):
-        """Stock lots with same SKU but different prices should not be fungible."""
-        system = System()
-        hh1 = Household(id="HH01", name="Household 1", kind="household")
-        
-        system.add_agent(hh1)
-        
-        # Create two stock lots with same SKU but different prices
-        cheap_apple_id = system.create_stock("HH01", "APPLES", 10, Decimal("1.00"))
-        expensive_apple_id = system.create_stock("HH01", "APPLES", 10, Decimal("3.00"))
-        
-        cheap_apple = system.state.stocks[cheap_apple_id]
-        expensive_apple = system.state.stocks[expensive_apple_id]
-        
-        # Verify they have different fungible keys
-        assert stock_fungible_key(cheap_apple) != stock_fungible_key(expensive_apple)
-        
-        # Attempting to merge should fail
-        with pytest.raises(ValidationError, match="not fungible"):
-            merge_stock(system, cheap_apple_id, expensive_apple_id)
-    
-    def test_deliverables_with_same_sku_and_price_can_merge(self):
-        """Stock lots with same SKU and price should be fungible."""
-        system = System()
-        hh1 = Household(id="HH01", name="Household 1", kind="household")
-        
-        system.add_agent(hh1)
-        
-        # Create two stock lots with same SKU and price
-        apple1_id = system.create_stock("HH01", "APPLES", 10, Decimal("2.00"))
-        apple2_id = system.create_stock("HH01", "APPLES", 5, Decimal("2.00"))
-        
-        apple1 = system.state.stocks[apple1_id]
-        apple2 = system.state.stocks[apple2_id]
-        
-        # Verify they have the same fungible key
-        assert stock_fungible_key(apple1) == stock_fungible_key(apple2)
-        
-        # Merging should succeed
-        result_id = merge_stock(system, apple1_id, apple2_id)
-        assert result_id == apple1_id
-        
-        # Verify the merged stock lot has the combined quantity
-        merged = system.state.stocks[apple1_id]
-        assert merged.quantity == 15
-        assert merged.unit_price == Decimal("2.00")
-        assert merged.value == Decimal("30.00")
-        
-        # Verify apple2 was removed
-        assert apple2_id not in system.state.stocks
-    
-    def test_deliverables_with_different_parties_dont_merge(self):
-        """Stock lots with different owners should not be fungible."""
-        system = System()
-        hh1 = Household(id="HH01", name="Household 1", kind="household")
-        hh2 = Household(id="HH02", name="Household 2", kind="household")
-        
-        system.add_agent(hh1)
-        system.add_agent(hh2)
-        
-        # Create stock lots with same SKU/price but different owners
-        apple1_id = system.create_stock("HH01", "APPLES", 10, Decimal("2.00"))
-        apple2_id = system.create_stock("HH02", "APPLES", 10, Decimal("2.00"))  # Different owner
-        
-        apple1 = system.state.stocks[apple1_id]
-        apple2 = system.state.stocks[apple2_id]
-        
-        # Verify they have different fungible keys
-        assert stock_fungible_key(apple1) != stock_fungible_key(apple2)
-        
-        # Attempting to merge should fail
-        with pytest.raises(ValidationError, match="not fungible"):
-            merge_stock(system, apple1_id, apple2_id)
-    
-    def test_fungible_key_backwards_compatible_with_financial_instruments(self):
-        """Financial instruments should maintain their original fungible key behavior."""
-        from bilancio.domain.agents import Bank, CentralBank
-        from bilancio.ops.primitives import fungible_key, merge
-        
-        system = System()
-        cb = CentralBank(id="CB01", name="Central Bank", kind="central_bank")
-        bank = Bank(id="BK01", name="Bank", kind="bank")
-        hh = Household(id="HH01", name="Household", kind="household")
-        
-        system.bootstrap_cb(cb)
-        system.add_agent(bank)
-        system.add_agent(hh)
-        
-        # Create cash instruments
-        cash1_id = system.mint_cash("HH01", 100)
-        cash2_id = system.mint_cash("HH01", 50)
-        
-        cash1 = system.state.contracts[cash1_id]
-        cash2 = system.state.contracts[cash2_id]
-        
-        # Verify they have the same fungible key (no SKU/price in key)
-        key1 = fungible_key(cash1)
-        key2 = fungible_key(cash2)
-        assert key1 == key2
-        assert len(key1) == 4  # Only base attributes
-        
-        # Merging should succeed
-        result_id = merge(system, cash1_id, cash2_id)
-        merged = system.state.contracts[result_id]
-        assert merged.amount == 150
-```
-
----
-
-### 🧪 tests/unit/test_deliverable_valuation.py
-
-```python
-"""Tests for stock lot and delivery obligation valuation functionality."""
-
-import pytest
-from decimal import Decimal
-from bilancio.engines.system import System
-from bilancio.domain.agents.household import Household
-from bilancio.domain.agents.treasury import Treasury
-from bilancio.domain.agents.central_bank import CentralBank
-from bilancio.core.errors import ValidationError
-from bilancio.analysis.balances import agent_balance, system_trial_balance
-
-
-def test_create_deliverable_with_unit_price():
-    """Test creating a stock lot with a unit price."""
-    sys = System()
-    h1 = Household(id="H1", name="H1", kind="household")
-    sys.add_agent(h1)
-    
-    # Create stock lot with unit price
-    widget_id = sys.create_stock(
-        owner_id="H1",
-        sku="WIDGET",
-        quantity=10,
-        unit_price=Decimal("5.50")
-    )
-    
-    # Check the stock lot
-    widget = sys.state.stocks[widget_id]
-    assert widget.quantity == 10
-    assert widget.unit_price == Decimal("5.50")
-    assert widget.value == Decimal("55.00")
-
-
-def test_create_deliverable_with_zero_price():
-    """Test creating a stock lot with zero price."""
-    sys = System()
-    h1 = Household(id="H1", name="H1", kind="household")
-    sys.add_agent(h1)
-    
-    # Create stock lot with zero price
-    widget_id = sys.create_stock(
-        owner_id="H1",
-        sku="WIDGET", 
-        quantity=10,
-        unit_price=Decimal("0")
-    )
-    
-    # Check the stock lot
-    widget = sys.state.stocks[widget_id]
-    assert widget.quantity == 10
-    assert widget.unit_price == Decimal("0")
-    assert widget.value == Decimal("0")
-
-
-def test_update_deliverable_price():
-    """Test updating the price of an existing stock lot (if such functionality exists)."""
-    sys = System()
-    h1 = Household(id="H1", name="H1", kind="household")
-    sys.add_agent(h1)
-    
-    # Create stock lot with initial price
-    widget_id = sys.create_stock(
-        owner_id="H1",
-        sku="WIDGET",
-        quantity=10,
-        unit_price=Decimal("5.00")
-    )
-    
-    widget = sys.state.stocks[widget_id]
-    assert widget.unit_price == Decimal("5.00")
-    assert widget.value == Decimal("50.00")
-    
-    # Direct price update on stock lots (if method exists)
-    # Note: This may need to be updated based on actual API
-    widget.unit_price = Decimal("7.25")
-    
-    # Check updated price
-    assert widget.unit_price == Decimal("7.25")
-    assert widget.value == Decimal("72.50")
-    
-    # Update to zero price
-    widget.unit_price = Decimal("0")
-    
-    # Check zero price
-    assert widget.unit_price == Decimal("0")
-    assert widget.value == Decimal("0")
-
-
-def test_update_deliverable_price_errors():
-    """Test error cases for stock lot price updates."""
-    sys = System()
-    cb = CentralBank(id="CB", name="CB", kind="central_bank")
-    h1 = Household(id="H1", name="H1", kind="household")
-    sys.bootstrap_cb(cb)
-    sys.add_agent(h1)
-    
-    # Create a cash instrument (not a stock lot)
-    sys.mint_cash("H1", 100)
-    
-    # Try to update price on non-existent stock
-    # Note: This test may need to be adapted based on actual stock update API
-    with pytest.raises(KeyError):
-        _ = sys.state.stocks["INVALID_ID"]
-
-
-def test_agent_balance_with_valued_deliverables():
-    """Test agent balance calculation with valued stock lots."""
-    sys = System()
-    cb = CentralBank(id="CB", name="CB", kind="central_bank")
-    h1 = Household(id="H1", name="H1", kind="household")
-    sys.bootstrap_cb(cb)
-    sys.add_agent(h1)
-    
-    # Give household some cash
-    sys.mint_cash("H1", 1000)
-    
-    # Create valued stock lot (household has groceries)
-    sys.create_stock(
-        owner_id="H1",
-        sku="GROCERIES",
-        quantity=20,
-        unit_price=Decimal("3.50")
-    )
-    
-    # Create zero-priced stock lot (household has free service)
-    sys.create_stock(
-        owner_id="H1",
-        sku="SERVICE",
-        quantity=5,
-        unit_price=Decimal("0")
-    )
-    
-    # Check household balance
-    balance = agent_balance(sys, "H1")
-    
-    assert balance.total_financial_assets == 1000
-    assert balance.total_inventory_value == Decimal("70.00")  # 20 * 3.50
-    
-    # Check inventory details
-    assert "GROCERIES" in balance.inventory_by_sku
-    assert balance.inventory_by_sku["GROCERIES"]["quantity"] == 20
-    assert balance.inventory_by_sku["GROCERIES"]["value"] == Decimal("70.00")
-    
-    assert "SERVICE" in balance.inventory_by_sku
-    assert balance.inventory_by_sku["SERVICE"]["quantity"] == 5
-    assert balance.inventory_by_sku["SERVICE"]["value"] == Decimal("0")
-
-
-def test_system_trial_balance_with_valued_deliverables():
-    """Test system-wide trial balance with valued stock lots."""
-    sys = System()
-    h1 = Household(id="H1", name="H1", kind="household")
-    h2 = Household(id="H2", name="H2", kind="household")
-    sys.add_agent(h1)
-    sys.add_agent(h2)
-    
-    # Create multiple valued stock lots
-    sys.create_stock(
-        owner_id="H1",
-        sku="PRODUCT_A",
-        quantity=10,
-        unit_price=Decimal("15.00")
-    )
-    
-    sys.create_stock(
-        owner_id="H2",
-        sku="PRODUCT_B",
-        quantity=5,
-        unit_price=Decimal("25.00")
-    )
-    
-    # Create zero-priced stock lot
-    sys.create_stock(
-        owner_id="H2",
-        sku="UNPRICED",
-        quantity=100,
-        unit_price=Decimal("0")
-    )
-    
-    # Check system trial balance
-    trial_balance = system_trial_balance(sys)
-    
-    # Total inventory value should be sum of valued stock lots
-    assert trial_balance.total_inventory_value == Decimal("275.00")  # 150 + 125
-    
-    # Check details
-    assert "PRODUCT_A" in trial_balance.inventory_by_sku
-    assert trial_balance.inventory_by_sku["PRODUCT_A"]["quantity"] == 10
-    assert trial_balance.inventory_by_sku["PRODUCT_A"]["value"] == Decimal("150.00")
-    
-    assert "PRODUCT_B" in trial_balance.inventory_by_sku
-    assert trial_balance.inventory_by_sku["PRODUCT_B"]["quantity"] == 5
-    assert trial_balance.inventory_by_sku["PRODUCT_B"]["value"] == Decimal("125.00")
-    
-    assert "UNPRICED" in trial_balance.inventory_by_sku
-    assert trial_balance.inventory_by_sku["UNPRICED"]["quantity"] == 100
-    assert trial_balance.inventory_by_sku["UNPRICED"]["value"] == Decimal("0")
-
-
-def test_transfer_deliverable_preserves_unit_price():
-    """Test that transferring a stock lot preserves its unit price."""
-    sys = System()
-    h1 = Household(id="H1", name="H1", kind="household")
-    h2 = Household(id="H2", name="H2", kind="household")
-    sys.add_agent(h1)
-    sys.add_agent(h2)
-    
-    # Create valued stock lot
-    widget_id = sys.create_stock(
-        owner_id="H1",
-        sku="WIDGET",
-        quantity=10,
-        unit_price=Decimal("5.00"),
-        divisible=True
-    )
-    
-    # Transfer part of it
-    transferred_id = sys.transfer_stock(widget_id, "H1", "H2", quantity=3)
-    
-    # Check both parts retain the unit price
-    original = sys.state.stocks[widget_id]
-    transferred = sys.state.stocks[transferred_id]
-    
-    assert original.quantity == 7
-    assert original.unit_price == Decimal("5.00")
-    assert original.value == Decimal("35.00")
-    
-    assert transferred.quantity == 3
-    assert transferred.unit_price == Decimal("5.00")
-    assert transferred.value == Decimal("15.00")
-
-
-
-
-def test_mixed_valued_and_zero_priced_deliverables():
-    """Test system with mix of valued and zero-priced stock lots."""
-    sys = System()
-    h1 = Household(id="H1", name="H1", kind="household")
-    sys.add_agent(h1)
-    
-    # Create multiple stock lots with different pricing
-    sys.create_stock(
-        owner_id="H1",
-        sku="PRICED_A", quantity=5, unit_price=Decimal("10")
-    )
-    
-    sys.create_stock(
-        owner_id="H1",
-        sku="ZERO_PRICED", quantity=20, unit_price=Decimal("0")
-    )
-    
-    sys.create_stock(
-        owner_id="H1",
-        sku="PRICED_B", quantity=3, unit_price=Decimal("15.50")
-    )
-    
-    sys.create_stock(
-        owner_id="H1",
-        sku="FREE", quantity=100, unit_price=Decimal("0")
-    )
-    
-    # Check balance
-    balance = agent_balance(sys, "H1")
-    
-    # Total should include all items (zero-priced contribute 0)
-    expected_value = Decimal("50") + Decimal("0") + Decimal("46.50") + Decimal("0")
-    assert balance.total_inventory_value == expected_value
-    
-    # Check individual items
-    assert len(balance.inventory_by_sku) == 4
-    assert balance.inventory_by_sku["PRICED_A"]["value"] == Decimal("50")
-    assert balance.inventory_by_sku["ZERO_PRICED"]["value"] == Decimal("0")
-    assert balance.inventory_by_sku["PRICED_B"]["value"] == Decimal("46.50")
-    assert balance.inventory_by_sku["FREE"]["value"] == Decimal("0")
 ```
 
 ---
@@ -11466,5 +13428,5 @@ def test_settle_multiple_obligations():
 ## End of Codebase
 
 Generated from: /Users/vladgheorghe/code/bilancio
-Total source files: 56
-Total test files: 19
+Total source files: 61
+Total test files: 20

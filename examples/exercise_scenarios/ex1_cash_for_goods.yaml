@@ -1,0 +1,31 @@
+version: 1
+name: "Ex1: Cash-for-goods (chair) — immediate"
+description: "Firm sells a chair to a household for cash with immediate delivery and payment."
+
+agents:
+  - id: CB
+    kind: central_bank
+    name: Central Bank
+  - id: H1
+    kind: household
+    name: Household One
+  - id: F1
+    kind: firm
+    name: Firm One
+
+initial_actions:
+  # Initial endowments
+  - mint_cash: {to: H1, amount: 100}
+  - create_stock: {owner: F1, sku: CHAIR, quantity: 1, unit_price: "100"}
+
+  # Create matched promises to settle on day 1
+  - create_delivery_obligation: {from: F1, to: H1, sku: CHAIR, quantity: 1, unit_price: "100", due_day: 1}
+  - create_payable: {from: H1, to: F1, amount: 100, due_day: 1}
+
+run:
+  mode: until_stable
+  max_days: 5
+  quiet_days: 2
+  show:
+    balances: [CB, H1, F1]
+    events: detailed
