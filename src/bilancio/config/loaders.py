@@ -81,6 +81,10 @@ def parse_action(action_dict: Dict[str, Any]) -> Action:
         data = action_dict["create_payable"]
         # The model handles aliases automatically via pydantic
         return CreatePayable(**data)
+    elif "transfer_claim" in action_dict:
+        data = action_dict["transfer_claim"]
+        from .models import TransferClaim
+        return TransferClaim(**data)
     else:
         raise ValueError(f"Unknown action type in: {action_dict}")
 

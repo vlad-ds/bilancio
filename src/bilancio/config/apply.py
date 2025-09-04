@@ -8,6 +8,7 @@ from bilancio.domain.agents import Bank, Household, Firm, CentralBank, Treasury
 from bilancio.ops.banking import deposit_cash, withdraw_cash, client_payment
 from bilancio.domain.instruments.credit import Payable
 from bilancio.core.errors import ValidationError
+from bilancio.core.atomic_tx import atomic
 
 from .models import ScenarioConfig, AgentSpec
 from .loaders import parse_action
@@ -77,16 +78,29 @@ def apply_action(system: System, action_dict: Dict[str, Any], agents: Dict[str, 
     
     try:
         if action_type == "mint_reserves":
-            system.mint_reserves(
+            instr_id = system.mint_reserves(
                 to_bank_id=action.to,
-                amount=action.amount
+                amount=action.amount,
+                alias=getattr(action, 'alias', None)
             )
+            # optional alias capture
+            if getattr(action, 'alias', None):
+                alias = action.alias
+                if alias in system.state.aliases:
+                    raise ValueError(f"Alias already exists: {alias}")
+                system.state.aliases[alias] = instr_id
             
         elif action_type == "mint_cash":
-            system.mint_cash(
+            instr_id = system.mint_cash(
                 to_agent_id=action.to,
-                amount=action.amount
+                amount=action.amount,
+                alias=getattr(action, 'alias', None)
             )
+            if getattr(action, 'alias', None):
+                alias = action.alias
+                if alias in system.state.aliases:
+                    raise ValueError(f"Alias already exists: {alias}")
+                system.state.aliases[alias] = instr_id
             
         elif action_type == "transfer_reserves":
             system.transfer_reserves(
@@ -178,14 +192,20 @@ def apply_action(system: System, action_dict: Dict[str, Any], agents: Dict[str, 
             )
             
         elif action_type == "create_delivery_obligation":
-            system.create_delivery_obligation(
+            instr_id = system.create_delivery_obligation(
                 from_agent=action.from_agent,
                 to_agent=action.to_agent,
                 sku=action.sku,
                 quantity=action.quantity,
                 unit_price=action.unit_price,
-                due_day=action.due_day
+                due_day=action.due_day,
+                alias=getattr(action, 'alias', None)
             )
+            if getattr(action, 'alias', None):
+                alias = action.alias
+                if alias in system.state.aliases:
+                    raise ValueError(f"Alias already exists: {alias}")
+                system.state.aliases[alias] = instr_id
             
         elif action_type == "create_payable":
             # Create a Payable instrument
@@ -203,6 +223,12 @@ def apply_action(system: System, action_dict: Dict[str, Any], agents: Dict[str, 
                 due_day=action.due_day
             )
             system.add_contract(payable)
+            # optional alias capture
+            if getattr(action, 'alias', None):
+                alias = action.alias
+                if alias in system.state.aliases:
+                    raise ValueError(f"Alias already exists: {alias}")
+                system.state.aliases[alias] = payable.id
             
             # Log the event
             system.log("PayableCreated",
@@ -210,8 +236,53 @@ def apply_action(system: System, action_dict: Dict[str, Any], agents: Dict[str, 
                 creditor=action.to_agent,
                 amount=int(action.amount),
                 due_day=action.due_day,
-                payable_id=payable.id
+                payable_id=payable.id,
+                alias=getattr(action, 'alias', None)
             )
+        
+        elif action_type == "transfer_claim":
+            # Transfer claim (reassign asset holder) by alias or id
+            data = action
+            # Resolve contract id
+            cid_alias = getattr(data, 'contract_alias', None)
+            cid_explicit = getattr(data, 'contract_id', None)
+            resolved_id = None
+            if cid_alias:
+                if cid_alias not in system.state.aliases:
+                    raise ValueError(f"Unknown alias: {cid_alias}")
+                resolved_id = system.state.aliases[cid_alias]
+            if cid_explicit:
+                if resolved_id and resolved_id != cid_explicit:
+                    raise ValueError(f"Alias {cid_alias} and contract_id {cid_explicit} mismatch")
+                resolved_id = cid_explicit
+            if not resolved_id:
+                raise ValueError("No contract resolved for transfer_claim")
+
+            if resolved_id not in system.state.contracts:
+                raise ValueError(f"Contract not found: {resolved_id}")
+            instr = system.state.contracts[resolved_id]
+
+            old_holder_id = instr.asset_holder_id
+            new_holder_id = data.to_agent
+
+            # Perform reassignment atomically
+            with atomic(system):
+                old_holder = system.state.agents[old_holder_id]
+                new_holder = system.state.agents[new_holder_id]
+                if resolved_id not in old_holder.asset_ids:
+                    raise ValueError(f"Contract {resolved_id} not in old holder's assets")
+                old_holder.asset_ids.remove(resolved_id)
+                new_holder.asset_ids.append(resolved_id)
+                instr.asset_holder_id = new_holder_id
+                system.log("ClaimTransferred",
+                           contract_id=resolved_id,
+                           frm=old_holder_id,
+                           to=new_holder_id,
+                           contract_kind=instr.kind,
+                           amount=getattr(instr, 'amount', None),
+                           due_day=getattr(instr, 'due_day', None),
+                           sku=getattr(instr, 'sku', None),
+                           alias=cid_alias)
             
         else:
             raise ValueError(f"Unknown action type: {action_type}")

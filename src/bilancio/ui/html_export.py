@@ -97,11 +97,12 @@ def _format_amount(v: Any) -> str:
 def _render_t_account_from_rows(title: str, assets_rows: List[dict], liabs_rows: List[dict]) -> str:
     def tr(row: Optional[dict]) -> str:
         if not row:
-            return "<tr><td class=\"empty\" colspan=\"5\">—</td></tr>"
+            return "<tr><td class=\"empty\" colspan=\"6\">—</td></tr>"
         qty = row.get('quantity')
         val = row.get('value_minor')
         cpty = row.get('counterparty_name') or "—"
         mat = row.get('maturity') or "—"
+        id_or_alias = row.get('id_or_alias') or "—"
         # Robust numeric formatting with safe conversion
         try:
             qiv = _safe_int_conversion(qty)
@@ -116,6 +117,7 @@ def _render_t_account_from_rows(title: str, assets_rows: List[dict], liabs_rows:
         return (
             f"<tr>"
             f"<td class=\"name\">{_html_escape(row.get('name',''))}</td>"
+            f"<td class=\"id\">{_html_escape(id_or_alias)}</td>"
             f"<td class=\"qty\">{qty_s}</td>"
             f"<td class=\"val\">{val_s}</td>"
             f"<td class=\"cpty\">{_html_escape(cpty)}</td>"
@@ -133,14 +135,14 @@ def _render_t_account_from_rows(title: str, assets_rows: List[dict], liabs_rows:
     <div class="assets-side">
       <h4>Assets</h4>
       <table class="side">
-        <thead><tr><th>Name</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
         <tbody>{assets_html}</tbody>
       </table>
     </div>
     <div class="liabilities-side">
       <h4>Liabilities</h4>
       <table class="side">
-        <thead><tr><th>Name</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
         <tbody>{liabs_html}</tbody>
       </table>
     </div>
@@ -161,6 +163,7 @@ def _render_t_account(system: System, agent_id: str) -> str:
             'value_minor': getattr(r, 'value_minor', None),
             'counterparty_name': getattr(r, 'counterparty_name', None),
             'maturity': getattr(r, 'maturity', None),
+            'id_or_alias': getattr(r, 'id_or_alias', None),
         }
     assets_rows = [to_row(r) for r in acct.assets]
     liabs_rows = [to_row(r) for r in acct.liabilities]
@@ -275,7 +278,19 @@ def _map_event_fields(e: Dict[str, Any]) -> Dict[str, str]:
     else:
         frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
         to  = e.get("to") or e.get("creditor") or e.get("payee")
-    sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+    # Identifier column prefers alias, then contract/instrument IDs
+    id_or_alias = (
+        e.get("alias")
+        or e.get("contract_id")
+        or e.get("payable_id")
+        or e.get("id")
+        or e.get("instr_id")
+        or e.get("stock_id")
+        or "—"
+    )
+    # SKU/Instr column should show SKU (for stock/delivery events) when available
+    # Otherwise leave blank/dash
+    sku = e.get("sku") or "—"
     qty = e.get("qty") or e.get("quantity") or "—"
     amt = e.get("amount") or "—"
     notes = ""
@@ -289,6 +304,7 @@ def _map_event_fields(e: Dict[str, Any]) -> Dict[str, str]:
         "kind": kind,
         "from": _html_escape(frm or "—"),
         "to": _html_escape(to or "—"),
+        "id_or_alias": _html_escape(id_or_alias),
         "sku": _html_escape(sku),
         "qty": _html_escape(qty),
         "amount": _format_amount(amt),
@@ -298,13 +314,14 @@ def _map_event_fields(e: Dict[str, Any]) -> Dict[str, str]:
 
 def _render_events_table(title: str, events: List[Dict[str, Any]]) -> str:
     # Exclude marker rows
-    events = [e for e in events if e.get("kind") not in ("PhaseA","PhaseB","PhaseC")]
+    events = [e for e in events if e.get("kind") not in ("PhaseA","PhaseB","PhaseC","SubphaseB1","SubphaseB2")]
     rows_html = []
     for e in events:
         m = _map_event_fields(e)
         rows_html.append(
             f"<tr>"
             f"<td class=\"event-kind\">{m['kind']}</td>"
+            f"<td class=\"event-id\">{m['id_or_alias']}</td>"
             f"<td>{m['from']}</td><td>{m['to']}</td>"
             f"<td>{m['sku']}</td><td class=\"qty\">{m['qty']}</td>"
             f"<td class=\"amount\">{m['amount']}</td><td class=\"notes\">{m['notes']}</td>"
@@ -317,7 +334,7 @@ def _render_events_table(title: str, events: List[Dict[str, Any]]) -> str:
   <h4>{_html_escape(title)}</h4>
   <table>
     <thead>
-      <tr><th>Kind</th><th>From</th><th>To</th><th>SKU/Instr</th><th>Qty</th><th>Amount</th><th>Notes</th></tr>
+      <tr><th>Kind</th><th>ID/Alias</th><th>From</th><th>To</th><th>SKU/Instr</th><th>Qty</th><th>Amount</th><th>Notes</th></tr>
     </thead>
     <tbody>
       {''.join(rows_html)}
@@ -340,6 +357,30 @@ def _split_by_phases(day_events: List[Dict[str, Any]]) -> Dict[str, List[Dict[st
             current = "C"; continue
         buckets[current].append(e)
     return buckets
+
+def _split_phase_b_into_subphases(events_b: List[Dict[str, Any]]) -> (List[Dict[str, Any]], List[Dict[str, Any]]):
+    """Split Phase B events into B1 (scheduled) and B2 (settlements) using subphase markers.
+
+    Excludes Subphase markers from returned lists.
+    """
+    b1: List[Dict[str, Any]] = []
+    b2: List[Dict[str, Any]] = []
+    in_b2 = False
+    for e in events_b:
+        k = e.get("kind")
+        if k == "SubphaseB1":
+            # begin B1 (marker only)
+            in_b2 = False
+            continue
+        if k == "SubphaseB2":
+            # switch to B2 (marker only)
+            in_b2 = True
+            continue
+        if in_b2:
+            b2.append(e)
+        else:
+            b1.append(e)
+    return b1, b2
 
 
 def export_pretty_html(
@@ -448,7 +489,9 @@ def export_pretty_html(
         ev = d.get('events', [])
         buckets = _split_by_phases(ev)
         html_parts.append("<div class=\"events-section\">")
-        html_parts.append(_render_events_table("Phase B — Settlement", buckets.get("B", [])))
+        b1, b2 = _split_phase_b_into_subphases(buckets.get("B", []))
+        html_parts.append(_render_events_table("Phase B1 — Scheduled Actions", b1))
+        html_parts.append(_render_events_table("Phase B2 — Settlement", b2))
         html_parts.append(_render_events_table("Phase C — Clearing", buckets.get("C", [])))
         html_parts.append("</div>")
         if agent_ids:

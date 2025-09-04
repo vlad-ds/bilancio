@@ -1090,6 +1090,7 @@ class BalanceRow:
     value_minor: Optional[int]
     counterparty_name: Optional[str]
     maturity: Optional[str]
+    id_or_alias: Optional[str] = None
 
 
 @dataclass
@@ -1148,6 +1149,12 @@ def build_t_account_rows(system: System, agent_id: str) -> TAccount:
             maturity="—",
         ))
 
+    # Precompute id->alias map for quick lookups
+    try:
+        id_to_alias = {cid: alias for alias, cid in (system.state.aliases or {}).items()}
+    except Exception:
+        id_to_alias = {}
+
     # Contracts as assets (held by agent)
     for cid in agent.asset_ids:
         c = system.state.contracts[cid]
@@ -1167,6 +1174,7 @@ def build_t_account_rows(system: System, agent_id: str) -> TAccount:
                 value_minor=valued_minor,
                 counterparty_name=counterparty,
                 maturity=maturity,
+                id_or_alias=id_to_alias.get(cid, cid),
             ))
         else:
             # Financial assets
@@ -1180,6 +1188,7 @@ def build_t_account_rows(system: System, agent_id: str) -> TAccount:
                 value_minor=int(c.amount) if c.amount is not None else None,
                 counterparty_name=counterparty if c.kind != "cash" else "—",
                 maturity=maturity,
+                id_or_alias=id_to_alias.get(cid, cid),
             ))
 
     # Contracts as liabilities (issued by agent)
@@ -1199,6 +1208,7 @@ def build_t_account_rows(system: System, agent_id: str) -> TAccount:
                 value_minor=valued_minor,
                 counterparty_name=counterparty,
                 maturity=maturity,
+                id_or_alias=id_to_alias.get(cid, cid),
             ))
         else:
             counterparty = _format_agent(c.asset_holder_id, system)
@@ -1211,6 +1221,7 @@ def build_t_account_rows(system: System, agent_id: str) -> TAccount:
                 value_minor=int(c.amount) if c.amount is not None else None,
                 counterparty_name=counterparty,
                 maturity=maturity,
+                id_or_alias=id_to_alias.get(cid, cid),
             ))
 
     # Ordering within each side

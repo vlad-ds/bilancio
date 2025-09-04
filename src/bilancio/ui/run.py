@@ -76,6 +76,16 @@ def run_scenario(
         )
         sys.exit(1)
     
+    # Stage scheduled actions into system state (Phase B1 execution by day)
+    try:
+        if getattr(config, 'scheduled_actions', None):
+            for sa in config.scheduled_actions:
+                day = sa.day
+                system.state.scheduled_actions_by_day.setdefault(day, []).append(sa.action)
+    except Exception:
+        # Keep robust even if config lacks scheduled actions
+        pass
+    
     # Use config settings unless overridden by CLI
     if agent_ids is None and config.run.show.balances:
         agent_ids = config.run.show.balances
@@ -118,6 +128,7 @@ def run_scenario(
                 'value_minor': getattr(r, 'value_minor', None),
                 'counterparty_name': getattr(r, 'counterparty_name', None),
                 'maturity': getattr(r, 'maturity', None),
+                'id_or_alias': getattr(r, 'id_or_alias', None),
             }
         initial_rows[agent_id] = {
             'assets': [to_row(r) for r in acct.assets],
@@ -244,14 +255,15 @@ def run_step_mode(
                     for agent_id in agent_ids:
                         day_balances[agent_id] = agent_balance(system, agent_id)
                         acct = build_t_account_rows(system, agent_id)
-                        def to_row(r):
-                            return {
-                                'name': getattr(r, 'name', ''),
-                                'quantity': getattr(r, 'quantity', None),
-                                'value_minor': getattr(r, 'value_minor', None),
-                                'counterparty_name': getattr(r, 'counterparty_name', None),
-                                'maturity': getattr(r, 'maturity', None),
-                            }
+                    def to_row(r):
+                        return {
+                            'name': getattr(r, 'name', ''),
+                            'quantity': getattr(r, 'quantity', None),
+                            'value_minor': getattr(r, 'value_minor', None),
+                            'counterparty_name': getattr(r, 'counterparty_name', None),
+                            'maturity': getattr(r, 'maturity', None),
+                            'id_or_alias': getattr(r, 'id_or_alias', None),
+                        }
                         day_rows[agent_id] = {
                             'assets': [to_row(r) for r in acct.assets],
                             'liabs': [to_row(r) for r in acct.liabilities],
@@ -399,6 +411,7 @@ def run_until_stable_mode(
                                 'value_minor': getattr(r, 'value_minor', None),
                                 'counterparty_name': getattr(r, 'counterparty_name', None),
                                 'maturity': getattr(r, 'maturity', None),
+                                'id_or_alias': getattr(r, 'id_or_alias', None),
                             }
                         day_rows[agent_id] = {
                             'assets': [to_row(r) for r in acct.assets],
