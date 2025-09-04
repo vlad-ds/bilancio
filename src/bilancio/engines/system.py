@@ -27,6 +27,10 @@ class State:
     cb_cash_outstanding: int = 0
     cb_reserves_outstanding: int = 0
     phase: str = "simulation"
+    # Aliases for created contracts (alias -> contract_id)
+    aliases: dict[str, str] = field(default_factory=dict)
+    # Scheduled actions to run at Phase B1 by day (day -> list of action dicts)
+    scheduled_actions_by_day: dict[int, list[dict]] = field(default_factory=dict)
 
 class System:
     def __init__(self, policy: PolicyEngine | None = None):
@@ -107,7 +111,7 @@ class System:
             self.add_agent(agent)
 
     # ---- cash operations
-    def mint_cash(self, to_agent_id: AgentId, amount: int, denom="X") -> str:
+    def mint_cash(self, to_agent_id: AgentId, amount: int, denom="X", alias: str | None = None) -> str:
         cb_id = next((aid for aid,a in self.state.agents.items() if a.kind == "central_bank"), None)
         assert cb_id, "CentralBank must exist"
         instr_id = self.new_contract_id("C")
@@ -118,7 +122,11 @@ class System:
         with atomic(self):
             self.add_contract(c)
             self.state.cb_cash_outstanding += amount
-            self.log("CashMinted", to=to_agent_id, amount=amount, instr_id=instr_id)
+            # Include alias if provided (for UI linking)
+            if alias is not None:
+                self.log("CashMinted", to=to_agent_id, amount=amount, instr_id=instr_id, alias=alias)
+            else:
+                self.log("CashMinted", to=to_agent_id, amount=amount, instr_id=instr_id)
         return instr_id
 
     def retire_cash(self, from_agent_id: AgentId, amount: int) -> None:
@@ -182,7 +190,7 @@ class System:
             raise ValidationError("CentralBank must exist")
         return cb_id
 
-    def mint_reserves(self, to_bank_id: str, amount: int, denom="X") -> str:
+    def mint_reserves(self, to_bank_id: str, amount: int, denom="X", alias: str | None = None) -> str:
         """Mint reserves to a bank"""
         cb_id = self._central_bank_id()
         instr_id = self.new_contract_id("R")
@@ -193,7 +201,10 @@ class System:
         with atomic(self):
             self.add_contract(c)
             self.state.cb_reserves_outstanding += amount
-            self.log("ReservesMinted", to=to_bank_id, amount=amount, instr_id=instr_id)
+            if alias is not None:
+                self.log("ReservesMinted", to=to_bank_id, amount=amount, instr_id=instr_id, alias=alias)
+            else:
+                self.log("ReservesMinted", to=to_bank_id, amount=amount, instr_id=instr_id)
         return instr_id
 
     def transfer_reserves(self, from_bank_id: str, to_bank_id: str, amount: int) -> None:
@@ -411,7 +422,7 @@ class System:
             return self._transfer_stock_internal(stock_id, from_owner, to_owner, quantity)
 
     # ---- delivery obligation operations
-    def create_delivery_obligation(self, from_agent: AgentId, to_agent: AgentId, sku: str, quantity: int, unit_price: Decimal, due_day: int) -> InstrId:
+    def create_delivery_obligation(self, from_agent: AgentId, to_agent: AgentId, sku: str, quantity: int, unit_price: Decimal, due_day: int, alias: str | None = None) -> InstrId:
         """Create a delivery obligation (bilateral promise to deliver goods)."""
         obligation_id = self.new_contract_id("D")
         obligation = DeliveryObligation(
@@ -427,14 +438,25 @@ class System:
         )
         with atomic(self):
             self.add_contract(obligation)
-            self.log("DeliveryObligationCreated", 
-                    id=obligation_id, 
-                    frm=from_agent, 
-                    to=to_agent, 
-                    sku=sku, 
-                    qty=quantity, 
-                    due_day=due_day, 
-                    unit_price=unit_price)
+            if alias is not None:
+                self.log("DeliveryObligationCreated", 
+                        id=obligation_id, 
+                        frm=from_agent, 
+                        to=to_agent, 
+                        sku=sku, 
+                        qty=quantity, 
+                        due_day=due_day, 
+                        unit_price=unit_price,
+                        alias=alias)
+            else:
+                self.log("DeliveryObligationCreated", 
+                        id=obligation_id, 
+                        frm=from_agent, 
+                        to=to_agent, 
+                        sku=sku, 
+                        qty=quantity, 
+                        due_day=due_day, 
+                        unit_price=unit_price)
         return obligation_id
 
     def _cancel_delivery_obligation_internal(self, obligation_id: InstrId) -> None:
@@ -462,9 +484,13 @@ class System:
         # Remove contract from registry
         del self.state.contracts[obligation_id]
         
-        # Log the cancellation
+        # Log the cancellation with alias (if any) and contract_id for UI consistency
+        from bilancio.ops.aliases import get_alias_for_id
+        alias = get_alias_for_id(self, obligation_id)
         self.log("DeliveryObligationCancelled",
                 obligation_id=obligation_id,
+                contract_id=obligation_id,
+                alias=alias,
                 debtor=contract.liability_issuer_id,
                 creditor=contract.asset_holder_id,
                 sku=contract.sku,

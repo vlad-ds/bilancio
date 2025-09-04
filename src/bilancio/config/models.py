@@ -2,7 +2,7 @@
 
 from typing import Literal, Optional, Union, List, Dict, Any
 from decimal import Decimal
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class PolicyOverrides(BaseModel):
@@ -27,6 +27,10 @@ class MintReserves(BaseModel):
     action: Literal["mint_reserves"] = "mint_reserves"
     to: str = Field(..., description="Target bank ID")
     amount: Decimal = Field(..., description="Amount to mint")
+    alias: Optional[str] = Field(
+        None,
+        description="Optional alias to reference the created reserve_deposit contract later"
+    )
     
     @field_validator("amount")
     @classmethod
@@ -41,6 +45,10 @@ class MintCash(BaseModel):
     action: Literal["mint_cash"] = "mint_cash"
     to: str = Field(..., description="Target agent ID")
     amount: Decimal = Field(..., description="Amount to mint")
+    alias: Optional[str] = Field(
+        None,
+        description="Optional alias to reference the created cash contract later"
+    )
     
     @field_validator("amount")
     @classmethod
@@ -173,6 +181,10 @@ class CreateDeliveryObligation(BaseModel):
     quantity: int = Field(..., description="Quantity to deliver")
     unit_price: Decimal = Field(..., description="Price per unit")
     due_day: int = Field(..., description="Day when delivery is due")
+    alias: Optional[str] = Field(
+        None,
+        description="Optional alias to reference the created delivery obligation later"
+    )
     
     @field_validator("quantity")
     @classmethod
@@ -203,6 +215,10 @@ class CreatePayable(BaseModel):
     to_agent: str = Field(..., description="Creditor agent ID", alias="to")
     amount: Decimal = Field(..., description="Amount to pay")
     due_day: int = Field(..., description="Day when payment is due")
+    alias: Optional[str] = Field(
+        None,
+        description="Optional alias to reference the created payable later"
+    )
     
     @field_validator("amount")
     @classmethod
@@ -220,6 +236,44 @@ class CreatePayable(BaseModel):
 
 
 # Union type for all actions
+class TransferClaim(BaseModel):
+    """Action to transfer (assign) a claim to a new creditor.
+
+    References a specific contract by alias or by ID. Both may be provided, but
+    if both are present they must refer to the same contract.
+    """
+    action: Literal["transfer_claim"] = "transfer_claim"
+    contract_alias: Optional[str] = Field(None, description="Alias of the contract to transfer")
+    contract_id: Optional[str] = Field(None, description="Explicit contract ID to transfer")
+    to_agent: str = Field(..., description="New creditor (asset holder) agent ID")
+
+    @field_validator("to_agent")
+    @classmethod
+    def non_empty_agent(cls, v):
+        if not v:
+            raise ValueError("to_agent is required")
+        return v
+
+    @model_validator(mode="after")
+    def validate_reference(self):
+        if not self.contract_alias and not self.contract_id:
+            raise ValueError("Either contract_alias or contract_id must be provided")
+        return self
+
+
+class ScheduledAction(BaseModel):
+    """A user-scheduled action to run at a specific day (Phase B1)."""
+    day: int = Field(..., description="Day index (>= 1) to execute this action")
+    action: Dict[str, Any] = Field(..., description="Single action dictionary to execute on that day")
+
+    @field_validator("day")
+    @classmethod
+    def day_positive(cls, v):
+        if v < 1:
+            raise ValueError("Scheduled action day must be >= 1")
+        return v
+
+
 Action = Union[
     MintReserves,
     MintCash,
@@ -231,7 +285,8 @@ Action = Union[
     CreateStock,
     TransferStock,
     CreateDeliveryObligation,
-    CreatePayable
+    CreatePayable,
+    TransferClaim,
 ]
 
 
@@ -298,6 +353,10 @@ class ScenarioConfig(BaseModel):
     initial_actions: List[Dict[str, Any]] = Field(
         default_factory=list,
         description="Actions to execute during setup"
+    )
+    scheduled_actions: List[ScheduledAction] = Field(
+        default_factory=list,
+        description="Actions to execute during simulation (Phase B1) by day"
     )
     run: RunConfig = Field(default_factory=RunConfig)
     

@@ -1,0 +1,37 @@
+version: 1
+name: "Ex6: Goods now, cash later (F2→F1, t1/t2)"
+description: "At day 1, F2 delivers goods to F1; F1 issues a payable due day 2. At day 2, F1 pays cash to F2 and the claim is extinguished."
+
+agents:
+  - id: CB
+    kind: central_bank
+    name: Central Bank
+  - id: F1
+    kind: firm
+    name: Firm One
+  - id: F2
+    kind: firm
+    name: Firm Two
+
+initial_actions:
+  # Endowments
+  - create_stock: {owner: F2, sku: GOODS, quantity: 1, unit_price: "100"}
+  - mint_cash: {to: F1, amount: 100}
+
+scheduled_actions:
+  # Day 1: Delivery now, payable created for later cash
+  - day: 1
+    action:
+      transfer_stock: {from_agent: F2, to_agent: F1, sku: GOODS, quantity: 1}
+  - day: 1
+    action:
+      create_payable: {from: F1, to: F2, amount: 100, due_day: 2, alias: F1_pay_100_D2}
+
+run:
+  mode: until_stable
+  max_days: 5
+  quiet_days: 2
+  show:
+    balances: [CB, F1, F2]
+    events: detailed
+

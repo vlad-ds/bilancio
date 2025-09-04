@@ -138,11 +138,28 @@ def run_day(system):
     """
     current_day = system.state.day
 
-    # Phase A: Log PhaseA event (noop for now)
+    # Phase A: Log PhaseA event (reserved)
     system.log("PhaseA")
 
-    # Phase B: Settle obligations due on the current day
-    system.log("PhaseB")  # optional: helps timeline
+    # Phase B: two subphases — B1 scheduled actions, B2 settlements
+    system.log("PhaseB")  # Phase B bucket marker
+    # B1: Execute scheduled actions for this day (if any)
+    system.log("SubphaseB1")
+    try:
+        actions_today = system.state.scheduled_actions_by_day.get(current_day, [])
+        if actions_today:
+            # Lazy import to avoid heavy imports at module load
+            from bilancio.config.apply import apply_action
+            agents = system.state.agents
+            for action_dict in actions_today:
+                apply_action(system, action_dict, agents)
+    except Exception:
+        # Allow scheduled-action errors to bubble via apply_action's own error handling
+        # but keep guard to ensure the simulation loop stability
+        raise
+
+    # B2: Automated settlements due today
+    system.log("SubphaseB2")
     settle_due(system, current_day)
 
     # Phase C: Clear intraday nets for the current day

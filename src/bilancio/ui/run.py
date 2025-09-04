@@ -61,6 +61,18 @@ def run_scenario(
     # Create and configure system
     system = System()
     
+    # Preflight schedule validation (aliases available when referenced)
+    try:
+        from bilancio.config.apply import validate_scheduled_aliases
+        validate_scheduled_aliases(config)
+    except ValueError as e:
+        show_error_panel(
+            error=e,
+            phase="setup",
+            context={"scenario": config.name}
+        )
+        sys.exit(1)
+
     # Apply configuration
     try:
         apply_to_system(config, system)
@@ -75,6 +87,16 @@ def run_scenario(
             context={"scenario": config.name}
         )
         sys.exit(1)
+    
+    # Stage scheduled actions into system state (Phase B1 execution by day)
+    try:
+        if getattr(config, 'scheduled_actions', None):
+            for sa in config.scheduled_actions:
+                day = sa.day
+                system.state.scheduled_actions_by_day.setdefault(day, []).append(sa.action)
+    except Exception:
+        # Keep robust even if config lacks scheduled actions
+        pass
     
     # Use config settings unless overridden by CLI
     if agent_ids is None and config.run.show.balances:
@@ -111,17 +133,18 @@ def run_scenario(
         initial_balances[agent_id] = agent_balance(system, agent_id)
         # also capture detailed rows with counterparties at setup
         acct = build_t_account_rows(system, agent_id)
-        def to_row(r):
+        def _row_dict(r):
             return {
                 'name': getattr(r, 'name', ''),
                 'quantity': getattr(r, 'quantity', None),
                 'value_minor': getattr(r, 'value_minor', None),
                 'counterparty_name': getattr(r, 'counterparty_name', None),
                 'maturity': getattr(r, 'maturity', None),
+                'id_or_alias': getattr(r, 'id_or_alias', None),
             }
         initial_rows[agent_id] = {
-            'assets': [to_row(r) for r in acct.assets],
-            'liabs': [to_row(r) for r in acct.liabilities],
+            'assets': [_row_dict(r) for r in acct.assets],
+            'liabs': [_row_dict(r) for r in acct.liabilities],
         }
     
     # Track day data for PDF export
@@ -241,20 +264,23 @@ def run_step_mode(
                 if agent_ids:
                     from bilancio.analysis.balances import agent_balance
                     from bilancio.analysis.visualization import build_t_account_rows
+
+                    def _row_dict(r):
+                        return {
+                            'name': getattr(r, 'name', ''),
+                            'quantity': getattr(r, 'quantity', None),
+                            'value_minor': getattr(r, 'value_minor', None),
+                            'counterparty_name': getattr(r, 'counterparty_name', None),
+                            'maturity': getattr(r, 'maturity', None),
+                            'id_or_alias': getattr(r, 'id_or_alias', None),
+                        }
+
                     for agent_id in agent_ids:
                         day_balances[agent_id] = agent_balance(system, agent_id)
                         acct = build_t_account_rows(system, agent_id)
-                        def to_row(r):
-                            return {
-                                'name': getattr(r, 'name', ''),
-                                'quantity': getattr(r, 'quantity', None),
-                                'value_minor': getattr(r, 'value_minor', None),
-                                'counterparty_name': getattr(r, 'counterparty_name', None),
-                                'maturity': getattr(r, 'maturity', None),
-                            }
                         day_rows[agent_id] = {
-                            'assets': [to_row(r) for r in acct.assets],
-                            'liabs': [to_row(r) for r in acct.liabilities],
+                            'assets': [_row_dict(r) for r in acct.assets],
+                            'liabs': [_row_dict(r) for r in acct.liabilities],
                         }
                 
                 days_data.append({
@@ -399,6 +425,7 @@ def run_until_stable_mode(
                                 'value_minor': getattr(r, 'value_minor', None),
                                 'counterparty_name': getattr(r, 'counterparty_name', None),
                                 'maturity': getattr(r, 'maturity', None),
+                                'id_or_alias': getattr(r, 'id_or_alias', None),
                             }
                         day_rows[agent_id] = {
                             'assets': [to_row(r) for r in acct.assets],

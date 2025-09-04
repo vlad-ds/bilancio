@@ -1,0 +1,42 @@
+version: 1
+name: "Ex4: Generic claim transfer (F1→F3)"
+description: "F1 holds a claim on F2 (due day 2). On day 1, F1 assigns the claim to F3 for cash; on day 2, F2 pays F3."
+
+agents:
+  - id: CB
+    kind: central_bank
+    name: Central Bank
+  - id: F1
+    kind: firm
+    name: Firm One
+  - id: F2
+    kind: firm
+    name: Firm Two
+  - id: F3
+    kind: firm
+    name: Firm Three
+
+initial_actions:
+  # Create a payable: F2 owes F1 on day 2
+  - create_payable: {from: F2, to: F1, amount: 200, due_day: 2, alias: F2_pay_200_D2}
+  # Seed cash for F2 to settle and for F3 to purchase the claim
+  - mint_cash: {to: F2, amount: 200}
+  - mint_cash: {to: F3, amount: 100}
+
+scheduled_actions:
+  # Day 1: F1 assigns the claim to F3 and receives cash consideration
+  - day: 1
+    action:
+      transfer_claim: {contract_alias: F2_pay_200_D2, to_agent: F3}
+  - day: 1
+    action:
+      transfer_cash: {from_agent: F3, to_agent: F1, amount: 100}
+
+run:
+  mode: until_stable
+  max_days: 5
+  quiet_days: 2
+  show:
+    balances: [CB, F1, F2, F3]
+    events: detailed
+

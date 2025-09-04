@@ -1,0 +1,40 @@
+version: 1
+name: "Ex3: IOU assignment before maturity (F1→F3)"
+description: "Promises due day 2; on day 1 F1 assigns F2’s payable to F3 in exchange for services; on day 2 goods/cash settle."
+
+agents:
+  - id: CB
+    kind: central_bank
+    name: Central Bank
+  - id: F1
+    kind: firm
+    name: Firm One
+  - id: F2
+    kind: firm
+    name: Firm Two
+  - id: F3
+    kind: firm
+    name: Firm Three
+
+initial_actions:
+  - create_stock: {owner: F1, sku: GOODS, quantity: 1, unit_price: "100"}
+  - create_stock: {owner: F3, sku: SERV, quantity: 1, unit_price: "100"}
+  - mint_cash: {to: F2, amount: 100}
+  - create_delivery_obligation: {from: F1, to: F2, sku: GOODS, quantity: 1, unit_price: "100", due_day: 2, alias: F1_goods_D2}
+  - create_payable: {from: F2, to: F1, amount: 100, due_day: 2, alias: F2_pay_100_D2}
+
+scheduled_actions:
+  - day: 1
+    action:
+      transfer_claim: {contract_alias: F2_pay_100_D2, to_agent: F3}
+  - day: 1
+    action:
+      transfer_stock: {from_agent: F3, to_agent: F1, sku: SERV, quantity: 1}
+
+run:
+  mode: until_stable
+  max_days: 5
+  quiet_days: 2
+  show:
+    balances: [CB, F1, F2, F3]
+    events: detailed

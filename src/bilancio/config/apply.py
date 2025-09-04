@@ -8,6 +8,7 @@ from bilancio.domain.agents import Bank, Household, Firm, CentralBank, Treasury
 from bilancio.ops.banking import deposit_cash, withdraw_cash, client_payment
 from bilancio.domain.instruments.credit import Payable
 from bilancio.core.errors import ValidationError
+from bilancio.core.atomic_tx import atomic
 
 from .models import ScenarioConfig, AgentSpec
 from .loaders import parse_action
@@ -77,16 +78,29 @@ def apply_action(system: System, action_dict: Dict[str, Any], agents: Dict[str, 
     
     try:
         if action_type == "mint_reserves":
-            system.mint_reserves(
+            instr_id = system.mint_reserves(
                 to_bank_id=action.to,
-                amount=action.amount
+                amount=action.amount,
+                alias=getattr(action, 'alias', None)
             )
+            # optional alias capture
+            if getattr(action, 'alias', None):
+                alias = action.alias
+                if alias in system.state.aliases:
+                    raise ValueError(f"Alias already exists: {alias}")
+                system.state.aliases[alias] = instr_id
             
         elif action_type == "mint_cash":
-            system.mint_cash(
+            instr_id = system.mint_cash(
                 to_agent_id=action.to,
-                amount=action.amount
+                amount=action.amount,
+                alias=getattr(action, 'alias', None)
             )
+            if getattr(action, 'alias', None):
+                alias = action.alias
+                if alias in system.state.aliases:
+                    raise ValueError(f"Alias already exists: {alias}")
+                system.state.aliases[alias] = instr_id
             
         elif action_type == "transfer_reserves":
             system.transfer_reserves(
@@ -178,14 +192,20 @@ def apply_action(system: System, action_dict: Dict[str, Any], agents: Dict[str, 
             )
             
         elif action_type == "create_delivery_obligation":
-            system.create_delivery_obligation(
+            instr_id = system.create_delivery_obligation(
                 from_agent=action.from_agent,
                 to_agent=action.to_agent,
                 sku=action.sku,
                 quantity=action.quantity,
                 unit_price=action.unit_price,
-                due_day=action.due_day
+                due_day=action.due_day,
+                alias=getattr(action, 'alias', None)
             )
+            if getattr(action, 'alias', None):
+                alias = action.alias
+                if alias in system.state.aliases:
+                    raise ValueError(f"Alias already exists: {alias}")
+                system.state.aliases[alias] = instr_id
             
         elif action_type == "create_payable":
             # Create a Payable instrument
@@ -203,6 +223,12 @@ def apply_action(system: System, action_dict: Dict[str, Any], agents: Dict[str, 
                 due_day=action.due_day
             )
             system.add_contract(payable)
+            # optional alias capture
+            if getattr(action, 'alias', None):
+                alias = action.alias
+                if alias in system.state.aliases:
+                    raise ValueError(f"Alias already exists: {alias}")
+                system.state.aliases[alias] = payable.id
             
             # Log the event
             system.log("PayableCreated",
@@ -210,8 +236,51 @@ def apply_action(system: System, action_dict: Dict[str, Any], agents: Dict[str, 
                 creditor=action.to_agent,
                 amount=int(action.amount),
                 due_day=action.due_day,
-                payable_id=payable.id
+                payable_id=payable.id,
+                alias=getattr(action, 'alias', None)
             )
+        
+        elif action_type == "transfer_claim":
+            # Transfer claim (reassign asset holder) by alias or id (order-independent validation)
+            data = action
+            alias = getattr(data, 'contract_alias', None)
+            explicit_id = getattr(data, 'contract_id', None)
+            id_from_alias = None
+            if alias is not None:
+                id_from_alias = system.state.aliases.get(alias)
+                if id_from_alias is None:
+                    raise ValueError(f"Unknown alias: {alias}")
+            if alias is not None and explicit_id is not None and id_from_alias != explicit_id:
+                raise ValueError(f"Alias {alias} and contract_id {explicit_id} refer to different contracts")
+            resolved_id = explicit_id or id_from_alias
+            if not resolved_id:
+                raise ValueError("transfer_claim requires contract_alias or contract_id to resolve a contract")
+
+            instr = system.state.contracts.get(resolved_id)
+            if instr is None:
+                raise ValueError(f"Contract not found: {resolved_id}")
+
+            old_holder_id = instr.asset_holder_id
+            new_holder_id = data.to_agent
+
+            # Perform reassignment atomically
+            with atomic(system):
+                old_holder = system.state.agents[old_holder_id]
+                new_holder = system.state.agents[new_holder_id]
+                if resolved_id not in old_holder.asset_ids:
+                    raise ValueError(f"Contract {resolved_id} not in old holder's assets")
+                old_holder.asset_ids.remove(resolved_id)
+                new_holder.asset_ids.append(resolved_id)
+                instr.asset_holder_id = new_holder_id
+                system.log("ClaimTransferred",
+                           contract_id=resolved_id,
+                           frm=old_holder_id,
+                           to=new_holder_id,
+                           contract_kind=instr.kind,
+                           amount=getattr(instr, 'amount', None),
+                           due_day=getattr(instr, 'due_day', None),
+                           sku=getattr(instr, 'sku', None),
+                           alias=alias)
             
         else:
             raise ValueError(f"Unknown action type: {action_type}")
@@ -219,6 +288,59 @@ def apply_action(system: System, action_dict: Dict[str, Any], agents: Dict[str, 
     except Exception as e:
         # Add context to the error
         raise ValueError(f"Failed to apply {action_type}: {e}")
+
+
+def _collect_alias_from_action(action_model) -> str | None:
+    return getattr(action_model, 'alias', None)
+
+
+def validate_scheduled_aliases(config: ScenarioConfig) -> None:
+    """Preflight check: ensure aliases referenced by scheduled actions exist by the time of use,
+    and detect duplicates across initial and scheduled actions.
+    Raises ValueError with a clear message on violation.
+    """
+    alias_set: set[str] = set()
+
+    # 1) Process initial_actions (creation only)
+    for act in config.initial_actions or []:
+        try:
+            m = parse_action(act)
+        except Exception:
+            # malformed action will be caught elsewhere
+            continue
+        alias = _collect_alias_from_action(m)
+        if alias:
+            if alias in alias_set:
+                raise ValueError(f"Duplicate alias in initial_actions: {alias}")
+            alias_set.add(alias)
+
+    # 2) Group scheduled by day preserving order
+    by_day: dict[int, list] = {}
+    for sa in getattr(config, 'scheduled_actions', []) or []:
+        by_day.setdefault(sa.day, []).append(sa.action)
+
+    # 3) Validate day by day
+    for day in sorted(by_day.keys()):
+        for act in by_day[day]:
+            try:
+                m = parse_action(act)
+            except Exception:
+                continue
+            action_type = m.action
+            if action_type == 'transfer_claim':
+                alias = getattr(m, 'contract_alias', None)
+                if alias and alias not in alias_set:
+                    raise ValueError(
+                        f"Scheduled transfer_claim references unknown alias '{alias}' on day {day}. "
+                        "Ensure it is created earlier (same day allowed only if ordered before use)."
+                    )
+            else:
+                # Capture new aliases created by scheduled actions
+                new_alias = _collect_alias_from_action(m)
+                if new_alias:
+                    if new_alias in alias_set:
+                        raise ValueError(f"Duplicate alias detected: '{new_alias}' already defined before day {day}")
+                    alias_set.add(new_alias)
 
 
 def apply_to_system(config: ScenarioConfig, system: System) -> None:
