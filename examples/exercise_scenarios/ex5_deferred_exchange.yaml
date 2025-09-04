@@ -1,0 +1,37 @@
+version: 1
+name: "Ex5: Deferred exchange with simultaneous maturity (H1–F1)"
+description: "At day 1, H1 and F1 create matching promises (goods vs cash) due day 2. At day 2, delivery and payment occur; both promises are extinguished."
+
+agents:
+  - id: CB
+    kind: central_bank
+    name: Central Bank
+  - id: H1
+    kind: household
+    name: Household One
+  - id: F1
+    kind: firm
+    name: Firm One
+
+initial_actions:
+  # Endow goods to firm and cash to household
+  - create_stock: {owner: F1, sku: CHAIR, quantity: 1, unit_price: "100"}
+  - mint_cash: {to: H1, amount: 100}
+
+scheduled_actions:
+  # Day 1: Create matching promises due day 2
+  - day: 1
+    action:
+      create_delivery_obligation: {from: F1, to: H1, sku: CHAIR, quantity: 1, unit_price: "100", due_day: 2, alias: F1_chair_D2}
+  - day: 1
+    action:
+      create_payable: {from: H1, to: F1, amount: 100, due_day: 2, alias: H1_pay_100_D2}
+
+run:
+  mode: until_stable
+  max_days: 5
+  quiet_days: 2
+  show:
+    balances: [CB, H1, F1]
+    events: detailed
+

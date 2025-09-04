@@ -134,3 +134,56 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Acknowledgments
 
 Bilancio is inspired by financial modeling best practices and builds upon the Python scientific computing ecosystem.
+
+## Scheduling, Phases, and Mid‑Simulation Actions
+
+Bilancio runs each simulation day in phases:
+
+- Phase A: reserved (start of day marker, currently no activity)
+- Phase B: business logic split into two subphases
+  - B1 — Scheduled Actions: user‑authored actions (from YAML) that mutate state for this day
+  - B2 — Automated Settlements: engine settles all obligations due today
+- Phase C: intraday clearing (e.g., interbank nets from today’s client payments)
+
+This ordering ensures that any mid‑day changes you schedule are visible to settlement and clearing in the same day. In other words, B1 applies first, then B2 settles using the updated state, then C clears.
+
+### Scheduling actions in YAML
+
+Alongside `initial_actions` (applied during setup), scenarios may include `scheduled_actions`, which are executed on the specific `day` during Phase B1 in the order provided. Example:
+
+```yaml
+scheduled_actions:
+  - day: 1
+    action:
+      create_delivery_obligation: {from: F1, to: H1, sku: CHAIR, quantity: 1, unit_price: "100", due_day: 2, alias: F1_chair_D2}
+  - day: 1
+    action:
+      create_payable: {from: H1, to: F1, amount: 100, due_day: 2, alias: H1_pay_100_D2}
+```
+
+### Aliases and contract references
+
+Creation actions can carry an optional `alias`, which you can reference later without knowing the runtime contract ID:
+
+- `create_payable` / `create_delivery_obligation` support `alias`
+- `mint_cash` / `mint_reserves` also accept `alias` (for completeness)
+- A new `transfer_claim` action allows reassigning a claim by `contract_alias` or `contract_id`:
+
+```yaml
+scheduled_actions:
+  - day: 2
+    action:
+      transfer_claim: {contract_alias: H1_pay_100_D2, to_agent: F3}
+```
+
+The UI displays a unified “ID/Alias” column in both events and balances (T‑accounts) so you can track the same contract across the lifecycle.
+
+### Conflicts to avoid (B1 vs B2)
+
+The B1 → B2 split is safe: B1 mutates state, then B2 settles based on that state. Typical coincidences work as expected (e.g., transferring a claim on its due day—B2 will pay the new holder). A few caveats:
+
+- Manual delivery vs. delivery obligation due: If you transfer the same stock in B1 that a due delivery obligation expects to deliver in B2, settlement may fail (debtor no longer owns the stock). Prefer the obligation and let B2 deliver it.
+- Manual cash transfer vs. payable due: If you send cash in B1 while a payable remains outstanding, B2 will still attempt to pay and may double‑pay or fail. Today, only B2 extinguishes payables.
+- Ordering within B1 matters: Scheduled actions run top‑to‑bottom. Moving assets away before a same‑day settlement can cause failures—write actions in an order that matches your intent.
+
+If you need to extinguish/cancel manually in B1, consider adding explicit actions (e.g., `settle_payable`, `cancel_delivery_obligation`) so B1 can fully settle/cancel without B2 duplicating the work.

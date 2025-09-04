@@ -484,9 +484,19 @@ class System:
         # Remove contract from registry
         del self.state.contracts[obligation_id]
         
-        # Log the cancellation
+        # Log the cancellation with alias (if any) and contract_id for UI consistency
+        try:
+            alias = None
+            for a, cid in (self.state.aliases or {}).items():
+                if cid == obligation_id:
+                    alias = a
+                    break
+        except Exception:
+            alias = None
         self.log("DeliveryObligationCancelled",
                 obligation_id=obligation_id,
+                contract_id=obligation_id,
+                alias=alias,
                 debtor=contract.liability_issuer_id,
                 creditor=contract.asset_holder_id,
                 sku=contract.sku,

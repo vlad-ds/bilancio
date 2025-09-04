@@ -283,6 +283,8 @@ def _map_event_fields(e: Dict[str, Any]) -> Dict[str, str]:
         e.get("alias")
         or e.get("contract_id")
         or e.get("payable_id")
+        or e.get("obligation_id")
+        or e.get("pid")
         or e.get("id")
         or e.get("instr_id")
         or e.get("stock_id")
