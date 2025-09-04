@@ -241,26 +241,24 @@ def apply_action(system: System, action_dict: Dict[str, Any], agents: Dict[str, 
             )
         
         elif action_type == "transfer_claim":
-            # Transfer claim (reassign asset holder) by alias or id
+            # Transfer claim (reassign asset holder) by alias or id (order-independent validation)
             data = action
-            # Resolve contract id
-            cid_alias = getattr(data, 'contract_alias', None)
-            cid_explicit = getattr(data, 'contract_id', None)
-            resolved_id = None
-            if cid_alias:
-                if cid_alias not in system.state.aliases:
-                    raise ValueError(f"Unknown alias: {cid_alias}")
-                resolved_id = system.state.aliases[cid_alias]
-            if cid_explicit:
-                if resolved_id and resolved_id != cid_explicit:
-                    raise ValueError(f"Alias {cid_alias} and contract_id {cid_explicit} mismatch")
-                resolved_id = cid_explicit
+            alias = getattr(data, 'contract_alias', None)
+            explicit_id = getattr(data, 'contract_id', None)
+            id_from_alias = None
+            if alias is not None:
+                id_from_alias = system.state.aliases.get(alias)
+                if id_from_alias is None:
+                    raise ValueError(f"Unknown alias: {alias}")
+            if alias is not None and explicit_id is not None and id_from_alias != explicit_id:
+                raise ValueError(f"Alias {alias} and contract_id {explicit_id} refer to different contracts")
+            resolved_id = explicit_id or id_from_alias
             if not resolved_id:
-                raise ValueError("No contract resolved for transfer_claim")
+                raise ValueError("transfer_claim requires contract_alias or contract_id to resolve a contract")
 
-            if resolved_id not in system.state.contracts:
+            instr = system.state.contracts.get(resolved_id)
+            if instr is None:
                 raise ValueError(f"Contract not found: {resolved_id}")
-            instr = system.state.contracts[resolved_id]
 
             old_holder_id = instr.asset_holder_id
             new_holder_id = data.to_agent
@@ -282,7 +280,7 @@ def apply_action(system: System, action_dict: Dict[str, Any], agents: Dict[str, 
                            amount=getattr(instr, 'amount', None),
                            due_day=getattr(instr, 'due_day', None),
                            sku=getattr(instr, 'sku', None),
-                           alias=cid_alias)
+                           alias=alias)
             
         else:
             raise ValueError(f"Unknown action type: {action_type}")
@@ -290,6 +288,59 @@ def apply_action(system: System, action_dict: Dict[str, Any], agents: Dict[str, 
     except Exception as e:
         # Add context to the error
         raise ValueError(f"Failed to apply {action_type}: {e}")
+
+
+def _collect_alias_from_action(action_model) -> str | None:
+    return getattr(action_model, 'alias', None)
+
+
+def validate_scheduled_aliases(config: ScenarioConfig) -> None:
+    """Preflight check: ensure aliases referenced by scheduled actions exist by the time of use,
+    and detect duplicates across initial and scheduled actions.
+    Raises ValueError with a clear message on violation.
+    """
+    alias_set: set[str] = set()
+
+    # 1) Process initial_actions (creation only)
+    for act in config.initial_actions or []:
+        try:
+            m = parse_action(act)
+        except Exception:
+            # malformed action will be caught elsewhere
+            continue
+        alias = _collect_alias_from_action(m)
+        if alias:
+            if alias in alias_set:
+                raise ValueError(f"Duplicate alias in initial_actions: {alias}")
+            alias_set.add(alias)
+
+    # 2) Group scheduled by day preserving order
+    by_day: dict[int, list] = {}
+    for sa in getattr(config, 'scheduled_actions', []) or []:
+        by_day.setdefault(sa.day, []).append(sa.action)
+
+    # 3) Validate day by day
+    for day in sorted(by_day.keys()):
+        for act in by_day[day]:
+            try:
+                m = parse_action(act)
+            except Exception:
+                continue
+            action_type = m.action
+            if action_type == 'transfer_claim':
+                alias = getattr(m, 'contract_alias', None)
+                if alias and alias not in alias_set:
+                    raise ValueError(
+                        f"Scheduled transfer_claim references unknown alias '{alias}' on day {day}. "
+                        "Ensure it is created earlier (same day allowed only if ordered before use)."
+                    )
+            else:
+                # Capture new aliases created by scheduled actions
+                new_alias = _collect_alias_from_action(m)
+                if new_alias:
+                    if new_alias in alias_set:
+                        raise ValueError(f"Duplicate alias detected: '{new_alias}' already defined before day {day}")
+                    alias_set.add(new_alias)
 
 
 def apply_to_system(config: ScenarioConfig, system: System) -> None:

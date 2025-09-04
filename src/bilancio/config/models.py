@@ -2,7 +2,7 @@
 
 from typing import Literal, Optional, Union, List, Dict, Any
 from decimal import Decimal
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class PolicyOverrides(BaseModel):
@@ -253,9 +253,6 @@ class TransferClaim(BaseModel):
         if not v:
             raise ValueError("to_agent is required")
         return v
-
-    # Cross-field validation
-    from pydantic import model_validator
 
     @model_validator(mode="after")
     def validate_reference(self):

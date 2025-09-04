@@ -216,14 +216,8 @@ def settle_due_delivery_obligations(system, day: int):
             
             # Fully settled: cancel the delivery obligation and log with alias/contract_id
             system._cancel_delivery_obligation_internal(obligation.id)
-            alias = None
-            try:
-                for a, cid in (system.state.aliases or {}).items():
-                    if cid == obligation.id:
-                        alias = a
-                        break
-            except Exception:
-                alias = None
+            from bilancio.ops.aliases import get_alias_for_id
+            alias = get_alias_for_id(system, obligation.id)
             system.log("DeliveryObligationSettled", 
                       obligation_id=obligation.id,
                       contract_id=obligation.id,
@@ -285,14 +279,8 @@ def settle_due(system, day: int):
 
             # Fully settled: remove payable and log with alias/contract_id
             _remove_contract(system, payable.id)
-            alias = None
-            try:
-                for a, cid in (system.state.aliases or {}).items():
-                    if cid == payable.id:
-                        alias = a
-                        break
-            except Exception:
-                alias = None
+            from bilancio.ops.aliases import get_alias_for_id
+            alias = get_alias_for_id(system, payable.id)
             system.log("PayableSettled", pid=payable.id, contract_id=payable.id, alias=alias,
                        debtor=debtor.id, creditor=creditor.id, amount=payable.amount)
     
