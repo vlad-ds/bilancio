@@ -264,9 +264,7 @@ def run_step_mode(
                 if agent_ids:
                     from bilancio.analysis.balances import agent_balance
                     from bilancio.analysis.visualization import build_t_account_rows
-                    for agent_id in agent_ids:
-                        day_balances[agent_id] = agent_balance(system, agent_id)
-                        acct = build_t_account_rows(system, agent_id)
+
                     def _row_dict(r):
                         return {
                             'name': getattr(r, 'name', ''),
@@ -276,6 +274,10 @@ def run_step_mode(
                             'maturity': getattr(r, 'maturity', None),
                             'id_or_alias': getattr(r, 'id_or_alias', None),
                         }
+
+                    for agent_id in agent_ids:
+                        day_balances[agent_id] = agent_balance(system, agent_id)
+                        acct = build_t_account_rows(system, agent_id)
                         day_rows[agent_id] = {
                             'assets': [_row_dict(r) for r in acct.assets],
                             'liabs': [_row_dict(r) for r in acct.liabilities],
