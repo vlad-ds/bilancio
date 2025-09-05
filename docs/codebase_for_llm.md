@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2025-09-05 09:29:11 UTC | Branch: main | Commit: 2031884
+Generated: 2025-09-05 09:32:05 UTC | Branch: main | Commit: 814cb8a
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -9,7 +9,7 @@ This document contains the complete codebase structure and content for LLM inges
 ## Project Structure
 
 ```
-/Users/vladgheorghe/code/bilancio
+/home/runner/work/bilancio/bilancio
 ├── .github
 │   └── workflows
 │       ├── claude-code-review.yml
@@ -77,7 +77,6 @@ This document contains the complete codebase structure and content for LLM inges
 │       ├── balance_sheet_display.ipynb
 │       └── pdf_example_with_firms.ipynb
 ├── out
-│   ├── interbank_balances.csv
 │   └── interbank_events.jsonl
 ├── pyproject.toml
 ├── scripts
@@ -160,41 +159,6 @@ This document contains the complete codebase structure and content for LLM inges
 │           ├── run.py
 │           ├── settings.py
 │           └── wizard.py
-├── temp
-│   ├── balances.csv
-│   ├── demo.html
-│   ├── demo2.html
-│   ├── demo3.html
-│   ├── demo_correct.html
-│   ├── demo_fixed.html
-│   ├── demo_full.html
-│   ├── events.jsonl
-│   ├── firm_delivery_t_account.html
-│   ├── followup_pr_body.md
-│   ├── pr_comment.md
-│   ├── report.html
-│   ├── rich_simulation_phases_tables.html
-│   ├── rich_simulation_phases_tables2.html
-│   ├── rich_simulation_phases_tables3.html
-│   ├── rich_simulation_phases_tables4.html
-│   ├── rich_simulation_pretty.html
-│   ├── rich_simulation_pretty_converged.html
-│   ├── rich_simulation_pretty_full.html
-│   ├── rich_simulation_spreadsheet.html
-│   ├── rich_simulation_spreadsheet_stronger.html
-│   ├── rich_simulation_t_account.html
-│   ├── rich_simulation_t_account_light.html
-│   ├── sasa_events_table.html
-│   ├── sasa_t_account.html
-│   ├── sasa_t_account_wide.html
-│   ├── test_complete.html
-│   ├── test_debug.html
-│   ├── test_fixed_balances.html
-│   ├── test_from_template.yaml
-│   ├── test_no_duplicates.html
-│   ├── test_output.html
-│   ├── test_output.pdf
-│   └── test_output_fixed.html
 └── tests
     ├── analysis
     │   ├── __init__.py
@@ -228,7 +192,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-39 directories, 179 files
+38 directories, 144 files
 
 ```
 
@@ -949,6 +913,9 @@ Complete git history from oldest to newest:
 
 - **20318846** (2025-09-05) by vladgheorghe
   docs: update scenario translator prompt for scheduled actions, aliases, transfer_claim, and CLI usage
+
+- **814cb8ab** (2025-09-05) by vladgheorghe
+  feat(docs): add timestamp/branch/commit to codebase_for_llm and CI auto-update workflow
 
 ---
 
@@ -14027,6 +13994,6 @@ def test_settle_multiple_obligations():
 
 ## End of Codebase
 
-Generated from: /Users/vladgheorghe/code/bilancio
+Generated from: /home/runner/work/bilancio/bilancio
 Total source files: 62
 Total test files: 24
