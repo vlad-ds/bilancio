@@ -10,6 +10,28 @@ from rich.panel import Panel
 
 from .run import run_scenario
 from .wizard import create_scenario_wizard
+from bilancio.analysis.loaders import read_events_jsonl, read_balances_csv
+from bilancio.analysis.metrics import (
+    dues_for_day,
+    net_vectors,
+    raw_minimum_liquidity,
+    size_and_bunching,
+    phi_delta,
+    replay_intraday_peak,
+    velocity,
+    creditor_hhi_plus,
+    debtor_shortfall_shares,
+    start_of_day_money,
+    liquidity_gap,
+    alpha as alpha_fn,
+)
+from bilancio.analysis.report import (
+    write_day_metrics_csv,
+    write_day_metrics_json,
+    write_debtor_shares_csv,
+    write_intraday_csv,
+    write_metrics_html,
+)
 
 
 console = Console()
@@ -210,6 +232,168 @@ def new(from_template: Optional[str], output: Path):
             border_style="red"
         ))
         sys.exit(1)
+
+
+@cli.command()
+@click.option('--events', 'events_path', type=click.Path(exists=True, path_type=Path), required=True,
+              help='Path to events JSONL exported by a run')
+@click.option('--balances', 'balances_path', type=click.Path(exists=False, path_type=Path), required=False,
+              help='Path to balances CSV (optional, improves G_t/M_t)')
+@click.option('--days', type=str, default=None,
+              help='Days to analyze, e.g. "1,2-3". Default: infer from events')
+@click.option('--out-csv', 'out_csv', type=click.Path(path_type=Path), default=None,
+              help='Output CSV for day-level metrics')
+@click.option('--out-json', 'out_json', type=click.Path(path_type=Path), default=None,
+              help='Output JSON for day-level metrics')
+@click.option('--intraday-csv', 'intraday_csv', type=click.Path(path_type=Path), default=None,
+              help='Optional CSV for intraday P_prefix steps')
+@click.option('--html', 'html_out', type=click.Path(path_type=Path), default=None,
+              help='Optional HTML analytics report')
+def analyze(
+    events_path: Path,
+    balances_path: Optional[Path],
+    days: Optional[str],
+    out_csv: Optional[Path],
+    out_json: Optional[Path],
+    intraday_csv: Optional[Path],
+    html_out: Optional[Path],
+):
+    """Analyze a completed run and export Kalecki-style metrics.
+
+    Produces a day-level metrics CSV/JSON, optional intraday CSV (diagnostic).
+    """
+    # Load inputs
+    console.print(f"[dim]Reading events from {events_path}...[/dim]")
+    events = list(read_events_jsonl(events_path))
+
+    balances_rows = None
+    if balances_path and balances_path.exists():
+        console.print(f"[dim]Reading balances from {balances_path}...[/dim]")
+        balances_rows = read_balances_csv(balances_path)
+
+    # Parse days argument: supports comma lists and ranges like 1-3
+    def parse_days_arg(s: str) -> List[int]:
+        out: List[int] = []
+        for part in s.split(','):
+            part = part.strip()
+            if '-' in part:
+                a, b = part.split('-', 1)
+                try:
+                    start = int(a)
+                    end = int(b)
+                    out.extend(list(range(start, end + 1)))
+                except Exception:
+                    continue
+            else:
+                try:
+                    out.append(int(part))
+                except Exception:
+                    continue
+        return sorted(sorted(set(out)))
+
+    if days:
+        day_list = parse_days_arg(days)
+    else:
+        # Infer days from events: prefer due_day set; fallback to settled day set
+        due_days = sorted({int(e["due_day"]) for e in events if e.get("kind") == "PayableCreated" and e.get("due_day") is not None})
+        settled_days = sorted({int(e["day"]) for e in events if e.get("kind") == "PayableSettled" and e.get("day") is not None})
+        day_list = due_days or settled_days
+    if not day_list:
+        console.print("[yellow]No days found to analyze.[/yellow]")
+        return
+
+    # Determine default output paths if not provided
+    base = events_path.stem.replace("_events", "") or "metrics"
+    out_dir = events_path.parent
+    if not out_csv:
+        out_csv = out_dir / f"{base}_metrics_day.csv"
+    if not out_json:
+        out_json = out_dir / f"{base}_metrics_day.json"
+    if intraday_csv:
+        intraday_csv.parent.mkdir(parents=True, exist_ok=True)
+
+    metrics_rows: List[dict] = []
+    ds_rows: List[dict] = []
+    intraday_rows: List[dict] = []
+
+    for t in day_list:
+        # Compute core sets
+        dues = dues_for_day(events, t)
+        nets = net_vectors(dues)
+        Mbar_t = raw_minimum_liquidity(nets)
+        S_t, _ = size_and_bunching(dues)
+        phi_t, delta_t = phi_delta(events, dues, t)
+        Mpeak_t, steps, gross_t = replay_intraday_peak(events, t)
+        v_t = velocity(gross_t, Mpeak_t)
+        HHIp_t = creditor_hhi_plus(nets)
+        DS = debtor_shortfall_shares(nets)
+        n_debtors = sum(1 for a, v in nets.items() if v["F"] > v["I"])
+        n_creditors = sum(1 for a, v in nets.items() if v["n"] > 0)
+
+        # Money supply (optional if balances provided)
+        M_t = None
+        G_t = None
+        if balances_rows is not None:
+            M_t = start_of_day_money(balances_rows, t)
+            G_t = liquidity_gap(Mbar_t, M_t)
+
+        alpha_t = alpha_fn(Mbar_t, S_t) if S_t is not None else None
+
+        notes: List[str] = []
+        if HHIp_t is None:
+            notes.append("no net creditors")
+        if all(v is None for v in DS.values()):
+            notes.append("no net debtors")
+
+        metrics_rows.append(
+            {
+                "day": t,
+                "S_t": S_t,
+                "Mbar_t": Mbar_t,
+                "M_t": M_t,
+                "G_t": G_t,
+                "alpha_t": alpha_t,
+                "Mpeak_t": Mpeak_t,
+                "gross_settled_t": gross_t,
+                "v_t": v_t,
+                "phi_t": phi_t,
+                "delta_t": delta_t,
+                "n_debtors": n_debtors,
+                "n_creditors": n_creditors,
+                "HHIplus_t": HHIp_t,
+                "notes": ", ".join(notes) if notes else "",
+            }
+        )
+
+        # Debtor shares (long form)
+        for agent, share in DS.items():
+            ds_rows.append({"day": t, "agent": agent, "DS_t": share})
+
+        # Intraday diagnostics
+        for row in steps:
+            intraday_rows.append(row)
+
+    # Write outputs
+    write_day_metrics_csv(out_csv, metrics_rows)
+    console.print(f"[green]✓[/green] Wrote day metrics CSV: {out_csv}")
+    write_day_metrics_json(out_json, metrics_rows)
+    console.print(f"[green]✓[/green] Wrote day metrics JSON: {out_json}")
+
+    # Debtor shares and intraday are optional; only write if path provided
+    base_name = out_csv.stem.replace("_metrics_day", "") if out_csv else "metrics"
+    ds_path = out_csv.parent / f"{base_name}_ds.csv"
+    write_debtor_shares_csv(ds_path, ds_rows)
+    console.print(f"[green]✓[/green] Wrote debtor shares CSV: {ds_path}")
+
+    if intraday_csv:
+        write_intraday_csv(intraday_csv, intraday_rows)
+        console.print(f"[green]✓[/green] Wrote intraday CSV: {intraday_csv}")
+
+    if html_out:
+        title = f"Bilancio Analytics — {events_path.stem.replace('_events','')}"
+        subtitle = f"Events: {events_path.name}{' | Balances: ' + balances_path.name if balances_path else ''}"
+        write_metrics_html(html_out, metrics_rows, ds_rows, intraday_rows, title=title, subtitle=subtitle)
+        console.print(f"[green]✓[/green] Wrote HTML analytics: {html_out}")
 
 
 def main():
