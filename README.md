@@ -51,8 +51,10 @@ bilancio/
 │   ├── engines/        # Computation engines
 │   │   ├── valuation.py# Valuation engines
 │   │   └── simulation.py# Simulation engines
-│   ├── analysis/       # Analysis tools
-│   │   └── metrics.py  # Financial metrics (NPV, IRR, etc.)
+│   ├── analysis/       # Analysis & analytics tools
+│   │   ├── loaders.py  # Analytics loaders (events JSONL, balances CSV)
+│   │   ├── metrics.py  # Analytics for settlement microstructure + placeholders (NPV/IRR)
+│   │   └── report.py   # Analytics reporting (CSV / JSON / HTML)
 │   └── io/             # Input/output utilities
 │       ├── readers.py  # Data readers
 │       └── writers.py  # Data writers
@@ -134,6 +136,77 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Acknowledgments
 
 Bilancio is inspired by financial modeling best practices and builds upon the Python scientific computing ecosystem.
+
+## Scenarios and CLI
+
+Bilancio ships with a simple CLI to run scenarios, validate YAML, scaffold new scenarios, and analyze results.
+
+- `run`: Execute a scenario YAML.
+- `validate`: Check a scenario file without running it.
+- `new`: Create a new scenario from a template (interactive).
+- `analyze`: Compute day‑level metrics and optional intraday diagnostics from exported events/balances.
+
+Basic usage (from repo root):
+
+```bash
+# 1) Run a scenario and export HTML + data
+PYTHONPATH=src .venv/bin/python -m bilancio.ui.cli \
+  run examples/kalecki/kalecki_ring_baseline.yaml \
+  --max-days 5 \
+  --check-invariants daily \
+  --html temp/kalecki_ring_baseline.html
+
+# 2) Analyze day-level metrics and produce an HTML analytics report
+PYTHONPATH=src .venv/bin/python -m bilancio.ui.cli \
+  analyze \
+  --events out/kalecki_ring_baseline_events.jsonl \
+  --balances out/kalecki_ring_baseline_balances.csv \
+  --days 1 \
+  --html out/kalecki_ring_baseline_metrics.html
+```
+
+### `run` command (selected options)
+
+- `--mode step|until-stable`: Interactive step‑by‑step or auto until quiet days.
+- `--max-days N`: Cap simulation days.
+- `--quiet-days N`: Required consecutive quiet days for stability.
+- `--check-invariants setup|daily|none`: When to check invariants.
+- `--agents CB,B1,...`: Select agents to display in the UI.
+- `--export-balances PATH`, `--export-events PATH`: Override YAML export paths.
+- `--html PATH`: Save a pretty simulation report.
+
+### `analyze` command (selected options)
+
+- `--events PATH`: Events JSONL exported by `run` (required).
+- `--balances PATH`: Balances CSV (optional; improves liquidity gap `G_t`).
+- `--days 1,2-4`: Days to analyze (list/range). Default: infer from data.
+- `--out-csv PATH`, `--out-json PATH`: Day‑level metrics exports.
+- `--intraday-csv PATH`: Optional intraday P(s) diagnostics per step.
+- `--html PATH`: Self‑contained analytics HTML with explanations.
+
+Outputs are written alongside the inputs by default, or to paths you provide.
+
+### Analytics metrics (day‑level)
+
+- `S_t`: Total dues maturing on day t.
+- `Mbar_t`: Minimum net liquidity (sum of debtor shortfalls max(0, F_i − I_i)).
+- `M_t`: Start‑of‑day money (means‑of‑payment). When `--balances` is given, computed from balances.
+- `G_t`: Liquidity gap = max(0, Mbar_t − M_t).
+- `alpha_t`: Netting potential = 1 − Mbar_t / S_t.
+- `Mpeak_t`: Operational peak from realized settlement sequence (RTGS replay).
+- `gross_settled_t`: Gross value settled on day t.
+- `v_t`: Intraday velocity = gross_settled_t / Mpeak_t.
+- `phi_t`: On‑time settlement ratio (dues with due_day=t that settle on day t).
+- `delta_t`: 1 − phi_t.
+- `HHIplus_t`: Concentration of positive net creditor positions.
+- `DS_t(i)`: Debtor shortfall shares per agent (only when net debtors exist).
+
+Intraday diagnostics export a prefix‑liquidity series `P_prefix` over settlement steps, so you can visualize how much money is “out in the circuit” at each step and where the peak occurs.
+
+Example scenario: `examples/kalecki/kalecki_ring_baseline.yaml` demonstrates a 5‑agent ring where a quantity `Q` circulates and clears intraday. After running, open:
+
+- Simulation report: `temp/kalecki_ring_baseline.html`
+- Analytics report: `out/kalecki_ring_baseline_metrics.html`
 
 ## Scheduling, Phases, and Mid‑Simulation Actions
 
