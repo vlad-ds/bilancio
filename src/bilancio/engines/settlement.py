@@ -353,6 +353,13 @@ def _expel_agent(
 
     _cancel_scheduled_actions_for_agent(system, agent_id, cancelled_contract_ids, cancelled_aliases)
 
+    # If every non-central-bank agent has defaulted, halt the simulation with a DefaultError.
+    if all(
+        (ag.kind == "central_bank") or getattr(ag, "defaulted", False)
+        for ag in system.state.agents.values()
+    ):
+        raise DefaultError("All non-central-bank agents have defaulted")
+
 
 def settle_due_delivery_obligations(system, day: int):
     """Settle all delivery obligations due today using stock operations."""

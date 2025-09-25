@@ -1,5 +1,7 @@
 # Bilancio Codebase Documentation
 
+Generated: 2025-09-25 12:53:35 UTC | Branch: feature/default-handling-modalities | Commit: b9dd4b7
+
 This document contains the complete codebase structure and content for LLM ingestion.
 
 ---
@@ -11,7 +13,8 @@ This document contains the complete codebase structure and content for LLM inges
 ├── .github
 │   └── workflows
 │       ├── claude-code-review.yml
-│       └── claude.yml
+│       ├── claude.yml
+│       └── update-codebase-for-llm.yml
 ├── .gitignore
 ├── AGENTS.md
 ├── CLAUDE.md
@@ -45,6 +48,7 @@ This document contains the complete codebase structure and content for LLM inges
 ├── examples
 │   ├── exercise_scenarios
 │   │   ├── html
+│   │   │   ├── all.html
 │   │   │   ├── ex1_cash_for_goods.html
 │   │   │   ├── ex2_two_firms_cash_purchase.html
 │   │   │   ├── ex3_iou_assignment.html
@@ -218,7 +222,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-39 directories, 171 files
+39 directories, 173 files
 
 ```
 
@@ -953,6 +957,9 @@ Complete git history from oldest to newest:
 
 - **8a61e66e** (2025-09-25) by vladgheorghe
   Update codebase_for_llm snapshot
+
+- **b9dd4b7f** (2025-09-25) by vladgheorghe
+  Handle default cleanup and reporting
 
 ---
 
@@ -5568,6 +5575,14 @@ _ACTION_AGENT_FIELDS = {
     "transfer_claim": ("to_agent",),
 }
 
+_ACTION_CONTRACT_FIELDS = {
+    "transfer_claim": ("contract_id", "contract_alias"),
+    "mint_cash": ("alias",),
+    "mint_reserves": ("alias",),
+    "create_delivery_obligation": ("alias",),
+    "create_payable": ("alias",),
+}
+
 
 def _get_default_mode(system) -> str:
     """Return the configured default-handling mode for the system."""
@@ -5757,20 +5772,27 @@ def _action_references_agent(action_dict, agent_id: str) -> bool:
     return False
 
 
-def _cancel_scheduled_actions_for_agent(system, agent_id: str) -> None:
-    """Remove and log scheduled actions that involve a defaulted agent."""
+def _cancel_scheduled_actions_for_agent(
+    system,
+    agent_id: str,
+    cancelled_contract_ids: set[str] | None = None,
+    cancelled_aliases: set[str] | None = None,
+) -> None:
+    """Remove and log scheduled actions that involve a defaulted agent or cancelled contracts."""
+    cancelled_contract_ids = cancelled_contract_ids or set()
+    cancelled_aliases = cancelled_aliases or set()
     if not system.state.scheduled_actions_by_day:
         return
 
     for day, actions in list(system.state.scheduled_actions_by_day.items()):
         remaining = []
         for action_dict in actions:
-            if _action_references_agent(action_dict, agent_id):
+            if _action_references_agent(action_dict, agent_id) or _action_references_contract(action_dict, cancelled_contract_ids, cancelled_aliases):
                 action_name = next(iter(action_dict.keys()), "unknown") if isinstance(action_dict, dict) else "unknown"
                 system.log(
                     "ScheduledActionCancelled",
                     agent=agent_id,
-                    day=day,
+                    scheduled_day=day,
                     action=action_name,
                     mode=_get_default_mode(system),
                 )
@@ -5782,8 +5804,40 @@ def _cancel_scheduled_actions_for_agent(system, agent_id: str) -> None:
             del system.state.scheduled_actions_by_day[day]
 
 
-def _expel_agent(system, agent_id: str, *, trigger_contract_id: str | None = None,
-                 trigger_kind: str | None = None, trigger_shortfall: int | None = None) -> None:
+def _action_references_contract(action_dict, contract_ids: set[str], aliases: set[str]) -> bool:
+    if not isinstance(action_dict, dict) or len(action_dict) != 1:
+        return False
+    if not contract_ids and not aliases:
+        return False
+
+    action_name, payload = next(iter(action_dict.items()))
+    if not isinstance(payload, dict):
+        return False
+
+    for field in _ACTION_CONTRACT_FIELDS.get(action_name, ("contract_id", "contract_alias", "alias")):
+        value = payload.get(field)
+        if isinstance(value, str) and (value in contract_ids or value in aliases):
+            return True
+
+    # common fallbacks
+    for key in ("contract_id", "contract_alias", "alias"):
+        value = payload.get(key)
+        if isinstance(value, str) and (value in contract_ids or value in aliases):
+            return True
+
+    return False
+
+
+def _expel_agent(
+    system,
+    agent_id: str,
+    *,
+    trigger_contract_id: str | None = None,
+    trigger_kind: str | None = None,
+    trigger_shortfall: int | None = None,
+    cancelled_contract_ids: set[str] | None = None,
+    cancelled_aliases: set[str] | None = None,
+) -> None:
     """Mark an agent as defaulted, write off obligations, and cancel future actions."""
     if _get_default_mode(system) != DEFAULT_MODE_EXPEL:
         return
@@ -5794,6 +5848,9 @@ def _expel_agent(system, agent_id: str, *, trigger_contract_id: str | None = Non
     agent = system.state.agents.get(agent_id)
     if agent is None:
         return
+
+    if agent.kind == "central_bank":
+        raise DefaultError("Central bank cannot default")
 
     agent.defaulted = True
     system.state.defaulted_agent_ids.add(agent_id)
@@ -5808,7 +5865,12 @@ def _expel_agent(system, agent_id: str, *, trigger_contract_id: str | None = Non
         mode=_get_default_mode(system),
     )
 
-    _cancel_scheduled_actions_for_agent(system, agent_id)
+    cancelled_contract_ids = set(cancelled_contract_ids or [])
+    cancelled_aliases = set(cancelled_aliases or [])
+
+    # Remove any aliases provided for already-cancelled contracts
+    for alias in list(cancelled_aliases):
+        system.state.aliases.pop(alias, None)
 
     for cid, contract in list(system.state.contracts.items()):
         if contract.liability_issuer_id != agent_id:
@@ -5817,6 +5879,8 @@ def _expel_agent(system, agent_id: str, *, trigger_contract_id: str | None = Non
             continue
 
         alias = get_alias_for_id(system, cid)
+        if alias:
+            cancelled_aliases.add(alias)
         payload = {
             "contract_id": cid,
             "alias": alias,
@@ -5833,6 +5897,18 @@ def _expel_agent(system, agent_id: str, *, trigger_contract_id: str | None = Non
 
         system.log("ObligationWrittenOff", **payload)
         _remove_contract(system, cid)
+        cancelled_contract_ids.add(cid)
+        if alias:
+            system.state.aliases.pop(alias, None)
+
+    _cancel_scheduled_actions_for_agent(system, agent_id, cancelled_contract_ids, cancelled_aliases)
+
+    # If every non-central-bank agent has defaulted, halt the simulation with a DefaultError.
+    if all(
+        (ag.kind == "central_bank") or getattr(ag, "defaulted", False)
+        for ag in system.state.agents.values()
+    ):
+        raise DefaultError("All non-central-bank agents have defaulted")
 
 
 def settle_due_delivery_obligations(system, day: int):
@@ -5860,6 +5936,8 @@ def settle_due_delivery_obligations(system, day: int):
                     )
 
                 alias = get_alias_for_id(system, obligation.id)
+                cancelled_contract_ids = {obligation.id}
+                cancelled_aliases = {alias} if alias else set()
                 if delivered_quantity > 0:
                     system.log(
                         "PartialSettlement",
@@ -5896,6 +5974,8 @@ def settle_due_delivery_obligations(system, day: int):
                     trigger_contract_id=obligation.id,
                     trigger_kind=obligation.kind,
                     trigger_shortfall=shortage,
+                    cancelled_contract_ids=cancelled_contract_ids,
+                    cancelled_aliases=cancelled_aliases,
                 )
                 continue
 
@@ -5952,6 +6032,8 @@ def settle_due(system, day: int):
                     raise DefaultError(f"Insufficient funds to settle payable {payable.id}: {remaining} still owed")
 
                 alias = get_alias_for_id(system, payable.id)
+                cancelled_contract_ids = {payable.id}
+                cancelled_aliases = {alias} if alias else set()
                 amount_paid = payable.amount - remaining
 
                 if amount_paid > 0:
@@ -5990,6 +6072,8 @@ def settle_due(system, day: int):
                     trigger_contract_id=payable.id,
                     trigger_kind=payable.kind,
                     trigger_shortfall=remaining,
+                    cancelled_contract_ids=cancelled_contract_ids,
+                    cancelled_aliases=cancelled_aliases,
                 )
                 continue
 
@@ -9476,7 +9560,6 @@ def run_scenario(
 
     # Create and configure system with selected default-handling mode
     system = System(default_mode=effective_default_handling)
-    
     # Preflight schedule validation (aliases available when referenced)
     try:
         from bilancio.config.apply import validate_scheduled_aliases
@@ -11383,12 +11466,17 @@ def test_expel_mode_handles_partial_payment_and_marks_agent():
     payable = _make_payable(system, debtor, creditor, amount=100, due_day=1)
     trailing_payable = _make_payable(system, debtor, creditor, amount=50, due_day=2)
 
+    system.state.aliases["PAY1"] = payable.id
+
     # Provide partial liquidity (60 of required 100)
     system.mint_cash(debtor.id, 60)
 
     # Scheduled action involving debtor should be cancelled once defaulted
     system.state.scheduled_actions_by_day[2] = [
         {"mint_cash": {"to": debtor.id, "amount": 10}}
+    ]
+    system.state.scheduled_actions_by_day[3] = [
+        {"transfer_claim": {"contract_alias": "PAY1", "to_agent": creditor.id}}
     ]
 
     settle_due(system, 1)
@@ -11400,6 +11488,7 @@ def test_expel_mode_handles_partial_payment_and_marks_agent():
     assert creditor.asset_ids.count(payable.id) == 0
     assert creditor.asset_ids.count(trailing_payable.id) == 0
     assert not system.state.scheduled_actions_by_day
+    assert "PAY1" not in system.state.aliases
 
     kinds = [event["kind"] for event in system.state.events]
     assert "PartialSettlement" in kinds
@@ -11407,6 +11496,13 @@ def test_expel_mode_handles_partial_payment_and_marks_agent():
     assert "AgentDefaulted" in kinds
     assert "ScheduledActionCancelled" in kinds
     assert "ObligationWrittenOff" in kinds
+
+    cancelled_events = [e for e in system.state.events if e["kind"] == "ScheduledActionCancelled"]
+    assert len(cancelled_events) == 2
+    for evt in cancelled_events:
+        assert evt["day"] == system.state.day
+    scheduled_days = sorted(evt["scheduled_day"] for evt in cancelled_events)
+    assert scheduled_days == [2, 3]
 
     partial_event = next(e for e in system.state.events if e["kind"] == "PartialSettlement")
     assert partial_event["amount_paid"] == 60

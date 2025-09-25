@@ -83,7 +83,6 @@ def run_scenario(
 
     # Create and configure system with selected default-handling mode
     system = System(default_mode=effective_default_handling)
-    
     # Preflight schedule validation (aliases available when referenced)
     try:
         from bilancio.config.apply import validate_scheduled_aliases

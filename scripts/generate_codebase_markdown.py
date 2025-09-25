@@ -5,6 +5,7 @@ Generate a markdown file containing the codebase structure and content for LLM i
 
 import os
 import subprocess
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Set
 
@@ -20,8 +21,8 @@ def get_tree_output(path: str, exclude_patterns: List[str] = None) -> str:
         cmd = ['tree', path, '-a'] + exclude_args
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         return result.stdout
-    except subprocess.CalledProcessError:
-        # Fallback if tree command is not available
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        # Fallback if tree command fails or is not installed
         return generate_simple_tree(path, exclude_patterns or [])
 
 
@@ -137,6 +138,43 @@ def get_git_history() -> str:
         return "Unable to retrieve git history (not a git repository or git not available)\n"
 
 
+def get_git_context() -> dict:
+    """Return branch and commit info, resilient in CI and local.
+
+    Falls back to environment (e.g., GITHUB_REF_NAME) and handles detached HEAD.
+    """
+    branch = "unknown"
+    commit = "unknown"
+
+    # Try git for commit and branch
+    try:
+        commit_proc = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True, check=True
+        )
+        commit = commit_proc.stdout.strip() or commit
+    except Exception:
+        pass
+
+    try:
+        branch_proc = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True, check=True
+        )
+        branch_candidate = branch_proc.stdout.strip()
+        # In CI with detached HEAD, this often returns 'HEAD'
+        if branch_candidate and branch_candidate != "HEAD":
+            branch = branch_candidate
+    except Exception:
+        pass
+
+    # Fallbacks for CI
+    if branch in ("unknown", "HEAD", ""):
+        env_branch = os.environ.get("GITHUB_REF_NAME") or os.environ.get("BRANCH_NAME")
+        if env_branch:
+            branch = env_branch
+
+    return {"branch": branch, "commit": commit}
+
+
 def generate_markdown(output_file: str = None):
     """Generate the markdown file with codebase content."""
     root_dir = Path.cwd()
@@ -155,6 +193,14 @@ def generate_markdown(output_file: str = None):
     with open(output_file, 'w', encoding='utf-8') as f:
         # Header
         f.write("# Bilancio Codebase Documentation\n\n")
+
+        # Generation metadata
+        ts = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S %Z')
+        git_ctx = get_git_context()
+        f.write(
+            f"Generated: {ts} | Branch: {git_ctx['branch']} | Commit: {git_ctx['commit']}\n\n"
+        )
+
         f.write("This document contains the complete codebase structure and content for LLM ingestion.\n\n")
         f.write("---\n\n")
         
