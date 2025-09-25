@@ -1,0 +1,52 @@
+version: 1
+name: "Default handling demonstration"
+description: "Firm F1 partially pays before default; expel-agent mode keeps the simulation running."
+
+agents:
+  - id: CB
+    kind: central_bank
+    name: Central Bank
+  - id: F1
+    kind: firm
+    name: Firm One (debtor)
+  - id: F2
+    kind: firm
+    name: Firm Two (creditor)
+  - id: F3
+    kind: firm
+    name: Firm Three (scheduled action target)
+
+initial_actions:
+  - mint_cash:
+      to: F1
+      amount: 60
+      alias: F1_startup_cash
+  - create_payable:
+      from: F1
+      to: F2
+      amount: 100
+      due_day: 1
+      alias: F1_to_F2_day1
+  - create_payable:
+      from: F1
+      to: F3
+      amount: 50
+      due_day: 2
+      alias: F1_to_F3_day2
+
+scheduled_actions:
+  - day: 2
+    action:
+      mint_cash:
+        to: F1
+        amount: 20
+        alias: F1_future_injection
+
+run:
+  mode: until_stable
+  max_days: 5
+  quiet_days: 2
+  default_handling: expel-agent
+  show:
+    balances: [CB, F1, F2, F3]
+    events: detailed

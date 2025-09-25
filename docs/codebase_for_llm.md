@@ -37,6 +37,7 @@ This document contains the complete codebase structure and content for LLM inges
 │   │   ├── 010_ui_refactor.md
 │   │   ├── 011_tbs.md
 │   │   ├── 012_scheduled_actions_and_aliases.md
+│   │   ├── 013_default_handling_modalities.md
 │   │   └── Kalecki_debt_simulation (1).pdf
 │   ├── prompts
 │   │   └── scenario_translator_agent.md
@@ -60,6 +61,7 @@ This document contains the complete codebase structure and content for LLM inges
 │   │       ├── ex6_goods_now_cash_later.yaml
 │   │       └── ex7_cash_now_goods_later.yaml
 │   └── scenarios
+│       ├── default_handling_demo.yaml
 │       ├── firm_delivery.yaml
 │       ├── interbank_netting.yaml
 │       ├── intraday_netting.yaml
@@ -157,6 +159,7 @@ This document contains the complete codebase structure and content for LLM inges
 │           └── wizard.py
 ├── temp
 │   ├── check_ex7.html
+│   ├── default_handling_demo.html
 │   ├── demo.html
 │   ├── ex1_cash_for_goods.html
 │   ├── ex2_two_firms_cash_purchase.html
@@ -193,6 +196,7 @@ This document contains the complete codebase structure and content for LLM inges
     │   ├── test_scheduled_alias_validation.py
     │   └── test_transfer_claim_model.py
     ├── engines
+    │   ├── test_default_handling.py
     │   └── test_phase_b1_scheduling.py
     ├── integration
     │   ├── test_banking_ops.py
@@ -214,7 +218,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-39 directories, 167 files
+39 directories, 171 files
 
 ```
 
@@ -946,6 +950,9 @@ Complete git history from oldest to newest:
 
 - **9092d6e9** (2025-09-04) by vladgheorghe
   test: add coverage for TransferClaim, schedule alias validation, B1 execution, and alias helpers
+
+- **8a61e66e** (2025-09-25) by vladgheorghe
+  Update codebase_for_llm snapshot
 
 ---
 
@@ -1999,7 +2006,7 @@ def display_events_table(events: List[Dict[str, Any]], group_by_day: bool = True
                 frm = e.get("owner")
                 to = None
             else:
-                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer") or e.get("agent")
                 to = e.get("to") or e.get("creditor") or e.get("payee")
             sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
             qty = e.get("qty") or e.get("quantity") or "—"
@@ -2012,6 +2019,16 @@ def display_events_table(events: List[Dict[str, Any]], group_by_day: bool = True
                 notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
                 if 'due_day' in e:
                     notes += f"; due {e.get('due_day')}"
+            elif kind == "AgentDefaulted":
+                shortfall = e.get('shortfall')
+                trigger = e.get('trigger_contract')
+                parts = []
+                if shortfall is not None:
+                    parts.append(f"shortfall {shortfall}")
+                if trigger:
+                    parts.append(f"trigger {trigger}")
+                if parts:
+                    notes = ", ".join(parts)
 
             table.add_row(
                 str(e.get("day", "—")),
@@ -2046,7 +2063,7 @@ def display_events_table(events: List[Dict[str, Any]], group_by_day: bool = True
                 frm = e.get("owner")
                 to = None
             else:
-                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer") or e.get("agent")
                 to = e.get("to") or e.get("creditor") or e.get("payee")
             sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
             qty = e.get("qty") or e.get("quantity") or "—"
@@ -2058,6 +2075,16 @@ def display_events_table(events: List[Dict[str, Any]], group_by_day: bool = True
                 notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
                 if 'due_day' in e:
                     notes += f"; due {e.get('due_day')}"
+            elif kind == "AgentDefaulted":
+                shortfall = e.get('shortfall')
+                trigger = e.get('trigger_contract')
+                parts = []
+                if shortfall is not None:
+                    parts.append(f"shortfall {shortfall}")
+                if trigger:
+                    parts.append(f"trigger {trigger}")
+                if parts:
+                    notes = ", ".join(parts)
             row = [
                 str(e.get("day", "—")),
                 str(e.get("phase", "—")),
@@ -2251,6 +2278,16 @@ def display_events_tables_by_phase_renderables(events: List[Dict[str, Any]], day
                     notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
                     if 'due_day' in e:
                         notes += f"; due {e.get('due_day')}"
+                elif kind == "AgentDefaulted":
+                    shortfall = e.get('shortfall')
+                    trigger = e.get('trigger_contract')
+                    parts = []
+                    if shortfall is not None:
+                        parts.append(f"shortfall {shortfall}")
+                    if trigger:
+                        parts.append(f"trigger {trigger}")
+                    if parts:
+                        notes = ", ".join(parts)
                 out.append(" | ".join(map(str, [kind, frm or "—", to or "—", sku, qty, amt, notes])))
             return "\n".join(out)
 
@@ -2291,6 +2328,16 @@ def display_events_tables_by_phase_renderables(events: List[Dict[str, Any]], day
                 notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
                 if 'due_day' in e:
                     notes += f"; due {e.get('due_day')}"
+            elif kind == "AgentDefaulted":
+                shortfall = e.get('shortfall')
+                trigger = e.get('trigger_contract')
+                parts = []
+                if shortfall is not None:
+                    parts.append(f"shortfall {shortfall}")
+                if trigger:
+                    parts.append(f"trigger {trigger}")
+                if parts:
+                    notes = ", ".join(parts)
             table.add_row(kind, str(frm or "—"), str(to or "—"), str(sku), str(qty), str(amt), notes)
         return table
 
@@ -4550,9 +4597,13 @@ class RunConfig(BaseModel):
     )
     max_days: int = Field(90, description="Maximum days to simulate")
     quiet_days: int = Field(2, description="Required quiet days for stable state")
+    default_handling: Literal["fail-fast", "expel-agent"] = Field(
+        "fail-fast",
+        description="How the engine reacts when an agent defaults"
+    )
     show: ShowConfig = Field(default_factory=ShowConfig)
     export: ExportConfig = Field(default_factory=ExportConfig)
-    
+
     @field_validator("max_days")
     @classmethod
     def max_days_positive(cls, v):
@@ -4883,6 +4934,7 @@ class Agent:
     asset_ids: list[InstrId] = field(default_factory=list)
     liability_ids: list[InstrId] = field(default_factory=list)
     stock_ids: list[InstrId] = field(default_factory=list)
+    defaulted: bool = False
 
 ```
 
@@ -5491,9 +5543,35 @@ def settle_intraday_nets(system, day: int):
 ```python
 """Settlement engine (Phase B) for settling payables due today."""
 
+from __future__ import annotations
+
 from bilancio.core.atomic_tx import atomic
 from bilancio.core.errors import DefaultError, ValidationError
 from bilancio.ops.banking import client_payment
+from bilancio.ops.aliases import get_alias_for_id
+
+DEFAULT_MODE_FAIL_FAST = "fail-fast"
+DEFAULT_MODE_EXPEL = "expel-agent"
+
+_ACTION_AGENT_FIELDS = {
+    "mint_reserves": ("to",),
+    "mint_cash": ("to",),
+    "transfer_reserves": ("from_bank", "to_bank"),
+    "transfer_cash": ("from_agent", "to_agent"),
+    "deposit_cash": ("customer", "bank"),
+    "withdraw_cash": ("customer", "bank"),
+    "client_payment": ("payer", "payee"),
+    "create_stock": ("owner",),
+    "transfer_stock": ("from_agent", "to_agent"),
+    "create_delivery_obligation": ("from", "from_agent", "to", "to_agent"),
+    "create_payable": ("from", "from_agent", "to", "to_agent"),
+    "transfer_claim": ("to_agent",),
+}
+
+
+def _get_default_mode(system) -> str:
+    """Return the configured default-handling mode for the system."""
+    return getattr(system, "default_mode", DEFAULT_MODE_FAIL_FAST)
 
 
 def due_payables(system, day: int):
@@ -5512,7 +5590,6 @@ def due_delivery_obligations(system, day: int):
 
 def _pay_with_deposits(system, debtor_id, creditor_id, amount) -> int:
     """Pay using bank deposits. Returns amount actually paid."""
-    # Find debtor's bank deposits
     debtor_deposit_ids = []
     for cid in system.state.agents[debtor_id].asset_ids:
         contract = system.state.contracts[cid]
@@ -5522,22 +5599,18 @@ def _pay_with_deposits(system, debtor_id, creditor_id, amount) -> int:
     if not debtor_deposit_ids:
         return 0
 
-    # Calculate available deposit amount
     available = sum(system.state.contracts[cid].amount for cid in debtor_deposit_ids)
     if available == 0:
         return 0
 
     pay_amount = min(amount, available)
 
-    # Find debtor's and creditor's banks
     debtor_bank_id = None
     creditor_bank_id = None
 
-    # Find debtor's bank from their first deposit
     if debtor_deposit_ids:
         debtor_bank_id = system.state.contracts[debtor_deposit_ids[0]].liability_issuer_id
 
-    # Find creditor's bank - check if they have deposits, otherwise use debtor's bank
     creditor_deposit_ids = []
     for cid in system.state.agents[creditor_id].asset_ids:
         contract = system.state.contracts[cid]
@@ -5547,13 +5620,11 @@ def _pay_with_deposits(system, debtor_id, creditor_id, amount) -> int:
     if creditor_deposit_ids:
         creditor_bank_id = system.state.contracts[creditor_deposit_ids[0]].liability_issuer_id
     else:
-        # If creditor has no deposits, use debtor's bank for same-bank payment
         creditor_bank_id = debtor_bank_id
 
     if not debtor_bank_id or not creditor_bank_id:
         return 0
 
-    # Use existing client_payment function which handles both same-bank and cross-bank cases
     try:
         client_payment(system, debtor_id, debtor_bank_id, creditor_id, creditor_bank_id, pay_amount)
         return pay_amount
@@ -5563,7 +5634,6 @@ def _pay_with_deposits(system, debtor_id, creditor_id, amount) -> int:
 
 def _pay_with_cash(system, debtor_id, creditor_id, amount) -> int:
     """Pay using cash. Returns amount actually paid."""
-    # Find available cash
     debtor_cash_ids = []
     for cid in system.state.agents[debtor_id].asset_ids:
         contract = system.state.contracts[cid]
@@ -5589,9 +5659,8 @@ def _pay_with_cash(system, debtor_id, creditor_id, amount) -> int:
 def _pay_bank_to_bank_with_reserves(system, debtor_bank_id, creditor_bank_id, amount) -> int:
     """Pay using reserves between banks. Returns amount actually paid."""
     if debtor_bank_id == creditor_bank_id:
-        return 0  # Same bank, no reserves needed
+        return 0
 
-    # Find available reserves
     debtor_reserve_ids = []
     for cid in system.state.agents[debtor_bank_id].asset_ids:
         contract = system.state.contracts[cid]
@@ -5615,137 +5684,250 @@ def _pay_bank_to_bank_with_reserves(system, debtor_bank_id, creditor_bank_id, am
 
 
 def _deliver_stock(system, debtor_id, creditor_id, sku: str, required_quantity: int) -> int:
-    """
-    Transfer stock lots from debtor to creditor by SKU using FIFO allocation.
-    Returns the quantity actually delivered.
-    """
-    # Find available stock lots with matching SKU
+    """Transfer stock lots from debtor to creditor by SKU using FIFO allocation."""
     available_stocks = []
     for stock_id in system.state.agents[debtor_id].stock_ids:
         stock = system.state.stocks[stock_id]
         if stock.sku == sku:
             available_stocks.append((stock_id, stock.quantity))
-    
+
     if not available_stocks:
         return 0
-    
-    # Calculate total available quantity
+
     total_available = sum(quantity for _, quantity in available_stocks)
     if total_available == 0:
         return 0
-    
+
     deliver_quantity = min(required_quantity, total_available)
     remaining_to_deliver = deliver_quantity
-    
-    # Sort by stock ID for FIFO (deterministic) behavior
+
     available_stocks.sort(key=lambda x: x[0])
-    
+
     try:
-        # Transfer stock from available lots
         for stock_id, stock_quantity in available_stocks:
             if remaining_to_deliver == 0:
                 break
-                
+
             transfer_qty = min(remaining_to_deliver, stock_quantity)
-            
-            # Use the internal method to avoid nested atomic
             system._transfer_stock_internal(stock_id, debtor_id, creditor_id, transfer_qty)
-            
             remaining_to_deliver -= transfer_qty
-        
+
         return deliver_quantity
     except ValidationError:
         return 0
 
 
-
-
 def _remove_contract(system, contract_id):
     """Remove contract from system and update agent registries."""
     contract = system.state.contracts[contract_id]
+    contract_kind = contract.kind
+    contract_amount = getattr(contract, "amount", 0)
 
-    # Remove from asset holder
     asset_holder = system.state.agents[contract.asset_holder_id]
     if contract_id in asset_holder.asset_ids:
         asset_holder.asset_ids.remove(contract_id)
 
-    # Remove from liability issuer
     liability_issuer = system.state.agents[contract.liability_issuer_id]
     if contract_id in liability_issuer.liability_ids:
         liability_issuer.liability_ids.remove(contract_id)
 
-    # Remove from contracts registry
     del system.state.contracts[contract_id]
+
+    if contract_kind == "cash":
+        system.state.cb_cash_outstanding -= contract_amount
+    elif contract_kind == "reserve_deposit":
+        system.state.cb_reserves_outstanding -= contract_amount
+
+
+def _action_references_agent(action_dict, agent_id: str) -> bool:
+    """Return True if the scheduled action references the given agent."""
+    if not isinstance(action_dict, dict) or len(action_dict) != 1:
+        return False
+
+    action_name, payload = next(iter(action_dict.items()))
+    if not isinstance(payload, dict):
+        return False
+
+    for field in _ACTION_AGENT_FIELDS.get(action_name, ()): 
+        value = payload.get(field)
+        if isinstance(value, str) and value == agent_id:
+            return True
+        if isinstance(value, list) and agent_id in value:
+            return True
+    return False
+
+
+def _cancel_scheduled_actions_for_agent(system, agent_id: str) -> None:
+    """Remove and log scheduled actions that involve a defaulted agent."""
+    if not system.state.scheduled_actions_by_day:
+        return
+
+    for day, actions in list(system.state.scheduled_actions_by_day.items()):
+        remaining = []
+        for action_dict in actions:
+            if _action_references_agent(action_dict, agent_id):
+                action_name = next(iter(action_dict.keys()), "unknown") if isinstance(action_dict, dict) else "unknown"
+                system.log(
+                    "ScheduledActionCancelled",
+                    agent=agent_id,
+                    day=day,
+                    action=action_name,
+                    mode=_get_default_mode(system),
+                )
+                continue
+            remaining.append(action_dict)
+        if remaining:
+            system.state.scheduled_actions_by_day[day] = remaining
+        else:
+            del system.state.scheduled_actions_by_day[day]
+
+
+def _expel_agent(system, agent_id: str, *, trigger_contract_id: str | None = None,
+                 trigger_kind: str | None = None, trigger_shortfall: int | None = None) -> None:
+    """Mark an agent as defaulted, write off obligations, and cancel future actions."""
+    if _get_default_mode(system) != DEFAULT_MODE_EXPEL:
+        return
+
+    if agent_id in system.state.defaulted_agent_ids:
+        return
+
+    agent = system.state.agents.get(agent_id)
+    if agent is None:
+        return
+
+    agent.defaulted = True
+    system.state.defaulted_agent_ids.add(agent_id)
+
+    system.log(
+        "AgentDefaulted",
+        agent=agent_id,
+        frm=agent_id,
+        trigger_contract=trigger_contract_id,
+        contract_kind=trigger_kind,
+        shortfall=trigger_shortfall,
+        mode=_get_default_mode(system),
+    )
+
+    _cancel_scheduled_actions_for_agent(system, agent_id)
+
+    for cid, contract in list(system.state.contracts.items()):
+        if contract.liability_issuer_id != agent_id:
+            continue
+        if trigger_contract_id and cid == trigger_contract_id:
+            continue
+
+        alias = get_alias_for_id(system, cid)
+        payload = {
+            "contract_id": cid,
+            "alias": alias,
+            "debtor": contract.liability_issuer_id,
+            "creditor": contract.asset_holder_id,
+            "contract_kind": contract.kind,
+            "amount": getattr(contract, "amount", None),
+            "due_day": getattr(contract, "due_day", None),
+        }
+        if hasattr(contract, "sku"):
+            payload["sku"] = getattr(contract, "sku")
+        if payload.get("due_day") is None:
+            payload.pop("due_day", None)
+
+        system.log("ObligationWrittenOff", **payload)
+        _remove_contract(system, cid)
 
 
 def settle_due_delivery_obligations(system, day: int):
-    """
-    Settle all delivery obligations due today using stock operations.
-    
-    For each delivery obligation due today:
-    - Get debtor and creditor agents
-    - Check if debtor has sufficient stock with matching SKU
-    - Transfer the stock to the creditor using FIFO allocation
-    - Remove the delivery obligation when fully settled
-    - Raise DefaultError if insufficient stock
-    - Log DeliveryObligationSettled event
-    """
+    """Settle all delivery obligations due today using stock operations."""
     for obligation in list(due_delivery_obligations(system, day)):
+        if obligation.id not in system.state.contracts:
+            continue
+
         debtor = system.state.agents[obligation.liability_issuer_id]
+        if getattr(debtor, "defaulted", False):
+            continue
+
         creditor = system.state.agents[obligation.asset_holder_id]
         required_sku = obligation.sku
         required_quantity = obligation.amount
 
         with atomic(system):
-            # Try to deliver the required stock
             delivered_quantity = _deliver_stock(system, debtor.id, creditor.id, required_sku, required_quantity)
-            
+
             if delivered_quantity != required_quantity:
-                # Cannot deliver fully - raise default error
                 shortage = required_quantity - delivered_quantity
-                raise DefaultError(f"Insufficient stock to settle delivery obligation {obligation.id}: {shortage} units of {required_sku} still owed")
-            
-            # Fully settled: cancel the delivery obligation and log with alias/contract_id
+                if _get_default_mode(system) == DEFAULT_MODE_FAIL_FAST:
+                    raise DefaultError(
+                        f"Insufficient stock to settle delivery obligation {obligation.id}: {shortage} units of {required_sku} still owed"
+                    )
+
+                alias = get_alias_for_id(system, obligation.id)
+                if delivered_quantity > 0:
+                    system.log(
+                        "PartialSettlement",
+                        contract_id=obligation.id,
+                        alias=alias,
+                        debtor=debtor.id,
+                        creditor=creditor.id,
+                        contract_kind=obligation.kind,
+                        settlement_kind="delivery",
+                        delivered_quantity=delivered_quantity,
+                        required_quantity=required_quantity,
+                        shortfall=shortage,
+                        sku=required_sku,
+                    )
+
+                system.log(
+                    "ObligationDefaulted",
+                    contract_id=obligation.id,
+                    alias=alias,
+                    debtor=debtor.id,
+                    creditor=creditor.id,
+                    contract_kind=obligation.kind,
+                    shortfall=shortage,
+                    delivered_quantity=delivered_quantity,
+                    required_quantity=required_quantity,
+                    sku=required_sku,
+                    qty=shortage,
+                )
+
+                _remove_contract(system, obligation.id)
+                _expel_agent(
+                    system,
+                    debtor.id,
+                    trigger_contract_id=obligation.id,
+                    trigger_kind=obligation.kind,
+                    trigger_shortfall=shortage,
+                )
+                continue
+
             system._cancel_delivery_obligation_internal(obligation.id)
-            from bilancio.ops.aliases import get_alias_for_id
             alias = get_alias_for_id(system, obligation.id)
-            system.log("DeliveryObligationSettled", 
-                      obligation_id=obligation.id,
-                      contract_id=obligation.id,
-                      alias=alias, 
-                      debtor=debtor.id, 
-                      creditor=creditor.id, 
-                      sku=required_sku, 
-                      qty=required_quantity)
+            system.log(
+                "DeliveryObligationSettled",
+                obligation_id=obligation.id,
+                contract_id=obligation.id,
+                alias=alias,
+                debtor=debtor.id,
+                creditor=creditor.id,
+                sku=required_sku,
+                qty=required_quantity,
+            )
 
 
 def settle_due(system, day: int):
-    """
-    Settle all obligations due today (payables and delivery obligations).
-    
-    For each payable due today:
-    - Get debtor and creditor agents
-    - Use policy.settlement_order to determine payment methods
-    - Try each method in order until paid or all methods exhausted
-    - Raise DefaultError if insufficient funds across all methods
-    - Remove payable when fully settled
-    - Log PayableSettled event
-    
-    For each delivery obligation due today:
-    - Get debtor and creditor agents
-    - Check if debtor has sufficient stock with matching SKU
-    - Transfer the stock to the creditor using FIFO allocation
-    - Remove the delivery obligation when fully settled
-    - Raise DefaultError if insufficient stock
-    - Log DeliveryObligationSettled event
-    """
-    # First settle payables
+    """Settle all obligations due today (payables and delivery obligations)."""
     for payable in list(due_payables(system, day)):
+        if payable.id not in system.state.contracts:
+            continue
+
         debtor = system.state.agents[payable.liability_issuer_id]
+        if getattr(debtor, "defaulted", False):
+            continue
+
         creditor = system.state.agents[payable.asset_holder_id]
         order = system.policy.settlement_order(debtor)
 
         remaining = payable.amount
+        payments_summary: list[dict] = []
 
         with atomic(system):
             for method in order:
@@ -5754,28 +5936,75 @@ def settle_due(system, day: int):
 
                 if method == "bank_deposit":
                     paid_now = _pay_with_deposits(system, debtor.id, creditor.id, remaining)
-                    remaining -= paid_now
                 elif method == "cash":
                     paid_now = _pay_with_cash(system, debtor.id, creditor.id, remaining)
-                    remaining -= paid_now
                 elif method == "reserve_deposit":
                     paid_now = _pay_bank_to_bank_with_reserves(system, debtor.id, creditor.id, remaining)
-                    remaining -= paid_now
                 else:
                     raise ValidationError(f"unknown payment method {method}")
 
-            if remaining != 0:
-                # Cannot settle fully - raise default error
-                raise DefaultError(f"Insufficient funds to settle payable {payable.id}: {remaining} still owed")
+                remaining -= paid_now
+                if paid_now > 0:
+                    payments_summary.append({"method": method, "amount": paid_now})
 
-            # Fully settled: remove payable and log with alias/contract_id
+            if remaining != 0:
+                if _get_default_mode(system) == DEFAULT_MODE_FAIL_FAST:
+                    raise DefaultError(f"Insufficient funds to settle payable {payable.id}: {remaining} still owed")
+
+                alias = get_alias_for_id(system, payable.id)
+                amount_paid = payable.amount - remaining
+
+                if amount_paid > 0:
+                    payload = {
+                        "contract_id": payable.id,
+                        "alias": alias,
+                        "debtor": debtor.id,
+                        "creditor": creditor.id,
+                        "contract_kind": payable.kind,
+                        "settlement_kind": "payable",
+                        "amount_paid": amount_paid,
+                        "shortfall": remaining,
+                        "original_amount": payable.amount,
+                    }
+                    if payments_summary:
+                        payload["distribution"] = payments_summary
+                    system.log("PartialSettlement", **payload)
+
+                system.log(
+                    "ObligationDefaulted",
+                    contract_id=payable.id,
+                    alias=alias,
+                    debtor=debtor.id,
+                    creditor=creditor.id,
+                    contract_kind=payable.kind,
+                    shortfall=remaining,
+                    amount_paid=amount_paid,
+                    original_amount=payable.amount,
+                    amount=remaining,
+                )
+
+                _remove_contract(system, payable.id)
+                _expel_agent(
+                    system,
+                    debtor.id,
+                    trigger_contract_id=payable.id,
+                    trigger_kind=payable.kind,
+                    trigger_shortfall=remaining,
+                )
+                continue
+
             _remove_contract(system, payable.id)
-            from bilancio.ops.aliases import get_alias_for_id
             alias = get_alias_for_id(system, payable.id)
-            system.log("PayableSettled", pid=payable.id, contract_id=payable.id, alias=alias,
-                       debtor=debtor.id, creditor=creditor.id, amount=payable.amount)
-    
-    # Settle delivery obligations
+            system.log(
+                "PayableSettled",
+                pid=payable.id,
+                contract_id=payable.id,
+                alias=alias,
+                debtor=debtor.id,
+                creditor=creditor.id,
+                amount=payable.amount,
+            )
+
     settle_due_delivery_obligations(system, day)
 
 ```
@@ -6023,11 +6252,14 @@ class State:
     aliases: dict[str, str] = field(default_factory=dict)
     # Scheduled actions to run at Phase B1 by day (day -> list of action dicts)
     scheduled_actions_by_day: dict[int, list[dict]] = field(default_factory=dict)
+    # Track agents that have defaulted and been expelled from future activity
+    defaulted_agent_ids: set[AgentId] = field(default_factory=set)
 
 class System:
-    def __init__(self, policy: PolicyEngine | None = None):
+    def __init__(self, policy: PolicyEngine | None = None, default_mode: str = "fail-fast"):
         self.policy = policy or PolicyEngine.default()
         self.state = State()
+        self.default_mode = default_mode
 
     # ---- ID helpers
     def new_agent_id(self, prefix="A") -> AgentId: return new_id(prefix)
@@ -7353,6 +7585,8 @@ def cli():
 @click.option('--html', type=click.Path(path_type=Path),
               default=None, help='Path to export colored output as HTML')
 @click.option('--t-account/--no-t-account', default=False, help='Use detailed T-account layout for balances')
+@click.option('--default-handling', type=click.Choice(['fail-fast', 'expel-agent']),
+              default=None, help='Default-handling mode (override scenario setting)')
 def run(scenario_file: Path, 
         mode: str,
         max_days: int,
@@ -7363,7 +7597,8 @@ def run(scenario_file: Path,
         export_balances: Optional[Path],
         export_events: Optional[Path],
         html: Optional[Path],
-        t_account: bool):
+        t_account: bool,
+        default_handling: Optional[str]):
     """Run a Bilancio simulation scenario.
     
     Load a scenario from a YAML file and run the simulation either
@@ -7392,7 +7627,8 @@ def run(scenario_file: Path,
             check_invariants=check_invariants,
             export=export,
             html_output=html,
-            t_account=t_account
+            t_account=t_account,
+            default_handling=default_handling
         )
         
     except FileNotFoundError as e:
@@ -7698,9 +7934,12 @@ def show_day_summary_renderable(
                     renderables.append(Text(f"  • {event_type}: {count}"))
     
     # Show balances
-    if agent_ids:
-        renderables.append(Text("\nBalances:", style="bold"))
-        if len(agent_ids) == 1:
+    if agent_ids is not None:
+        if len(agent_ids) == 0:
+            renderables.append(Text("\nBalances:", style="bold"))
+            renderables.append(Text("  • No active agents to display", style="dim"))
+        elif len(agent_ids) == 1:
+            renderables.append(Text("\nBalances:", style="bold"))
             # Single agent - show detailed balance
             if t_account:
                 balance_renderable = display_agent_t_account_renderable(system, agent_ids[0])
@@ -7708,6 +7947,7 @@ def show_day_summary_renderable(
                 balance_renderable = display_agent_balance_table_renderable(system, agent_ids[0], format="rich")
             renderables.append(balance_renderable)
         else:
+            renderables.append(Text("\nBalances:", style="bold"))
             # Multiple agents
             if t_account:
                 # Render one T-account per agent, stacked for readability
@@ -8129,7 +8369,7 @@ def _map_event_fields(e: Dict[str, Any]) -> Dict[str, str]:
     elif kind == "StockCreated":
         frm = e.get("owner"); to = None
     else:
-        frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+        frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer") or e.get("agent")
         to  = e.get("to") or e.get("creditor") or e.get("payee")
     # Identifier column prefers alias, then contract/instrument IDs
     id_or_alias = (
@@ -8155,6 +8395,15 @@ def _map_event_fields(e: Dict[str, Any]) -> Dict[str, str]:
         notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
         if 'due_day' in e:
             notes += f"; due {e.get('due_day')}"
+    elif kind == "AgentDefaulted":
+        shortfall = e.get('shortfall')
+        trigger = e.get('trigger_contract')
+        bits = []
+        if shortfall is not None:
+            bits.append(f"shortfall {shortfall}")
+        if trigger:
+            bits.append(f"trigger {trigger}")
+        notes = ", ".join(bits) if bits else "default"
     return {
         "kind": kind,
         "from": _html_escape(frm or "—"),
@@ -8350,26 +8599,31 @@ def export_pretty_html(
         html_parts.append(_render_events_table("Phase C — Clearing", buckets.get("C", [])))
         html_parts.append("</div>")
         if agent_ids:
-            html_parts.append("<div class=\"balances-section\"><h3>Balances</h3>")
-            day_balances = d.get('balances') or {}
-            day_rows = d.get('rows') or {}
-            for aid in agent_ids:
-                # Prefer captured rows with counterparties for this day
-                if aid in day_rows:
-                    rows = day_rows[aid]
-                    ag = system.state.agents[aid]
-                    title = f"{ag.name or aid} [{aid}] ({ag.kind})"
-                    html_parts.append(_render_t_account_from_rows(title, rows.get('assets', []), rows.get('liabs', [])))
-                else:
-                    bal = day_balances.get(aid)
-                    if isinstance(bal, AgentBalance):
-                        assets_rows, liabs_rows = _build_rows_from_balance(bal)
+            ids_for_day = d.get('agent_ids')
+            if ids_for_day is None:
+                ids_for_day = agent_ids
+            ids_for_day = [aid for aid in ids_for_day if aid in system.state.agents]
+            if ids_for_day:
+                html_parts.append("<div class=\"balances-section\"><h3>Balances</h3>")
+                day_balances = d.get('balances') or {}
+                day_rows = d.get('rows') or {}
+                for aid in ids_for_day:
+                    # Prefer captured rows with counterparties for this day
+                    if aid in day_rows:
+                        rows = day_rows[aid]
                         ag = system.state.agents[aid]
                         title = f"{ag.name or aid} [{aid}] ({ag.kind})"
-                        html_parts.append(_render_t_account_from_rows(title, assets_rows, liabs_rows))
+                        html_parts.append(_render_t_account_from_rows(title, rows.get('assets', []), rows.get('liabs', [])))
                     else:
-                        html_parts.append(_render_t_account(system, aid))
-            html_parts.append("</div>")
+                        bal = day_balances.get(aid)
+                        if isinstance(bal, AgentBalance):
+                            assets_rows, liabs_rows = _build_rows_from_balance(bal)
+                            ag = system.state.agents[aid]
+                            title = f"{ag.name or aid} [{aid}] ({ag.kind})"
+                            html_parts.append(_render_t_account_from_rows(title, assets_rows, liabs_rows))
+                        else:
+                            html_parts.append(_render_t_account(system, aid))
+                html_parts.append("</div>")
         html_parts.append("</section>")
 
     # Conclusion section with termination reason
@@ -9168,6 +9422,21 @@ from .display import (
 console = Console(record=True, width=120)
 
 
+def _filter_active_agent_ids(system: System, agent_ids: Optional[List[str]]) -> Optional[List[str]]:
+    """Return only agent IDs that remain active (not defaulted)."""
+    if agent_ids is None:
+        return None
+    active_ids: List[str] = []
+    for aid in agent_ids:
+        agent = system.state.agents.get(aid)
+        if not agent:
+            continue
+        if getattr(agent, "defaulted", False):
+            continue
+        active_ids.append(aid)
+    return active_ids
+
+
 def run_scenario(
     path: Path,
     mode: str = "until_stable",
@@ -9178,7 +9447,8 @@ def run_scenario(
     check_invariants: str = "setup",
     export: Optional[Dict[str, str]] = None,
     html_output: Optional[Path] = None,
-    t_account: bool = False
+    t_account: bool = False,
+    default_handling: Optional[str] = None
 ) -> None:
     """Run a Bilancio simulation scenario.
     
@@ -9196,9 +9466,16 @@ def run_scenario(
     # Load configuration
     console.print("[dim]Loading scenario...[/dim]")
     config = load_yaml(path)
-    
-    # Create and configure system
-    system = System()
+
+    # Determine effective default-handling strategy (CLI override wins)
+    effective_default_handling = default_handling or config.run.default_handling
+    if default_handling and config.run.default_handling != default_handling:
+        config = config.model_copy(update={
+            "run": config.run.model_copy(update={"default_handling": effective_default_handling})
+        })
+
+    # Create and configure system with selected default-handling mode
+    system = System(default_mode=effective_default_handling)
     
     # Preflight schedule validation (aliases available when referenced)
     try:
@@ -9254,6 +9531,7 @@ def run_scenario(
     header_renderables = show_scenario_header_renderable(config.name, config.description, config.agents)
     for renderable in header_renderables:
         console.print(renderable)
+    console.print(f"[dim]Default handling mode: {effective_default_handling}[/dim]")
     
     # Show initial state
     console.print("\n[bold cyan]📅 Day 0 (After Setup)[/bold cyan]")
@@ -9388,7 +9666,8 @@ def run_step_mode(
             if day_before >= 1:
                 # Show day summary
                 console.print(f"\n[bold cyan]📅 Day {day_before}[/bold cyan]")
-                renderables = show_day_summary_renderable(system, agent_ids, show, day=day_before, t_account=t_account)
+                display_agent_ids = _filter_active_agent_ids(system, agent_ids) if agent_ids is not None else None
+                renderables = show_day_summary_renderable(system, display_agent_ids, show, day=day_before, t_account=t_account)
                 for renderable in renderables:
                     console.print(renderable)
                 
@@ -9400,7 +9679,10 @@ def run_step_mode(
                 # Capture current balance state for this day
                 day_balances: Dict[str, Any] = {}
                 day_rows: Dict[str, Dict[str, list]] = {}
-                if agent_ids:
+                active_agents_for_day: Optional[List[str]] = None
+                if agent_ids is not None:
+                    active_agents_for_day = display_agent_ids or []
+                if active_agents_for_day:
                     from bilancio.analysis.balances import agent_balance
                     from bilancio.analysis.visualization import build_t_account_rows
 
@@ -9414,7 +9696,7 @@ def run_step_mode(
                             'id_or_alias': getattr(r, 'id_or_alias', None),
                         }
 
-                    for agent_id in agent_ids:
+                    for agent_id in active_agents_for_day:
                         day_balances[agent_id] = agent_balance(system, agent_id)
                         acct = build_t_account_rows(system, agent_id)
                         day_rows[agent_id] = {
@@ -9428,7 +9710,8 @@ def run_step_mode(
                     'quiet': day_report.quiet,
                     'stable': day_report.quiet and not day_report.has_open_obligations,
                     'balances': day_balances,
-                    'rows': day_rows
+                    'rows': day_rows,
+                    'agent_ids': active_agents_for_day if active_agents_for_day is not None else [],
                 })
             
             # Check if we've reached a stable state
@@ -9538,7 +9821,8 @@ def run_until_stable_mode(
                 
                 # Show events and balances for this specific day
                 # Note: events are stored with 0-based day numbers
-                renderables = show_day_summary_renderable(system, agent_ids, show, day=day_before, t_account=t_account)
+                display_agent_ids = _filter_active_agent_ids(system, agent_ids) if agent_ids is not None else None
+                renderables = show_day_summary_renderable(system, display_agent_ids, show, day=day_before, t_account=t_account)
                 for renderable in renderables:
                     console.print(renderable)
                 
@@ -9552,9 +9836,12 @@ def run_until_stable_mode(
                 # Capture current balance state for this day
                 day_balances: Dict[str, Any] = {}
                 day_rows: Dict[str, Dict[str, list]] = {}
-                if agent_ids:
+                active_agents_for_day: Optional[List[str]] = None
+                if agent_ids is not None:
+                    active_agents_for_day = display_agent_ids or []
+                if active_agents_for_day:
                     from bilancio.analysis.visualization import build_t_account_rows
-                    for agent_id in agent_ids:
+                    for agent_id in active_agents_for_day:
                         day_balances[agent_id] = agent_balance(system, agent_id)
                         acct = build_t_account_rows(system, agent_id)
                         def to_row(r):
@@ -9577,7 +9864,8 @@ def run_until_stable_mode(
                     'quiet': report.impacted == 0,
                     'stable': is_stable,
                     'balances': day_balances,
-                    'rows': day_rows
+                    'rows': day_rows,
+                    'agent_ids': active_agents_for_day if active_agents_for_day is not None else [],
                 })
                 
                 # Show activity summary
@@ -10880,6 +11168,7 @@ class TestScenarioConfig:
         assert config.policy_overrides.mop_rank["household"] == ["bank_deposit", "cash"]
         assert config.run.mode == "until_stable"
         assert config.run.max_days == 90
+        assert config.run.default_handling == "fail-fast"
         assert config.run.export.balances_csv == "balances.csv"
     
     def test_duplicate_agent_ids_rejected(self):
@@ -10916,23 +11205,26 @@ class TestRunConfig:
         assert config.mode == "until_stable"
         assert config.max_days == 90
         assert config.quiet_days == 2
+        assert config.default_handling == "fail-fast"
         assert config.show.events == "detailed"
         assert config.show.balances is None
         assert config.export.balances_csv is None
         assert config.export.events_jsonl is None
-    
+
     def test_custom_run_config(self):
         """Test custom run configuration."""
         config = RunConfig(
             mode="step",
             max_days=30,
             quiet_days=5,
+            default_handling="expel-agent",
             show={"balances": ["A1", "A2"], "events": "summary"},
             export={"balances_csv": "out.csv"}
         )
         assert config.mode == "step"
         assert config.max_days == 30
         assert config.quiet_days == 5
+        assert config.default_handling == "expel-agent"
         assert config.show.balances == ["A1", "A2"]
         assert config.show.events == "summary"
         assert config.export.balances_csv == "out.csv"
@@ -10946,6 +11238,7 @@ class TestRunConfig:
         """Test that negative quiet_days is rejected."""
         with pytest.raises(ValidationError):
             RunConfig(quiet_days=-1)
+
 ```
 
 ---
@@ -11034,6 +11327,103 @@ def test_transfer_claim_alias_and_id_model_allows_both():
     assert m.contract_alias == "ALIASX"
     assert m.contract_id == "C_YYY"
 
+
+```
+
+---
+
+### 🧪 tests/engines/test_default_handling.py
+
+```python
+import pytest
+
+from bilancio.core.errors import DefaultError
+from bilancio.domain.instruments.credit import Payable
+from bilancio.engines.settlement import settle_due
+from bilancio.engines.system import System
+from bilancio.domain.agents.central_bank import CentralBank
+from bilancio.domain.agents.firm import Firm
+
+
+def _basic_system(default_mode: str = "fail-fast"):
+    system = System(default_mode=default_mode)
+    cb = CentralBank(id="CB", name="Central Bank", kind="central_bank")
+    debtor = Firm(id="D1", name="Debtor", kind="firm")
+    creditor = Firm(id="C1", name="Creditor", kind="firm")
+    system.add_agent(cb)
+    system.add_agent(debtor)
+    system.add_agent(creditor)
+    return system, cb, debtor, creditor
+
+
+def _make_payable(system: System, debtor: Firm, creditor: Firm, amount: int, due_day: int) -> Payable:
+    payable = Payable(
+        id=system.new_contract_id("PAY"),
+        kind="payable",
+        amount=amount,
+        denom="X",
+        asset_holder_id=creditor.id,
+        liability_issuer_id=debtor.id,
+        due_day=due_day,
+    )
+    system.add_contract(payable)
+    return payable
+
+
+def test_fail_fast_mode_raises_default():
+    system, _, debtor, creditor = _basic_system()
+    _make_payable(system, debtor, creditor, amount=100, due_day=1)
+
+    with pytest.raises(DefaultError):
+        settle_due(system, 1)
+
+
+def test_expel_mode_handles_partial_payment_and_marks_agent():
+    system, _, debtor, creditor = _basic_system(default_mode="expel-agent")
+    payable = _make_payable(system, debtor, creditor, amount=100, due_day=1)
+    trailing_payable = _make_payable(system, debtor, creditor, amount=50, due_day=2)
+
+    # Provide partial liquidity (60 of required 100)
+    system.mint_cash(debtor.id, 60)
+
+    # Scheduled action involving debtor should be cancelled once defaulted
+    system.state.scheduled_actions_by_day[2] = [
+        {"mint_cash": {"to": debtor.id, "amount": 10}}
+    ]
+
+    settle_due(system, 1)
+
+    assert payable.id not in system.state.contracts
+    assert trailing_payable.id not in system.state.contracts
+    assert debtor.defaulted is True
+    assert debtor.id in system.state.defaulted_agent_ids
+    assert creditor.asset_ids.count(payable.id) == 0
+    assert creditor.asset_ids.count(trailing_payable.id) == 0
+    assert not system.state.scheduled_actions_by_day
+
+    kinds = [event["kind"] for event in system.state.events]
+    assert "PartialSettlement" in kinds
+    assert "ObligationDefaulted" in kinds
+    assert "AgentDefaulted" in kinds
+    assert "ScheduledActionCancelled" in kinds
+    assert "ObligationWrittenOff" in kinds
+
+    partial_event = next(e for e in system.state.events if e["kind"] == "PartialSettlement")
+    assert partial_event["amount_paid"] == 60
+    assert partial_event["shortfall"] == 40
+    assert partial_event["contract_id"] == payable.id
+    assert partial_event["distribution"] == [{"method": "cash", "amount": 60}]
+
+    default_event = next(e for e in system.state.events if e["kind"] == "ObligationDefaulted")
+    assert default_event["contract_id"] == payable.id
+    assert default_event["shortfall"] == 40
+    assert default_event["amount"] == 40
+
+    written_off_ids = [e["contract_id"] for e in system.state.events if e["kind"] == "ObligationWrittenOff"]
+    assert trailing_payable.id in written_off_ids
+
+    agent_event = next(e for e in system.state.events if e["kind"] == "AgentDefaulted")
+    assert agent_event["frm"] == debtor.id
 
 ```
 
@@ -14026,4 +14416,4 @@ def test_settle_multiple_obligations():
 
 Generated from: /Users/vladgheorghe/code/bilancio
 Total source files: 62
-Total test files: 24
+Total test files: 25

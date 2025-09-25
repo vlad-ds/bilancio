@@ -29,6 +29,21 @@ from .display import (
 console = Console(record=True, width=120)
 
 
+def _filter_active_agent_ids(system: System, agent_ids: Optional[List[str]]) -> Optional[List[str]]:
+    """Return only agent IDs that remain active (not defaulted)."""
+    if agent_ids is None:
+        return None
+    active_ids: List[str] = []
+    for aid in agent_ids:
+        agent = system.state.agents.get(aid)
+        if not agent:
+            continue
+        if getattr(agent, "defaulted", False):
+            continue
+        active_ids.append(aid)
+    return active_ids
+
+
 def run_scenario(
     path: Path,
     mode: str = "until_stable",
@@ -39,7 +54,8 @@ def run_scenario(
     check_invariants: str = "setup",
     export: Optional[Dict[str, str]] = None,
     html_output: Optional[Path] = None,
-    t_account: bool = False
+    t_account: bool = False,
+    default_handling: Optional[str] = None
 ) -> None:
     """Run a Bilancio simulation scenario.
     
@@ -57,9 +73,16 @@ def run_scenario(
     # Load configuration
     console.print("[dim]Loading scenario...[/dim]")
     config = load_yaml(path)
-    
-    # Create and configure system
-    system = System()
+
+    # Determine effective default-handling strategy (CLI override wins)
+    effective_default_handling = default_handling or config.run.default_handling
+    if default_handling and config.run.default_handling != default_handling:
+        config = config.model_copy(update={
+            "run": config.run.model_copy(update={"default_handling": effective_default_handling})
+        })
+
+    # Create and configure system with selected default-handling mode
+    system = System(default_mode=effective_default_handling)
     
     # Preflight schedule validation (aliases available when referenced)
     try:
@@ -115,6 +138,7 @@ def run_scenario(
     header_renderables = show_scenario_header_renderable(config.name, config.description, config.agents)
     for renderable in header_renderables:
         console.print(renderable)
+    console.print(f"[dim]Default handling mode: {effective_default_handling}[/dim]")
     
     # Show initial state
     console.print("\n[bold cyan]📅 Day 0 (After Setup)[/bold cyan]")
@@ -249,7 +273,8 @@ def run_step_mode(
             if day_before >= 1:
                 # Show day summary
                 console.print(f"\n[bold cyan]📅 Day {day_before}[/bold cyan]")
-                renderables = show_day_summary_renderable(system, agent_ids, show, day=day_before, t_account=t_account)
+                display_agent_ids = _filter_active_agent_ids(system, agent_ids) if agent_ids is not None else None
+                renderables = show_day_summary_renderable(system, display_agent_ids, show, day=day_before, t_account=t_account)
                 for renderable in renderables:
                     console.print(renderable)
                 
@@ -261,7 +286,10 @@ def run_step_mode(
                 # Capture current balance state for this day
                 day_balances: Dict[str, Any] = {}
                 day_rows: Dict[str, Dict[str, list]] = {}
-                if agent_ids:
+                active_agents_for_day: Optional[List[str]] = None
+                if agent_ids is not None:
+                    active_agents_for_day = display_agent_ids or []
+                if active_agents_for_day:
                     from bilancio.analysis.balances import agent_balance
                     from bilancio.analysis.visualization import build_t_account_rows
 
@@ -275,7 +303,7 @@ def run_step_mode(
                             'id_or_alias': getattr(r, 'id_or_alias', None),
                         }
 
-                    for agent_id in agent_ids:
+                    for agent_id in active_agents_for_day:
                         day_balances[agent_id] = agent_balance(system, agent_id)
                         acct = build_t_account_rows(system, agent_id)
                         day_rows[agent_id] = {
@@ -289,7 +317,8 @@ def run_step_mode(
                     'quiet': day_report.quiet,
                     'stable': day_report.quiet and not day_report.has_open_obligations,
                     'balances': day_balances,
-                    'rows': day_rows
+                    'rows': day_rows,
+                    'agent_ids': active_agents_for_day if active_agents_for_day is not None else [],
                 })
             
             # Check if we've reached a stable state
@@ -399,7 +428,8 @@ def run_until_stable_mode(
                 
                 # Show events and balances for this specific day
                 # Note: events are stored with 0-based day numbers
-                renderables = show_day_summary_renderable(system, agent_ids, show, day=day_before, t_account=t_account)
+                display_agent_ids = _filter_active_agent_ids(system, agent_ids) if agent_ids is not None else None
+                renderables = show_day_summary_renderable(system, display_agent_ids, show, day=day_before, t_account=t_account)
                 for renderable in renderables:
                     console.print(renderable)
                 
@@ -413,9 +443,12 @@ def run_until_stable_mode(
                 # Capture current balance state for this day
                 day_balances: Dict[str, Any] = {}
                 day_rows: Dict[str, Dict[str, list]] = {}
-                if agent_ids:
+                active_agents_for_day: Optional[List[str]] = None
+                if agent_ids is not None:
+                    active_agents_for_day = display_agent_ids or []
+                if active_agents_for_day:
                     from bilancio.analysis.visualization import build_t_account_rows
-                    for agent_id in agent_ids:
+                    for agent_id in active_agents_for_day:
                         day_balances[agent_id] = agent_balance(system, agent_id)
                         acct = build_t_account_rows(system, agent_id)
                         def to_row(r):
@@ -438,7 +471,8 @@ def run_until_stable_mode(
                     'quiet': report.impacted == 0,
                     'stable': is_stable,
                     'balances': day_balances,
-                    'rows': day_rows
+                    'rows': day_rows,
+                    'agent_ids': active_agents_for_day if active_agents_for_day is not None else [],
                 })
                 
                 # Show activity summary

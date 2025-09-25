@@ -187,3 +187,26 @@ The B1 → B2 split is safe: B1 mutates state, then B2 settles based on that sta
 - Ordering within B1 matters: Scheduled actions run top‑to‑bottom. Moving assets away before a same‑day settlement can cause failures—write actions in an order that matches your intent.
 
 If you need to extinguish/cancel manually in B1, consider adding explicit actions (e.g., `settle_payable`, `cancel_delivery_obligation`) so B1 can fully settle/cancel without B2 duplicating the work.
+
+### Default-handling modes for debtor defaults
+
+Bilancio now supports two strategies when an obligation cannot be fully settled:
+
+- `fail-fast` (default): the first default raises `DefaultError` and stops the simulation, matching previous behaviour.
+- `expel-agent`: the debtor is marked defaulted, any partial payment is logged as `PartialSettlement`, the triggering contract logs `ObligationDefaulted`, all remaining liabilities issued by the agent are written off (`ObligationWrittenOff`), scheduled actions referencing that agent are cancelled, and the run continues for everyone else.
+
+Select the mode per scenario via `run.default_handling`:
+
+```yaml
+run:
+  mode: until_stable
+  max_days: 5
+  quiet_days: 2
+  default_handling: expel-agent
+```
+
+Or override from the CLI:
+
+```bash
+python -m bilancio.ui.cli run examples/scenarios/default_handling_demo.yaml --default-handling expel-agent
+```

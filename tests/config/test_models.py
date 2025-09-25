@@ -188,6 +188,7 @@ class TestScenarioConfig:
         assert config.policy_overrides.mop_rank["household"] == ["bank_deposit", "cash"]
         assert config.run.mode == "until_stable"
         assert config.run.max_days == 90
+        assert config.run.default_handling == "fail-fast"
         assert config.run.export.balances_csv == "balances.csv"
     
     def test_duplicate_agent_ids_rejected(self):
@@ -224,23 +225,26 @@ class TestRunConfig:
         assert config.mode == "until_stable"
         assert config.max_days == 90
         assert config.quiet_days == 2
+        assert config.default_handling == "fail-fast"
         assert config.show.events == "detailed"
         assert config.show.balances is None
         assert config.export.balances_csv is None
         assert config.export.events_jsonl is None
-    
+
     def test_custom_run_config(self):
         """Test custom run configuration."""
         config = RunConfig(
             mode="step",
             max_days=30,
             quiet_days=5,
+            default_handling="expel-agent",
             show={"balances": ["A1", "A2"], "events": "summary"},
             export={"balances_csv": "out.csv"}
         )
         assert config.mode == "step"
         assert config.max_days == 30
         assert config.quiet_days == 5
+        assert config.default_handling == "expel-agent"
         assert config.show.balances == ["A1", "A2"]
         assert config.show.events == "summary"
         assert config.export.balances_csv == "out.csv"
