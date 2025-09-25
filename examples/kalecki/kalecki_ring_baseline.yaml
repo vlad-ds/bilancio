@@ -1,0 +1,47 @@
+version: 1
+name: "Kalecki Ring Baseline (5 agents, equal dues, starter cash at H1)"
+description: >
+  Baseline Kalecki-style debt settlement: 5 households in a directed ring,
+  each owes Q to the next, all due on Day 1. Only H1 has cash at start (Day 0).
+  Under the default settlement loop (RTGS-like), Q circulates and all dues settle intraday.
+
+# Optional: force households to prefer cash if your default policy ranks deposits first.
+# If unsure, leave this block out; cash-only still works since only cash is present.
+# policy_overrides:
+#   mop_rank:
+#     household: ["cash"]
+
+agents:
+  - { id: CB, kind: central_bank, name: "Central Bank" }
+  - { id: H1, kind: household,   name: "Agent 1" }
+  - { id: H2, kind: household,   name: "Agent 2" }
+  - { id: H3, kind: household,   name: "Agent 3" }
+  - { id: H4, kind: household,   name: "Agent 4" }
+  - { id: H5, kind: household,   name: "Agent 5" }
+
+# Day 0 (setup): give Q to H1; create payables due on Day 1
+initial_actions:
+  # Set Q=100 (pick any positive Decimal)
+  - mint_cash: { to: H1, amount: 100, alias: LIQ_H1 }
+
+  # Five ring payables due on Day 1 (aliases optional but help in event tables)
+  - create_payable: { from: H1, to: H2, amount: 100, due_day: 1, alias: P12 }
+  - create_payable: { from: H2, to: H3, amount: 100, due_day: 1, alias: P23 }
+  - create_payable: { from: H3, to: H4, amount: 100, due_day: 1, alias: P34 }
+  - create_payable: { from: H4, to: H5, amount: 100, due_day: 1, alias: P45 }
+  - create_payable: { from: H5, to: H1, amount: 100, due_day: 1, alias: P51 }
+
+# No scheduled actions needed: we want pure settlement dynamics on Day 1
+scheduled_actions: []
+
+run:
+  mode: until_stable   # keep simulating days until quiet_days of no new events
+  max_days: 5
+  quiet_days: 1
+  show:
+    balances: [H1, H2, H3, H4, H5]
+    events: table
+  export:
+    balances_csv: "out/kalecki_ring_baseline_balances.csv"
+    events_jsonl:  "out/kalecki_ring_baseline_events.jsonl"
+

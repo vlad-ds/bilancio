@@ -3,7 +3,7 @@ name: Update codebase_for_llm
 on:
   push:
     branches:
-      - '**'
+      - main
 
 permissions:
   contents: write
