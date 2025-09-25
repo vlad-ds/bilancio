@@ -23,6 +23,7 @@ This document contains the complete codebase structure and content for LLM inges
 │   ├── Money modeling software.pdf
 │   ├── SP239 Kalecki on Credit and Debt extended.pdf
 │   ├── codebase_for_llm.md
+│   ├── exercises_scenarios.md
 │   ├── plans
 │   │   ├── 000_setup.md
 │   │   ├── 001_domain_system.md
@@ -35,11 +36,29 @@ This document contains the complete codebase structure and content for LLM inges
 │   │   ├── 009_cli.md
 │   │   ├── 010_ui_refactor.md
 │   │   ├── 011_tbs.md
+│   │   ├── 012_scheduled_actions_and_aliases.md
 │   │   └── Kalecki_debt_simulation (1).pdf
 │   ├── prompts
 │   │   └── scenario_translator_agent.md
 │   └── version_1_0_exercises.pdf
 ├── examples
+│   ├── exercise_scenarios
+│   │   ├── html
+│   │   │   ├── ex1_cash_for_goods.html
+│   │   │   ├── ex2_two_firms_cash_purchase.html
+│   │   │   ├── ex3_iou_assignment.html
+│   │   │   ├── ex4_generic_claim_transfer.html
+│   │   │   ├── ex5_deferred_exchange.html
+│   │   │   ├── ex6_goods_now_cash_later.html
+│   │   │   └── ex7_cash_now_goods_later.html
+│   │   └── yaml
+│   │       ├── ex1_cash_for_goods.yaml
+│   │       ├── ex2_two_firms_cash_purchase.yaml
+│   │       ├── ex3_iou_assignment.yaml
+│   │       ├── ex4_generic_claim_transfer.yaml
+│   │       ├── ex5_deferred_exchange.yaml
+│   │       ├── ex6_goods_now_cash_later.yaml
+│   │       └── ex7_cash_now_goods_later.yaml
 │   └── scenarios
 │       ├── firm_delivery.yaml
 │       ├── interbank_netting.yaml
@@ -116,6 +135,7 @@ This document contains the complete codebase structure and content for LLM inges
 │       │   └── writers.py
 │       ├── ops
 │       │   ├── __init__.py
+│       │   ├── aliases.py
 │       │   ├── banking.py
 │       │   ├── cashflows.py
 │       │   ├── primitives.py
@@ -136,7 +156,17 @@ This document contains the complete codebase structure and content for LLM inges
 │           ├── settings.py
 │           └── wizard.py
 ├── temp
+│   ├── check_ex7.html
 │   ├── demo.html
+│   ├── ex1_cash_for_goods.html
+│   ├── ex2_two_firms_cash_purchase.html
+│   ├── ex3_iou_assignment.html
+│   ├── ex3_iou_assignment_debug.html
+│   ├── ex3_iou_assignment_step.html
+│   ├── ex4_generic_claim_transfer.html
+│   ├── ex5_deferred_exchange.html
+│   ├── ex6_goods_now_cash_later.html
+│   ├── ex7_cash_now_goods_later.html
 │   ├── final_demo.html
 │   ├── firm_delivery.html
 │   ├── phases_2days.html
@@ -159,12 +189,18 @@ This document contains the complete codebase structure and content for LLM inges
     ├── config
     │   ├── test_apply.py
     │   ├── test_loaders.py
-    │   └── test_models.py
+    │   ├── test_models.py
+    │   ├── test_scheduled_alias_validation.py
+    │   └── test_transfer_claim_model.py
+    ├── engines
+    │   └── test_phase_b1_scheduling.py
     ├── integration
     │   ├── test_banking_ops.py
     │   ├── test_clearing_phase_c.py
     │   ├── test_day_simulation.py
     │   └── test_settlement_phase_b.py
+    ├── ops
+    │   └── test_alias_helpers.py
     ├── test_smoke.py
     ├── ui
     │   ├── test_cli.py
@@ -178,7 +214,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-34 directories, 136 files
+39 directories, 167 files
 
 ```
 
@@ -857,6 +893,59 @@ Complete git history from oldest to newest:
 
 - **11823a65** (2025-08-24) by Vlad Gheorghe
   fix: follow-ups for PR #12 (safe numeric conversions, maturity parsing helper, CSS extraction, tests) (#13)
+
+- **8ac98b9c** (2025-09-02) by vladgheorghe
+  Scenarios: add exercise scenarios 1–2 and run via day-1 obligations
+  - ex1_cash_for_goods.yaml: switch to delivery obligation + payable due day 1
+  - ex2_two_firms_cash_purchase.yaml: modeled via day-1 obligations
+  - Kept setup to endow assets only; settlement occurs in simulation
+  - Validated and produced HTML reports under temp/
+  Note: Scenarios 3–4 need claim assignment + scheduled actions (not yet supported).
+
+- **797d4ac2** (2025-09-04) by vladgheorghe
+  Plan: Mid-simulation actions via Phase B split (B1 scheduled, B2 settlement), aliases, and explicit claim transfer
+  - Keep Phase A reserved; execute scheduled actions at start of Phase B
+  - Add alias support on create-* actions for contracts (mint_cash, mint_reserves, create_payable, create_delivery_obligation)
+  - Add transfer_claim action referencing by alias or id (both allowed if consistent)
+  - Schedule actions by day; render HTML with separate Phase B1/B2 tables
+  - No code changes yet — planning document only (plans/scheduled_actions_and_aliases.md)
+
+- **a707e2f4** (2025-09-04) by vladgheorghe
+  Move plan to docs/plans with numbering: 012_scheduled_actions_and_aliases.md
+
+- **a10e0ebb** (2025-09-04) by vladgheorghe
+  feat(sim): scheduled actions (Phase B1) + alias support + claim transfer\n\n- models: add alias to create_*; add TransferClaim; add ScheduledAction + scheduled_actions on scenario\n- system: state aliases + scheduled_actions_by_day; create_delivery_obligation/mint_* accept alias and log it; run_day executes B1 then B2\n- apply: wire aliases, pass alias into system APIs, implement transfer_claim reassignment\n- html export: add ID/Alias column to events and T-accounts; split Phase B into B1/B2 tables\n- ui/run: stage scheduled_actions and carry id_or_alias to HTML rows\n\nscenarios:\n- ex1/ex2 already added; ex3 updated to day1 assignment + day2 settlement (aliases shown); ex4 generic claim transfer with consideration\n\nnote: step-mode DayReport None issue still present (not addressed)
+
+- **94f0d8a8** (2025-09-04) by vladgheorghe
+  ui: show aliases on cancel/settle events + ID fallback
+  - engines/system: include alias + contract_id on DeliveryObligationCancelled
+  - engines/settlement: include alias + contract_id on DeliveryObligationSettled and PayableSettled
+  - html_export: ID/Alias column considers obligation_id and pid as fallbacks
+  scenarios: add Ex6 and Ex7 YAMLs
+
+- **168997af** (2025-09-04) by vladgheorghe
+  chore(examples): organize exercise scenarios 1–7 into subfolders and regenerate HTML reports\n\n- Move YAMLs to examples/exercise_scenarios/yaml/\n- Export HTMLs to examples/exercise_scenarios/html/ for ex1–ex7
+
+- **3d84c69e** (2025-09-04) by vladgheorghe
+  chore(examples): regenerate HTML reports for ex2–ex7 in examples/exercise_scenarios/html/
+
+- **d1d95e38** (2025-09-04) by vladgheorghe
+  fix: address PR feedback (critical+moderate)
+  - models: move model_validator import to module scope
+  - apply: order-independent transfer_claim validation with clear errors
+  - ops/aliases: add helpers for alias/id lookup; use in settlement/system
+  - ui/run: preflight validate scheduled alias references; refactor row dict builder
+  - html_export: ID/Alias fallback includes obligation_id & pid
+  No functional changes to scenarios; validated ex7 run.
+
+- **d6665c77** (2025-09-04) by vladgheorghe
+  chore(examples): re-render HTML reports for ex1–ex7
+
+- **92b6d633** (2025-09-04) by vladgheorghe
+  fix(ui/run): step-mode HTML export bug\n\nMove _row_dict helper out of inner block and ensure day_rows assignments execute within the agent loop. This fixes unreachable code causing empty T-account rows in step-mode exports.
+
+- **9092d6e9** (2025-09-04) by vladgheorghe
+  test: add coverage for TransferClaim, schedule alias validation, B1 execution, and alias helpers
 
 ---
 
@@ -2293,6 +2382,7 @@ class BalanceRow:
     value_minor: Optional[int]
     counterparty_name: Optional[str]
     maturity: Optional[str]
+    id_or_alias: Optional[str] = None
 
 
 @dataclass
@@ -2351,6 +2441,12 @@ def build_t_account_rows(system: System, agent_id: str) -> TAccount:
             maturity="—",
         ))
 
+    # Precompute id->alias map for quick lookups
+    try:
+        id_to_alias = {cid: alias for alias, cid in (system.state.aliases or {}).items()}
+    except Exception:
+        id_to_alias = {}
+
     # Contracts as assets (held by agent)
     for cid in agent.asset_ids:
         c = system.state.contracts[cid]
@@ -2370,6 +2466,7 @@ def build_t_account_rows(system: System, agent_id: str) -> TAccount:
                 value_minor=valued_minor,
                 counterparty_name=counterparty,
                 maturity=maturity,
+                id_or_alias=id_to_alias.get(cid, cid),
             ))
         else:
             # Financial assets
@@ -2383,6 +2480,7 @@ def build_t_account_rows(system: System, agent_id: str) -> TAccount:
                 value_minor=int(c.amount) if c.amount is not None else None,
                 counterparty_name=counterparty if c.kind != "cash" else "—",
                 maturity=maturity,
+                id_or_alias=id_to_alias.get(cid, cid),
             ))
 
     # Contracts as liabilities (issued by agent)
@@ -2402,6 +2500,7 @@ def build_t_account_rows(system: System, agent_id: str) -> TAccount:
                 value_minor=valued_minor,
                 counterparty_name=counterparty,
                 maturity=maturity,
+                id_or_alias=id_to_alias.get(cid, cid),
             ))
         else:
             counterparty = _format_agent(c.asset_holder_id, system)
@@ -2414,6 +2513,7 @@ def build_t_account_rows(system: System, agent_id: str) -> TAccount:
                 value_minor=int(c.amount) if c.amount is not None else None,
                 counterparty_name=counterparty,
                 maturity=maturity,
+                id_or_alias=id_to_alias.get(cid, cid),
             ))
 
     # Ordering within each side
@@ -3547,6 +3647,7 @@ from bilancio.domain.agents import Bank, Household, Firm, CentralBank, Treasury
 from bilancio.ops.banking import deposit_cash, withdraw_cash, client_payment
 from bilancio.domain.instruments.credit import Payable
 from bilancio.core.errors import ValidationError
+from bilancio.core.atomic_tx import atomic
 
 from .models import ScenarioConfig, AgentSpec
 from .loaders import parse_action
@@ -3616,16 +3717,29 @@ def apply_action(system: System, action_dict: Dict[str, Any], agents: Dict[str, 
     
     try:
         if action_type == "mint_reserves":
-            system.mint_reserves(
+            instr_id = system.mint_reserves(
                 to_bank_id=action.to,
-                amount=action.amount
+                amount=action.amount,
+                alias=getattr(action, 'alias', None)
             )
+            # optional alias capture
+            if getattr(action, 'alias', None):
+                alias = action.alias
+                if alias in system.state.aliases:
+                    raise ValueError(f"Alias already exists: {alias}")
+                system.state.aliases[alias] = instr_id
             
         elif action_type == "mint_cash":
-            system.mint_cash(
+            instr_id = system.mint_cash(
                 to_agent_id=action.to,
-                amount=action.amount
+                amount=action.amount,
+                alias=getattr(action, 'alias', None)
             )
+            if getattr(action, 'alias', None):
+                alias = action.alias
+                if alias in system.state.aliases:
+                    raise ValueError(f"Alias already exists: {alias}")
+                system.state.aliases[alias] = instr_id
             
         elif action_type == "transfer_reserves":
             system.transfer_reserves(
@@ -3717,14 +3831,20 @@ def apply_action(system: System, action_dict: Dict[str, Any], agents: Dict[str, 
             )
             
         elif action_type == "create_delivery_obligation":
-            system.create_delivery_obligation(
+            instr_id = system.create_delivery_obligation(
                 from_agent=action.from_agent,
                 to_agent=action.to_agent,
                 sku=action.sku,
                 quantity=action.quantity,
                 unit_price=action.unit_price,
-                due_day=action.due_day
+                due_day=action.due_day,
+                alias=getattr(action, 'alias', None)
             )
+            if getattr(action, 'alias', None):
+                alias = action.alias
+                if alias in system.state.aliases:
+                    raise ValueError(f"Alias already exists: {alias}")
+                system.state.aliases[alias] = instr_id
             
         elif action_type == "create_payable":
             # Create a Payable instrument
@@ -3742,6 +3862,12 @@ def apply_action(system: System, action_dict: Dict[str, Any], agents: Dict[str, 
                 due_day=action.due_day
             )
             system.add_contract(payable)
+            # optional alias capture
+            if getattr(action, 'alias', None):
+                alias = action.alias
+                if alias in system.state.aliases:
+                    raise ValueError(f"Alias already exists: {alias}")
+                system.state.aliases[alias] = payable.id
             
             # Log the event
             system.log("PayableCreated",
@@ -3749,8 +3875,51 @@ def apply_action(system: System, action_dict: Dict[str, Any], agents: Dict[str, 
                 creditor=action.to_agent,
                 amount=int(action.amount),
                 due_day=action.due_day,
-                payable_id=payable.id
+                payable_id=payable.id,
+                alias=getattr(action, 'alias', None)
             )
+        
+        elif action_type == "transfer_claim":
+            # Transfer claim (reassign asset holder) by alias or id (order-independent validation)
+            data = action
+            alias = getattr(data, 'contract_alias', None)
+            explicit_id = getattr(data, 'contract_id', None)
+            id_from_alias = None
+            if alias is not None:
+                id_from_alias = system.state.aliases.get(alias)
+                if id_from_alias is None:
+                    raise ValueError(f"Unknown alias: {alias}")
+            if alias is not None and explicit_id is not None and id_from_alias != explicit_id:
+                raise ValueError(f"Alias {alias} and contract_id {explicit_id} refer to different contracts")
+            resolved_id = explicit_id or id_from_alias
+            if not resolved_id:
+                raise ValueError("transfer_claim requires contract_alias or contract_id to resolve a contract")
+
+            instr = system.state.contracts.get(resolved_id)
+            if instr is None:
+                raise ValueError(f"Contract not found: {resolved_id}")
+
+            old_holder_id = instr.asset_holder_id
+            new_holder_id = data.to_agent
+
+            # Perform reassignment atomically
+            with atomic(system):
+                old_holder = system.state.agents[old_holder_id]
+                new_holder = system.state.agents[new_holder_id]
+                if resolved_id not in old_holder.asset_ids:
+                    raise ValueError(f"Contract {resolved_id} not in old holder's assets")
+                old_holder.asset_ids.remove(resolved_id)
+                new_holder.asset_ids.append(resolved_id)
+                instr.asset_holder_id = new_holder_id
+                system.log("ClaimTransferred",
+                           contract_id=resolved_id,
+                           frm=old_holder_id,
+                           to=new_holder_id,
+                           contract_kind=instr.kind,
+                           amount=getattr(instr, 'amount', None),
+                           due_day=getattr(instr, 'due_day', None),
+                           sku=getattr(instr, 'sku', None),
+                           alias=alias)
             
         else:
             raise ValueError(f"Unknown action type: {action_type}")
@@ -3758,6 +3927,59 @@ def apply_action(system: System, action_dict: Dict[str, Any], agents: Dict[str, 
     except Exception as e:
         # Add context to the error
         raise ValueError(f"Failed to apply {action_type}: {e}")
+
+
+def _collect_alias_from_action(action_model) -> str | None:
+    return getattr(action_model, 'alias', None)
+
+
+def validate_scheduled_aliases(config: ScenarioConfig) -> None:
+    """Preflight check: ensure aliases referenced by scheduled actions exist by the time of use,
+    and detect duplicates across initial and scheduled actions.
+    Raises ValueError with a clear message on violation.
+    """
+    alias_set: set[str] = set()
+
+    # 1) Process initial_actions (creation only)
+    for act in config.initial_actions or []:
+        try:
+            m = parse_action(act)
+        except Exception:
+            # malformed action will be caught elsewhere
+            continue
+        alias = _collect_alias_from_action(m)
+        if alias:
+            if alias in alias_set:
+                raise ValueError(f"Duplicate alias in initial_actions: {alias}")
+            alias_set.add(alias)
+
+    # 2) Group scheduled by day preserving order
+    by_day: dict[int, list] = {}
+    for sa in getattr(config, 'scheduled_actions', []) or []:
+        by_day.setdefault(sa.day, []).append(sa.action)
+
+    # 3) Validate day by day
+    for day in sorted(by_day.keys()):
+        for act in by_day[day]:
+            try:
+                m = parse_action(act)
+            except Exception:
+                continue
+            action_type = m.action
+            if action_type == 'transfer_claim':
+                alias = getattr(m, 'contract_alias', None)
+                if alias and alias not in alias_set:
+                    raise ValueError(
+                        f"Scheduled transfer_claim references unknown alias '{alias}' on day {day}. "
+                        "Ensure it is created earlier (same day allowed only if ordered before use)."
+                    )
+            else:
+                # Capture new aliases created by scheduled actions
+                new_alias = _collect_alias_from_action(m)
+                if new_alias:
+                    if new_alias in alias_set:
+                        raise ValueError(f"Duplicate alias detected: '{new_alias}' already defined before day {day}")
+                    alias_set.add(new_alias)
 
 
 def apply_to_system(config: ScenarioConfig, system: System) -> None:
@@ -3800,6 +4022,7 @@ def apply_to_system(config: ScenarioConfig, system: System) -> None:
     
     # Final invariant check outside of setup
     system.assert_invariants()
+
 ```
 
 ---
@@ -3890,6 +4113,10 @@ def parse_action(action_dict: Dict[str, Any]) -> Action:
         data = action_dict["create_payable"]
         # The model handles aliases automatically via pydantic
         return CreatePayable(**data)
+    elif "transfer_claim" in action_dict:
+        data = action_dict["transfer_claim"]
+        from .models import TransferClaim
+        return TransferClaim(**data)
     else:
         raise ValueError(f"Unknown action type in: {action_dict}")
 
@@ -3991,6 +4218,7 @@ def load_yaml(path: Path | str) -> ScenarioConfig:
         raise ValueError(error_msg)
     
     return config
+
 ```
 
 ---
@@ -4002,7 +4230,7 @@ def load_yaml(path: Path | str) -> ScenarioConfig:
 
 from typing import Literal, Optional, Union, List, Dict, Any
 from decimal import Decimal
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class PolicyOverrides(BaseModel):
@@ -4027,6 +4255,10 @@ class MintReserves(BaseModel):
     action: Literal["mint_reserves"] = "mint_reserves"
     to: str = Field(..., description="Target bank ID")
     amount: Decimal = Field(..., description="Amount to mint")
+    alias: Optional[str] = Field(
+        None,
+        description="Optional alias to reference the created reserve_deposit contract later"
+    )
     
     @field_validator("amount")
     @classmethod
@@ -4041,6 +4273,10 @@ class MintCash(BaseModel):
     action: Literal["mint_cash"] = "mint_cash"
     to: str = Field(..., description="Target agent ID")
     amount: Decimal = Field(..., description="Amount to mint")
+    alias: Optional[str] = Field(
+        None,
+        description="Optional alias to reference the created cash contract later"
+    )
     
     @field_validator("amount")
     @classmethod
@@ -4173,6 +4409,10 @@ class CreateDeliveryObligation(BaseModel):
     quantity: int = Field(..., description="Quantity to deliver")
     unit_price: Decimal = Field(..., description="Price per unit")
     due_day: int = Field(..., description="Day when delivery is due")
+    alias: Optional[str] = Field(
+        None,
+        description="Optional alias to reference the created delivery obligation later"
+    )
     
     @field_validator("quantity")
     @classmethod
@@ -4203,6 +4443,10 @@ class CreatePayable(BaseModel):
     to_agent: str = Field(..., description="Creditor agent ID", alias="to")
     amount: Decimal = Field(..., description="Amount to pay")
     due_day: int = Field(..., description="Day when payment is due")
+    alias: Optional[str] = Field(
+        None,
+        description="Optional alias to reference the created payable later"
+    )
     
     @field_validator("amount")
     @classmethod
@@ -4220,6 +4464,44 @@ class CreatePayable(BaseModel):
 
 
 # Union type for all actions
+class TransferClaim(BaseModel):
+    """Action to transfer (assign) a claim to a new creditor.
+
+    References a specific contract by alias or by ID. Both may be provided, but
+    if both are present they must refer to the same contract.
+    """
+    action: Literal["transfer_claim"] = "transfer_claim"
+    contract_alias: Optional[str] = Field(None, description="Alias of the contract to transfer")
+    contract_id: Optional[str] = Field(None, description="Explicit contract ID to transfer")
+    to_agent: str = Field(..., description="New creditor (asset holder) agent ID")
+
+    @field_validator("to_agent")
+    @classmethod
+    def non_empty_agent(cls, v):
+        if not v:
+            raise ValueError("to_agent is required")
+        return v
+
+    @model_validator(mode="after")
+    def validate_reference(self):
+        if not self.contract_alias and not self.contract_id:
+            raise ValueError("Either contract_alias or contract_id must be provided")
+        return self
+
+
+class ScheduledAction(BaseModel):
+    """A user-scheduled action to run at a specific day (Phase B1)."""
+    day: int = Field(..., description="Day index (>= 1) to execute this action")
+    action: Dict[str, Any] = Field(..., description="Single action dictionary to execute on that day")
+
+    @field_validator("day")
+    @classmethod
+    def day_positive(cls, v):
+        if v < 1:
+            raise ValueError("Scheduled action day must be >= 1")
+        return v
+
+
 Action = Union[
     MintReserves,
     MintCash,
@@ -4231,7 +4513,8 @@ Action = Union[
     CreateStock,
     TransferStock,
     CreateDeliveryObligation,
-    CreatePayable
+    CreatePayable,
+    TransferClaim,
 ]
 
 
@@ -4298,6 +4581,10 @@ class ScenarioConfig(BaseModel):
     initial_actions: List[Dict[str, Any]] = Field(
         default_factory=list,
         description="Actions to execute during setup"
+    )
+    scheduled_actions: List[ScheduledAction] = Field(
+        default_factory=list,
+        description="Actions to execute during simulation (Phase B1) by day"
     )
     run: RunConfig = Field(default_factory=RunConfig)
     
@@ -5418,10 +5705,14 @@ def settle_due_delivery_obligations(system, day: int):
                 shortage = required_quantity - delivered_quantity
                 raise DefaultError(f"Insufficient stock to settle delivery obligation {obligation.id}: {shortage} units of {required_sku} still owed")
             
-            # Fully settled: cancel the delivery obligation and log
+            # Fully settled: cancel the delivery obligation and log with alias/contract_id
             system._cancel_delivery_obligation_internal(obligation.id)
+            from bilancio.ops.aliases import get_alias_for_id
+            alias = get_alias_for_id(system, obligation.id)
             system.log("DeliveryObligationSettled", 
-                      obligation_id=obligation.id, 
+                      obligation_id=obligation.id,
+                      contract_id=obligation.id,
+                      alias=alias, 
                       debtor=debtor.id, 
                       creditor=creditor.id, 
                       sku=required_sku, 
@@ -5477,9 +5768,12 @@ def settle_due(system, day: int):
                 # Cannot settle fully - raise default error
                 raise DefaultError(f"Insufficient funds to settle payable {payable.id}: {remaining} still owed")
 
-            # Fully settled: remove payable and log
+            # Fully settled: remove payable and log with alias/contract_id
             _remove_contract(system, payable.id)
-            system.log("PayableSettled", pid=payable.id, debtor=debtor.id, creditor=creditor.id, amount=payable.amount)
+            from bilancio.ops.aliases import get_alias_for_id
+            alias = get_alias_for_id(system, payable.id)
+            system.log("PayableSettled", pid=payable.id, contract_id=payable.id, alias=alias,
+                       debtor=debtor.id, creditor=creditor.id, amount=payable.amount)
     
     # Settle delivery obligations
     settle_due_delivery_obligations(system, day)
@@ -5631,11 +5925,28 @@ def run_day(system):
     """
     current_day = system.state.day
 
-    # Phase A: Log PhaseA event (noop for now)
+    # Phase A: Log PhaseA event (reserved)
     system.log("PhaseA")
 
-    # Phase B: Settle obligations due on the current day
-    system.log("PhaseB")  # optional: helps timeline
+    # Phase B: two subphases — B1 scheduled actions, B2 settlements
+    system.log("PhaseB")  # Phase B bucket marker
+    # B1: Execute scheduled actions for this day (if any)
+    system.log("SubphaseB1")
+    try:
+        actions_today = system.state.scheduled_actions_by_day.get(current_day, [])
+        if actions_today:
+            # Lazy import to avoid heavy imports at module load
+            from bilancio.config.apply import apply_action
+            agents = system.state.agents
+            for action_dict in actions_today:
+                apply_action(system, action_dict, agents)
+    except Exception:
+        # Allow scheduled-action errors to bubble via apply_action's own error handling
+        # but keep guard to ensure the simulation loop stability
+        raise
+
+    # B2: Automated settlements due today
+    system.log("SubphaseB2")
     settle_due(system, current_day)
 
     # Phase C: Clear intraday nets for the current day
@@ -5708,6 +6019,10 @@ class State:
     cb_cash_outstanding: int = 0
     cb_reserves_outstanding: int = 0
     phase: str = "simulation"
+    # Aliases for created contracts (alias -> contract_id)
+    aliases: dict[str, str] = field(default_factory=dict)
+    # Scheduled actions to run at Phase B1 by day (day -> list of action dicts)
+    scheduled_actions_by_day: dict[int, list[dict]] = field(default_factory=dict)
 
 class System:
     def __init__(self, policy: PolicyEngine | None = None):
@@ -5788,7 +6103,7 @@ class System:
             self.add_agent(agent)
 
     # ---- cash operations
-    def mint_cash(self, to_agent_id: AgentId, amount: int, denom="X") -> str:
+    def mint_cash(self, to_agent_id: AgentId, amount: int, denom="X", alias: str | None = None) -> str:
         cb_id = next((aid for aid,a in self.state.agents.items() if a.kind == "central_bank"), None)
         assert cb_id, "CentralBank must exist"
         instr_id = self.new_contract_id("C")
@@ -5799,7 +6114,11 @@ class System:
         with atomic(self):
             self.add_contract(c)
             self.state.cb_cash_outstanding += amount
-            self.log("CashMinted", to=to_agent_id, amount=amount, instr_id=instr_id)
+            # Include alias if provided (for UI linking)
+            if alias is not None:
+                self.log("CashMinted", to=to_agent_id, amount=amount, instr_id=instr_id, alias=alias)
+            else:
+                self.log("CashMinted", to=to_agent_id, amount=amount, instr_id=instr_id)
         return instr_id
 
     def retire_cash(self, from_agent_id: AgentId, amount: int) -> None:
@@ -5863,7 +6182,7 @@ class System:
             raise ValidationError("CentralBank must exist")
         return cb_id
 
-    def mint_reserves(self, to_bank_id: str, amount: int, denom="X") -> str:
+    def mint_reserves(self, to_bank_id: str, amount: int, denom="X", alias: str | None = None) -> str:
         """Mint reserves to a bank"""
         cb_id = self._central_bank_id()
         instr_id = self.new_contract_id("R")
@@ -5874,7 +6193,10 @@ class System:
         with atomic(self):
             self.add_contract(c)
             self.state.cb_reserves_outstanding += amount
-            self.log("ReservesMinted", to=to_bank_id, amount=amount, instr_id=instr_id)
+            if alias is not None:
+                self.log("ReservesMinted", to=to_bank_id, amount=amount, instr_id=instr_id, alias=alias)
+            else:
+                self.log("ReservesMinted", to=to_bank_id, amount=amount, instr_id=instr_id)
         return instr_id
 
     def transfer_reserves(self, from_bank_id: str, to_bank_id: str, amount: int) -> None:
@@ -6092,7 +6414,7 @@ class System:
             return self._transfer_stock_internal(stock_id, from_owner, to_owner, quantity)
 
     # ---- delivery obligation operations
-    def create_delivery_obligation(self, from_agent: AgentId, to_agent: AgentId, sku: str, quantity: int, unit_price: Decimal, due_day: int) -> InstrId:
+    def create_delivery_obligation(self, from_agent: AgentId, to_agent: AgentId, sku: str, quantity: int, unit_price: Decimal, due_day: int, alias: str | None = None) -> InstrId:
         """Create a delivery obligation (bilateral promise to deliver goods)."""
         obligation_id = self.new_contract_id("D")
         obligation = DeliveryObligation(
@@ -6108,14 +6430,25 @@ class System:
         )
         with atomic(self):
             self.add_contract(obligation)
-            self.log("DeliveryObligationCreated", 
-                    id=obligation_id, 
-                    frm=from_agent, 
-                    to=to_agent, 
-                    sku=sku, 
-                    qty=quantity, 
-                    due_day=due_day, 
-                    unit_price=unit_price)
+            if alias is not None:
+                self.log("DeliveryObligationCreated", 
+                        id=obligation_id, 
+                        frm=from_agent, 
+                        to=to_agent, 
+                        sku=sku, 
+                        qty=quantity, 
+                        due_day=due_day, 
+                        unit_price=unit_price,
+                        alias=alias)
+            else:
+                self.log("DeliveryObligationCreated", 
+                        id=obligation_id, 
+                        frm=from_agent, 
+                        to=to_agent, 
+                        sku=sku, 
+                        qty=quantity, 
+                        due_day=due_day, 
+                        unit_price=unit_price)
         return obligation_id
 
     def _cancel_delivery_obligation_internal(self, obligation_id: InstrId) -> None:
@@ -6143,9 +6476,13 @@ class System:
         # Remove contract from registry
         del self.state.contracts[obligation_id]
         
-        # Log the cancellation
+        # Log the cancellation with alias (if any) and contract_id for UI consistency
+        from bilancio.ops.aliases import get_alias_for_id
+        alias = get_alias_for_id(self, obligation_id)
         self.log("DeliveryObligationCancelled",
                 obligation_id=obligation_id,
+                contract_id=obligation_id,
+                alias=alias,
                 debtor=contract.liability_issuer_id,
                 creditor=contract.asset_holder_id,
                 sku=contract.sku,
@@ -6501,6 +6838,31 @@ def write_cashflows_csv(flows: list["CashFlow"], filepath: str) -> None:
 ### 📄 src/bilancio/ops/__init__.py
 
 ```python
+
+```
+
+---
+
+### 📄 src/bilancio/ops/aliases.py
+
+```python
+from __future__ import annotations
+
+from typing import Optional
+
+
+def get_alias_for_id(system, contract_id: str) -> Optional[str]:
+    """Return the alias for a given contract_id, if any."""
+    for alias, cid in (system.state.aliases or {}).items():
+        if cid == contract_id:
+            return alias
+    return None
+
+
+def get_id_for_alias(system, alias: str) -> Optional[str]:
+    """Return the contract id for a given alias, if any."""
+    return (system.state.aliases or {}).get(alias)
+
 
 ```
 
@@ -7588,11 +7950,12 @@ def _format_amount(v: Any) -> str:
 def _render_t_account_from_rows(title: str, assets_rows: List[dict], liabs_rows: List[dict]) -> str:
     def tr(row: Optional[dict]) -> str:
         if not row:
-            return "<tr><td class=\"empty\" colspan=\"5\">—</td></tr>"
+            return "<tr><td class=\"empty\" colspan=\"6\">—</td></tr>"
         qty = row.get('quantity')
         val = row.get('value_minor')
         cpty = row.get('counterparty_name') or "—"
         mat = row.get('maturity') or "—"
+        id_or_alias = row.get('id_or_alias') or "—"
         # Robust numeric formatting with safe conversion
         try:
             qiv = _safe_int_conversion(qty)
@@ -7607,6 +7970,7 @@ def _render_t_account_from_rows(title: str, assets_rows: List[dict], liabs_rows:
         return (
             f"<tr>"
             f"<td class=\"name\">{_html_escape(row.get('name',''))}</td>"
+            f"<td class=\"id\">{_html_escape(id_or_alias)}</td>"
             f"<td class=\"qty\">{qty_s}</td>"
             f"<td class=\"val\">{val_s}</td>"
             f"<td class=\"cpty\">{_html_escape(cpty)}</td>"
@@ -7624,14 +7988,14 @@ def _render_t_account_from_rows(title: str, assets_rows: List[dict], liabs_rows:
     <div class="assets-side">
       <h4>Assets</h4>
       <table class="side">
-        <thead><tr><th>Name</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
         <tbody>{assets_html}</tbody>
       </table>
     </div>
     <div class="liabilities-side">
       <h4>Liabilities</h4>
       <table class="side">
-        <thead><tr><th>Name</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
         <tbody>{liabs_html}</tbody>
       </table>
     </div>
@@ -7652,6 +8016,7 @@ def _render_t_account(system: System, agent_id: str) -> str:
             'value_minor': getattr(r, 'value_minor', None),
             'counterparty_name': getattr(r, 'counterparty_name', None),
             'maturity': getattr(r, 'maturity', None),
+            'id_or_alias': getattr(r, 'id_or_alias', None),
         }
     assets_rows = [to_row(r) for r in acct.assets]
     liabs_rows = [to_row(r) for r in acct.liabilities]
@@ -7766,7 +8131,21 @@ def _map_event_fields(e: Dict[str, Any]) -> Dict[str, str]:
     else:
         frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
         to  = e.get("to") or e.get("creditor") or e.get("payee")
-    sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+    # Identifier column prefers alias, then contract/instrument IDs
+    id_or_alias = (
+        e.get("alias")
+        or e.get("contract_id")
+        or e.get("payable_id")
+        or e.get("obligation_id")
+        or e.get("pid")
+        or e.get("id")
+        or e.get("instr_id")
+        or e.get("stock_id")
+        or "—"
+    )
+    # SKU/Instr column should show SKU (for stock/delivery events) when available
+    # Otherwise leave blank/dash
+    sku = e.get("sku") or "—"
     qty = e.get("qty") or e.get("quantity") or "—"
     amt = e.get("amount") or "—"
     notes = ""
@@ -7780,6 +8159,7 @@ def _map_event_fields(e: Dict[str, Any]) -> Dict[str, str]:
         "kind": kind,
         "from": _html_escape(frm or "—"),
         "to": _html_escape(to or "—"),
+        "id_or_alias": _html_escape(id_or_alias),
         "sku": _html_escape(sku),
         "qty": _html_escape(qty),
         "amount": _format_amount(amt),
@@ -7789,13 +8169,14 @@ def _map_event_fields(e: Dict[str, Any]) -> Dict[str, str]:
 
 def _render_events_table(title: str, events: List[Dict[str, Any]]) -> str:
     # Exclude marker rows
-    events = [e for e in events if e.get("kind") not in ("PhaseA","PhaseB","PhaseC")]
+    events = [e for e in events if e.get("kind") not in ("PhaseA","PhaseB","PhaseC","SubphaseB1","SubphaseB2")]
     rows_html = []
     for e in events:
         m = _map_event_fields(e)
         rows_html.append(
             f"<tr>"
             f"<td class=\"event-kind\">{m['kind']}</td>"
+            f"<td class=\"event-id\">{m['id_or_alias']}</td>"
             f"<td>{m['from']}</td><td>{m['to']}</td>"
             f"<td>{m['sku']}</td><td class=\"qty\">{m['qty']}</td>"
             f"<td class=\"amount\">{m['amount']}</td><td class=\"notes\">{m['notes']}</td>"
@@ -7808,7 +8189,7 @@ def _render_events_table(title: str, events: List[Dict[str, Any]]) -> str:
   <h4>{_html_escape(title)}</h4>
   <table>
     <thead>
-      <tr><th>Kind</th><th>From</th><th>To</th><th>SKU/Instr</th><th>Qty</th><th>Amount</th><th>Notes</th></tr>
+      <tr><th>Kind</th><th>ID/Alias</th><th>From</th><th>To</th><th>SKU/Instr</th><th>Qty</th><th>Amount</th><th>Notes</th></tr>
     </thead>
     <tbody>
       {''.join(rows_html)}
@@ -7831,6 +8212,30 @@ def _split_by_phases(day_events: List[Dict[str, Any]]) -> Dict[str, List[Dict[st
             current = "C"; continue
         buckets[current].append(e)
     return buckets
+
+def _split_phase_b_into_subphases(events_b: List[Dict[str, Any]]) -> (List[Dict[str, Any]], List[Dict[str, Any]]):
+    """Split Phase B events into B1 (scheduled) and B2 (settlements) using subphase markers.
+
+    Excludes Subphase markers from returned lists.
+    """
+    b1: List[Dict[str, Any]] = []
+    b2: List[Dict[str, Any]] = []
+    in_b2 = False
+    for e in events_b:
+        k = e.get("kind")
+        if k == "SubphaseB1":
+            # begin B1 (marker only)
+            in_b2 = False
+            continue
+        if k == "SubphaseB2":
+            # switch to B2 (marker only)
+            in_b2 = True
+            continue
+        if in_b2:
+            b2.append(e)
+        else:
+            b1.append(e)
+    return b1, b2
 
 
 def export_pretty_html(
@@ -7939,7 +8344,9 @@ def export_pretty_html(
         ev = d.get('events', [])
         buckets = _split_by_phases(ev)
         html_parts.append("<div class=\"events-section\">")
-        html_parts.append(_render_events_table("Phase B — Settlement", buckets.get("B", [])))
+        b1, b2 = _split_phase_b_into_subphases(buckets.get("B", []))
+        html_parts.append(_render_events_table("Phase B1 — Scheduled Actions", b1))
+        html_parts.append(_render_events_table("Phase B2 — Settlement", b2))
         html_parts.append(_render_events_table("Phase C — Clearing", buckets.get("C", [])))
         html_parts.append("</div>")
         if agent_ids:
@@ -8793,6 +9200,18 @@ def run_scenario(
     # Create and configure system
     system = System()
     
+    # Preflight schedule validation (aliases available when referenced)
+    try:
+        from bilancio.config.apply import validate_scheduled_aliases
+        validate_scheduled_aliases(config)
+    except ValueError as e:
+        show_error_panel(
+            error=e,
+            phase="setup",
+            context={"scenario": config.name}
+        )
+        sys.exit(1)
+
     # Apply configuration
     try:
         apply_to_system(config, system)
@@ -8807,6 +9226,16 @@ def run_scenario(
             context={"scenario": config.name}
         )
         sys.exit(1)
+    
+    # Stage scheduled actions into system state (Phase B1 execution by day)
+    try:
+        if getattr(config, 'scheduled_actions', None):
+            for sa in config.scheduled_actions:
+                day = sa.day
+                system.state.scheduled_actions_by_day.setdefault(day, []).append(sa.action)
+    except Exception:
+        # Keep robust even if config lacks scheduled actions
+        pass
     
     # Use config settings unless overridden by CLI
     if agent_ids is None and config.run.show.balances:
@@ -8843,17 +9272,18 @@ def run_scenario(
         initial_balances[agent_id] = agent_balance(system, agent_id)
         # also capture detailed rows with counterparties at setup
         acct = build_t_account_rows(system, agent_id)
-        def to_row(r):
+        def _row_dict(r):
             return {
                 'name': getattr(r, 'name', ''),
                 'quantity': getattr(r, 'quantity', None),
                 'value_minor': getattr(r, 'value_minor', None),
                 'counterparty_name': getattr(r, 'counterparty_name', None),
                 'maturity': getattr(r, 'maturity', None),
+                'id_or_alias': getattr(r, 'id_or_alias', None),
             }
         initial_rows[agent_id] = {
-            'assets': [to_row(r) for r in acct.assets],
-            'liabs': [to_row(r) for r in acct.liabilities],
+            'assets': [_row_dict(r) for r in acct.assets],
+            'liabs': [_row_dict(r) for r in acct.liabilities],
         }
     
     # Track day data for PDF export
@@ -8973,20 +9403,23 @@ def run_step_mode(
                 if agent_ids:
                     from bilancio.analysis.balances import agent_balance
                     from bilancio.analysis.visualization import build_t_account_rows
+
+                    def _row_dict(r):
+                        return {
+                            'name': getattr(r, 'name', ''),
+                            'quantity': getattr(r, 'quantity', None),
+                            'value_minor': getattr(r, 'value_minor', None),
+                            'counterparty_name': getattr(r, 'counterparty_name', None),
+                            'maturity': getattr(r, 'maturity', None),
+                            'id_or_alias': getattr(r, 'id_or_alias', None),
+                        }
+
                     for agent_id in agent_ids:
                         day_balances[agent_id] = agent_balance(system, agent_id)
                         acct = build_t_account_rows(system, agent_id)
-                        def to_row(r):
-                            return {
-                                'name': getattr(r, 'name', ''),
-                                'quantity': getattr(r, 'quantity', None),
-                                'value_minor': getattr(r, 'value_minor', None),
-                                'counterparty_name': getattr(r, 'counterparty_name', None),
-                                'maturity': getattr(r, 'maturity', None),
-                            }
                         day_rows[agent_id] = {
-                            'assets': [to_row(r) for r in acct.assets],
-                            'liabs': [to_row(r) for r in acct.liabilities],
+                            'assets': [_row_dict(r) for r in acct.assets],
+                            'liabs': [_row_dict(r) for r in acct.liabilities],
                         }
                 
                 days_data.append({
@@ -9131,6 +9564,7 @@ def run_until_stable_mode(
                                 'value_minor': getattr(r, 'value_minor', None),
                                 'counterparty_name': getattr(r, 'counterparty_name', None),
                                 'maturity': getattr(r, 'maturity', None),
+                                'id_or_alias': getattr(r, 'id_or_alias', None),
                             }
                         day_rows[agent_id] = {
                             'assets': [to_row(r) for r in acct.assets],
@@ -10516,6 +10950,149 @@ class TestRunConfig:
 
 ---
 
+### 🧪 tests/config/test_scheduled_alias_validation.py
+
+```python
+from pathlib import Path
+import pytest
+
+from bilancio.config.loaders import load_yaml
+from bilancio.config.apply import validate_scheduled_aliases
+
+
+def _write(tmp_path: Path, name: str, text: str) -> Path:
+    p = tmp_path / name
+    p.write_text(text)
+    return p
+
+
+BASE_AGENTS = """
+version: 1
+name: "Test"
+agents:
+  - {id: CB, kind: central_bank, name: CB}
+  - {id: F1, kind: firm, name: F1}
+  - {id: F2, kind: firm, name: F2}
+initial_actions: []
+run: {mode: until_stable, max_days: 5}
+"""
+
+
+def test_validate_scheduled_aliases_unknown_alias(tmp_path: Path):
+    text = BASE_AGENTS + """
+scheduled_actions:
+  - {day: 1, action: {transfer_claim: {contract_alias: NOT_DEFINED, to_agent: F2}}}
+"""
+    cfg = load_yaml(_write(tmp_path, "c.yaml", text))
+    with pytest.raises(ValueError):
+        validate_scheduled_aliases(cfg)
+
+
+def test_validate_scheduled_aliases_duplicate(tmp_path: Path):
+    text = BASE_AGENTS + """
+initial_actions:
+  - {create_payable: {from: F1, to: F2, amount: 1, due_day: 1, alias: A1}}
+scheduled_actions:
+  - {day: 1, action: {create_delivery_obligation: {from: F2, to: F1, sku: X, quantity: 1, unit_price: "1", due_day: 1, alias: A1}}}
+"""
+    cfg = load_yaml(_write(tmp_path, "d.yaml", text))
+    with pytest.raises(ValueError):
+        validate_scheduled_aliases(cfg)
+
+
+```
+
+---
+
+### 🧪 tests/config/test_transfer_claim_model.py
+
+```python
+import pytest
+from pydantic import ValidationError
+
+from bilancio.config.models import TransferClaim
+
+
+def test_transfer_claim_requires_reference():
+    with pytest.raises(ValidationError):
+        TransferClaim(to_agent="F3")
+
+
+def test_transfer_claim_accepts_alias_or_id():
+    # alias only
+    m1 = TransferClaim(contract_alias="ALIAS1", to_agent="F3")
+    assert m1.contract_alias == "ALIAS1"
+    assert m1.contract_id is None
+    # id only
+    m2 = TransferClaim(contract_id="C_123", to_agent="F3")
+    assert m2.contract_id == "C_123"
+
+
+def test_transfer_claim_alias_and_id_model_allows_both():
+    # Model permits both present; apply layer enforces equality.
+    m = TransferClaim(contract_alias="ALIASX", contract_id="C_YYY", to_agent="F3")
+    assert m.contract_alias == "ALIASX"
+    assert m.contract_id == "C_YYY"
+
+
+```
+
+---
+
+### 🧪 tests/engines/test_phase_b1_scheduling.py
+
+```python
+from pathlib import Path
+
+from bilancio.config.loaders import load_yaml
+from bilancio.config.apply import apply_to_system
+from bilancio.engines.system import System
+from bilancio.engines.simulation import run_day
+
+
+SCENARIO = """
+version: 1
+name: B1-before-B2
+agents:
+  - {id: CB, kind: central_bank, name: CB}
+  - {id: F1, kind: firm, name: F1}
+  - {id: F2, kind: firm, name: F2}
+initial_actions:
+  - {mint_cash: {to: F1, amount: 100}}
+  - {create_stock: {owner: F2, sku: X, quantity: 1, unit_price: "100"}}
+run: {mode: until_stable, max_days: 5}
+"""
+
+
+def test_b1_executes_before_b2(tmp_path: Path):
+    # Create config file
+    p = tmp_path / "s.yaml"
+    p.write_text(SCENARIO)
+    cfg = load_yaml(p)
+    sys = System()
+    apply_to_system(cfg, sys)
+
+    # Schedule actions for current day (0): create obligations due today
+    sys.state.scheduled_actions_by_day[0] = [
+        {"create_delivery_obligation": {"from": "F2", "to": "F1", "sku": "X", "quantity": 1, "unit_price": "100", "due_day": 0}},
+        {"create_payable": {"from": "F1", "to": "F2", "amount": 100, "due_day": 0}},
+    ]
+
+    # Run day 0 and verify obligations were settled same day
+    run_day(sys)
+    # No open obligations should remain
+    assert not any(c.kind in ("payable", "delivery_obligation") for c in sys.state.contracts.values())
+    # And events should include settled events for day 0
+    day0_events = [e for e in sys.state.events if e.get("day") == 0]
+    kinds = {e.get("kind") for e in day0_events}
+    assert "DeliveryObligationSettled" in kinds
+    assert "PayableSettled" in kinds
+
+
+```
+
+---
+
 ### 🧪 tests/integration/test_banking_ops.py
 
 ```python
@@ -11630,6 +12207,26 @@ def test_phase_b_bank_to_bank_reserves():
     assert events[0]["amount"] == 200
     
     sys.assert_invariants()
+```
+
+---
+
+### 🧪 tests/ops/test_alias_helpers.py
+
+```python
+from bilancio.engines.system import System
+from bilancio.ops.aliases import get_alias_for_id, get_id_for_alias
+
+
+def test_alias_helpers_roundtrip():
+    sys = System()
+    sys.state.aliases["AL1"] = "C_001"
+    assert get_id_for_alias(sys, "AL1") == "C_001"
+    assert get_alias_for_id(sys, "C_001") == "AL1"
+    assert get_id_for_alias(sys, "MISSING") is None
+    assert get_alias_for_id(sys, "C_XXX") is None
+
+
 ```
 
 ---
@@ -13428,5 +14025,5 @@ def test_settle_multiple_obligations():
 ## End of Codebase
 
 Generated from: /Users/vladgheorghe/code/bilancio
-Total source files: 61
-Total test files: 20
+Total source files: 62
+Total test files: 24
