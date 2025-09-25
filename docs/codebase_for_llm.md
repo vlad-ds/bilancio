@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2025-09-25 12:53:35 UTC | Branch: feature/default-handling-modalities | Commit: b9dd4b7
+Generated: 2025-09-25 12:56:37 UTC | Branch: feature/default-handling-modalities | Commit: 90a4f8c
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -9,7 +9,7 @@ This document contains the complete codebase structure and content for LLM inges
 ## Project Structure
 
 ```
-/Users/vladgheorghe/code/bilancio
+/home/runner/work/bilancio/bilancio
 ├── .github
 │   └── workflows
 │       ├── claude-code-review.yml
@@ -161,33 +161,6 @@ This document contains the complete codebase structure and content for LLM inges
 │           ├── run.py
 │           ├── settings.py
 │           └── wizard.py
-├── temp
-│   ├── check_ex7.html
-│   ├── default_handling_demo.html
-│   ├── demo.html
-│   ├── ex1_cash_for_goods.html
-│   ├── ex2_two_firms_cash_purchase.html
-│   ├── ex3_iou_assignment.html
-│   ├── ex3_iou_assignment_debug.html
-│   ├── ex3_iou_assignment_step.html
-│   ├── ex4_generic_claim_transfer.html
-│   ├── ex5_deferred_exchange.html
-│   ├── ex6_goods_now_cash_later.html
-│   ├── ex7_cash_now_goods_later.html
-│   ├── final_demo.html
-│   ├── firm_delivery.html
-│   ├── phases_2days.html
-│   ├── phases_final.html
-│   ├── phases_rich.html
-│   ├── phases_test.html
-│   ├── rich_demo.html
-│   ├── rich_final.html
-│   ├── rich_improved.html
-│   ├── rich_simulation.html
-│   ├── sasa_scenario.html
-│   ├── test_fixed.html
-│   ├── test_output.html
-│   └── test_render.html
 └── tests
     ├── analysis
     │   ├── __init__.py
@@ -222,7 +195,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-39 directories, 173 files
+38 directories, 147 files
 
 ```
 
@@ -955,11 +928,54 @@ Complete git history from oldest to newest:
 - **9092d6e9** (2025-09-04) by vladgheorghe
   test: add coverage for TransferClaim, schedule alias validation, B1 execution, and alias helpers
 
+- **89ca7621** (2025-09-04) by Vlad Gheorghe
+  feat(sim): scheduled actions (B1), alias support, claim transfer + exercises 1–7 (#14)
+  * Plan: Mid-simulation actions via Phase B split (B1 scheduled, B2 settlement), aliases, and explicit claim transfer
+  - Keep Phase A reserved; execute scheduled actions at start of Phase B
+  - Add alias support on create-* actions for contracts (mint_cash, mint_reserves, create_payable, create_delivery_obligation)
+  - Add transfer_claim action referencing by alias or id (both allowed if consistent)
+  - Schedule actions by day; render HTML with separate Phase B1/B2 tables
+  - No code changes yet — planning document only (plans/scheduled_actions_and_aliases.md)
+  * Move plan to docs/plans with numbering: 012_scheduled_actions_and_aliases.md
+  * feat(sim): scheduled actions (Phase B1) + alias support + claim transfer\n\n- models: add alias to create_*; add TransferClaim; add ScheduledAction + scheduled_actions on scenario\n- system: state aliases + scheduled_actions_by_day; create_delivery_obligation/mint_* accept alias and log it; run_day executes B1 then B2\n- apply: wire aliases, pass alias into system APIs, implement transfer_claim reassignment\n- html export: add ID/Alias column to events and T-accounts; split Phase B into B1/B2 tables\n- ui/run: stage scheduled_actions and carry id_or_alias to HTML rows\n\nscenarios:\n- ex1/ex2 already added; ex3 updated to day1 assignment + day2 settlement (aliases shown); ex4 generic claim transfer with consideration\n\nnote: step-mode DayReport None issue still present (not addressed)
+  * ui: show aliases on cancel/settle events + ID fallback
+  - engines/system: include alias + contract_id on DeliveryObligationCancelled
+  - engines/settlement: include alias + contract_id on DeliveryObligationSettled and PayableSettled
+  - html_export: ID/Alias column considers obligation_id and pid as fallbacks
+  scenarios: add Ex6 and Ex7 YAMLs
+  * chore(examples): organize exercise scenarios 1–7 into subfolders and regenerate HTML reports\n\n- Move YAMLs to examples/exercise_scenarios/yaml/\n- Export HTMLs to examples/exercise_scenarios/html/ for ex1–ex7
+  * chore(examples): regenerate HTML reports for ex2–ex7 in examples/exercise_scenarios/html/
+  * fix: address PR feedback (critical+moderate)
+  - models: move model_validator import to module scope
+  - apply: order-independent transfer_claim validation with clear errors
+  - ops/aliases: add helpers for alias/id lookup; use in settlement/system
+  - ui/run: preflight validate scheduled alias references; refactor row dict builder
+  - html_export: ID/Alias fallback includes obligation_id & pid
+  No functional changes to scenarios; validated ex7 run.
+  * chore(examples): re-render HTML reports for ex1–ex7
+  * fix(ui/run): step-mode HTML export bug\n\nMove _row_dict helper out of inner block and ensure day_rows assignments execute within the agent loop. This fixes unreachable code causing empty T-account rows in step-mode exports.
+  * test: add coverage for TransferClaim, schedule alias validation, B1 execution, and alias helpers
+
+- **e09cfe56** (2025-09-05) by vladgheorghe
+  Consolidated ex. HTMLs
+
+- **20318846** (2025-09-05) by vladgheorghe
+  docs: update scenario translator prompt for scheduled actions, aliases, transfer_claim, and CLI usage
+
+- **814cb8ab** (2025-09-05) by vladgheorghe
+  feat(docs): add timestamp/branch/commit to codebase_for_llm and CI auto-update workflow
+
+- **90f18f4a** (2025-09-05) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
 - **8a61e66e** (2025-09-25) by vladgheorghe
   Update codebase_for_llm snapshot
 
 - **b9dd4b7f** (2025-09-25) by vladgheorghe
   Handle default cleanup and reporting
+
+- **90a4f8c6** (2025-09-25) by vladgheorghe
+  Merge branch 'main' into feature/default-handling-modalities
 
 ---
 
@@ -14510,6 +14526,6 @@ def test_settle_multiple_obligations():
 
 ## End of Codebase
 
-Generated from: /Users/vladgheorghe/code/bilancio
+Generated from: /home/runner/work/bilancio/bilancio
 Total source files: 62
 Total test files: 25
