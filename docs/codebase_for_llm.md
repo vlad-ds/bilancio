@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2025-09-25 13:03:43 UTC | Branch: main | Commit: 2341fc7
+Generated: 2025-09-25 13:33:51 UTC | Branch: main | Commit: b164af7
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -64,6 +64,8 @@ This document contains the complete codebase structure and content for LLM inges
 │   │       ├── ex5_deferred_exchange.yaml
 │   │       ├── ex6_goods_now_cash_later.yaml
 │   │       └── ex7_cash_now_goods_later.yaml
+│   ├── kalecki
+│   │   └── kalecki_ring_baseline.yaml
 │   └── scenarios
 │       ├── default_handling_demo.yaml
 │       ├── firm_delivery.yaml
@@ -79,7 +81,9 @@ This document contains the complete codebase structure and content for LLM inges
 │       ├── balance_sheet_display.ipynb
 │       └── pdf_example_with_firms.ipynb
 ├── out
-│   └── interbank_events.jsonl
+│   ├── interbank_events.jsonl
+│   ├── kalecki_ring_baseline_events.jsonl
+│   └── kalecki_ring_baseline_metrics.html
 ├── pyproject.toml
 ├── scripts
 │   └── generate_codebase_markdown.py
@@ -89,7 +93,9 @@ This document contains the complete codebase structure and content for LLM inges
 │       ├── analysis
 │       │   ├── __init__.py
 │       │   ├── balances.py
+│       │   ├── loaders.py
 │       │   ├── metrics.py
+│       │   ├── report.py
 │       │   ├── visualization.py
 │       │   └── visualization_phases.py
 │       ├── config
@@ -195,7 +201,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-38 directories, 147 files
+39 directories, 152 files
 
 ```
 
@@ -956,6 +962,20 @@ Complete git history from oldest to newest:
   ---------
   Co-authored-by: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
 
+- **a6af7ef2** (2025-09-25) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **b164af70** (2025-09-25) by Vlad Gheorghe
+  feature/013 kalecki metrics (#16)
+  * feat(analysis): Kalecki metrics + analyze CLI + HTML report\n\n- Add loaders for events JSONL and balances CSV\n- Implement metrics: S_t, Mbar_t, alpha, phi/delta, M^peak (RTGS replay), velocity, HHI+, DS shares, liquidity gap\n- Add reporting: CSV/JSON outputs and self-contained HTML analytics report\n- Wire new  subcommand into CLI with --html option\n\nNotes:\n- Kept calculate_npv/calculate_irr placeholders intact for existing tests\n- Skips microstructure gain (LSM vs RTGS) per plan 013
+  * docs: README usage for analyze CLI + add Kalecki ring baseline scenario YAML
+  * chore(docs): update codebase_for_llm.md
+  * docs: sync codebase_for_llm with main
+  * chore(docs): update codebase_for_llm.md
+  * ci: restrict codebase doc updates to main
+  ---------
+  Co-authored-by: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+
 ---
 
 ## Source Code (src/bilancio)
@@ -1253,10 +1273,96 @@ def as_rows(system: System) -> list[dict]:
 
 ---
 
+### 📄 src/bilancio/analysis/loaders.py
+
+```python
+"""Lightweight loaders for analytics inputs (events JSONL, balances CSV).
+
+Stdlib only; keeps parsing minimal and robust to schema changes.
+"""
+
+from __future__ import annotations
+
+import csv
+import json
+from decimal import Decimal
+from pathlib import Path
+from typing import Dict, Iterable, Iterator, List
+
+
+def _to_decimal(val) -> Decimal:
+    """Best-effort Decimal conversion for numbers represented as int/float/str."""
+    if val is None:
+        return Decimal("0")
+    if isinstance(val, Decimal):
+        return val
+    # Normalize bools to Decimal 0/1
+    if isinstance(val, bool):
+        return Decimal(int(val))
+    # JSONL may encode Decimals as numbers or strings
+    try:
+        return Decimal(str(val))
+    except Exception:
+        return Decimal("0")
+
+
+def read_events_jsonl(path: Path | str) -> Iterator[Dict]:
+    """Yield events (dict) from a JSONL file in recorded order.
+
+    Ensures numeric fields like amount/day/due_day are normalized to Python types
+    (Decimal for amounts, int for day counters when available).
+    """
+    p = Path(path)
+    with p.open("r") as f:
+        for line in f:
+            if not line.strip():
+                continue
+            evt = json.loads(line)
+            # Normalize common fields if present
+            if "amount" in evt:
+                evt["amount"] = _to_decimal(evt["amount"])
+            if "day" in evt and evt["day"] is not None:
+                try:
+                    evt["day"] = int(evt["day"])  # day indices are integers in the engine
+                except Exception:
+                    pass
+            if "due_day" in evt and evt["due_day"] is not None:
+                try:
+                    evt["due_day"] = int(evt["due_day"])  # due_day recorded on creation
+                except Exception:
+                    pass
+            yield evt
+
+
+def read_balances_csv(path: Path | str) -> List[Dict]:
+    """Read balances CSV produced by export.writers.write_balances_csv.
+
+    Returns a list of dict rows. Numeric fields remain as strings unless parsed explicitly
+    by downstream code. Rows with ad-hoc summary fields (e.g., item_type) are preserved.
+    """
+    p = Path(path)
+    rows: List[Dict] = []
+    with p.open("r", newline="") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            rows.append(row)
+    return rows
+
+
+```
+
+---
+
 ### 📄 src/bilancio/analysis/metrics.py
 
 ```python
-"""Financial metrics calculation functions."""
+from __future__ import annotations
+
+"""Analytics and metrics for payment microstructure (Kalecki-style scenarios).
+
+Includes existing financial placeholders (NPV/IRR) kept intact for tests,
+plus new metrics used by the Kalecki ring baseline analysis.
+"""
 
 
 # TODO: Import CashFlow and Money from appropriate modules once defined
@@ -1291,6 +1397,620 @@ def calculate_irr(flows: list["CashFlow"]) -> float:
     TODO: Implement IRR calculation logic
     """
     raise NotImplementedError("IRR calculation not yet implemented")
+
+
+# ---------------------------------------------------------------------------
+# Kalecki metrics API
+# ---------------------------------------------------------------------------
+
+from collections import defaultdict
+from dataclasses import dataclass
+from decimal import Decimal
+from typing import Callable, Dict, Iterable, Iterator, List, Optional, Tuple
+
+
+# Types
+Event = dict
+AgentId = str
+
+
+def dues_for_day(events: Iterable[Event], t: int) -> List[dict]:
+    """Return dues maturing on day t from creation events.
+
+    We look for PayableCreated (or similarly named) events that carry a due_day.
+    Output items minimally include: debtor, creditor, amount, due_day, and ids if present.
+    """
+    dues: List[dict] = []
+    for e in events:
+        kind = e.get("kind")
+        if kind == "PayableCreated" and int(e.get("due_day", -1)) == int(t):
+            dues.append(
+                {
+                    "debtor": e.get("debtor") or e.get("from"),
+                    "creditor": e.get("creditor") or e.get("to"),
+                    "amount": Decimal(e.get("amount", 0)),
+                    "due_day": int(e.get("due_day")),
+                    "pid": e.get("payable_id") or e.get("pid"),
+                    "alias": e.get("alias"),
+                }
+            )
+    return dues
+
+
+def net_vectors(dues: Iterable[dict]) -> Dict[AgentId, Dict[str, Decimal]]:
+    """Compute F (outflows due), I (inflows due), and n=I-F per agent.
+
+    Returns mapping: agent -> {"F": Decimal, "I": Decimal, "n": Decimal}
+    """
+    F: Dict[AgentId, Decimal] = defaultdict(lambda: Decimal("0"))
+    I: Dict[AgentId, Decimal] = defaultdict(lambda: Decimal("0"))
+
+    for d in dues:
+        a = Decimal(d.get("amount", 0))
+        debtor = d.get("debtor") or d.get("from")
+        creditor = d.get("creditor") or d.get("to")
+        if debtor:
+            F[debtor] += a
+        if creditor:
+            I[creditor] += a
+
+    agents = set(F.keys()) | set(I.keys())
+    nets: Dict[AgentId, Dict[str, Decimal]] = {}
+    for agent in agents:
+        f = F.get(agent, Decimal("0"))
+        i = I.get(agent, Decimal("0"))
+        nets[agent] = {"F": f, "I": i, "n": i - f}
+    return nets
+
+
+def raw_minimum_liquidity(nets: Dict[AgentId, Dict[str, Decimal]]) -> Decimal:
+    """Mbar = sum over agents of max(0, F - I)."""
+    total = Decimal("0")
+    for v in nets.values():
+        total += max(Decimal("0"), v["F"] - v["I"])
+    return total
+
+
+def size_and_bunching(
+    dues: Iterable[dict], bin_fn: Optional[Callable[[dict], str]] = None
+) -> Tuple[Decimal, Decimal]:
+    """Return (S_t, BI_t). If no bin_fn, BI_t=0.
+
+    S_t is total amount due that day.
+    BI_t is an optional concentration index across user-provided bins.
+    """
+    amounts: List[Decimal] = [Decimal(d.get("amount", 0)) for d in dues]
+    S_t = sum(amounts, start=Decimal("0"))
+
+    if not bin_fn:
+        return S_t, Decimal("0")
+
+    from statistics import mean, pstdev
+
+    buckets: Dict[str, Decimal] = defaultdict(lambda: Decimal("0"))
+    for d in dues:
+        buckets[bin_fn(d)] += Decimal(d.get("amount", 0))
+
+    vals = list(buckets.values())
+    if not vals:
+        return S_t, Decimal("0")
+    m = Decimal(str(mean([float(v) for v in vals])))
+    if m == 0:
+        return S_t, Decimal("0")
+    sd = Decimal(str(pstdev([float(v) for v in vals])))
+    return S_t, sd / m
+
+
+def phi_delta(events: Iterable[Event], dues: Iterable[dict], t: int) -> Tuple[Optional[Decimal], Optional[Decimal]]:
+    """Compute on-time settlement ratio phi_t and delta_t = 1 - phi_t.
+
+    Numerator: settled events with day==t and original due_day==t.
+    Denominator: S_t from dues list.
+    """
+    # Map payable IDs (pid/alias) to due_day for matching
+    id_to_due: Dict[str, int] = {}
+    for d in dues:
+        if d.get("pid"):
+            id_to_due[str(d["pid"])] = int(d.get("due_day", -1))
+        if d.get("alias"):
+            id_to_due[str(d["alias"])] = int(d.get("due_day", -1))
+
+    S_t = sum((Decimal(d.get("amount", 0)) for d in dues), start=Decimal("0"))
+    if S_t == 0:
+        return None, None
+
+    num = Decimal("0")
+    for e in events:
+        if e.get("kind") != "PayableSettled":
+            continue
+        if int(e.get("day", -1)) != int(t):
+            continue
+        # Match either by pid or alias if present
+        pid = str(e.get("pid") or e.get("contract_id") or "")
+        alias = str(e.get("alias") or "")
+        due = None
+        if pid and pid in id_to_due:
+            due = id_to_due[pid]
+        elif alias and alias in id_to_due:
+            due = id_to_due[alias]
+        if due == int(t):
+            num += Decimal(e.get("amount", 0))
+
+    phi = num / S_t
+    return phi, (Decimal("1") - phi)
+
+
+def replay_intraday_peak(
+    events: Iterable[Event], t: int
+) -> Tuple[Decimal, List[dict], Decimal]:
+    """Replay day-t PayableSettled events in order to compute RTGS peak.
+
+    Returns (Mpeak_t, steps_table, gross_settled_t)
+    steps_table rows: {step, payer, payee, amount, P_prefix}
+    """
+    Delta: Dict[AgentId, Decimal] = defaultdict(lambda: Decimal("0"))
+    gross = Decimal("0")
+    peak = Decimal("0")
+    steps: List[dict] = []
+    step_idx = 0
+
+    for e in events:
+        if e.get("kind") != "PayableSettled":
+            continue
+        if int(e.get("day", -1)) != int(t):
+            continue
+        amount = Decimal(e.get("amount", 0))
+        payer = e.get("debtor") or e.get("from")
+        payee = e.get("creditor") or e.get("to")
+        if amount == 0:
+            continue
+        # Update cumulative net outflows
+        if payer:
+            Delta[payer] += amount
+        if payee:
+            Delta[payee] -= amount
+        gross += amount
+        P = sum((x if x > 0 else Decimal("0")) for x in Delta.values())
+        if P > peak:
+            peak = P
+        step_idx += 1
+        steps.append({
+            "day": int(t),
+            "step": step_idx,
+            "payer": payer,
+            "payee": payee,
+            "amount": amount,
+            "P_prefix": P,
+        })
+
+    return peak, steps, gross
+
+
+def velocity(gross_settled_t: Decimal, Mpeak_t: Decimal) -> Optional[Decimal]:
+    """gross_settled_t / Mpeak_t, None if division not defined."""
+    if Mpeak_t and Mpeak_t != 0:
+        return gross_settled_t / Mpeak_t
+    return None
+
+
+def creditor_hhi_plus(nets: Dict[AgentId, Dict[str, Decimal]]) -> Optional[Decimal]:
+    """HHI over positive n_i (creditor side). Returns None if no creditors."""
+    pos = [v["n"] for v in nets.values() if v["n"] > 0]
+    if not pos:
+        return None
+    s = sum(pos, start=Decimal("0"))
+    if s == 0:
+        return None
+    return sum(((x / s) ** 2 for x in pos), start=Decimal("0"))
+
+
+def debtor_shortfall_shares(
+    nets: Dict[AgentId, Dict[str, Decimal]]
+) -> Dict[AgentId, Optional[Decimal]]:
+    """DS_t(i) per agent (or None if no net debtors)."""
+    short = {a: max(Decimal("0"), v["F"] - v["I"]) for a, v in nets.items()}
+    denom = sum(short.values(), start=Decimal("0"))
+    if denom == 0:
+        return {a: None for a in nets.keys()}
+    return {a: (val / denom if denom != 0 else None) for a, val in short.items()}
+
+
+def start_of_day_money(bal_rows: List[dict], t: int) -> Decimal:
+    """Sum system means-of-payment at start of day t.
+
+    Since the current CSV is a snapshot (no day column), for baseline we use the
+    system total of means-of-payment: assets_cash, assets_bank_deposit,
+    assets_reserve_deposit across all agents (excluding ad-hoc summary rows).
+
+    For closed systems without injections/withdrawals across the day, this equals
+    the start-of-day supply. This matches the Kalecki ring baseline.
+    """
+    def _get_decimal(row, key: str) -> Decimal:
+        val = row.get(key)
+        if val in (None, "", "None"):
+            return Decimal("0")
+        try:
+            return Decimal(str(val))
+        except Exception:
+            return Decimal("0")
+
+    total = Decimal("0")
+    for row in bal_rows:
+        # Skip ad-hoc summary rows that don't represent a standard balance snapshot
+        if row.get("item_type"):
+            continue
+        # Skip the SYSTEM aggregate row to avoid double counting
+        if str(row.get("agent_id", "")).upper() == "SYSTEM":
+            continue
+        # Sum across means-of-payment kinds
+        total += _get_decimal(row, "assets_cash")
+        total += _get_decimal(row, "assets_bank_deposit")
+        total += _get_decimal(row, "assets_reserve_deposit")
+    return total
+
+
+def liquidity_gap(Mbar_t: Decimal, M_t: Decimal) -> Decimal:
+    """G_t = max(0, Mbar_t - M_t)."""
+    gap = Mbar_t - M_t
+    return gap if gap > 0 else Decimal("0")
+
+
+def alpha(Mbar_t: Decimal, S_t: Decimal) -> Optional[Decimal]:
+    """alpha_t = 1 - Mbar_t / S_t (None if S_t==0)."""
+    if S_t == 0:
+        return None
+    return Decimal("1") - (Mbar_t / S_t)
+
+
+def microstructure_gain_lower_bound(
+    Mbar_t: Decimal, Mpeak_rtgs: Decimal
+) -> Optional[Decimal]:
+    """Lower bound for LSM gain using only RTGS run: 1 - Mbar / Mpeak_rtgs."""
+    if not Mpeak_rtgs:
+        return None
+    return Decimal("1") - (Mbar_t / Mpeak_rtgs)
+
+```
+
+---
+
+### 📄 src/bilancio/analysis/report.py
+
+```python
+"""Simple reporting helpers for analytics outputs (CSV/JSON/HTML optional).
+
+Outputs are intentionally minimal and stdlib-only.
+"""
+
+from __future__ import annotations
+
+import csv
+import json
+from dataclasses import asdict, dataclass
+from decimal import Decimal
+from pathlib import Path
+from typing import Any, Dict, Iterable, List, Optional
+
+
+def _to_json(val: Any):
+    if isinstance(val, Decimal):
+        # avoid lossy float conversion; write as number if integer, else string
+        n = val.normalize()
+        if n == n.to_integral_value():
+            return int(n)
+        return str(n)
+    if isinstance(val, dict):
+        return {k: _to_json(v) for k, v in val.items()}
+    if isinstance(val, (list, tuple)):
+        return [ _to_json(x) for x in val ]
+    return val
+
+
+def write_day_metrics_csv(path: Path | str, rows: List[Dict[str, Any]]) -> None:
+    p = Path(path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    if not rows:
+        # still create an empty file with headers day only
+        with p.open("w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=["day"])
+            writer.writeheader()
+        return
+    # All keys across rows
+    keys: List[str] = sorted({k for r in rows for k in r.keys()})
+    with p.open("w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=keys)
+        writer.writeheader()
+        for r in rows:
+            row = {}
+            for k in keys:
+                v = r.get(k)
+                if isinstance(v, Decimal):
+                    n = v.normalize()
+                    row[k] = int(n) if n == n.to_integral_value() else float(n)
+                elif v is None:
+                    row[k] = ""
+                else:
+                    row[k] = v
+            writer.writerow(row)
+
+
+def write_day_metrics_json(path: Path | str, rows: List[Dict[str, Any]]) -> None:
+    p = Path(path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    with p.open("w") as f:
+        json.dump([_to_json(r) for r in rows], f, indent=2)
+
+
+def write_debtor_shares_csv(path: Path | str, rows: List[Dict[str, Any]]) -> None:
+    write_day_metrics_csv(path, rows)
+
+
+def write_intraday_csv(path: Path | str, rows: List[Dict[str, Any]]) -> None:
+    write_day_metrics_csv(path, rows)
+
+
+def _fmt_num(val: Any) -> str:
+    if val is None:
+        return "—"
+    if isinstance(val, Decimal):
+        n = val.normalize()
+        try:
+            if n == n.to_integral_value():
+                return f"{int(n)}"
+        except Exception:
+            pass
+        # Limit to 6 decimal places when not integral
+        return f"{float(n):.6f}".rstrip('0').rstrip('.')
+    return str(val)
+
+
+def _group_by(rows: List[Dict[str, Any]], key: str) -> Dict[Any, List[Dict[str, Any]]]:
+    out: Dict[Any, List[Dict[str, Any]]] = {}
+    for r in rows:
+        out.setdefault(r.get(key), []).append(r)
+    return out
+
+
+def write_metrics_html(
+    path: Path | str,
+    day_metrics: List[Dict[str, Any]],
+    debtor_shares: List[Dict[str, Any]],
+    intraday: List[Dict[str, Any]],
+    title: Optional[str] = None,
+    subtitle: Optional[str] = None,
+) -> None:
+    """Write a single, self-contained HTML report for analytics.
+
+    - Day-by-day metrics in a table.
+    - Debtor shortfall shares (long-form or pivot) in a table.
+    - Intraday prefix liquidity plots as tiny inline SVGs (per day).
+    - Brief explanations for each metric.
+    """
+    p = Path(path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+
+    # Aggregate summary across days
+    def _dec(x):
+        return x if isinstance(x, Decimal) else Decimal(str(x)) if x is not None else Decimal("0")
+
+    S_total = sum((_dec(r.get("S_t")) for r in day_metrics), start=Decimal("0"))
+    gross_total = sum((_dec(r.get("gross_settled_t")) for r in day_metrics), start=Decimal("0"))
+    Mpeak_max = max((_dec(r.get("Mpeak_t")) for r in day_metrics), default=Decimal("0"))
+    v_vals = [r.get("v_t") for r in day_metrics if r.get("v_t") is not None]
+    v_avg = (sum((_dec(v) for v in v_vals), start=Decimal("0")) / Decimal(len(v_vals))) if v_vals else None
+    # Weighted on-time settlement ratio
+    phi_weighted_num = Decimal("0")
+    if S_total > 0:
+        for r in day_metrics:
+            S = r.get("S_t")
+            phi = r.get("phi_t")
+            if S is not None and phi is not None:
+                phi_weighted_num += _dec(S) * _dec(phi)
+        phi_weighted = phi_weighted_num / S_total if S_total != 0 else None
+    else:
+        phi_weighted = None
+
+    # Build intraday SVGs per-day
+    intraday_by_day = _group_by(intraday, "day")
+
+    def _svg_for_day(day: Any, rows: List[Dict[str, Any]], width: int = 520, height: int = 140) -> str:
+        if not rows:
+            return ""
+        # Sort by step
+        rows = sorted(rows, key=lambda r: int(r.get("step", 0)))
+        steps = [int(r.get("step", 0)) for r in rows]
+        vals = [float(Decimal(str(r.get("P_prefix", 0)))) for r in rows]
+        max_step = max(steps) if steps else 1
+        max_val = max(vals) if vals else 1.0
+        # Margins
+        l, r, t, b = 35, 10, 10, 25
+        w = width - l - r
+        h = height - t - b
+        def sx(s):
+            return l + (0 if max_step <= 1 else (s - 1) * (w / (max_step - 1)))
+        def sy(v):
+            return t + (0 if max_val <= 0 else h - (v * h / max_val))
+        pts = " ".join(f"{sx(s):.1f},{sy(v):.1f}" for s, v in zip(steps, vals))
+        # Axes ticks (simple)
+        y0 = t + h
+        x0 = l
+        x1 = l + w
+        # Labels
+        max_val_lbl = f"{max_val:.2f}".rstrip('0').rstrip('.')
+        return f"""
+<svg width=\"{width}\" height=\"{height}\" viewBox=\"0 0 {width} {height}\" xmlns=\"http://www.w3.org/2000/svg\">
+  <rect x=\"0\" y=\"0\" width=\"{width}\" height=\"{height}\" fill=\"#fff\"/>
+  <line x1=\"{x0}\" y1=\"{y0}\" x2=\"{x1}\" y2=\"{y0}\" stroke=\"#999\" stroke-width=\"1\"/>
+  <line x1=\"{x0}\" y1=\"{t}\" x2=\"{x0}\" y2=\"{y0}\" stroke=\"#999\" stroke-width=\"1\"/>
+  <text x=\"{x0}\" y=\"{t-2}\" font-size=\"10\" fill=\"#555\">P_prefix</text>
+  <text x=\"{x1}\" y=\"{y0+14}\" font-size=\"10\" fill=\"#555\" text-anchor=\"end\">step</text>
+  <text x=\"{x0-6}\" y=\"{t+8}\" font-size=\"10\" fill=\"#555\" text-anchor=\"end\">{max_val_lbl}</text>
+  <polyline fill=\"none\" stroke=\"#2a7\" stroke-width=\"2\" points=\"{pts}\" />
+</svg>
+"""
+
+    # Simple, readable HTML with minimal CSS
+    html_title = title or "Bilancio Analytics Report"
+    html_sub = subtitle or ""
+
+    def _row(k, v):
+        return f"<tr><th scope=\"row\">{k}</th><td>{v}</td></tr>"
+
+    # Build day table
+    day_cols = [
+        ("day", "Day"),
+        ("S_t", "Total dues S_t"),
+        ("Mbar_t", "Min net liquidity \u0305M_t"),
+        ("M_t", "Start-of-day money M_t"),
+        ("G_t", "Liquidity gap G_t"),
+        ("alpha_t", "Netting potential \u03B1_t"),
+        ("Mpeak_t", "Operational peak M^peak_t"),
+        ("gross_settled_t", "Gross settled"),
+        ("v_t", "Intraday velocity v_t"),
+        ("phi_t", "On-time settlement \u03C6_t"),
+        ("delta_t", "Deferral/default \u03B4_t"),
+        ("n_debtors", "# debtors"),
+        ("n_creditors", "# creditors"),
+        ("HHIplus_t", "Creditor HHI^+"),
+        ("notes", "Notes"),
+    ]
+
+    day_table_head = "".join(f"<th>{label}</th>" for _, label in day_cols)
+    day_table_rows = []
+    for r in sorted(day_metrics, key=lambda x: int(x.get("day", 0))):
+        tds = []
+        for key, _ in day_cols:
+            tds.append(f"<td>{_fmt_num(r.get(key))}</td>")
+        day_table_rows.append("<tr>" + "".join(tds) + "</tr>")
+
+    # Debtor shares table
+    ds_by_day = _group_by(debtor_shares, "day")
+    ds_sections = []
+    for d, rows in sorted(ds_by_day.items(), key=lambda kv: int(kv[0])):
+        # Gather unique agents for a pivot-like table
+        agents = sorted({str(r.get("agent")) for r in rows})
+        shares = {str(r.get("agent")): r.get("DS_t") for r in rows}
+        ths = "".join(f"<th>{a}</th>" for a in agents)
+        tds = "".join(f"<td>{_fmt_num(shares.get(a))}</td>" for a in agents)
+        ds_sections.append(
+            f"<h4>Day {d}</h4><table class=\"grid\"><thead><tr><th>Agent</th>{ths}</tr></thead>"
+            f"<tbody><tr><th>DS_t</th>{tds}</tr></tbody></table>"
+        )
+
+    # Intraday SVGs per day
+    intraday_sections = []
+    for d, rows in sorted(intraday_by_day.items(), key=lambda kv: int(kv[0])):
+        svg = _svg_for_day(d, rows)
+        intraday_sections.append(f"<h4>Day {d}</h4>" + svg)
+
+    explanations = """
+<dl>
+  <dt>Total dues S_t</dt>
+  <dd>Sum of payment obligations maturing on day t.</dd>
+  <dt>Min net liquidity \u0305M_t</dt>
+  <dd>Minimum system net liquidity needed if obligations are perfectly offset; equals sum of debtor shortfalls max(0, F_i - I_i).</dd>
+  <dt>Start-of-day money M_t</dt>
+  <dd>System means-of-payment available at the start of day t (cash, deposits, reserves).</dd>
+  <dt>Liquidity gap G_t</dt>
+  <dd>Shortfall at the start of the day: max(0, \u0305M_t - M_t).</dd>
+  <dt>Netting potential \u03B1_t</dt>
+  <dd>Share of dues that can be cleared by circulation/netting: 1 - \u0305M_t / S_t.</dd>
+  <dt>Operational peak M^peak_t</dt>
+  <dd>Peak amount of money simultaneously out in circuit when replaying realized settlement sequence.</dd>
+  <dt>Gross settled</dt>
+  <dd>Total value actually settled on day t.</dd>
+  <dt>Intraday velocity v_t</dt>
+  <dd>How intensively money is reused intraday: gross settled / operational peak.</dd>
+  <dt>On-time settlement \u03C6_t</dt>
+  <dd>Share of dues with due_day=t that settle on day t.</dd>
+  <dt>Deferral/default \u03B4_t</dt>
+  <dd>1 - \u03C6_t (portion not settled on time; may reflect deferrals or defaults).</dd>
+  <dt>Creditor HHI^+</dt>
+  <dd>Concentration of net creditor positions among those with n_i > 0.</dd>
+  <dt>Debtor shortfall shares DS_t(i)</dt>
+  <dd>Each net debtor's share of \u0305M_t, indicating who needs liquidity.</dd>
+</dl>
+"""
+
+    html = f"""
+<!doctype html>
+<html lang=\"en\">
+<head>
+  <meta charset=\"utf-8\" />
+  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
+  <title>{html_title}</title>
+  <style>
+    body {{ font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 24px; color: #222; }}
+    h1 {{ margin: 0 0 4px; font-size: 22px; }}
+    h2 {{ margin-top: 28px; font-size: 18px; }}
+    h3 {{ margin-top: 18px; font-size: 16px; }}
+    h4 {{ margin-top: 12px; font-size: 14px; }}
+    p.small {{ color: #555; margin-top: 4px; }}
+    table.grid {{ border-collapse: collapse; width: 100%; margin-top: 8px; }}
+    table.grid th, table.grid td {{ border: 1px solid #ddd; padding: 6px 8px; font-size: 13px; }}
+    table.grid thead th {{ background: #f8f8f8; text-align: left; }}
+    .summary {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; margin-top: 8px; }}
+    .card {{ border: 1px solid #eee; padding: 10px; border-radius: 6px; background: #fcfcfc; }}
+    .muted {{ color: #666; }}
+    dl {{ display: grid; grid-template-columns: max-content 1fr; grid-gap: 4px 16px; font-size: 13px; }}
+    dt {{ font-weight: 600; }}
+    dd {{ margin: 0 0 8px 0; color: #333; }}
+  </style>
+  <meta name=\"generator\" content=\"Bilancio Analytics\" />
+  <meta name=\"description\" content=\"Kalecki-style payment microstructure metrics\" />
+  <meta name=\"robots\" content=\"noindex\" />
+</head>
+<body>
+  <header>
+    <h1>{html_title}</h1>
+    {f'<p class="small muted">{html_sub}</p>' if html_sub else ''}
+  </header>
+
+  <section>
+    <h2>Summary Across Days</h2>
+    <div class=\"summary\">
+      <div class=\"card\"><div class=\"muted\">Days analyzed</div><div><strong>{len(day_metrics)}</strong></div></div>
+      <div class=\"card\"><div class=\"muted\">Total dues \u2211 S_t</div><div><strong>{_fmt_num(S_total)}</strong></div></div>
+      <div class=\"card\"><div class=\"muted\">Gross settled total</div><div><strong>{_fmt_num(gross_total)}</strong></div></div>
+      <div class=\"card\"><div class=\"muted\">Max operational peak</div><div><strong>{_fmt_num(Mpeak_max)}</strong></div></div>
+      <div class=\"card\"><div class=\"muted\">Avg velocity</div><div><strong>{_fmt_num(v_avg)}</strong></div></div>
+      <div class=\"card\"><div class=\"muted\">Weighted on-time \u03C6</div><div><strong>{_fmt_num(phi_weighted)}</strong></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Day-by-Day Metrics</h2>
+    <table class=\"grid\">
+      <thead>
+        <tr>{day_table_head}</tr>
+      </thead>
+      <tbody>
+        {''.join(day_table_rows)}
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Debtor Shortfall Shares DS_t(i)</h2>
+    {''.join(ds_sections) if ds_sections else '<p class="muted">No net debtors on analyzed days.</p>'}
+  </section>
+
+  <section>
+    <h2>Intraday Diagnostics: Prefix Liquidity P(s)</h2>
+    <p class=\"small muted\">For each settlement sequence on day t, P(s) = \u2211_i max(0, \u0394_i(s)) and M^peak_t = max_s P(s).</p>
+    {''.join(intraday_sections) if intraday_sections else '<p class="muted">No settlement steps found.</p>'}
+  </section>
+
+  <section>
+    <h2>Metric Explanations</h2>
+    {explanations}
+  </section>
+</body>
+</html>
+"""
+
+    with p.open("w") as f:
+        f.write(html)
 
 ```
 
@@ -7630,6 +8350,28 @@ from rich.panel import Panel
 
 from .run import run_scenario
 from .wizard import create_scenario_wizard
+from bilancio.analysis.loaders import read_events_jsonl, read_balances_csv
+from bilancio.analysis.metrics import (
+    dues_for_day,
+    net_vectors,
+    raw_minimum_liquidity,
+    size_and_bunching,
+    phi_delta,
+    replay_intraday_peak,
+    velocity,
+    creditor_hhi_plus,
+    debtor_shortfall_shares,
+    start_of_day_money,
+    liquidity_gap,
+    alpha as alpha_fn,
+)
+from bilancio.analysis.report import (
+    write_day_metrics_csv,
+    write_day_metrics_json,
+    write_debtor_shares_csv,
+    write_intraday_csv,
+    write_metrics_html,
+)
 
 
 console = Console()
@@ -7834,6 +8576,168 @@ def new(from_template: Optional[str], output: Path):
             border_style="red"
         ))
         sys.exit(1)
+
+
+@cli.command()
+@click.option('--events', 'events_path', type=click.Path(exists=True, path_type=Path), required=True,
+              help='Path to events JSONL exported by a run')
+@click.option('--balances', 'balances_path', type=click.Path(exists=False, path_type=Path), required=False,
+              help='Path to balances CSV (optional, improves G_t/M_t)')
+@click.option('--days', type=str, default=None,
+              help='Days to analyze, e.g. "1,2-3". Default: infer from events')
+@click.option('--out-csv', 'out_csv', type=click.Path(path_type=Path), default=None,
+              help='Output CSV for day-level metrics')
+@click.option('--out-json', 'out_json', type=click.Path(path_type=Path), default=None,
+              help='Output JSON for day-level metrics')
+@click.option('--intraday-csv', 'intraday_csv', type=click.Path(path_type=Path), default=None,
+              help='Optional CSV for intraday P_prefix steps')
+@click.option('--html', 'html_out', type=click.Path(path_type=Path), default=None,
+              help='Optional HTML analytics report')
+def analyze(
+    events_path: Path,
+    balances_path: Optional[Path],
+    days: Optional[str],
+    out_csv: Optional[Path],
+    out_json: Optional[Path],
+    intraday_csv: Optional[Path],
+    html_out: Optional[Path],
+):
+    """Analyze a completed run and export Kalecki-style metrics.
+
+    Produces a day-level metrics CSV/JSON, optional intraday CSV (diagnostic).
+    """
+    # Load inputs
+    console.print(f"[dim]Reading events from {events_path}...[/dim]")
+    events = list(read_events_jsonl(events_path))
+
+    balances_rows = None
+    if balances_path and balances_path.exists():
+        console.print(f"[dim]Reading balances from {balances_path}...[/dim]")
+        balances_rows = read_balances_csv(balances_path)
+
+    # Parse days argument: supports comma lists and ranges like 1-3
+    def parse_days_arg(s: str) -> List[int]:
+        out: List[int] = []
+        for part in s.split(','):
+            part = part.strip()
+            if '-' in part:
+                a, b = part.split('-', 1)
+                try:
+                    start = int(a)
+                    end = int(b)
+                    out.extend(list(range(start, end + 1)))
+                except Exception:
+                    continue
+            else:
+                try:
+                    out.append(int(part))
+                except Exception:
+                    continue
+        return sorted(sorted(set(out)))
+
+    if days:
+        day_list = parse_days_arg(days)
+    else:
+        # Infer days from events: prefer due_day set; fallback to settled day set
+        due_days = sorted({int(e["due_day"]) for e in events if e.get("kind") == "PayableCreated" and e.get("due_day") is not None})
+        settled_days = sorted({int(e["day"]) for e in events if e.get("kind") == "PayableSettled" and e.get("day") is not None})
+        day_list = due_days or settled_days
+    if not day_list:
+        console.print("[yellow]No days found to analyze.[/yellow]")
+        return
+
+    # Determine default output paths if not provided
+    base = events_path.stem.replace("_events", "") or "metrics"
+    out_dir = events_path.parent
+    if not out_csv:
+        out_csv = out_dir / f"{base}_metrics_day.csv"
+    if not out_json:
+        out_json = out_dir / f"{base}_metrics_day.json"
+    if intraday_csv:
+        intraday_csv.parent.mkdir(parents=True, exist_ok=True)
+
+    metrics_rows: List[dict] = []
+    ds_rows: List[dict] = []
+    intraday_rows: List[dict] = []
+
+    for t in day_list:
+        # Compute core sets
+        dues = dues_for_day(events, t)
+        nets = net_vectors(dues)
+        Mbar_t = raw_minimum_liquidity(nets)
+        S_t, _ = size_and_bunching(dues)
+        phi_t, delta_t = phi_delta(events, dues, t)
+        Mpeak_t, steps, gross_t = replay_intraday_peak(events, t)
+        v_t = velocity(gross_t, Mpeak_t)
+        HHIp_t = creditor_hhi_plus(nets)
+        DS = debtor_shortfall_shares(nets)
+        n_debtors = sum(1 for a, v in nets.items() if v["F"] > v["I"])
+        n_creditors = sum(1 for a, v in nets.items() if v["n"] > 0)
+
+        # Money supply (optional if balances provided)
+        M_t = None
+        G_t = None
+        if balances_rows is not None:
+            M_t = start_of_day_money(balances_rows, t)
+            G_t = liquidity_gap(Mbar_t, M_t)
+
+        alpha_t = alpha_fn(Mbar_t, S_t) if S_t is not None else None
+
+        notes: List[str] = []
+        if HHIp_t is None:
+            notes.append("no net creditors")
+        if all(v is None for v in DS.values()):
+            notes.append("no net debtors")
+
+        metrics_rows.append(
+            {
+                "day": t,
+                "S_t": S_t,
+                "Mbar_t": Mbar_t,
+                "M_t": M_t,
+                "G_t": G_t,
+                "alpha_t": alpha_t,
+                "Mpeak_t": Mpeak_t,
+                "gross_settled_t": gross_t,
+                "v_t": v_t,
+                "phi_t": phi_t,
+                "delta_t": delta_t,
+                "n_debtors": n_debtors,
+                "n_creditors": n_creditors,
+                "HHIplus_t": HHIp_t,
+                "notes": ", ".join(notes) if notes else "",
+            }
+        )
+
+        # Debtor shares (long form)
+        for agent, share in DS.items():
+            ds_rows.append({"day": t, "agent": agent, "DS_t": share})
+
+        # Intraday diagnostics
+        for row in steps:
+            intraday_rows.append(row)
+
+    # Write outputs
+    write_day_metrics_csv(out_csv, metrics_rows)
+    console.print(f"[green]✓[/green] Wrote day metrics CSV: {out_csv}")
+    write_day_metrics_json(out_json, metrics_rows)
+    console.print(f"[green]✓[/green] Wrote day metrics JSON: {out_json}")
+
+    # Debtor shares and intraday are optional; only write if path provided
+    base_name = out_csv.stem.replace("_metrics_day", "") if out_csv else "metrics"
+    ds_path = out_csv.parent / f"{base_name}_ds.csv"
+    write_debtor_shares_csv(ds_path, ds_rows)
+    console.print(f"[green]✓[/green] Wrote debtor shares CSV: {ds_path}")
+
+    if intraday_csv:
+        write_intraday_csv(intraday_csv, intraday_rows)
+        console.print(f"[green]✓[/green] Wrote intraday CSV: {intraday_csv}")
+
+    if html_out:
+        title = f"Bilancio Analytics — {events_path.stem.replace('_events','')}"
+        subtitle = f"Events: {events_path.name}{' | Balances: ' + balances_path.name if balances_path else ''}"
+        write_metrics_html(html_out, metrics_rows, ds_rows, intraday_rows, title=title, subtitle=subtitle)
+        console.print(f"[green]✓[/green] Wrote HTML analytics: {html_out}")
 
 
 def main():
@@ -14506,5 +15410,5 @@ def test_settle_multiple_obligations():
 ## End of Codebase
 
 Generated from: /home/runner/work/bilancio/bilancio
-Total source files: 62
+Total source files: 64
 Total test files: 25
