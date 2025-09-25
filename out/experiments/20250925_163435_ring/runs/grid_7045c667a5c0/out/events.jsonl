@@ -1,0 +1,17 @@
+{"kind": "CashMinted", "day": 0, "phase": "setup", "to": "H1", "amount": 1000, "instr_id": "C_5f8db61781a9", "alias": "LIQ_H1"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H1", "creditor": "H2", "amount": 27, "due_day": 1, "payable_id": "PAY_978e3304130d", "alias": "P_H1_H2"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H2", "creditor": "H3", "amount": 78, "due_day": 1, "payable_id": "PAY_2ab1bce7ad86", "alias": "P_H2_H3"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H3", "creditor": "H4", "amount": 180, "due_day": 1, "payable_id": "PAY_b11dd663cb5a", "alias": "P_H3_H4"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H4", "creditor": "H5", "amount": 119, "due_day": 1, "payable_id": "PAY_adfe9f8c23ef", "alias": "P_H4_H5"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H5", "creditor": "H1", "amount": 93, "due_day": 1, "payable_id": "PAY_d3efd4afbbfd", "alias": "P_H5_H1"}
+{"kind": "PhaseA", "day": 0, "phase": "simulation"}
+{"kind": "PhaseB", "day": 0, "phase": "simulation"}
+{"kind": "SubphaseB1", "day": 0, "phase": "simulation"}
+{"kind": "SubphaseB2", "day": 0, "phase": "simulation"}
+{"kind": "PhaseC", "day": 0, "phase": "simulation"}
+{"kind": "PhaseA", "day": 1, "phase": "simulation"}
+{"kind": "PhaseB", "day": 1, "phase": "simulation"}
+{"kind": "SubphaseB1", "day": 1, "phase": "simulation"}
+{"kind": "SubphaseB2", "day": 1, "phase": "simulation"}
+{"kind": "CashTransferred", "day": 1, "phase": "simulation", "frm": "H1", "to": "H2", "amount": 27, "instr_id": "C_60894284ede8"}
+{"kind": "PayableSettled", "day": 1, "phase": "simulation", "pid": "PAY_978e3304130d", "contract_id": "PAY_978e3304130d", "alias": "P_H1_H2", "debtor": "H1", "creditor": "H2", "amount": 27}

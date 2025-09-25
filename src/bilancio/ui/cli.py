@@ -1,8 +1,10 @@
 """Command-line interface for Bilancio."""
 
 import click
+from datetime import datetime
+from decimal import Decimal
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional
 import sys
 
 from rich.console import Console
@@ -11,27 +13,18 @@ from rich.panel import Panel
 from .run import run_scenario
 from .wizard import create_scenario_wizard
 from bilancio.analysis.loaders import read_events_jsonl, read_balances_csv
-from bilancio.analysis.metrics import (
-    dues_for_day,
-    net_vectors,
-    raw_minimum_liquidity,
-    size_and_bunching,
-    phi_delta,
-    replay_intraday_peak,
-    velocity,
-    creditor_hhi_plus,
-    debtor_shortfall_shares,
-    start_of_day_money,
-    liquidity_gap,
-    alpha as alpha_fn,
-)
 from bilancio.analysis.report import (
     write_day_metrics_csv,
     write_day_metrics_json,
     write_debtor_shares_csv,
     write_intraday_csv,
     write_metrics_html,
+    compute_day_metrics,
+    parse_day_ranges,
+    aggregate_runs,
+    render_dashboard,
 )
+from bilancio.experiments.ring import RingSweepRunner, _decimal_list
 
 
 console = Console()
@@ -41,6 +34,124 @@ console = Console()
 def cli():
     """Bilancio - Economic simulation framework."""
     pass
+
+
+@cli.group()
+def sweep():
+    """Experiment sweeps."""
+    pass
+
+
+@sweep.command("ring")
+@click.option('--out-dir', type=click.Path(path_type=Path), default=None, help='Base output directory')
+@click.option('--grid/--no-grid', default=True, help='Run coarse grid sweep')
+@click.option('--kappas', type=str, default="0.25,0.5,1,2,4", help='Comma list for grid kappa values')
+@click.option('--concentrations', type=str, default="0.2,0.5,1,2,5", help='Comma list for grid Dirichlet concentrations')
+@click.option('--mus', type=str, default="0,0.25,0.5,0.75,1", help='Comma list for grid mu values')
+@click.option('--lhs', 'lhs_count', type=int, default=0, help='Latin Hypercube samples to draw')
+@click.option('--kappa-min', type=float, default=0.2, help='LHS min kappa')
+@click.option('--kappa-max', type=float, default=5.0, help='LHS max kappa')
+@click.option('--c-min', type=float, default=0.2, help='LHS min concentration')
+@click.option('--c-max', type=float, default=5.0, help='LHS max concentration')
+@click.option('--mu-min', type=float, default=0.0, help='LHS min mu')
+@click.option('--mu-max', type=float, default=1.0, help='LHS max mu')
+@click.option('--frontier/--no-frontier', default=False, help='Run frontier search')
+@click.option('--frontier-low', type=float, default=0.1, help='Frontier lower bound for kappa')
+@click.option('--frontier-high', type=float, default=4.0, help='Initial frontier upper bound for kappa')
+@click.option('--frontier-tolerance', type=float, default=0.02, help='Frontier tolerance on delta_total')
+@click.option('--frontier-iterations', type=int, default=6, help='Max bisection iterations per cell')
+@click.option('--n-agents', type=int, default=5, help='Ring size')
+@click.option('--maturity-days', type=int, default=3, help='Due day horizon for generator')
+@click.option('--q-total', type=float, default=500.0, help='Total dues S1 for generation')
+@click.option('--liquidity-mode', type=click.Choice(['single_at', 'uniform']), default='single_at', help='Liquidity allocation mode')
+@click.option('--liquidity-agent', type=str, default='H1', help='Target for single_at liquidity allocation')
+@click.option('--base-seed', type=int, default=42, help='Base PRNG seed')
+@click.option('--name-prefix', type=str, default='Kalecki Ring Sweep', help='Scenario name prefix')
+def sweep_ring(
+    out_dir: Optional[Path],
+    grid: bool,
+    kappas: str,
+    concentrations: str,
+    mus: str,
+    lhs_count: int,
+    kappa_min: float,
+    kappa_max: float,
+    c_min: float,
+    c_max: float,
+    mu_min: float,
+    mu_max: float,
+    frontier: bool,
+    frontier_low: float,
+    frontier_high: float,
+    frontier_tolerance: float,
+    frontier_iterations: int,
+    n_agents: int,
+    maturity_days: int,
+    q_total: float,
+    liquidity_mode: str,
+    liquidity_agent: str,
+    base_seed: int,
+    name_prefix: str,
+):
+    """Run the Kalecki ring experiment sweep."""
+    if out_dir is None:
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        out_dir = Path("out") / "experiments" / f"{ts}_ring"
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    q_total_dec = Decimal(str(q_total))
+    runner = RingSweepRunner(
+        out_dir,
+        name_prefix=name_prefix,
+        n_agents=n_agents,
+        maturity_days=maturity_days,
+        Q_total=q_total_dec,
+        liquidity_mode=liquidity_mode,
+        liquidity_agent=liquidity_agent,
+        base_seed=base_seed,
+    )
+
+    console.print(f"[dim]Output directory: {out_dir}[/dim]")
+
+    grid_kappas = _decimal_list(kappas)
+    grid_concentrations = _decimal_list(concentrations)
+    grid_mus = _decimal_list(mus)
+
+    if grid:
+        console.print(f"[dim]Running grid sweep: {len(grid_kappas) * len(grid_concentrations) * len(grid_mus)} runs[/dim]")
+        runner.run_grid(grid_kappas, grid_concentrations, grid_mus)
+
+    if lhs_count > 0:
+        console.print(f"[dim]Running Latin Hypercube ({lhs_count})[/dim]")
+        runner.run_lhs(
+            lhs_count,
+            kappa_range=(Decimal(str(kappa_min)), Decimal(str(kappa_max))),
+            concentration_range=(Decimal(str(c_min)), Decimal(str(c_max))),
+            mu_range=(Decimal(str(mu_min)), Decimal(str(mu_max))),
+        )
+
+    if frontier:
+        console.print(f"[dim]Running frontier search across {len(grid_concentrations) * len(grid_mus)} cells[/dim]")
+        runner.run_frontier(
+            grid_concentrations,
+            grid_mus,
+            kappa_low=Decimal(str(frontier_low)),
+            kappa_high=Decimal(str(frontier_high)),
+            tolerance=Decimal(str(frontier_tolerance)),
+            max_iterations=frontier_iterations,
+        )
+
+    registry_csv = runner.registry_dir / "experiments.csv"
+    results_csv = runner.aggregate_dir / "results.csv"
+    dashboard_html = runner.aggregate_dir / "dashboard.html"
+
+    aggregate_runs(registry_csv, results_csv)
+    render_dashboard(results_csv, dashboard_html)
+
+    console.print(f"[green]Sweep complete.[/green] Registry: {registry_csv}")
+    console.print(f"[green]Aggregated results: {results_csv}")
+    console.print(f"[green]Dashboard: {dashboard_html}")
 
 
 @cli.command()
@@ -275,34 +386,11 @@ def analyze(
         console.print(f"[dim]Reading balances from {balances_path}...[/dim]")
         balances_rows = read_balances_csv(balances_path)
 
-    # Parse days argument: supports comma lists and ranges like 1-3
-    def parse_days_arg(s: str) -> List[int]:
-        out: List[int] = []
-        for part in s.split(','):
-            part = part.strip()
-            if '-' in part:
-                a, b = part.split('-', 1)
-                try:
-                    start = int(a)
-                    end = int(b)
-                    out.extend(list(range(start, end + 1)))
-                except Exception:
-                    continue
-            else:
-                try:
-                    out.append(int(part))
-                except Exception:
-                    continue
-        return sorted(sorted(set(out)))
+    day_list = parse_day_ranges(days) if days else None
 
-    if days:
-        day_list = parse_days_arg(days)
-    else:
-        # Infer days from events: prefer due_day set; fallback to settled day set
-        due_days = sorted({int(e["due_day"]) for e in events if e.get("kind") == "PayableCreated" and e.get("due_day") is not None})
-        settled_days = sorted({int(e["day"]) for e in events if e.get("kind") == "PayableSettled" and e.get("day") is not None})
-        day_list = due_days or settled_days
-    if not day_list:
+    bundle = compute_day_metrics(events, balances_rows, day_list)
+
+    if not bundle["day_metrics"]:
         console.print("[yellow]No days found to analyze.[/yellow]")
         return
 
@@ -316,68 +404,11 @@ def analyze(
     if intraday_csv:
         intraday_csv.parent.mkdir(parents=True, exist_ok=True)
 
-    metrics_rows: List[dict] = []
-    ds_rows: List[dict] = []
-    intraday_rows: List[dict] = []
-
-    for t in day_list:
-        # Compute core sets
-        dues = dues_for_day(events, t)
-        nets = net_vectors(dues)
-        Mbar_t = raw_minimum_liquidity(nets)
-        S_t, _ = size_and_bunching(dues)
-        phi_t, delta_t = phi_delta(events, dues, t)
-        Mpeak_t, steps, gross_t = replay_intraday_peak(events, t)
-        v_t = velocity(gross_t, Mpeak_t)
-        HHIp_t = creditor_hhi_plus(nets)
-        DS = debtor_shortfall_shares(nets)
-        n_debtors = sum(1 for a, v in nets.items() if v["F"] > v["I"])
-        n_creditors = sum(1 for a, v in nets.items() if v["n"] > 0)
-
-        # Money supply (optional if balances provided)
-        M_t = None
-        G_t = None
-        if balances_rows is not None:
-            M_t = start_of_day_money(balances_rows, t)
-            G_t = liquidity_gap(Mbar_t, M_t)
-
-        alpha_t = alpha_fn(Mbar_t, S_t) if S_t is not None else None
-
-        notes: List[str] = []
-        if HHIp_t is None:
-            notes.append("no net creditors")
-        if all(v is None for v in DS.values()):
-            notes.append("no net debtors")
-
-        metrics_rows.append(
-            {
-                "day": t,
-                "S_t": S_t,
-                "Mbar_t": Mbar_t,
-                "M_t": M_t,
-                "G_t": G_t,
-                "alpha_t": alpha_t,
-                "Mpeak_t": Mpeak_t,
-                "gross_settled_t": gross_t,
-                "v_t": v_t,
-                "phi_t": phi_t,
-                "delta_t": delta_t,
-                "n_debtors": n_debtors,
-                "n_creditors": n_creditors,
-                "HHIplus_t": HHIp_t,
-                "notes": ", ".join(notes) if notes else "",
-            }
-        )
-
-        # Debtor shares (long form)
-        for agent, share in DS.items():
-            ds_rows.append({"day": t, "agent": agent, "DS_t": share})
-
-        # Intraday diagnostics
-        for row in steps:
-            intraday_rows.append(row)
-
     # Write outputs
+    metrics_rows = bundle["day_metrics"]
+    ds_rows = bundle["debtor_shares"]
+    intraday_rows = bundle["intraday"]
+
     write_day_metrics_csv(out_csv, metrics_rows)
     console.print(f"[green]✓[/green] Wrote day metrics CSV: {out_csv}")
     write_day_metrics_json(out_json, metrics_rows)

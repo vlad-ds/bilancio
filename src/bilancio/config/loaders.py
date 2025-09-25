@@ -4,7 +4,7 @@ import yaml
 from pathlib import Path
 from typing import Any, Dict
 from decimal import Decimal, InvalidOperation, DecimalException
-from pydantic import ValidationError
+from pydantic import ValidationError, TypeAdapter
 
 from .models import (
     ScenarioConfig,
@@ -19,7 +19,8 @@ from .models import (
     TransferStock,
     CreateDeliveryObligation,
     CreatePayable,
-    Action
+    Action,
+    GeneratorConfig,
 )
 
 
@@ -160,6 +161,29 @@ def load_yaml(path: Path | str) -> ScenarioConfig:
     # Preprocess the configuration
     data = preprocess_config(data)
     
+    # Handle generator specs by compiling into a concrete scenario first
+    if "generator" in data:
+        adapter = TypeAdapter(GeneratorConfig)
+        try:
+            generator_spec = adapter.validate_python(data)
+        except ValidationError as e:
+            errors = []
+            for error in e.errors():
+                loc = " -> ".join(str(l) for l in error['loc'])
+                msg = error['msg']
+                errors.append(f"  - {loc}: {msg}")
+            error_msg = f"Generator validation failed:\n" + "\n".join(errors)
+            raise ValueError(error_msg) from e
+
+        from bilancio.scenarios.generators import compile_generator
+
+        try:
+            compiled = compile_generator(generator_spec, source_path=path)
+        except Exception as e:
+            raise ValueError(f"Failed to compile generator '{generator_spec.generator}': {e}") from e
+
+        data = preprocess_config(compiled)
+
     # Parse initial_actions if present
     if "initial_actions" in data:
         try:
