@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2025-09-25 12:56:37 UTC | Branch: feature/default-handling-modalities | Commit: 90a4f8c
+Generated: 2025-09-25 13:03:43 UTC | Branch: main | Commit: 2341fc7
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -883,51 +883,6 @@ Complete git history from oldest to newest:
   - Validated and produced HTML reports under temp/
   Note: Scenarios 3–4 need claim assignment + scheduled actions (not yet supported).
 
-- **797d4ac2** (2025-09-04) by vladgheorghe
-  Plan: Mid-simulation actions via Phase B split (B1 scheduled, B2 settlement), aliases, and explicit claim transfer
-  - Keep Phase A reserved; execute scheduled actions at start of Phase B
-  - Add alias support on create-* actions for contracts (mint_cash, mint_reserves, create_payable, create_delivery_obligation)
-  - Add transfer_claim action referencing by alias or id (both allowed if consistent)
-  - Schedule actions by day; render HTML with separate Phase B1/B2 tables
-  - No code changes yet — planning document only (plans/scheduled_actions_and_aliases.md)
-
-- **a707e2f4** (2025-09-04) by vladgheorghe
-  Move plan to docs/plans with numbering: 012_scheduled_actions_and_aliases.md
-
-- **a10e0ebb** (2025-09-04) by vladgheorghe
-  feat(sim): scheduled actions (Phase B1) + alias support + claim transfer\n\n- models: add alias to create_*; add TransferClaim; add ScheduledAction + scheduled_actions on scenario\n- system: state aliases + scheduled_actions_by_day; create_delivery_obligation/mint_* accept alias and log it; run_day executes B1 then B2\n- apply: wire aliases, pass alias into system APIs, implement transfer_claim reassignment\n- html export: add ID/Alias column to events and T-accounts; split Phase B into B1/B2 tables\n- ui/run: stage scheduled_actions and carry id_or_alias to HTML rows\n\nscenarios:\n- ex1/ex2 already added; ex3 updated to day1 assignment + day2 settlement (aliases shown); ex4 generic claim transfer with consideration\n\nnote: step-mode DayReport None issue still present (not addressed)
-
-- **94f0d8a8** (2025-09-04) by vladgheorghe
-  ui: show aliases on cancel/settle events + ID fallback
-  - engines/system: include alias + contract_id on DeliveryObligationCancelled
-  - engines/settlement: include alias + contract_id on DeliveryObligationSettled and PayableSettled
-  - html_export: ID/Alias column considers obligation_id and pid as fallbacks
-  scenarios: add Ex6 and Ex7 YAMLs
-
-- **168997af** (2025-09-04) by vladgheorghe
-  chore(examples): organize exercise scenarios 1–7 into subfolders and regenerate HTML reports\n\n- Move YAMLs to examples/exercise_scenarios/yaml/\n- Export HTMLs to examples/exercise_scenarios/html/ for ex1–ex7
-
-- **3d84c69e** (2025-09-04) by vladgheorghe
-  chore(examples): regenerate HTML reports for ex2–ex7 in examples/exercise_scenarios/html/
-
-- **d1d95e38** (2025-09-04) by vladgheorghe
-  fix: address PR feedback (critical+moderate)
-  - models: move model_validator import to module scope
-  - apply: order-independent transfer_claim validation with clear errors
-  - ops/aliases: add helpers for alias/id lookup; use in settlement/system
-  - ui/run: preflight validate scheduled alias references; refactor row dict builder
-  - html_export: ID/Alias fallback includes obligation_id & pid
-  No functional changes to scenarios; validated ex7 run.
-
-- **d6665c77** (2025-09-04) by vladgheorghe
-  chore(examples): re-render HTML reports for ex1–ex7
-
-- **92b6d633** (2025-09-04) by vladgheorghe
-  fix(ui/run): step-mode HTML export bug\n\nMove _row_dict helper out of inner block and ensure day_rows assignments execute within the agent loop. This fixes unreachable code causing empty T-account rows in step-mode exports.
-
-- **9092d6e9** (2025-09-04) by vladgheorghe
-  test: add coverage for TransferClaim, schedule alias validation, B1 execution, and alias helpers
-
 - **89ca7621** (2025-09-04) by Vlad Gheorghe
   feat(sim): scheduled actions (B1), alias support, claim transfer + exercises 1–7 (#14)
   * Plan: Mid-simulation actions via Phase B split (B1 scheduled, B2 settlement), aliases, and explicit claim transfer
@@ -968,14 +923,38 @@ Complete git history from oldest to newest:
 - **90f18f4a** (2025-09-05) by github-actions[bot]
   chore(docs): update codebase_for_llm.md
 
-- **8a61e66e** (2025-09-25) by vladgheorghe
-  Update codebase_for_llm snapshot
-
-- **b9dd4b7f** (2025-09-25) by vladgheorghe
-  Handle default cleanup and reporting
-
-- **90a4f8c6** (2025-09-25) by vladgheorghe
-  Merge branch 'main' into feature/default-handling-modalities
+- **2341fc71** (2025-09-25) by Vlad Gheorghe
+  Add expel-agent default handling flow (#15)
+  * Plan: Mid-simulation actions via Phase B split (B1 scheduled, B2 settlement), aliases, and explicit claim transfer
+  - Keep Phase A reserved; execute scheduled actions at start of Phase B
+  - Add alias support on create-* actions for contracts (mint_cash, mint_reserves, create_payable, create_delivery_obligation)
+  - Add transfer_claim action referencing by alias or id (both allowed if consistent)
+  - Schedule actions by day; render HTML with separate Phase B1/B2 tables
+  - No code changes yet — planning document only (plans/scheduled_actions_and_aliases.md)
+  * Move plan to docs/plans with numbering: 012_scheduled_actions_and_aliases.md
+  * feat(sim): scheduled actions (Phase B1) + alias support + claim transfer\n\n- models: add alias to create_*; add TransferClaim; add ScheduledAction + scheduled_actions on scenario\n- system: state aliases + scheduled_actions_by_day; create_delivery_obligation/mint_* accept alias and log it; run_day executes B1 then B2\n- apply: wire aliases, pass alias into system APIs, implement transfer_claim reassignment\n- html export: add ID/Alias column to events and T-accounts; split Phase B into B1/B2 tables\n- ui/run: stage scheduled_actions and carry id_or_alias to HTML rows\n\nscenarios:\n- ex1/ex2 already added; ex3 updated to day1 assignment + day2 settlement (aliases shown); ex4 generic claim transfer with consideration\n\nnote: step-mode DayReport None issue still present (not addressed)
+  * ui: show aliases on cancel/settle events + ID fallback
+  - engines/system: include alias + contract_id on DeliveryObligationCancelled
+  - engines/settlement: include alias + contract_id on DeliveryObligationSettled and PayableSettled
+  - html_export: ID/Alias column considers obligation_id and pid as fallbacks
+  scenarios: add Ex6 and Ex7 YAMLs
+  * chore(examples): organize exercise scenarios 1–7 into subfolders and regenerate HTML reports\n\n- Move YAMLs to examples/exercise_scenarios/yaml/\n- Export HTMLs to examples/exercise_scenarios/html/ for ex1–ex7
+  * chore(examples): regenerate HTML reports for ex2–ex7 in examples/exercise_scenarios/html/
+  * fix: address PR feedback (critical+moderate)
+  - models: move model_validator import to module scope
+  - apply: order-independent transfer_claim validation with clear errors
+  - ops/aliases: add helpers for alias/id lookup; use in settlement/system
+  - ui/run: preflight validate scheduled alias references; refactor row dict builder
+  - html_export: ID/Alias fallback includes obligation_id & pid
+  No functional changes to scenarios; validated ex7 run.
+  * chore(examples): re-render HTML reports for ex1–ex7
+  * fix(ui/run): step-mode HTML export bug\n\nMove _row_dict helper out of inner block and ensure day_rows assignments execute within the agent loop. This fixes unreachable code causing empty T-account rows in step-mode exports.
+  * test: add coverage for TransferClaim, schedule alias validation, B1 execution, and alias helpers
+  * Update codebase_for_llm snapshot
+  * Handle default cleanup and reporting
+  * chore(docs): update codebase_for_llm.md
+  ---------
+  Co-authored-by: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
 
 ---
 
