@@ -707,7 +707,7 @@ def display_events_table(events: List[Dict[str, Any]], group_by_day: bool = True
                 frm = e.get("owner")
                 to = None
             else:
-                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer") or e.get("agent")
                 to = e.get("to") or e.get("creditor") or e.get("payee")
             sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
             qty = e.get("qty") or e.get("quantity") or "—"
@@ -720,6 +720,16 @@ def display_events_table(events: List[Dict[str, Any]], group_by_day: bool = True
                 notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
                 if 'due_day' in e:
                     notes += f"; due {e.get('due_day')}"
+            elif kind == "AgentDefaulted":
+                shortfall = e.get('shortfall')
+                trigger = e.get('trigger_contract')
+                parts = []
+                if shortfall is not None:
+                    parts.append(f"shortfall {shortfall}")
+                if trigger:
+                    parts.append(f"trigger {trigger}")
+                if parts:
+                    notes = ", ".join(parts)
 
             table.add_row(
                 str(e.get("day", "—")),
@@ -754,7 +764,7 @@ def display_events_table(events: List[Dict[str, Any]], group_by_day: bool = True
                 frm = e.get("owner")
                 to = None
             else:
-                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer") or e.get("agent")
                 to = e.get("to") or e.get("creditor") or e.get("payee")
             sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
             qty = e.get("qty") or e.get("quantity") or "—"
@@ -766,6 +776,16 @@ def display_events_table(events: List[Dict[str, Any]], group_by_day: bool = True
                 notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
                 if 'due_day' in e:
                     notes += f"; due {e.get('due_day')}"
+            elif kind == "AgentDefaulted":
+                shortfall = e.get('shortfall')
+                trigger = e.get('trigger_contract')
+                parts = []
+                if shortfall is not None:
+                    parts.append(f"shortfall {shortfall}")
+                if trigger:
+                    parts.append(f"trigger {trigger}")
+                if parts:
+                    notes = ", ".join(parts)
             row = [
                 str(e.get("day", "—")),
                 str(e.get("phase", "—")),
@@ -959,6 +979,16 @@ def display_events_tables_by_phase_renderables(events: List[Dict[str, Any]], day
                     notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
                     if 'due_day' in e:
                         notes += f"; due {e.get('due_day')}"
+                elif kind == "AgentDefaulted":
+                    shortfall = e.get('shortfall')
+                    trigger = e.get('trigger_contract')
+                    parts = []
+                    if shortfall is not None:
+                        parts.append(f"shortfall {shortfall}")
+                    if trigger:
+                        parts.append(f"trigger {trigger}")
+                    if parts:
+                        notes = ", ".join(parts)
                 out.append(" | ".join(map(str, [kind, frm or "—", to or "—", sku, qty, amt, notes])))
             return "\n".join(out)
 
@@ -999,6 +1029,16 @@ def display_events_tables_by_phase_renderables(events: List[Dict[str, Any]], day
                 notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
                 if 'due_day' in e:
                     notes += f"; due {e.get('due_day')}"
+            elif kind == "AgentDefaulted":
+                shortfall = e.get('shortfall')
+                trigger = e.get('trigger_contract')
+                parts = []
+                if shortfall is not None:
+                    parts.append(f"shortfall {shortfall}")
+                if trigger:
+                    parts.append(f"trigger {trigger}")
+                if parts:
+                    notes = ", ".join(parts)
             table.add_row(kind, str(frm or "—"), str(to or "—"), str(sku), str(qty), str(amt), notes)
         return table
 

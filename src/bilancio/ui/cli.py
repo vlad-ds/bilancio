@@ -44,6 +44,8 @@ def cli():
 @click.option('--html', type=click.Path(path_type=Path),
               default=None, help='Path to export colored output as HTML')
 @click.option('--t-account/--no-t-account', default=False, help='Use detailed T-account layout for balances')
+@click.option('--default-handling', type=click.Choice(['fail-fast', 'expel-agent']),
+              default=None, help='Default-handling mode (override scenario setting)')
 def run(scenario_file: Path, 
         mode: str,
         max_days: int,
@@ -54,7 +56,8 @@ def run(scenario_file: Path,
         export_balances: Optional[Path],
         export_events: Optional[Path],
         html: Optional[Path],
-        t_account: bool):
+        t_account: bool,
+        default_handling: Optional[str]):
     """Run a Bilancio simulation scenario.
     
     Load a scenario from a YAML file and run the simulation either
@@ -83,7 +86,8 @@ def run(scenario_file: Path,
             check_invariants=check_invariants,
             export=export,
             html_output=html,
-            t_account=t_account
+            t_account=t_account,
+            default_handling=default_handling
         )
         
     except FileNotFoundError as e:

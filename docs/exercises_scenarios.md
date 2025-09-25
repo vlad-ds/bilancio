@@ -115,3 +115,8 @@
 
 **Reference:** *5. Monetary policy*, Exercise **3**, **p. 16–17**.
 **Scenario:** Same retail purchases with **RRR 50%**; analyze whether interbank positions and reserve funding allow settlement, and what **interest‑rate environment** must hold for feasibility.&#x20;
+
+### 23) Partial payout before default with expel-agent handling
+
+**Reference:** Implementation demo scenario `default_handling_demo.yaml`.
+**Scenario:** **Firm F1** owes **Firm F2** 100 on day 1 but only holds **60** in cash. With `run.default_handling: expel-agent`, settlement records a **PartialSettlement** (60 paid), flags **F1** as defaulted, writes off remaining obligations (including a day-2 payable to **F3**), cancels scheduled actions referring to the defaulter, and allows other agents to continue.

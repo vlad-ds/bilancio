@@ -276,7 +276,7 @@ def _map_event_fields(e: Dict[str, Any]) -> Dict[str, str]:
     elif kind == "StockCreated":
         frm = e.get("owner"); to = None
     else:
-        frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+        frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer") or e.get("agent")
         to  = e.get("to") or e.get("creditor") or e.get("payee")
     # Identifier column prefers alias, then contract/instrument IDs
     id_or_alias = (
@@ -302,6 +302,15 @@ def _map_event_fields(e: Dict[str, Any]) -> Dict[str, str]:
         notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
         if 'due_day' in e:
             notes += f"; due {e.get('due_day')}"
+    elif kind == "AgentDefaulted":
+        shortfall = e.get('shortfall')
+        trigger = e.get('trigger_contract')
+        bits = []
+        if shortfall is not None:
+            bits.append(f"shortfall {shortfall}")
+        if trigger:
+            bits.append(f"trigger {trigger}")
+        notes = ", ".join(bits) if bits else "default"
     return {
         "kind": kind,
         "from": _html_escape(frm or "—"),
@@ -497,26 +506,31 @@ def export_pretty_html(
         html_parts.append(_render_events_table("Phase C — Clearing", buckets.get("C", [])))
         html_parts.append("</div>")
         if agent_ids:
-            html_parts.append("<div class=\"balances-section\"><h3>Balances</h3>")
-            day_balances = d.get('balances') or {}
-            day_rows = d.get('rows') or {}
-            for aid in agent_ids:
-                # Prefer captured rows with counterparties for this day
-                if aid in day_rows:
-                    rows = day_rows[aid]
-                    ag = system.state.agents[aid]
-                    title = f"{ag.name or aid} [{aid}] ({ag.kind})"
-                    html_parts.append(_render_t_account_from_rows(title, rows.get('assets', []), rows.get('liabs', [])))
-                else:
-                    bal = day_balances.get(aid)
-                    if isinstance(bal, AgentBalance):
-                        assets_rows, liabs_rows = _build_rows_from_balance(bal)
+            ids_for_day = d.get('agent_ids')
+            if ids_for_day is None:
+                ids_for_day = agent_ids
+            ids_for_day = [aid for aid in ids_for_day if aid in system.state.agents]
+            if ids_for_day:
+                html_parts.append("<div class=\"balances-section\"><h3>Balances</h3>")
+                day_balances = d.get('balances') or {}
+                day_rows = d.get('rows') or {}
+                for aid in ids_for_day:
+                    # Prefer captured rows with counterparties for this day
+                    if aid in day_rows:
+                        rows = day_rows[aid]
                         ag = system.state.agents[aid]
                         title = f"{ag.name or aid} [{aid}] ({ag.kind})"
-                        html_parts.append(_render_t_account_from_rows(title, assets_rows, liabs_rows))
+                        html_parts.append(_render_t_account_from_rows(title, rows.get('assets', []), rows.get('liabs', [])))
                     else:
-                        html_parts.append(_render_t_account(system, aid))
-            html_parts.append("</div>")
+                        bal = day_balances.get(aid)
+                        if isinstance(bal, AgentBalance):
+                            assets_rows, liabs_rows = _build_rows_from_balance(bal)
+                            ag = system.state.agents[aid]
+                            title = f"{ag.name or aid} [{aid}] ({ag.kind})"
+                            html_parts.append(_render_t_account_from_rows(title, assets_rows, liabs_rows))
+                        else:
+                            html_parts.append(_render_t_account(system, aid))
+                html_parts.append("</div>")
         html_parts.append("</section>")
 
     # Conclusion section with termination reason

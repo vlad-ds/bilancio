@@ -31,11 +31,14 @@ class State:
     aliases: dict[str, str] = field(default_factory=dict)
     # Scheduled actions to run at Phase B1 by day (day -> list of action dicts)
     scheduled_actions_by_day: dict[int, list[dict]] = field(default_factory=dict)
+    # Track agents that have defaulted and been expelled from future activity
+    defaulted_agent_ids: set[AgentId] = field(default_factory=set)
 
 class System:
-    def __init__(self, policy: PolicyEngine | None = None):
+    def __init__(self, policy: PolicyEngine | None = None, default_mode: str = "fail-fast"):
         self.policy = policy or PolicyEngine.default()
         self.state = State()
+        self.default_mode = default_mode
 
     # ---- ID helpers
     def new_agent_id(self, prefix="A") -> AgentId: return new_id(prefix)

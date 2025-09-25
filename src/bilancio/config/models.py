@@ -322,9 +322,13 @@ class RunConfig(BaseModel):
     )
     max_days: int = Field(90, description="Maximum days to simulate")
     quiet_days: int = Field(2, description="Required quiet days for stable state")
+    default_handling: Literal["fail-fast", "expel-agent"] = Field(
+        "fail-fast",
+        description="How the engine reacts when an agent defaults"
+    )
     show: ShowConfig = Field(default_factory=ShowConfig)
     export: ExportConfig = Field(default_factory=ExportConfig)
-    
+
     @field_validator("max_days")
     @classmethod
     def max_days_positive(cls, v):

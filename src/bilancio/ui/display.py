@@ -160,9 +160,12 @@ def show_day_summary_renderable(
                     renderables.append(Text(f"  • {event_type}: {count}"))
     
     # Show balances
-    if agent_ids:
-        renderables.append(Text("\nBalances:", style="bold"))
-        if len(agent_ids) == 1:
+    if agent_ids is not None:
+        if len(agent_ids) == 0:
+            renderables.append(Text("\nBalances:", style="bold"))
+            renderables.append(Text("  • No active agents to display", style="dim"))
+        elif len(agent_ids) == 1:
+            renderables.append(Text("\nBalances:", style="bold"))
             # Single agent - show detailed balance
             if t_account:
                 balance_renderable = display_agent_t_account_renderable(system, agent_ids[0])
@@ -170,6 +173,7 @@ def show_day_summary_renderable(
                 balance_renderable = display_agent_balance_table_renderable(system, agent_ids[0], format="rich")
             renderables.append(balance_renderable)
         else:
+            renderables.append(Text("\nBalances:", style="bold"))
             # Multiple agents
             if t_account:
                 # Render one T-account per agent, stacked for readability
