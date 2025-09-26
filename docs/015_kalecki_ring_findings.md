@@ -1,76 +1,69 @@
 # Kalecki Ring Sweep Findings (Experiment 015)
 
-Experiment 015 asks how a five-agent Kalecki ring handles changing debt loads, payment concentration, and maturity timing. The sweep reuses the `bilancio` ring exploration stack: scenarios compiled by `ring_explorer_v1`, runs executed via `bilancio sweep ring`, and post-processing through the built-in analyzer that emits CSV, JSON, and HTML dashboards under `out/experiments/20250925_163435_ring/`.
+Experiment 015 now covers the Kalecki ring under two default regimes. We previously inspected the fail-fast grid run (`out/experiments/20250925_163435_ring/`). This note refreshes the analysis after re-running the same 125-point grid with the new expel-and-continue mode.
 
-## Experiment Workflow
-- 125 scenarios span a Cartesian grid over debt scale (κ), Dirichlet concentration for due amounts (c), and maturity misalignment (μ).
-- Each run exports `metrics.csv`, `metrics_ds.csv`, `metrics_intraday.csv`, and an HTML dashboard; these feed the aggregate tables in `aggregate/results.csv` and the companion `dashboard.html`.
-- This report reads those shipped outputs rather than re-running simulations, following the checklist in `docs/plans/015_kalecki_experiments_analysis.md`.
+## What Changed
+- Added a `--default-handling` switch to the sweep command so we can pick `expel-agent` at runtime (`src/bilancio/ui/cli.py:45-88`).
+- Propagated the choice through the sweep runner—scenarios now write `run.default_handling`, registry rows log the mode, and `run_scenario` receives the override (`src/bilancio/experiments/ring.py:95-386`).
+- Launched the new grid with: 
+  ```bash
+  PYTHONPATH=src .venv/bin/python -m bilancio.ui.cli \
+    sweep ring --out-dir out/experiments/expel_ring_sweep \
+    --default-handling expel-agent
+  ```
+- Parsed the exports under `out/experiments/expel_ring_sweep/`, mirroring the workflow in `docs/plans/015_kalecki_experiments_analysis.md`.
 
 ## Metric Cheat Sheet
-**S_t (total dues)** = sum of payment obligations maturing on day t. Intuition: workload the system must settle that day.
+**S_t** — total dues on day *t*.
 
-**\bar M_t (minimum net liquidity)** = sum over debtors of max(0, outbound − inbound) on day t. Intuition: cash the system needs even with perfect netting.
+**\bar M_t** — minimum net liquidity if all flows could net. Shows structural need.
 
-**M_t (start-of-day money)** comes from balances CSV (cash + deposits + reserves). Intuition: actual liquidity on hand when the day opens.
+**M_t** — start-of-day money (cash + deposits + reserves).
 
-**G_t (liquidity gap)** = max(0, \bar M_t − M_t). Intuition: shortfall that forces default unless someone adds cash.
+**G_t = max(0, \bar M_t − M_t)** — liquidity gap that must be filled externally.
 
-**α_t (netting potential)** = 1 − \bar M_t / S_t when S_t > 0. Intuition: share of dues that can clear through circulation instead of new cash.
+**α_t = 1 − \bar M_t / S_t** — share of dues clearable by circulation.
 
-**M^peak_t (operational peak)** = max_s P(s), where P(s) is prefix liquidity during the realized settlement replay. Intuition: worst intraday liquidity exposure.
+**M^peak_t** — maximum prefix liquidity observed in the realized settlement path.
 
-**v_t (intraday velocity)** = gross_settled_t / M^peak_t when M^peak_t > 0. Intuition: how many times the same cash recycles intraday.
+**v_t = gross_settled_t / M^peak_t** — intraday velocity once a path exists.
 
-**φ_t (on-time share)** = settled_on_day_t / S_t. Intuition: fraction of dues that finish on schedule.
+**φ_t** — on-time settlement share; **δ_t = 1 − φ_t**.
 
-**δ_t (deferral/default)** = 1 − φ_t. Intuition: portion that slips or defaults.
+**HHI^+_t** — Herfindahl of positive net creditor balances (concentration of inflows).
 
-**HHI^+_t (creditor concentration)** = Herfindahl index of positive net creditor balances. Intuition: how many creditors control incoming cash.
+**DS_t(i)** — debtor i’s share of \bar M_t, highlighting who needs cash.
 
-**DS_t(i) (debtor shortfall share)** = debtor i shortfall / \bar M_t. Intuition: which agents need liquidity injections.
+The control knobs remain **κ** (debt scale = S₁ / L₀), **c** (Dirichlet concentration), and **μ** (maturity misalignment).
 
-**κ (debt scale)** = S_day1 / L0 in the generator. Intuition: ratio of dues to available liquidity.
+## Data Health & Mode Comparison
+- 275 day-level rows survived dedupe and all metric invariants held (no negative dues, `φ_t, δ_t ∈ [0,1]`, velocity identity respected).
+- Liquidity stress: 50 days with `G_t > 0`, identical to the fail-fast run; all of them sit at κ ≥ 2 and show debtor HHI ≈ 1.
+- Defaults now continue instead of aborting: we observed 422 `AgentDefaulted` events across the 125 runs (median 4 per run), yet the simulator reached a quiet state every time because expelled agents stop scheduling new actions.
+- Settlement lift is material: average `φ_t` jumps from 0.032 in fail-fast to **0.170** with expulsion (`out/experiments/expel_ring_sweep/aggregate/day_metrics_enriched.pkl`), and 114/275 day-rows achieve `φ_t > 0` (previously 11/275).
+- Non-zero intraday peaks appear on 41% of days (vs 14% before) because partial settlements now execute before debtors are removed.
 
-**c (Dirichlet concentration)** controls how unequal dues are across the ring. Smaller c means a single creditor dominates.
+Global tally: `out/experiments/expel_ring_sweep/aggregate/global_counts.csv` records 259 days with `φ_t < 1` (down from 265) and 259 with gross settlements below dues.
 
-**μ (maturity misalignment)** shifts when each agent’s inbound receivable arrives relative to its payable. Larger μ bunches dues on different days.
+## Global Patterns Under Expulsion
+- **Partial settlement dominates.** Once a debtor runs out of cash the engine logs a partial payment, writes off the residue, and expels the agent. That conversion of “all-or-nothing” failures into partial clears is what raises `φ_t`.
+- **Liquidity cliffs remain.** κ ≳ 3.2 still guarantees `G_t > 0`, even though some dues settle before default (`pairwise_boundaries.csv`).
+- **Velocity stays modest.** Most settlement paths recycle liquidity once (`v_t ≈ 1`), with a single high-velocity run at `v_t = 3.0` when liquidity dwarfs dues.
 
-## Data Quality and Validation
-- 275 day-level records entered analysis after dropping duplicates by `(run_id, day)`.
-- Mandatory bounds held: `S_t ≥ 0`, `0 ≤ φ_t, δ_t ≤ 1` with `δ_t = 1 − φ_t`, and `v_t = gross_settled_t / M^peak_t` whenever `M^peak_t` was positive.
-- Stress ratios `\bar M_t / M_t` range from 0.0 (ample cash) to 3.86 (money stock only a quarter of required net liquidity).
-- Intraday traces exist for all settling runs; defaulted cases expose only summary tables, signaling that the simulator halted before clearing payments.
-
-## Global Patterns
-- Liquidity stress is common: 50 of 275 rows show `G_t > 0`, while 265 record `φ_t < 1`, and every late day also has `gross_settled_t < S_t`.
-- The settlement cliff appears around κ ≈ 0.35: even mild debt loads can stall if topology and timing are hostile, giving median `φ_t = 0` within the `(κ ∈ (0.249, 0.45], c ∈ (0.199, 0.44])` bin.
-- Structural gaps require both high κ and moderate inequality: `G_t` turns positive in the `(κ ∈ (2.4, 4.0], c ∈ (0.44, 0.8])` bin, implying dues roughly quadruple available money before the system truly runs dry.
-- Intraday velocity is usually flat: 39 non-null `v_t` values cluster near 1.0, meaning money cycles once per day; only the best-funded rings reach `v_t ≈ 3`.
-
-## Debt Scale (κ)
-- Settlement success collapses once κ exceeds ~0.35; by κ = 2 the average gap is 60 and `φ_t` falls near 0.07 even with aligned maturities (μ = 0).
-- κ = 4 highlights structural default: `G_t` medians reach 143 and debtor shortfall concentrates on one payer, signalling raw liquidity shortage.
-- Intuition: κ measures how many dollars must clear per dollar of starting liquidity; above ~2 the ring lacks enough cash to circulate without external support.
-
-## Inequality (Dirichlet concentration c)
-- Holding κ = 0.5 and μ = 0.25, moving c from 0.2 to 2.0 drops creditor HHI from 0.93 to 0.72 and raises `φ_t` from 0.00 to 0.64.
-- Gains flatten beyond c ≈ 2.0, reflecting diminishing returns once no single creditor can stall the flow.
-- Intuition: spreading receivables prevents one “gatekeeper” from hoarding cash, so even modest liquidity can loop around the ring.
-
-## Maturity Misalignment (μ)
-- For μ ≤ 0.25, median φ sits between 0.08 and 0.11 with moderate peaks (`M^peak_t / \bar M_t ≈ 0.16–0.23`).
-- Once μ ≥ 0.5, dues bunch on later days, `M^peak_t` collapses to 0, and φ drops to 0 despite `G_t = 0`; defaults stem from timing, not cash deficits.
-- Intuition: when payers must settle before their own receivables arrive, the ring breaks even if the system has enough money in aggregate.
+## One-Axis Sweeps (median φ still 0, but means shift)
+- **Debt scale κ (`summary_debt_scale.csv`).** Means hover around 0.18 for κ ≤ 2 because several payments clear before debtors fail; κ = 4 collapses to 0.096 as the first big debtor wipes out liquidity. Liquidity gaps emerge for κ ≥ 2 in 27% of days, the same threshold as fail-fast.
+- **Inequality c (`summary_ineq.csv`).** Counter-intuitively, the lowest concentration (c = 0.2, HHI⁺ ≈1) now yields the *highest* φ_mean (0.22) because the dominant creditor is paid first before the payer is expelled. High-c spreads the receipts, lowering HHI⁺ to ~0.55 and keeping φ_mean ≈0.16. Expulsion exposes the sequencing of who gets paid before the crash.
+- **Maturity misalignment μ (`summary_misalign.csv`).** Median φ stays positive for μ ≤ 0.25 (0.08–0.21) and drops to zero once outbound dues significantly lead inbound cash. Means remain ≈0.16 even for μ ≥ 0.5 because residual obligations on calmer days still settle after the worst offenders are removed.
 
 ## Mechanism Snapshots
-- **Structural default (`grid_6f858c15f761`, day 2; κ = 4, c = 0.2, μ = 0.75).** `S_t = 482` with only `M_t = 125` yields `G_t = 357`. DS shares place the entire shortfall on H1 and HHI = 1, so no settlements execute; only liquidity injections would repair the day.
-- **High-velocity clearance (`grid_be3ac6816d2e`, day 1; κ = 0.25, c = 5, μ = 0).** `\bar M_t = 65` against `M_t = 2000` gives `α = 0.87`. The intraday trace shows H1→H2 (122) kicked off a cascade that recycles the same 122 units across the ring, peaking at `M^peak_t = 122` with `v_t = 3.0` before the queue empties onto H5.
-- **Timing-driven default (`grid_90877b9a412d`, day 3; κ = 1, c = 1, μ = 0.75).** `M_t = 500` easily covers `\bar M_t = 104`, yet `φ_t = 0` and H3 holds DS = 1. The issue is sequencing: receivables arrive after payments fall due, so the simulator registers no settlement steps.
+- **Structural shortfall persists — `grid_7ede287eda4a` day 2 (κ = 4, c = 0.2, μ = 0.75).** `S_t = 482`, `M_t = 125`, gap `G_t = 357`, DS mass on H1, HHI⁺ = 1. Expulsion removes the debtor but no settlement occurs (`out/experiments/expel_ring_sweep/runs/grid_7ede287eda4a/out/metrics.html`). Same verdict as fail-fast: only extra liquidity would help.
+- **Liquidity triage before failure — `grid_0f03d3bdc6c1` day 1 (κ = 0.25, c = 0.2, μ = 0).** With `M_t = 250` against `\bar M_t = 382`, the ring delivers one $167 transfer (`metrics_intraday.csv`) before H2 and H5 default. φ jumps to 0.33 even though the gap remains `G_t = 132`.
+- **Cascading defaults but late settlement — `grid_f56c164e8cae` (κ = 0.25, c = 0.5, μ = 0.5).** H2, H5, H3 each default on days 1–2, the system keeps running, and day 3 still clears a $7 payable from H1 to the expelled H2 (`events.jsonl`). The pipeline records a non-zero `φ_t = 0.7` on day 3.
+- **High-velocity success remains — `grid_0e944bafe1a9` day 1 (κ = 0.25, c = 5, μ = 0).** Identical to the baseline best case: `α = 0.87`, `M^peak = 122`, `v_t = 3.0`, and φ = 0.74, showing that generous liquidity plus diversified creditors still dominate outcomes.
 
-## Takeaways and Next Experiments
-- κ sets the liquidity frontier: once dues exceed roughly twice the money stock the ring requires external funding. Next sweep: zoom κ ∈ [0.5, 2] with finer steps and optional central-bank cash buffers.
-- Concentration is a topology lever: redistributing payables (higher c) or altering settlement priority should replicate the resilience seen when HHI drops below ~0.7.
-- Maturity smoothing is essential when liquidity is adequate: testing staggered due dates or short intraday credit lines for μ ≥ 0.5 should reveal whether timing fixes can restore `φ_t ≈ 1` without new money.
+## Takeaways
+- **Expulsion salvages partial throughput** without altering the structural liquidity frontier. For policy experiments, κ thresholds still identify when outside funding is mandatory.
+- **Creditor order matters.** Under expulsion the first recipient in line captures the remaining cash. Varying payment priority could be as impactful as adding liquidity; testing alternate settlement orders is a natural next step.
+- **Maturity smoothing still helps.** Even with expulsion, clustered dues (μ ≥ 0.5) leave φ medians at zero. Staggering maturities or adding small buffers to every agent remains the cleanest route to higher φ.
 
-All conclusions trace back to the archived sweep outputs in `out/experiments/20250925_163435_ring/`. Re-running the generator with new parameter slices can reuse the same validation and analysis workflow.
+All artifacts referenced above live under `out/experiments/expel_ring_sweep/`. Re-running other slices (e.g., finer κ near 1–2 or a Latin Hypercube) will automatically honor the chosen default-handling mode via the new CLI flag.
