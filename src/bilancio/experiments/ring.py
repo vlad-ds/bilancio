@@ -84,6 +84,7 @@ class RingSweepRunner:
         "metrics_csv",
         "metrics_html",
         "run_html",
+        "default_handling",
         "status",
         "time_to_stability",
         "phi_total",
@@ -102,6 +103,7 @@ class RingSweepRunner:
         liquidity_mode: str,
         liquidity_agent: Optional[str],
         base_seed: int,
+        default_handling: str = "fail-fast",
     ) -> None:
         self.base_dir = out_dir
         self.registry_dir = self.base_dir / "registry"
@@ -114,6 +116,7 @@ class RingSweepRunner:
         self.liquidity_mode = liquidity_mode
         self.liquidity_agent = liquidity_agent
         self.seed_counter = base_seed
+        self.default_handling = default_handling
         self.registry_rows: List[Dict[str, Any]] = []
 
         self.registry_dir.mkdir(parents=True, exist_ok=True)
@@ -314,6 +317,7 @@ class RingSweepRunner:
             "mu": str(mu),
             "maturity_days": str(self.maturity_days),
             "Q_total": str(self.Q_total),
+            "default_handling": self.default_handling,
             "status": "running",
         }
         self._upsert_registry(registry_entry)
@@ -346,6 +350,10 @@ class RingSweepRunner:
         generator_config = RingExplorerGeneratorConfig.model_validate(generator_data)
         scenario = compile_ring_explorer(generator_config, source_path=None)
 
+        if self.default_handling:
+            scenario_run = scenario.setdefault("run", {})
+            scenario_run["default_handling"] = self.default_handling
+
         with scenario_path.open("w", encoding="utf-8") as fh:
             import yaml
 
@@ -374,7 +382,7 @@ class RingSweepRunner:
                 },
                 html_output=run_html_path,
                 t_account=False,
-                default_handling=None,
+                default_handling=self.default_handling,
             )
         except Exception as exc:
             registry_entry.update({

@@ -67,6 +67,7 @@ def sweep():
 @click.option('--liquidity-agent', type=str, default='H1', help='Target for single_at liquidity allocation')
 @click.option('--base-seed', type=int, default=42, help='Base PRNG seed')
 @click.option('--name-prefix', type=str, default='Kalecki Ring Sweep', help='Scenario name prefix')
+@click.option('--default-handling', type=click.Choice(['fail-fast', 'expel-agent']), default='fail-fast', help='Default handling mode for runs')
 def sweep_ring(
     out_dir: Optional[Path],
     grid: bool,
@@ -92,6 +93,7 @@ def sweep_ring(
     liquidity_agent: str,
     base_seed: int,
     name_prefix: str,
+    default_handling: str,
 ):
     """Run the Kalecki ring experiment sweep."""
     if out_dir is None:
@@ -110,6 +112,7 @@ def sweep_ring(
         liquidity_mode=liquidity_mode,
         liquidity_agent=liquidity_agent,
         base_seed=base_seed,
+        default_handling=default_handling,
     )
 
     console.print(f"[dim]Output directory: {out_dir}[/dim]")
