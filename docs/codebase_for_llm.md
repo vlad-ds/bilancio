@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2025-09-25 13:33:51 UTC | Branch: main | Commit: b164af7
+Generated: 2025-10-10 07:54:14 UTC | Branch: main | Commit: 0d3d1f3
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -20,13 +20,20 @@ This document contains the complete codebase structure and content for LLM inges
 ├── CLAUDE.md
 ├── README.md
 ├── TODO.md
+├── dashboards
+│   └── expel_sweep_dashboard
+│       ├── README.md
+│       └── streamlit_app.py
 ├── docs
+│   ├── 015_expel_sweep_agent_report.md
 │   ├── Kalecki_debt_simulation.pdf
 │   ├── Monetary Theory Chapter 5.pdf
 │   ├── Money modeling software.pdf
 │   ├── SP239 Kalecki on Credit and Debt extended.pdf
 │   ├── codebase_for_llm.md
 │   ├── exercises_scenarios.md
+│   ├── guides
+│   │   └── kalecki_ring_sweep.md
 │   ├── plans
 │   │   ├── 000_setup.md
 │   │   ├── 001_domain_system.md
@@ -41,8 +48,11 @@ This document contains the complete codebase structure and content for LLM inges
 │   │   ├── 011_tbs.md
 │   │   ├── 012_scheduled_actions_and_aliases.md
 │   │   ├── 013_default_handling_modalities.md
+│   │   ├── 014_kalecki_experiments.md
+│   │   ├── 015_kalecki_experiments_analysis.md
 │   │   └── Kalecki_debt_simulation (1).pdf
 │   ├── prompts
+│   │   ├── 015_expel_sweep_agent_prompt.md
 │   │   └── scenario_translator_agent.md
 │   └── version_1_0_exercises.pdf
 ├── examples
@@ -81,6 +91,1519 @@ This document contains the complete codebase structure and content for LLM inges
 │       ├── balance_sheet_display.ipynb
 │       └── pdf_example_with_firms.ipynb
 ├── out
+│   ├── experiments
+│   │   ├── 20250925_163435_ring
+│   │   │   ├── aggregate
+│   │   │   │   ├── dashboard.html
+│   │   │   │   ├── day_metrics.pkl
+│   │   │   │   └── day_metrics_enriched.pkl
+│   │   │   └── runs
+│   │   │       ├── grid_02b68e2015c0
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_051c40d40d73
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_05a06d6e9346
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_05e68dfa1a95
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_0ce62e0e5bba
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_0d9fd1cbfe49
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_0e79b3aabd93
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_0f7938d2bf61
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_0f9c0fff7c7c
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_10d30f7e5db9
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_1242a0c2a915
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_12cfa42c0164
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_138329d0f12d
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_15c05a9a63f8
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_187838a23577
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_188cb83f1ff0
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_1c0d52ec7bcb
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_1f502489eb08
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_214aa6c5143b
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_27c4d7652a5d
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_28711d3b5714
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_2b1a79d2203a
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_323bcdd24e71
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_344b4e32d70b
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_352ad433243f
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_364bbdf29fd2
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_39eb17e00ca9
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_3f18c791e3f8
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_3f5afb2621a8
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_4209452b154d
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_43395f197a68
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_439324d6625a
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_456230bd4e87
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_45cfaeab7b4d
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_473968822dda
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_4774a3945a07
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_493c44aea6a9
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_4b7a15e41a1e
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_4cfe5c8bbe8f
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_4ec2b5632c08
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_53686a7d4fee
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_539acca28e56
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_5a912c864cf7
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_5b8b7342c40d
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_5bc94ddbc6df
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_5cad321c36b9
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_5dc0a958e676
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_5e9b9fedd5c0
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_5eeb773c700d
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_6607b285541f
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_6c675eb9bbd7
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_6de6cd1769aa
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_6e4bf94123fc
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_6f39b611cf02
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_6f858c15f761
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_7045c667a5c0
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_72de297264d9
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_765cc1052c91
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_765eadcf6739
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_76644b186698
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_7764bf014711
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_7b809b454997
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_7c814155e0ae
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_7de8c8cd810a
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_7f1e53c036a0
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_7fd60952bb8e
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_80cd436597f5
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_80dfd261b3d8
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_80e880f2554e
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_81f55875ba26
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_8276c4bb791a
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_83bf285214b5
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_855cba95cf46
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_87dc6ef05ac7
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_8a39cdcfe35d
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_8c62323919c4
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_8d0458ac29a5
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_8fc166da5fba
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_90877b9a412d
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_92021718effe
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_927129fbda77
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_940d2057d650
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_9a422b64fbc6
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_9bf40c827697
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_9d63edab4599
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_9f8883b6f34a
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_a529344243ba
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_b5186cb7dcc4
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_b56e187c0050
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_b5acf1815022
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_b5fba0901ce5
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_baca375aaa7b
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_bb3f74548bc0
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_bbef6124105d
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_be2764324886
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_be3ac6816d2e
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_be47d099fe6b
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_c16d70635bff
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_c70f691a93c8
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_c881b8248059
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_c9b434c1ec85
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_cef25e7ff9ea
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_d119c054658e
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_d5671d3e5c21
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_d59b61804b1d
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_d7a8197c09e9
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_da7b526e3f0e
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_dc322d838fbd
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_dd9a327f1817
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_df46a35e5cf7
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_dfb38334772c
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_e2eb7d511d5d
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_e355eb415965
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_e5551c54e460
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_ec97ab575de3
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_ed17a28943be
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_ed8abee127a9
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_ef5a42b3edf9
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_efd7eab67be2
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_f03969802ada
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_f258c737c1de
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_f4b06b83c87b
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_f7ff19dcaa47
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_f8d722f1abcd
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       └── grid_fa7f2dc06d51
+│   │   │           ├── out
+│   │   │           │   ├── events.jsonl
+│   │   │           │   └── metrics.html
+│   │   │           ├── run.html
+│   │   │           └── scenario.yaml
+│   │   └── expel_ring_sweep
+│   │       ├── aggregate
+│   │       │   ├── dashboard.html
+│   │       │   ├── day_metrics.pkl
+│   │       │   └── day_metrics_enriched.pkl
+│   │       └── runs
+│   │           ├── grid_006d41348aec
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_042589d16799
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_050c86b68635
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_051704f2e859
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_0537e3310286
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_05f09fda3729
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_0b54ff3bec96
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_0cb226424791
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_0e944bafe1a9
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_0f03d3bdc6c1
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_0fc483729f40
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_12af65493eff
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_160f8f62879f
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_19b97e7ad3cf
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_1b0ea01668f7
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_1e47dd35d1bb
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_23e60e153628
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_24e20fc157bb
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_2748db4bd801
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_27ae5b249da8
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_2aefd62b25da
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_30df28a10963
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_32629c607417
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_35766a24b362
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_35c7cb4e8e69
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_3803b7e396ea
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_3d4174fde5c6
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_3ffeff12bbbe
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_410e22148ec1
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_428559365e4a
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_4786832d21dd
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_4d571b6eb6bd
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_4f2ad700fc0c
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_514adf52a6ec
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_53aeaa37ffff
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_54ffdf053a37
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_550091f08123
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_5530efbac4e0
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_56daf694bb61
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_5b8e3e2455a0
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_5ce2c4a97d3e
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_5fcd180a5b61
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_602ba57cc959
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_61875012b451
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_6228a1712695
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_644395de8238
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_660892dae0cd
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_66cd1328aaa3
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_6b21a646b017
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_6b24da8274c2
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_6b4b4ba8e67e
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_6e070ede6e52
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_701152452743
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_7097d49bce4f
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_740fc433c5f6
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_753b752540e4
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_75f4135017a2
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_798f39bbf8c7
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_79f3bb44a77c
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_7b33d960dea1
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_7cb81b8b4a2a
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_7ede287eda4a
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_805270cdb8ac
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_80eae6b1170b
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_8154380ebc73
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_86645f247c6a
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_86b10a806356
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_86cb1909d962
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_8aa30a7ec4ff
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_8f98e30bec16
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_8f9e70b6f64c
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_91912fcb2aa5
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_93bcfad8aa3c
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_940b0446f126
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_960109748030
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_a53fbda38a7e
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_a6d5878ab3ec
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_a7e773a659eb
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_a82e6c4efb4d
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_a9f4a770f506
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_aa85832d6eea
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_ad64105bb027
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_ae1e63b5e4ac
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_ae33b1898498
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_af3c32442e69
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_b08bd74fb517
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_b2b7a9a8d184
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_b31830206c54
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_b33ceb3a0650
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_b50115813401
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_b8cf5a4b522a
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_bff07f9ec223
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_c005953cacad
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_c25b833dc292
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_c294fec46eec
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_c3f0a92d4408
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_c413020d3597
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_c7d9c103bdce
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_cc0dcad677b1
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_ccf386fc637b
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_cd90abfa57b7
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_d057539adbb6
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_d07f6244325e
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_d85d0565c63f
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_d8a0ac2ab31e
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_d8d791586e6e
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_d9a8f05bde19
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_daaf161cbd43
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_dd967009cc04
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_de1ba34ca385
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_df2217276f6c
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_e05ff9d7b0a6
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_eb5b86349948
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_efd13dbdaf2c
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_f0259cc19595
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_f1f504139a0b
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_f2b48f7dc492
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_f2d8c2870241
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_f2f65b5acafa
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_f41b64e0d149
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_f56c164e8cae
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_f56ead5480de
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_f77db6e718a8
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           ├── grid_f9c955df9fc0
+│   │           │   ├── out
+│   │           │   │   ├── events.jsonl
+│   │           │   │   └── metrics.html
+│   │           │   ├── run.html
+│   │           │   └── scenario.yaml
+│   │           └── grid_ffc291593855
+│   │               ├── out
+│   │               │   ├── events.jsonl
+│   │               │   └── metrics.html
+│   │               ├── run.html
+│   │               └── scenario.yaml
 │   ├── interbank_events.jsonl
 │   ├── kalecki_ring_baseline_events.jsonl
 │   └── kalecki_ring_baseline_metrics.html
@@ -138,6 +1661,9 @@ This document contains the complete codebase structure and content for LLM inges
 │       │   ├── simulation.py
 │       │   ├── system.py
 │       │   └── valuation.py
+│       ├── experiments
+│       │   ├── __init__.py
+│       │   └── ring.py
 │       ├── export
 │       │   ├── __init__.py
 │       │   └── writers.py
@@ -152,6 +1678,11 @@ This document contains the complete codebase structure and content for LLM inges
 │       │   ├── cashflows.py
 │       │   ├── primitives.py
 │       │   └── primitives_stock.py
+│       ├── scenarios
+│       │   ├── __init__.py
+│       │   └── generators
+│       │       ├── __init__.py
+│       │       └── ring_explorer.py
 │       └── ui
 │           ├── __init__.py
 │           ├── assets
@@ -171,6 +1702,7 @@ This document contains the complete codebase structure and content for LLM inges
     ├── analysis
     │   ├── __init__.py
     │   ├── test_balances.py
+    │   ├── test_report_aggregate.py
     │   └── test_t_account_builder.py
     ├── config
     │   ├── test_apply.py
@@ -188,6 +1720,8 @@ This document contains the complete codebase structure and content for LLM inges
     │   └── test_settlement_phase_b.py
     ├── ops
     │   └── test_alias_helpers.py
+    ├── scenarios
+    │   └── test_ring_explorer.py
     ├── test_smoke.py
     ├── ui
     │   ├── test_cli.py
@@ -201,7 +1735,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-39 directories, 152 files
+553 directories, 1172 files
 
 ```
 
@@ -976,6 +2510,20 @@ Complete git history from oldest to newest:
   ---------
   Co-authored-by: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
 
+- **f1d56f4a** (2025-09-25) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **0d3d1f39** (2025-10-10) by Vlad Gheorghe
+  Implement Kalecki Ring Parameter Sweep Experiments (#17)
+  * Metric grid implementation & first sweep
+  * Add Kalecki ring sweep findings
+  * Ring findings and metrics
+  * Update ring findings
+  * Ring findings
+  * Sweep report
+  * Add expel-agent sweep report and dashboard
+  * Add expel-agent sweep assets and default handling option
+
 ---
 
 ## Source Code (src/bilancio)
@@ -1689,7 +3237,22 @@ import json
 from dataclasses import asdict, dataclass
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Optional, Sequence
+
+from bilancio.analysis.metrics import (
+    dues_for_day,
+    net_vectors,
+    raw_minimum_liquidity,
+    size_and_bunching,
+    phi_delta,
+    replay_intraday_peak,
+    velocity,
+    creditor_hhi_plus,
+    debtor_shortfall_shares,
+    start_of_day_money,
+    liquidity_gap,
+    alpha as alpha_fn,
+)
 
 
 def _to_json(val: Any):
@@ -1769,6 +3332,193 @@ def _group_by(rows: List[Dict[str, Any]], key: str) -> Dict[Any, List[Dict[str, 
     for r in rows:
         out.setdefault(r.get(key), []).append(r)
     return out
+
+
+def parse_day_ranges(spec: str) -> List[int]:
+    """Parse comma-separated day ranges like "1,2-4" into a sorted list."""
+    out: List[int] = []
+    for part in spec.split(','):
+        part = part.strip()
+        if not part:
+            continue
+        if '-' in part:
+            a, b = part.split('-', 1)
+            try:
+                start = int(a)
+                end = int(b)
+            except Exception:
+                continue
+            rng = range(min(start, end), max(start, end) + 1)
+            out.extend(rng)
+        else:
+            try:
+                out.append(int(part))
+            except Exception:
+                continue
+    return sorted(set(out))
+
+
+def infer_day_list(events: Sequence[Dict[str, Any]]) -> List[int]:
+    """Infer useful day indices from events when none specified."""
+    due_days = sorted({int(e["due_day"]) for e in events if e.get("kind") == "PayableCreated" and e.get("due_day") is not None})
+    settled_days = sorted({int(e["day"]) for e in events if e.get("kind") == "PayableSettled" and e.get("day") is not None})
+    day_list = due_days or settled_days
+    return day_list
+
+
+def compute_day_metrics(
+    events: Sequence[Dict[str, Any]],
+    balances_rows: Optional[Sequence[Dict[str, Any]]] = None,
+    day_list: Optional[Sequence[int]] = None,
+) -> Dict[str, Any]:
+    """Compute Kalecki-style day metrics for a completed run."""
+    if day_list is None or len(day_list) == 0:
+        day_list = infer_day_list(events)
+
+    if not day_list:
+        return {
+            "days": [],
+            "day_metrics": [],
+            "debtor_shares": [],
+            "intraday": [],
+        }
+
+    metrics_rows: List[dict] = []
+    ds_rows: List[dict] = []
+    intraday_rows: List[dict] = []
+
+    for t in sorted(set(int(d) for d in day_list)):
+        dues = dues_for_day(events, t)
+        nets = net_vectors(dues)
+        Mbar_t = raw_minimum_liquidity(nets)
+        S_t, _ = size_and_bunching(dues)
+        phi_t, delta_t = phi_delta(events, dues, t)
+        Mpeak_t, steps, gross_t = replay_intraday_peak(events, t)
+        v_t = velocity(gross_t, Mpeak_t)
+        HHIp_t = creditor_hhi_plus(nets)
+        DS = debtor_shortfall_shares(nets)
+        n_debtors = sum(1 for a, v in nets.items() if v["F"] > v["I"])
+        n_creditors = sum(1 for a, v in nets.items() if v["n"] > 0)
+
+        M_t = None
+        G_t = None
+        if balances_rows is not None:
+            M_t = start_of_day_money(balances_rows, t)
+            G_t = liquidity_gap(Mbar_t, M_t)
+
+        alpha_t = alpha_fn(Mbar_t, S_t) if S_t is not None else None
+
+        notes: List[str] = []
+        if HHIp_t is None:
+            notes.append("no net creditors")
+        if all(v is None for v in DS.values()):
+            notes.append("no net debtors")
+
+        metrics_rows.append(
+            {
+                "day": t,
+                "S_t": S_t,
+                "Mbar_t": Mbar_t,
+                "M_t": M_t,
+                "G_t": G_t,
+                "alpha_t": alpha_t,
+                "Mpeak_t": Mpeak_t,
+                "gross_settled_t": gross_t,
+                "v_t": v_t,
+                "phi_t": phi_t,
+                "delta_t": delta_t,
+                "n_debtors": n_debtors,
+                "n_creditors": n_creditors,
+                "HHIplus_t": HHIp_t,
+                "notes": ", ".join(notes) if notes else "",
+            }
+        )
+
+        for agent, share in DS.items():
+            ds_rows.append({"day": t, "agent": agent, "DS_t": share})
+
+        for row in steps:
+            intraday_rows.append(row)
+
+    return {
+        "days": sorted(set(int(d) for d in day_list)),
+        "day_metrics": metrics_rows,
+        "debtor_shares": ds_rows,
+        "intraday": intraday_rows,
+    }
+
+
+def summarize_day_metrics(day_metrics: Sequence[Dict[str, Any]]) -> Dict[str, Optional[Decimal]]:
+    """Summarize a day metrics table into aggregate indicators."""
+    S_total = Decimal("0")
+    phi_weighted = Decimal("0")
+    delta_weighted = Decimal("0")
+    max_G: Optional[Decimal] = None
+    alpha_1 = None
+    Mpeak_1 = None
+    v_1 = None
+    HHIplus_1 = None
+    max_day = 0
+
+    for row in day_metrics:
+        day = int(row.get("day", 0)) if row.get("day") is not None else 0
+        max_day = max(max_day, day)
+
+        S_t = row.get("S_t")
+        phi_t = row.get("phi_t")
+        delta_t = row.get("delta_t")
+        G_t = row.get("G_t")
+
+        if isinstance(S_t, str):
+            S_t = _decimal_or_none(S_t)
+        if isinstance(phi_t, str):
+            phi_t = _decimal_or_none(phi_t)
+        if isinstance(delta_t, str):
+            delta_t = _decimal_or_none(delta_t)
+        if isinstance(G_t, str):
+            G_t = _decimal_or_none(G_t)
+
+        if S_t is not None:
+            S_total += S_t
+            if phi_t is not None:
+                phi_weighted += S_t * phi_t
+            if delta_t is not None:
+                delta_weighted += S_t * delta_t
+
+        if G_t is not None:
+            max_G = G_t if max_G is None else max(max_G, G_t)
+
+        if day == 1:
+            alpha_val = row.get("alpha_t")
+            Mpeak_val = row.get("Mpeak_t")
+            v_val = row.get("v_t")
+            HHI_val = row.get("HHIplus_t")
+            if isinstance(alpha_val, str):
+                alpha_val = _decimal_or_none(alpha_val)
+            if isinstance(Mpeak_val, str):
+                Mpeak_val = _decimal_or_none(Mpeak_val)
+            if isinstance(v_val, str):
+                v_val = _decimal_or_none(v_val)
+            if isinstance(HHI_val, str):
+                HHI_val = _decimal_or_none(HHI_val)
+            alpha_1 = alpha_1 or alpha_val
+            Mpeak_1 = Mpeak_1 or Mpeak_val
+            v_1 = v_1 or v_val
+            HHIplus_1 = HHIplus_1 or HHI_val
+
+    phi_total = (phi_weighted / S_total) if S_total and phi_weighted else None
+    delta_total = (delta_weighted / S_total) if S_total and delta_weighted else None
+
+    return {
+        "phi_total": phi_total,
+        "delta_total": delta_total,
+        "max_G_t": max_G,
+        "alpha_1": alpha_1,
+        "Mpeak_1": Mpeak_1,
+        "v_1": v_1,
+        "HHIplus_1": HHIplus_1,
+        "max_day": max_day,
+    }
 
 
 def write_metrics_html(
@@ -2011,6 +3761,196 @@ def write_metrics_html(
 
     with p.open("w") as f:
         f.write(html)
+
+
+def _resolve_path(base: Path, value: str) -> Path:
+    p = Path(value)
+    if not p.is_absolute():
+        return base / p
+    return p
+
+
+def _decimal_or_none(val: Any) -> Optional[Decimal]:
+    if val is None or val == "":
+        return None
+    try:
+        return Decimal(str(val))
+    except Exception:
+        return None
+
+
+def aggregate_runs(
+    registry_csv: Path | str,
+    results_csv: Path | str,
+) -> List[Dict[str, Any]]:
+    """Aggregate per-run metrics into a single CSV."""
+    registry_path = Path(registry_csv)
+    results_path = Path(results_csv)
+    results_path.parent.mkdir(parents=True, exist_ok=True)
+
+    rows: List[Dict[str, Any]] = []
+
+    with registry_path.open("r", newline="") as fh:
+        reader = csv.DictReader(fh)
+        registry_rows = list(reader)
+
+    for entry in registry_rows:
+        if entry.get("status") != "completed":
+            continue
+        metrics_rel = entry.get("metrics_csv")
+        if not metrics_rel:
+            continue
+
+        metrics_path = _resolve_path(registry_path.parent, metrics_rel)
+        if not metrics_path.exists():
+            continue
+
+        with metrics_path.open("r", newline="") as fh:
+            metrics_reader = csv.DictReader(fh)
+            metrics = list(metrics_reader)
+
+        if not metrics:
+            continue
+
+        summary = summarize_day_metrics(metrics)
+
+        rows.append({
+            "run_id": entry.get("run_id"),
+            "phase": entry.get("phase"),
+            "seed": entry.get("seed"),
+            "n_agents": entry.get("n_agents"),
+            "kappa": entry.get("kappa"),
+            "concentration": entry.get("concentration"),
+            "mu": entry.get("mu"),
+            "S1": entry.get("S1"),
+            "L0": entry.get("L0"),
+            "phi_total": summary.get("phi_total"),
+            "delta_total": summary.get("delta_total"),
+            "max_G_t": summary.get("max_G_t"),
+            "alpha_1": summary.get("alpha_1"),
+            "Mpeak_1": summary.get("Mpeak_1"),
+            "v_1": summary.get("v_1"),
+            "HHIplus_1": summary.get("HHIplus_1"),
+            "time_to_stability": entry.get("time_to_stability") or str(summary.get("max_day", "")),
+            "metrics_csv": metrics_rel,
+        })
+
+    fieldnames = [
+        "run_id",
+        "phase",
+        "seed",
+        "n_agents",
+        "kappa",
+        "concentration",
+        "mu",
+        "S1",
+        "L0",
+        "phi_total",
+        "delta_total",
+        "max_G_t",
+        "alpha_1",
+        "Mpeak_1",
+        "v_1",
+        "HHIplus_1",
+        "time_to_stability",
+        "metrics_csv",
+    ]
+
+    with results_path.open("w", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=fieldnames)
+        writer.writeheader()
+        for row in rows:
+            out_row = {}
+            for field in fieldnames:
+                val = row.get(field)
+                if isinstance(val, Decimal):
+                    out_row[field] = _fmt_num(val)
+                elif val is None:
+                    out_row[field] = ""
+                else:
+                    out_row[field] = val
+            writer.writerow(out_row)
+
+    return rows
+
+
+def render_dashboard(results_csv: Path | str, dashboard_html: Path | str) -> None:
+    """Render an aggregate HTML dashboard from results CSV."""
+    results_path = Path(results_csv)
+    dashboard_path = Path(dashboard_html)
+    dashboard_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with results_path.open("r", newline="") as fh:
+        reader = csv.DictReader(fh)
+        rows = list(reader)
+
+    total_runs = len(rows)
+    phi_values = [_decimal_or_none(r.get("phi_total")) for r in rows]
+    phi_values = [v for v in phi_values if v is not None]
+    delta_values = [_decimal_or_none(r.get("delta_total")) for r in rows]
+    delta_values = [v for v in delta_values if v is not None]
+    max_g_values = [_decimal_or_none(r.get("max_G_t")) for r in rows if r.get("max_G_t")]
+
+    avg_phi = (sum(phi_values, start=Decimal("0")) / Decimal(len(phi_values))) if phi_values else None
+    avg_delta = (sum(delta_values, start=Decimal("0")) / Decimal(len(delta_values))) if delta_values else None
+    max_gap = max(max_g_values) if max_g_values else None
+
+    table_rows = []
+    for r in rows:
+        table_rows.append(
+            "<tr>"
+            f"<td>{r.get('run_id')}</td>"
+            f"<td>{r.get('phase')}</td>"
+            f"<td>{r.get('kappa')}</td>"
+            f"<td>{r.get('concentration')}</td>"
+            f"<td>{r.get('mu')}</td>"
+            f"<td>{r.get('phi_total')}</td>"
+            f"<td>{r.get('delta_total')}</td>"
+            f"<td>{r.get('max_G_t')}</td>"
+            f"<td>{r.get('time_to_stability')}</td>"
+            "</tr>"
+        )
+
+    html = f"""
+<!doctype html>
+<html lang=\"en\">
+<head>
+  <meta charset=\"utf-8\" />
+  <title>Ring Sweep Dashboard</title>
+  <style>
+    body {{ font-family: system-ui, -apple-system, Segoe UI, sans-serif; margin: 24px; color: #222; }}
+    h1 {{ margin-top: 0; }}
+    .summary {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; }}
+    .card {{ border: 1px solid #ddd; border-radius: 6px; padding: 12px; background: #fafafa; }}
+    table {{ width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 13px; }}
+    th, td {{ border: 1px solid #ddd; padding: 6px 8px; text-align: left; }}
+    th {{ background: #f4f4f4; }}
+  </style>
+</head>
+<body>
+  <h1>Kalecki Ring Sweep Dashboard</h1>
+  <div class=\"summary\">
+    <div class=\"card\"><div>Total runs</div><strong>{total_runs}</strong></div>
+    <div class=\"card\"><div>Average \u03C6_total</div><strong>{_fmt_num(avg_phi)}</strong></div>
+    <div class=\"card\"><div>Average \u03B4_total</div><strong>{_fmt_num(avg_delta)}</strong></div>
+    <div class=\"card\"><div>Max liquidity gap</div><strong>{_fmt_num(max_gap)}</strong></div>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Run</th><th>Phase</th><th>\u03BA</th><th>c</th><th>\u03BC</th><th>\u03C6_total</th><th>\u03B4_total</th><th>max G_t</th><th>Days</th>
+      </tr>
+    </thead>
+    <tbody>
+      {''.join(table_rows)}
+    </tbody>
+  </table>
+</body>
+</html>
+"""
+
+    with dashboard_path.open("w", encoding="utf-8") as fh:
+        fh.write(html)
 
 ```
 
@@ -4805,7 +6745,7 @@ import yaml
 from pathlib import Path
 from typing import Any, Dict
 from decimal import Decimal, InvalidOperation, DecimalException
-from pydantic import ValidationError
+from pydantic import ValidationError, TypeAdapter
 
 from .models import (
     ScenarioConfig,
@@ -4820,7 +6760,8 @@ from .models import (
     TransferStock,
     CreateDeliveryObligation,
     CreatePayable,
-    Action
+    Action,
+    GeneratorConfig,
 )
 
 
@@ -4961,6 +6902,29 @@ def load_yaml(path: Path | str) -> ScenarioConfig:
     # Preprocess the configuration
     data = preprocess_config(data)
     
+    # Handle generator specs by compiling into a concrete scenario first
+    if "generator" in data:
+        adapter = TypeAdapter(GeneratorConfig)
+        try:
+            generator_spec = adapter.validate_python(data)
+        except ValidationError as e:
+            errors = []
+            for error in e.errors():
+                loc = " -> ".join(str(l) for l in error['loc'])
+                msg = error['msg']
+                errors.append(f"  - {loc}: {msg}")
+            error_msg = f"Generator validation failed:\n" + "\n".join(errors)
+            raise ValueError(error_msg) from e
+
+        from bilancio.scenarios.generators import compile_generator
+
+        try:
+            compiled = compile_generator(generator_spec, source_path=path)
+        except Exception as e:
+            raise ValueError(f"Failed to compile generator '{generator_spec.generator}': {e}") from e
+
+        data = preprocess_config(compiled)
+
     # Parse initial_actions if present
     if "initial_actions" in data:
         try:
@@ -4997,7 +6961,7 @@ def load_yaml(path: Path | str) -> ScenarioConfig:
 ```python
 """Pydantic models for Bilancio scenario configuration."""
 
-from typing import Literal, Optional, Union, List, Dict, Any
+from typing import Literal, Optional, Union, List, Dict, Any, Annotated
 from decimal import Decimal
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -5375,6 +7339,167 @@ class ScenarioConfig(BaseModel):
         if len(ids) != len(set(ids)):
             raise ValueError("Agent IDs must be unique")
         return v
+
+
+class RingExplorerLiquidityAllocation(BaseModel):
+    """Liquidity seeding strategy for ring explorer generator."""
+
+    mode: Literal["single_at", "uniform", "vector"] = Field(
+        "uniform",
+        description="Distribution mode for initial liquidity"
+    )
+    agent: Optional[str] = Field(
+        None,
+        description="Target agent for single_at mode"
+    )
+    vector: Optional[List[Decimal]] = Field(
+        None,
+        description="Explicit per-agent liquidity shares (length = n_agents)"
+    )
+
+    @model_validator(mode="after")
+    def validate_allocation(self):
+        if self.mode == "single_at" and not self.agent:
+            raise ValueError("liquidity.allocation.agent is required for single_at mode")
+        if self.mode == "vector":
+            if not self.vector:
+                raise ValueError("liquidity.allocation.vector is required for vector mode")
+            if any(v <= 0 for v in self.vector):
+                raise ValueError("liquidity.allocation.vector must contain positive values")
+        return self
+
+
+class RingExplorerLiquidityConfig(BaseModel):
+    """Liquidity configuration for ring explorer generator."""
+
+    total: Optional[Decimal] = Field(
+        None,
+        description="Total initial liquidity to seed",
+    )
+    allocation: RingExplorerLiquidityAllocation = Field(
+        default_factory=RingExplorerLiquidityAllocation,
+        description="Allocation strategy for initial liquidity",
+    )
+
+    @field_validator("total")
+    @classmethod
+    def total_positive(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError("liquidity.total must be positive when provided")
+        return v
+
+
+class RingExplorerInequalityConfig(BaseModel):
+    """Dirichlet-based inequality controls."""
+
+    scheme: Literal["dirichlet"] = Field(
+        "dirichlet",
+        description="Payable size distribution scheme"
+    )
+    concentration: Decimal = Field(
+        Decimal("1"),
+        description="Dirichlet concentration parameter (c > 0)"
+    )
+
+    @field_validator("concentration")
+    @classmethod
+    def concentration_positive(cls, v):
+        if v <= 0:
+            raise ValueError("inequality.concentration must be positive")
+        return v
+
+
+class RingExplorerMaturityConfig(BaseModel):
+    """Maturity misalignment controls."""
+
+    days: int = Field(
+        1,
+        ge=1,
+        description="Horizon of due days (max due_day)"
+    )
+    mode: Literal["lead_lag"] = Field(
+        "lead_lag",
+        description="Maturity offset mode"
+    )
+    mu: Decimal = Field(
+        Decimal("0"),
+        ge=Decimal("0"),
+        le=Decimal("1"),
+        description="Normalized lead-lag misalignment (0 <= mu <= 1)"
+    )
+
+
+class RingExplorerParamsModel(BaseModel):
+    """Parameter block for ring explorer generator."""
+
+    n_agents: int = Field(5, ge=3, description="Number of agents in the ring")
+    seed: int = Field(42, description="PRNG seed for reproducibility")
+    kappa: Decimal = Field(..., gt=0, description="Debt-to-liquidity ratio target")
+    liquidity: RingExplorerLiquidityConfig = Field(
+        default_factory=RingExplorerLiquidityConfig,
+        description="Liquidity seeding controls"
+    )
+    inequality: RingExplorerInequalityConfig = Field(
+        default_factory=RingExplorerInequalityConfig,
+        description="Payable distribution controls"
+    )
+    maturity: RingExplorerMaturityConfig = Field(
+        default_factory=RingExplorerMaturityConfig,
+        description="Maturity misalignment controls"
+    )
+    currency: str = Field("USD", description="Currency label for descriptions")
+    Q_total: Optional[Decimal] = Field(
+        None,
+        description="Total dues on day 1 (S1). Overrides derivation from liquidity when provided"
+    )
+    policy_overrides: Optional[PolicyOverrides] = Field(
+        None,
+        description="Policy overrides to apply to generated scenario"
+    )
+
+
+class GeneratorCompileConfig(BaseModel):
+    """Common compile-time options for generators."""
+
+    out_dir: Optional[str] = Field(
+        None,
+        description="Directory to emit compiled scenarios"
+    )
+    emit_yaml: bool = Field(
+        True,
+        description="Whether to write the compiled scenario to disk"
+    )
+
+
+class RingExplorerGeneratorConfig(BaseModel):
+    """Generator definition for ring explorer sweeps."""
+
+    version: int = Field(1, description="Configuration version")
+    generator: Literal["ring_explorer_v1"] = Field(
+        "ring_explorer_v1",
+        description="Generator identifier"
+    )
+    name_prefix: str = Field(..., description="Human-readable prefix for scenario names")
+    params: RingExplorerParamsModel = Field(..., description="Generator parameters")
+    compile: GeneratorCompileConfig = Field(
+        default_factory=GeneratorCompileConfig,
+        description="Compiler output controls"
+    )
+
+    @field_validator("version")
+    @classmethod
+    def version_supported(cls, v):
+        if v != 1:
+            raise ValueError(f"Unsupported generator version: {v}")
+        return v
+
+
+GeneratorConfig = Annotated[
+    Union[
+        RingExplorerGeneratorConfig,
+    ],
+    Field(discriminator="generator")
+]
 
 ```
 
@@ -7603,6 +9728,477 @@ class SimpleValuationEngine:
 
 ---
 
+### 📄 src/bilancio/experiments/__init__.py
+
+```python
+"""Experiment orchestration helpers."""
+
+from .ring import RingSweepRunner, RingRunSummary
+
+__all__ = ["RingSweepRunner", "RingRunSummary"]
+
+```
+
+---
+
+### 📄 src/bilancio/experiments/ring.py
+
+```python
+"""Utilities for running Kalecki ring experiment sweeps."""
+
+from __future__ import annotations
+
+import csv
+import uuid
+from dataclasses import dataclass
+from decimal import Decimal
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Sequence, Tuple
+
+import random
+
+from bilancio.analysis.loaders import read_balances_csv, read_events_jsonl
+from bilancio.analysis.report import (
+    compute_day_metrics,
+    summarize_day_metrics,
+    write_day_metrics_csv,
+    write_day_metrics_json,
+    write_debtor_shares_csv,
+    write_intraday_csv,
+    write_metrics_html,
+)
+from bilancio.config.models import RingExplorerGeneratorConfig
+from bilancio.scenarios.generators.ring_explorer import compile_ring_explorer
+from bilancio.ui.run import run_scenario
+
+
+@dataclass
+class RingRunSummary:
+    run_id: str
+    phase: str
+    kappa: Decimal
+    concentration: Decimal
+    mu: Decimal
+    delta_total: Optional[Decimal]
+    phi_total: Optional[Decimal]
+    time_to_stability: int
+
+
+def _decimal_list(spec: str) -> List[Decimal]:
+    out: List[Decimal] = []
+    for part in spec.split(','):
+        part = part.strip()
+        if not part:
+            continue
+        out.append(Decimal(part))
+    return out
+
+
+def _to_yaml_ready(obj: Any) -> Any:
+    from decimal import Decimal as _D
+
+    if isinstance(obj, dict):
+        return {k: _to_yaml_ready(v) for k, v in obj.items() if v is not None}
+    if isinstance(obj, list):
+        return [_to_yaml_ready(v) for v in obj]
+    if isinstance(obj, _D):
+        norm = obj.normalize()
+        if norm == norm.to_integral_value():
+            return int(norm)
+        return float(norm)
+    return obj
+
+
+class RingSweepRunner:
+    """Coordinator for running Kalecki ring experiments."""
+
+    REGISTRY_FIELDS = [
+        "run_id",
+        "phase",
+        "seed",
+        "n_agents",
+        "kappa",
+        "concentration",
+        "mu",
+        "maturity_days",
+        "Q_total",
+        "S1",
+        "L0",
+        "scenario_yaml",
+        "events_jsonl",
+        "balances_csv",
+        "metrics_csv",
+        "metrics_html",
+        "run_html",
+        "default_handling",
+        "status",
+        "time_to_stability",
+        "phi_total",
+        "delta_total",
+        "error",
+    ]
+
+    def __init__(
+        self,
+        out_dir: Path,
+        *,
+        name_prefix: str,
+        n_agents: int,
+        maturity_days: int,
+        Q_total: Decimal,
+        liquidity_mode: str,
+        liquidity_agent: Optional[str],
+        base_seed: int,
+        default_handling: str = "fail-fast",
+    ) -> None:
+        self.base_dir = out_dir
+        self.registry_dir = self.base_dir / "registry"
+        self.runs_dir = self.base_dir / "runs"
+        self.aggregate_dir = self.base_dir / "aggregate"
+        self.name_prefix = name_prefix
+        self.n_agents = n_agents
+        self.maturity_days = maturity_days
+        self.Q_total = Q_total
+        self.liquidity_mode = liquidity_mode
+        self.liquidity_agent = liquidity_agent
+        self.seed_counter = base_seed
+        self.default_handling = default_handling
+        self.registry_rows: List[Dict[str, Any]] = []
+
+        self.registry_dir.mkdir(parents=True, exist_ok=True)
+        self.runs_dir.mkdir(parents=True, exist_ok=True)
+        self.aggregate_dir.mkdir(parents=True, exist_ok=True)
+
+        self.registry_path = self.registry_dir / "experiments.csv"
+        if self.registry_path.exists():
+            with self.registry_path.open("r", newline="") as fh:
+                reader = csv.DictReader(fh)
+                self.registry_rows = list(reader)
+        else:
+            self._write_registry()
+
+    def _next_seed(self) -> int:
+        value = self.seed_counter
+        self.seed_counter += 1
+        return value
+
+    def _write_registry(self) -> None:
+        with self.registry_path.open("w", newline="") as fh:
+            writer = csv.DictWriter(fh, fieldnames=self.REGISTRY_FIELDS)
+            writer.writeheader()
+            for row in self.registry_rows:
+                writer.writerow({field: row.get(field, "") for field in self.REGISTRY_FIELDS})
+
+    def _upsert_registry(self, row: Dict[str, Any]) -> None:
+        for existing in self.registry_rows:
+            if existing.get("run_id") == row.get("run_id"):
+                existing.update(row)
+                break
+        else:
+            self.registry_rows.append(row)
+        self._write_registry()
+
+    def run_grid(self, kappas: Sequence[Decimal], concentrations: Sequence[Decimal], mus: Sequence[Decimal]) -> List[RingRunSummary]:
+        summaries: List[RingRunSummary] = []
+        for kappa in kappas:
+            for concentration in concentrations:
+                for mu in mus:
+                    seed = self._next_seed()
+                    summaries.append(self._execute_run("grid", kappa, concentration, mu, seed))
+        return summaries
+
+    def run_lhs(
+        self,
+        count: int,
+        *,
+        kappa_range: Tuple[Decimal, Decimal],
+        concentration_range: Tuple[Decimal, Decimal],
+        mu_range: Tuple[Decimal, Decimal],
+    ) -> List[RingRunSummary]:
+        if count <= 0:
+            return []
+        rng = random.Random(self.seed_counter + 7919)
+        kappas = self._lhs_axis(count, kappa_range, rng)
+        concentrations = self._lhs_axis(count, concentration_range, rng)
+        mus = self._lhs_axis(count, mu_range, rng)
+        rng.shuffle(concentrations)
+        rng.shuffle(mus)
+        summaries: List[RingRunSummary] = []
+        for idx in range(count):
+            seed = self._next_seed()
+            summaries.append(
+                self._execute_run(
+                    "lhs",
+                    kappas[idx],
+                    concentrations[idx],
+                    mus[idx],
+                    seed,
+                )
+            )
+        return summaries
+
+    def _lhs_axis(self, count: int, bounds: Tuple[Decimal, Decimal], rng: random.Random) -> List[Decimal]:
+        low, high = bounds
+        samples: List[Decimal] = []
+        for stratum in range(count):
+            a = Decimal(stratum) / Decimal(count)
+            b = Decimal(stratum + 1) / Decimal(count)
+            u = Decimal(str(rng.random()))
+            frac = a + (b - a) * u
+            samples.append(low + (high - low) * frac)
+        rng.shuffle(samples)
+        return samples
+
+    def run_frontier(
+        self,
+        concentrations: Sequence[Decimal],
+        mus: Sequence[Decimal],
+        *,
+        kappa_low: Decimal,
+        kappa_high: Decimal,
+        tolerance: Decimal,
+        max_iterations: int,
+    ) -> List[RingRunSummary]:
+        summaries: List[RingRunSummary] = []
+        for concentration in concentrations:
+            for mu in mus:
+                summaries.extend(
+                    self._run_frontier_cell(
+                        concentration,
+                        mu,
+                        kappa_low,
+                        kappa_high,
+                        tolerance,
+                        max_iterations,
+                    )
+                )
+        return summaries
+
+    def _run_frontier_cell(
+        self,
+        concentration: Decimal,
+        mu: Decimal,
+        kappa_low: Decimal,
+        kappa_high: Decimal,
+        tolerance: Decimal,
+        max_iterations: int,
+    ) -> List[RingRunSummary]:
+        runs: List[RingRunSummary] = []
+
+        low_summary = self._execute_run("frontier", kappa_low, concentration, mu, self._next_seed(), label="low")
+        runs.append(low_summary)
+        if low_summary.delta_total is not None and low_summary.delta_total <= tolerance:
+            return runs
+
+        hi_kappa = kappa_high
+        hi_summary = self._execute_run("frontier", hi_kappa, concentration, mu, self._next_seed(), label="high")
+        runs.append(hi_summary)
+
+        while (hi_summary.delta_total is None or hi_summary.delta_total > tolerance) and hi_kappa < kappa_high * 4:
+            hi_kappa = hi_kappa * Decimal("1.5")
+            hi_summary = self._execute_run("frontier", hi_kappa, concentration, mu, self._next_seed(), label="high")
+            runs.append(hi_summary)
+            if hi_kappa > Decimal("128"):
+                break
+
+        if hi_summary.delta_total is None or hi_summary.delta_total > tolerance:
+            return runs
+
+        low = low_summary.kappa
+        high = hi_summary.kappa
+        best = hi_summary
+
+        for _ in range(max_iterations):
+            if high - low <= tolerance:
+                break
+            mid = (low + high) / 2
+            mid_summary = self._execute_run("frontier", mid, concentration, mu, self._next_seed(), label="mid")
+            runs.append(mid_summary)
+            delta = mid_summary.delta_total
+            if delta is None:
+                low = mid
+                continue
+            if delta <= tolerance:
+                best = mid_summary
+                high = mid
+            else:
+                low = mid
+
+        return runs
+
+    def _execute_run(
+        self,
+        phase: str,
+        kappa: Decimal,
+        concentration: Decimal,
+        mu: Decimal,
+        seed: int,
+        *,
+        label: Optional[str] = None,
+    ) -> RingRunSummary:
+        run_uuid = uuid.uuid4().hex[:12]
+        run_id = f"{phase}_{label}_{run_uuid}" if label else f"{phase}_{run_uuid}"
+        run_dir = self.runs_dir / run_id
+        run_dir.mkdir(parents=True, exist_ok=True)
+        out_dir = run_dir / "out"
+        out_dir.mkdir(parents=True, exist_ok=True)
+
+        scenario_path = run_dir / "scenario.yaml"
+        run_html_path = run_dir / "run.html"
+        balances_path = out_dir / "balances.csv"
+        events_path = out_dir / "events.jsonl"
+        metrics_csv_path = out_dir / "metrics.csv"
+        metrics_json_path = out_dir / "metrics.json"
+        ds_csv_path = out_dir / "metrics_ds.csv"
+        intraday_csv_path = out_dir / "metrics_intraday.csv"
+        metrics_html_path = out_dir / "metrics.html"
+
+        registry_entry = {
+            "run_id": run_id,
+            "phase": phase,
+            "seed": str(seed),
+            "n_agents": str(self.n_agents),
+            "kappa": str(kappa),
+            "concentration": str(concentration),
+            "mu": str(mu),
+            "maturity_days": str(self.maturity_days),
+            "Q_total": str(self.Q_total),
+            "default_handling": self.default_handling,
+            "status": "running",
+        }
+        self._upsert_registry(registry_entry)
+
+        generator_data = {
+            "version": 1,
+            "generator": "ring_explorer_v1",
+            "name_prefix": self.name_prefix,
+            "params": {
+                "n_agents": self.n_agents,
+                "seed": seed,
+                "kappa": str(kappa),
+                "Q_total": str(self.Q_total),
+                "inequality": {
+                    "scheme": "dirichlet",
+                    "concentration": str(concentration),
+                },
+                "maturity": {
+                    "days": self.maturity_days,
+                    "mode": "lead_lag",
+                    "mu": str(mu),
+                },
+                "liquidity": {
+                    "allocation": self._liquidity_allocation_dict(),
+                },
+            },
+            "compile": {"emit_yaml": False},
+        }
+
+        generator_config = RingExplorerGeneratorConfig.model_validate(generator_data)
+        scenario = compile_ring_explorer(generator_config, source_path=None)
+
+        if self.default_handling:
+            scenario_run = scenario.setdefault("run", {})
+            scenario_run["default_handling"] = self.default_handling
+
+        with scenario_path.open("w", encoding="utf-8") as fh:
+            import yaml
+
+            yaml.safe_dump(_to_yaml_ready(scenario), fh, sort_keys=False, allow_unicode=False)
+
+        S1 = Decimal("0")
+        L0 = Decimal("0")
+        for action in scenario.get("initial_actions", []):
+            if "create_payable" in action:
+                S1 += action["create_payable"]["amount"]
+            if "mint_cash" in action:
+                L0 += action["mint_cash"]["amount"]
+
+        try:
+            run_scenario(
+                path=scenario_path,
+                mode="until_stable",
+                max_days=scenario["run"].get("max_days", 90),
+                quiet_days=scenario["run"].get("quiet_days", 2),
+                show=scenario["run"].get("show", {}).get("events", "detailed"),
+                agent_ids=scenario["run"].get("show", {}).get("balances"),
+                check_invariants="daily",
+                export={
+                    "balances_csv": str(balances_path),
+                    "events_jsonl": str(events_path),
+                },
+                html_output=run_html_path,
+                t_account=False,
+                default_handling=self.default_handling,
+            )
+        except Exception as exc:
+            registry_entry.update({
+                "status": "failed",
+                "error": str(exc),
+                "S1": str(S1),
+                "L0": str(L0),
+                "scenario_yaml": self._rel_path(scenario_path),
+                "run_html": self._rel_path(run_html_path),
+            })
+            self._upsert_registry(registry_entry)
+            return RingRunSummary(run_id, phase, kappa, concentration, mu, None, None, 0)
+
+        events = list(read_events_jsonl(events_path))
+        balances_rows = read_balances_csv(balances_path) if balances_path.exists() else None
+        bundle = compute_day_metrics(events, balances_rows)
+
+        write_day_metrics_csv(metrics_csv_path, bundle["day_metrics"])
+        write_day_metrics_json(metrics_json_path, bundle["day_metrics"])
+        write_debtor_shares_csv(ds_csv_path, bundle["debtor_shares"])
+        write_intraday_csv(intraday_csv_path, bundle["intraday"])
+        write_metrics_html(metrics_html_path, bundle["day_metrics"], bundle["debtor_shares"], bundle["intraday"])
+
+        summary = summarize_day_metrics(bundle["day_metrics"])
+        delta_total = summary.get("delta_total")
+        phi_total = summary.get("phi_total")
+        time_to_stability = int(summary.get("max_day") or 0)
+
+        registry_entry.update({
+            "status": "completed",
+            "S1": str(S1),
+            "L0": str(L0),
+            "scenario_yaml": self._rel_path(scenario_path),
+            "events_jsonl": self._rel_path(events_path),
+            "balances_csv": self._rel_path(balances_path),
+            "metrics_csv": self._rel_path(metrics_csv_path),
+            "metrics_html": self._rel_path(metrics_html_path),
+            "run_html": self._rel_path(run_html_path),
+            "time_to_stability": str(time_to_stability),
+            "phi_total": str(phi_total) if phi_total is not None else "",
+            "delta_total": str(delta_total) if delta_total is not None else "",
+            "error": "",
+        })
+        self._upsert_registry(registry_entry)
+
+        return RingRunSummary(run_id, phase, kappa, concentration, mu, delta_total, phi_total, time_to_stability)
+
+    def _rel_path(self, absolute: Path) -> str:
+        try:
+            return str(Path("..").joinpath(absolute.relative_to(self.base_dir)))
+        except ValueError:
+            return str(absolute)
+
+    def _liquidity_allocation_dict(self) -> Dict[str, Any]:
+        allocation: Dict[str, Any] = {"mode": self.liquidity_mode}
+        if self.liquidity_mode == "single_at" and self.liquidity_agent:
+            allocation["agent"] = self.liquidity_agent
+        return allocation
+
+
+__all__ = [
+    "RingSweepRunner",
+    "RingRunSummary",
+    "_decimal_list",
+]
+
+```
+
+---
+
 ### 📄 src/bilancio/export/__init__.py
 
 ```python
@@ -8323,6 +10919,402 @@ def consume_stock(system: 'System', stock_id: InstrId, quantity: int) -> None:
 
 ---
 
+### 📄 src/bilancio/scenarios/__init__.py
+
+```python
+"""Scenario generation utilities."""
+
+__all__ = []
+
+```
+
+---
+
+### 📄 src/bilancio/scenarios/generators/__init__.py
+
+```python
+"""Generator registry for scenario compilation."""
+
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Any, Dict, Optional
+
+from bilancio.config.models import (
+    GeneratorConfig,
+    RingExplorerGeneratorConfig,
+)
+
+from .ring_explorer import compile_ring_explorer
+
+
+def compile_generator(
+    config: GeneratorConfig,
+    *,
+    source_path: Optional[Path] = None,
+) -> Dict[str, Any]:
+    """Compile a generator specification into a scenario dictionary."""
+    if isinstance(config, RingExplorerGeneratorConfig):
+        return compile_ring_explorer(config, source_path=source_path)
+    raise ValueError(f"Unsupported generator '{getattr(config, 'generator', 'unknown')}'")
+
+
+__all__ = ["compile_generator"]
+
+```
+
+---
+
+### 📄 src/bilancio/scenarios/generators/ring_explorer.py
+
+```python
+"""Ring explorer scenario generator."""
+
+from __future__ import annotations
+
+import random
+import re
+from dataclasses import dataclass
+from decimal import Decimal, getcontext
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import yaml
+
+from bilancio.config.models import (
+    RingExplorerGeneratorConfig,
+    RingExplorerParamsModel,
+)
+
+# Ensure ample precision for Decimal arithmetic when scaling Dirichlet weights
+getcontext().prec = 28
+
+
+@dataclass
+class LiquiditySpec:
+    total: Decimal
+    mode: str
+    agent: Optional[str]
+    vector: Optional[List[Decimal]]
+
+
+@dataclass
+class InequalitySpec:
+    concentration: Decimal
+
+
+@dataclass
+class MaturitySpec:
+    days: int
+    mode: str
+    mu: Decimal
+
+
+@dataclass
+class RingExplorerParams:
+    n_agents: int
+    seed: int
+    kappa: Decimal
+    Q_total: Decimal
+    liquidity: LiquiditySpec
+    inequality: InequalitySpec
+    maturity: MaturitySpec
+    currency: str
+    policy_overrides: Optional[Dict[str, Any]]
+
+    @classmethod
+    def from_model(cls, model: RingExplorerParamsModel) -> "RingExplorerParams":
+        Q_total = model.Q_total
+        liquidity_total = model.liquidity.total
+
+        if Q_total is None and liquidity_total is None:
+            raise ValueError("Either params.Q_total or params.liquidity.total must be provided")
+
+        if liquidity_total is None and Q_total is not None:
+            liquidity_total = (Q_total / model.kappa)
+        elif Q_total is None and liquidity_total is not None:
+            Q_total = (model.kappa * liquidity_total)
+
+        if Q_total is None or liquidity_total is None:
+            raise ValueError("Failed to resolve Q_total and liquidity total from parameters")
+
+        if liquidity_total <= 0 or Q_total <= 0:
+            raise ValueError("Derived Q_total and liquidity must be positive")
+
+        liquidity_spec = LiquiditySpec(
+            total=liquidity_total,
+            mode=model.liquidity.allocation.mode,
+            agent=model.liquidity.allocation.agent,
+            vector=[Decimal(str(v)) for v in (model.liquidity.allocation.vector or [])] or None,
+        )
+        inequality_spec = InequalitySpec(concentration=model.inequality.concentration)
+        maturity_spec = MaturitySpec(
+            days=model.maturity.days,
+            mode=model.maturity.mode,
+            mu=model.maturity.mu,
+        )
+
+        policy_overrides = None
+        if model.policy_overrides is not None:
+            policy_overrides = model.policy_overrides.model_dump(exclude_none=True)
+
+        return cls(
+            n_agents=model.n_agents,
+            seed=model.seed,
+            kappa=model.kappa,
+            Q_total=Q_total,
+            liquidity=liquidity_spec,
+            inequality=inequality_spec,
+            maturity=maturity_spec,
+            currency=model.currency,
+            policy_overrides=policy_overrides,
+        )
+
+
+def compile_ring_explorer(
+    config: RingExplorerGeneratorConfig,
+    *,
+    source_path: Optional[Path] = None,
+) -> Dict[str, Any]:
+    params = RingExplorerParams.from_model(config.params)
+
+    payable_amounts = _draw_payables(params.n_agents, params.inequality.concentration, params.Q_total, params.seed)
+    liquidity_amounts = _allocate_liquidity(params)
+    due_days = _build_due_days(params.n_agents, params.maturity.days, params.maturity.mu)
+
+    agents = _build_agents(params.n_agents)
+    initial_actions = []
+
+    # Seed cash liquidity per allocation plan
+    for idx, amount in enumerate(liquidity_amounts):
+        if amount <= 0:
+            continue
+        agent_id = f"H{idx + 1}"
+        initial_actions.append({
+            "mint_cash": {
+                "to": agent_id,
+                "amount": amount,
+                "alias": f"LIQ_{agent_id}",
+            }
+        })
+
+    # Create ring payables
+    for idx, amount in enumerate(payable_amounts):
+        from_agent = f"H{idx + 1}"
+        to_agent = f"H{(idx + 1) % params.n_agents + 1}"
+        due_day = due_days[idx]
+        initial_actions.append({
+            "create_payable": {
+                "from": from_agent,
+                "to": to_agent,
+                "amount": amount,
+                "due_day": due_day,
+                "alias": f"P_{from_agent}_{to_agent}",
+            }
+        })
+
+    scenario_name = _render_scenario_name(config.name_prefix, params)
+    description = _render_description(params)
+
+    scenario: Dict[str, Any] = {
+        "version": 1,
+        "name": scenario_name,
+        "description": description,
+        "policy_overrides": params.policy_overrides,
+        "agents": agents,
+        "initial_actions": initial_actions,
+        "scheduled_actions": [],
+        "run": {
+            "mode": "until_stable",
+            "max_days": max(30, params.maturity.days + 5),
+            "quiet_days": 2,
+            "show": {
+                "balances": [agent["id"] for agent in agents if agent["id"].startswith("H")],
+                "events": "detailed",
+            },
+            "export": {
+                "balances_csv": "out/balances.csv",
+                "events_jsonl": "out/events.jsonl",
+            },
+        },
+    }
+
+    if config.compile.emit_yaml:
+        _emit_yaml(
+            scenario,
+            config,
+            source_path=source_path,
+        )
+
+    return scenario
+
+
+def _draw_payables(n: int, concentration: Decimal, total: Decimal, seed: int) -> List[Decimal]:
+    rng = random.Random(seed)
+    alpha = float(concentration)
+    if alpha <= 0:
+        raise ValueError("Dirichlet concentration must be positive")
+
+    weights = [rng.gammavariate(alpha, 1.0) for _ in range(n)]
+    weight_sum = sum(weights)
+    if weight_sum <= 0:
+        raise ValueError("Failed to draw positive Dirichlet weights")
+
+    decimals = [Decimal(str(w)) for w in weights]
+    weight_total = sum(decimals)
+
+    amounts: List[Decimal] = []
+    running = Decimal("0")
+    for idx, weight in enumerate(decimals):
+        if idx == n - 1:
+            amount = total - running
+        else:
+            amount = (total * weight) / weight_total
+            running += amount
+        amounts.append(amount)
+    return amounts
+
+
+def _allocate_liquidity(params: RingExplorerParams) -> List[Decimal]:
+    total = params.liquidity.total
+    n = params.n_agents
+    mode = params.liquidity.mode
+
+    if mode == "uniform":
+        share = total / Decimal(n)
+        return [share] * n
+    if mode == "single_at":
+        target = params.liquidity.agent or "H1"
+        values = []
+        for idx in range(n):
+            agent_id = f"H{idx + 1}"
+            values.append(total if agent_id == target else Decimal("0"))
+        if all(v == 0 for v in values):
+            raise ValueError(f"liquidity allocation agent '{target}' not in ring")
+        return values
+    if mode == "vector":
+        vector = params.liquidity.vector
+        if not vector or len(vector) != n:
+            raise ValueError("liquidity.vector must have length equal to n_agents")
+        weight_total = sum(vector)
+        if weight_total <= 0:
+            raise ValueError("liquidity.vector must sum to a positive value")
+        scaled: List[Decimal] = []
+        running = Decimal("0")
+        for idx, weight in enumerate(vector):
+            if idx == n - 1:
+                amount = total - running
+            else:
+                amount = (total * weight) / weight_total
+                running += amount
+            scaled.append(amount)
+        return scaled
+
+    raise ValueError(f"Unsupported liquidity allocation mode '{mode}'")
+
+
+def _build_due_days(n: int, days: int, mu: Decimal) -> List[int]:
+    if days <= 1:
+        return [1] * n
+    max_shift = days - 1
+    lead_steps = int(round(float(mu) * max_shift))
+    lead_steps = max(0, min(max_shift, lead_steps))
+    if lead_steps == 0:
+        return [1] * n
+    cycle = max_shift + 1
+    step = max(lead_steps, 1)
+    due_days: List[int] = []
+    for idx in range(n):
+        phase = (idx * step) % cycle
+        offset = (cycle + phase - lead_steps) % cycle
+        due_days.append(int(offset + 1))
+    return due_days
+
+
+def _build_agents(n: int) -> List[Dict[str, Any]]:
+    agents: List[Dict[str, Any]] = [
+        {"id": "CB", "kind": "central_bank", "name": "Central Bank"},
+    ]
+    agents.extend({
+        "id": f"H{idx}",
+        "kind": "household",
+        "name": f"Agent {idx}",
+    } for idx in range(1, n + 1))
+    return agents
+
+
+def _render_scenario_name(prefix: str, params: RingExplorerParams) -> str:
+    kappa_str = _fmt_decimal(params.kappa)
+    conc_str = _fmt_decimal(params.inequality.concentration)
+    mu_str = _fmt_decimal(params.maturity.mu)
+    return f"{prefix} (n={params.n_agents}, kappa={kappa_str}, c={conc_str}, mu={mu_str})"
+
+
+def _render_description(params: RingExplorerParams) -> str:
+    parts = [
+        f"Ring of {params.n_agents} agents with total dues S1={_fmt_decimal(params.Q_total)}",
+        f"initial liquidity L0={_fmt_decimal(params.liquidity.total)} (kappa={_fmt_decimal(params.kappa)})",
+        f"Dirichlet concentration c={_fmt_decimal(params.inequality.concentration)}",
+        f"maturity mu={_fmt_decimal(params.maturity.mu)} over {params.maturity.days} day horizon",
+    ]
+    return "; ".join(parts)
+
+
+def _fmt_decimal(value: Decimal) -> str:
+    normalized = value.normalize()
+    if normalized == normalized.to_integral_value():
+        return str(int(normalized))
+    return format(normalized, "f").rstrip("0").rstrip(".")
+
+
+def _emit_yaml(scenario: Dict[str, Any], config: RingExplorerGeneratorConfig, source_path: Optional[Path]) -> None:
+    base_dir = None
+    if config.compile.out_dir:
+        out_dir = Path(config.compile.out_dir)
+        if not out_dir.is_absolute() and source_path is not None:
+            base_dir = source_path.parent / out_dir
+        else:
+            base_dir = out_dir
+    elif source_path is not None:
+        base_dir = source_path.parent
+    else:
+        return
+
+    base_dir.mkdir(parents=True, exist_ok=True)
+
+    slug = _slugify(scenario.get("name", "scenario"))
+    target = base_dir / f"{slug}.yaml"
+
+    dumpable = _to_yaml_ready(scenario)
+    with target.open("w", encoding="utf-8") as fh:
+        yaml.safe_dump(dumpable, fh, sort_keys=False, allow_unicode=False)
+
+
+def _slugify(name: str) -> str:
+    slug = re.sub(r"[^A-Za-z0-9]+", "_", name)
+    slug = slug.strip("_")
+    return slug.lower() or "scenario"
+
+
+def _to_yaml_ready(obj: Any) -> Any:
+    if isinstance(obj, dict):
+        return {k: _to_yaml_ready(v) for k, v in obj.items() if v is not None}
+    if isinstance(obj, list):
+        return [_to_yaml_ready(v) for v in obj]
+    if isinstance(obj, Decimal):
+        normalized = obj.normalize()
+        if normalized == normalized.to_integral_value():
+            return int(normalized)
+        return float(normalized)
+    return obj
+
+
+__all__ = ["compile_ring_explorer"]
+
+```
+
+---
+
 ### 📄 src/bilancio/ui/__init__.py
 
 ```python
@@ -8341,8 +11333,10 @@ __all__ = ["main"]
 """Command-line interface for Bilancio."""
 
 import click
+from datetime import datetime
+from decimal import Decimal
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional
 import sys
 
 from rich.console import Console
@@ -8351,27 +11345,18 @@ from rich.panel import Panel
 from .run import run_scenario
 from .wizard import create_scenario_wizard
 from bilancio.analysis.loaders import read_events_jsonl, read_balances_csv
-from bilancio.analysis.metrics import (
-    dues_for_day,
-    net_vectors,
-    raw_minimum_liquidity,
-    size_and_bunching,
-    phi_delta,
-    replay_intraday_peak,
-    velocity,
-    creditor_hhi_plus,
-    debtor_shortfall_shares,
-    start_of_day_money,
-    liquidity_gap,
-    alpha as alpha_fn,
-)
 from bilancio.analysis.report import (
     write_day_metrics_csv,
     write_day_metrics_json,
     write_debtor_shares_csv,
     write_intraday_csv,
     write_metrics_html,
+    compute_day_metrics,
+    parse_day_ranges,
+    aggregate_runs,
+    render_dashboard,
 )
+from bilancio.experiments.ring import RingSweepRunner, _decimal_list
 
 
 console = Console()
@@ -8381,6 +11366,127 @@ console = Console()
 def cli():
     """Bilancio - Economic simulation framework."""
     pass
+
+
+@cli.group()
+def sweep():
+    """Experiment sweeps."""
+    pass
+
+
+@sweep.command("ring")
+@click.option('--out-dir', type=click.Path(path_type=Path), default=None, help='Base output directory')
+@click.option('--grid/--no-grid', default=True, help='Run coarse grid sweep')
+@click.option('--kappas', type=str, default="0.25,0.5,1,2,4", help='Comma list for grid kappa values')
+@click.option('--concentrations', type=str, default="0.2,0.5,1,2,5", help='Comma list for grid Dirichlet concentrations')
+@click.option('--mus', type=str, default="0,0.25,0.5,0.75,1", help='Comma list for grid mu values')
+@click.option('--lhs', 'lhs_count', type=int, default=0, help='Latin Hypercube samples to draw')
+@click.option('--kappa-min', type=float, default=0.2, help='LHS min kappa')
+@click.option('--kappa-max', type=float, default=5.0, help='LHS max kappa')
+@click.option('--c-min', type=float, default=0.2, help='LHS min concentration')
+@click.option('--c-max', type=float, default=5.0, help='LHS max concentration')
+@click.option('--mu-min', type=float, default=0.0, help='LHS min mu')
+@click.option('--mu-max', type=float, default=1.0, help='LHS max mu')
+@click.option('--frontier/--no-frontier', default=False, help='Run frontier search')
+@click.option('--frontier-low', type=float, default=0.1, help='Frontier lower bound for kappa')
+@click.option('--frontier-high', type=float, default=4.0, help='Initial frontier upper bound for kappa')
+@click.option('--frontier-tolerance', type=float, default=0.02, help='Frontier tolerance on delta_total')
+@click.option('--frontier-iterations', type=int, default=6, help='Max bisection iterations per cell')
+@click.option('--n-agents', type=int, default=5, help='Ring size')
+@click.option('--maturity-days', type=int, default=3, help='Due day horizon for generator')
+@click.option('--q-total', type=float, default=500.0, help='Total dues S1 for generation')
+@click.option('--liquidity-mode', type=click.Choice(['single_at', 'uniform']), default='single_at', help='Liquidity allocation mode')
+@click.option('--liquidity-agent', type=str, default='H1', help='Target for single_at liquidity allocation')
+@click.option('--base-seed', type=int, default=42, help='Base PRNG seed')
+@click.option('--name-prefix', type=str, default='Kalecki Ring Sweep', help='Scenario name prefix')
+@click.option('--default-handling', type=click.Choice(['fail-fast', 'expel-agent']), default='fail-fast', help='Default handling mode for runs')
+def sweep_ring(
+    out_dir: Optional[Path],
+    grid: bool,
+    kappas: str,
+    concentrations: str,
+    mus: str,
+    lhs_count: int,
+    kappa_min: float,
+    kappa_max: float,
+    c_min: float,
+    c_max: float,
+    mu_min: float,
+    mu_max: float,
+    frontier: bool,
+    frontier_low: float,
+    frontier_high: float,
+    frontier_tolerance: float,
+    frontier_iterations: int,
+    n_agents: int,
+    maturity_days: int,
+    q_total: float,
+    liquidity_mode: str,
+    liquidity_agent: str,
+    base_seed: int,
+    name_prefix: str,
+    default_handling: str,
+):
+    """Run the Kalecki ring experiment sweep."""
+    if out_dir is None:
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        out_dir = Path("out") / "experiments" / f"{ts}_ring"
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    q_total_dec = Decimal(str(q_total))
+    runner = RingSweepRunner(
+        out_dir,
+        name_prefix=name_prefix,
+        n_agents=n_agents,
+        maturity_days=maturity_days,
+        Q_total=q_total_dec,
+        liquidity_mode=liquidity_mode,
+        liquidity_agent=liquidity_agent,
+        base_seed=base_seed,
+        default_handling=default_handling,
+    )
+
+    console.print(f"[dim]Output directory: {out_dir}[/dim]")
+
+    grid_kappas = _decimal_list(kappas)
+    grid_concentrations = _decimal_list(concentrations)
+    grid_mus = _decimal_list(mus)
+
+    if grid:
+        console.print(f"[dim]Running grid sweep: {len(grid_kappas) * len(grid_concentrations) * len(grid_mus)} runs[/dim]")
+        runner.run_grid(grid_kappas, grid_concentrations, grid_mus)
+
+    if lhs_count > 0:
+        console.print(f"[dim]Running Latin Hypercube ({lhs_count})[/dim]")
+        runner.run_lhs(
+            lhs_count,
+            kappa_range=(Decimal(str(kappa_min)), Decimal(str(kappa_max))),
+            concentration_range=(Decimal(str(c_min)), Decimal(str(c_max))),
+            mu_range=(Decimal(str(mu_min)), Decimal(str(mu_max))),
+        )
+
+    if frontier:
+        console.print(f"[dim]Running frontier search across {len(grid_concentrations) * len(grid_mus)} cells[/dim]")
+        runner.run_frontier(
+            grid_concentrations,
+            grid_mus,
+            kappa_low=Decimal(str(frontier_low)),
+            kappa_high=Decimal(str(frontier_high)),
+            tolerance=Decimal(str(frontier_tolerance)),
+            max_iterations=frontier_iterations,
+        )
+
+    registry_csv = runner.registry_dir / "experiments.csv"
+    results_csv = runner.aggregate_dir / "results.csv"
+    dashboard_html = runner.aggregate_dir / "dashboard.html"
+
+    aggregate_runs(registry_csv, results_csv)
+    render_dashboard(results_csv, dashboard_html)
+
+    console.print(f"[green]Sweep complete.[/green] Registry: {registry_csv}")
+    console.print(f"[green]Aggregated results: {results_csv}")
+    console.print(f"[green]Dashboard: {dashboard_html}")
 
 
 @cli.command()
@@ -8615,34 +11721,11 @@ def analyze(
         console.print(f"[dim]Reading balances from {balances_path}...[/dim]")
         balances_rows = read_balances_csv(balances_path)
 
-    # Parse days argument: supports comma lists and ranges like 1-3
-    def parse_days_arg(s: str) -> List[int]:
-        out: List[int] = []
-        for part in s.split(','):
-            part = part.strip()
-            if '-' in part:
-                a, b = part.split('-', 1)
-                try:
-                    start = int(a)
-                    end = int(b)
-                    out.extend(list(range(start, end + 1)))
-                except Exception:
-                    continue
-            else:
-                try:
-                    out.append(int(part))
-                except Exception:
-                    continue
-        return sorted(sorted(set(out)))
+    day_list = parse_day_ranges(days) if days else None
 
-    if days:
-        day_list = parse_days_arg(days)
-    else:
-        # Infer days from events: prefer due_day set; fallback to settled day set
-        due_days = sorted({int(e["due_day"]) for e in events if e.get("kind") == "PayableCreated" and e.get("due_day") is not None})
-        settled_days = sorted({int(e["day"]) for e in events if e.get("kind") == "PayableSettled" and e.get("day") is not None})
-        day_list = due_days or settled_days
-    if not day_list:
+    bundle = compute_day_metrics(events, balances_rows, day_list)
+
+    if not bundle["day_metrics"]:
         console.print("[yellow]No days found to analyze.[/yellow]")
         return
 
@@ -8656,68 +11739,11 @@ def analyze(
     if intraday_csv:
         intraday_csv.parent.mkdir(parents=True, exist_ok=True)
 
-    metrics_rows: List[dict] = []
-    ds_rows: List[dict] = []
-    intraday_rows: List[dict] = []
-
-    for t in day_list:
-        # Compute core sets
-        dues = dues_for_day(events, t)
-        nets = net_vectors(dues)
-        Mbar_t = raw_minimum_liquidity(nets)
-        S_t, _ = size_and_bunching(dues)
-        phi_t, delta_t = phi_delta(events, dues, t)
-        Mpeak_t, steps, gross_t = replay_intraday_peak(events, t)
-        v_t = velocity(gross_t, Mpeak_t)
-        HHIp_t = creditor_hhi_plus(nets)
-        DS = debtor_shortfall_shares(nets)
-        n_debtors = sum(1 for a, v in nets.items() if v["F"] > v["I"])
-        n_creditors = sum(1 for a, v in nets.items() if v["n"] > 0)
-
-        # Money supply (optional if balances provided)
-        M_t = None
-        G_t = None
-        if balances_rows is not None:
-            M_t = start_of_day_money(balances_rows, t)
-            G_t = liquidity_gap(Mbar_t, M_t)
-
-        alpha_t = alpha_fn(Mbar_t, S_t) if S_t is not None else None
-
-        notes: List[str] = []
-        if HHIp_t is None:
-            notes.append("no net creditors")
-        if all(v is None for v in DS.values()):
-            notes.append("no net debtors")
-
-        metrics_rows.append(
-            {
-                "day": t,
-                "S_t": S_t,
-                "Mbar_t": Mbar_t,
-                "M_t": M_t,
-                "G_t": G_t,
-                "alpha_t": alpha_t,
-                "Mpeak_t": Mpeak_t,
-                "gross_settled_t": gross_t,
-                "v_t": v_t,
-                "phi_t": phi_t,
-                "delta_t": delta_t,
-                "n_debtors": n_debtors,
-                "n_creditors": n_creditors,
-                "HHIplus_t": HHIp_t,
-                "notes": ", ".join(notes) if notes else "",
-            }
-        )
-
-        # Debtor shares (long form)
-        for agent, share in DS.items():
-            ds_rows.append({"day": t, "agent": agent, "DS_t": share})
-
-        # Intraday diagnostics
-        for row in steps:
-            intraday_rows.append(row)
-
     # Write outputs
+    metrics_rows = bundle["day_metrics"]
+    ds_rows = bundle["debtor_shares"]
+    intraday_rows = bundle["intraday"]
+
     write_day_metrics_csv(out_csv, metrics_rows)
     console.print(f"[green]✓[/green] Wrote day metrics CSV: {out_csv}")
     write_day_metrics_json(out_json, metrics_rows)
@@ -11446,6 +14472,58 @@ class TestBalanceAnalytics:
 
 ---
 
+### 🧪 tests/analysis/test_report_aggregate.py
+
+```python
+from decimal import Decimal
+from pathlib import Path
+
+from bilancio.analysis.report import aggregate_runs, render_dashboard
+
+
+def test_aggregate_runs_and_dashboard(tmp_path):
+    base = tmp_path
+    registry_dir = base / "registry"
+    runs_dir = base / "runs"
+    aggregate_dir = base / "aggregate"
+    registry_dir.mkdir()
+    run_dir = runs_dir / "grid_abcd"
+    out_dir = run_dir / "out"
+    out_dir.mkdir(parents=True)
+    aggregate_dir.mkdir()
+
+    metrics_csv = out_dir / "metrics.csv"
+    metrics_csv.write_text(
+        "day,S_t,phi_t,delta_t,G_t,alpha_t,Mpeak_t,v_t,HHIplus_t\n"
+        "1,100,1,0,0,0.4,50,2,0.5\n"
+        "2,50,0.5,0.5,10,0.2,40,1.5,0.3\n"
+    )
+
+    registry_csv = registry_dir / "experiments.csv"
+    registry_csv.write_text(
+        "run_id,phase,seed,n_agents,kappa,concentration,mu,Q_total,S1,L0,scenario_yaml,events_jsonl,balances_csv,metrics_csv,metrics_html,run_html,status,time_to_stability,phi_total,delta_total,error\n"
+        "grid_abcd,grid,42,5,1,0.5,0.25,150,150,120,../runs/grid_abcd/scenario.yaml,../runs/grid_abcd/out/events.jsonl,../runs/grid_abcd/out/balances.csv,../runs/grid_abcd/out/metrics.csv,../runs/grid_abcd/out/metrics.html,../runs/grid_abcd/run.html,completed,2,,,\n"
+    )
+
+    results_csv = aggregate_dir / "results.csv"
+    rows = aggregate_runs(registry_csv, results_csv)
+
+    assert rows
+    row = rows[0]
+    assert row["phi_total"] == Decimal("0.8333333333333333333333333333")
+    assert row["delta_total"] == Decimal("0.1666666666666666666666666667")
+    assert results_csv.exists()
+
+    dashboard_html = aggregate_dir / "dashboard.html"
+    render_dashboard(results_csv, dashboard_html)
+    assert dashboard_html.exists()
+    html_content = dashboard_html.read_text()
+    assert "grid_abcd" in html_content
+
+```
+
+---
+
 ### 🧪 tests/analysis/test_t_account_builder.py
 
 ```python
@@ -13616,6 +16694,122 @@ def test_alias_helpers_roundtrip():
 
 ---
 
+### 🧪 tests/scenarios/test_ring_explorer.py
+
+```python
+import json
+from decimal import Decimal
+from pathlib import Path
+
+from bilancio.config.loaders import load_yaml
+from bilancio.config.models import RingExplorerGeneratorConfig
+from bilancio.scenarios.generators.ring_explorer import compile_ring_explorer
+
+
+def _sum_amounts(actions, key):
+    total = Decimal("0")
+    for action in actions:
+        if key in action:
+            total += action[key]["amount"]
+    return total
+
+
+def test_compile_ring_explorer_basic(tmp_path):
+    generator = RingExplorerGeneratorConfig.model_validate(
+        {
+            "version": 1,
+            "generator": "ring_explorer_v1",
+            "name_prefix": "Test Sweep",
+            "params": {
+                "n_agents": 4,
+                "seed": 7,
+                "kappa": "2",
+                "Q_total": "400",
+                "inequality": {"scheme": "dirichlet", "concentration": "1"},
+                "maturity": {"days": 2, "mode": "lead_lag", "mu": "0"},
+                "liquidity": {"allocation": {"mode": "single_at", "agent": "H1"}},
+            },
+            "compile": {"emit_yaml": False},
+        }
+    )
+
+    scenario = compile_ring_explorer(generator, source_path=None)
+    assert scenario["version"] == 1
+    assert len(scenario["agents"]) == 5  # CB + 4 households
+
+    S1 = _sum_amounts(scenario["initial_actions"], "create_payable")
+    L0 = _sum_amounts(scenario["initial_actions"], "mint_cash")
+
+    assert S1 == Decimal("400")
+    assert L0 == Decimal("200")  # kappa = S1 / L0 -> 2
+
+    due_days = [action["create_payable"]["due_day"] for action in scenario["initial_actions"] if "create_payable" in action]
+    assert set(due_days) == {1}
+
+
+def test_compile_ring_explorer_vector_allocation(tmp_path):
+    generator = RingExplorerGeneratorConfig.model_validate(
+        {
+            "version": 1,
+            "generator": "ring_explorer_v1",
+            "name_prefix": "Vector Sweep",
+            "params": {
+                "n_agents": 3,
+                "seed": 3,
+                "kappa": "1.5",
+                "Q_total": "150",
+                "liquidity": {
+                    "total": "120",
+                    "allocation": {"mode": "vector", "vector": [1, 2, 3]},
+                },
+                "inequality": {"scheme": "dirichlet", "concentration": "2"},
+                "maturity": {"days": 3, "mode": "lead_lag", "mu": "0.5"},
+            },
+            "compile": {"emit_yaml": False},
+        }
+    )
+
+    scenario = compile_ring_explorer(generator, source_path=None)
+
+    cash_actions = [action["mint_cash"] for action in scenario["initial_actions"] if "mint_cash" in action]
+    amounts = [Decimal(str(entry["amount"])) for entry in cash_actions]
+    assert len(amounts) == 3
+    # Expect ratios 1:2:3 scaled to 120
+    assert sum(amounts) == Decimal("120")
+    assert amounts[1] > amounts[0]
+    assert amounts[2] > amounts[1]
+
+
+def test_load_yaml_compiles_generator(tmp_path):
+    spec = {
+        "version": 1,
+        "generator": "ring_explorer_v1",
+        "name_prefix": "Spec Sweep",
+        "params": {
+            "n_agents": 3,
+            "seed": 9,
+            "kappa": "1",
+            "Q_total": "90",
+            "inequality": {"scheme": "dirichlet", "concentration": "1"},
+            "maturity": {"days": 2, "mode": "lead_lag", "mu": "1"},
+            "liquidity": {"allocation": {"mode": "uniform"}},
+        },
+        "compile": {"emit_yaml": True, "out_dir": str(tmp_path)},
+    }
+
+    spec_path = tmp_path / "ring_spec.yaml"
+    spec_path.write_text(json.dumps(spec))
+
+    config = load_yaml(spec_path)
+    assert config.name.startswith("Spec Sweep")
+    assert len(config.initial_actions) > 0
+    compiled_yaml = list(tmp_path.glob("*.yaml"))
+    assert compiled_yaml, "expected emitted scenario YAML"
+
+```
+
+---
+
 ### 🧪 tests/test_smoke.py
 
 ```python
@@ -15410,5 +18604,5 @@ def test_settle_multiple_obligations():
 ## End of Codebase
 
 Generated from: /home/runner/work/bilancio/bilancio
-Total source files: 64
-Total test files: 25
+Total source files: 69
+Total test files: 27
