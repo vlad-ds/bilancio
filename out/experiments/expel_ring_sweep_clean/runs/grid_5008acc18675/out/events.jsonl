@@ -1,0 +1,35 @@
+{"kind": "CashMinted", "day": 0, "phase": "setup", "to": "H1", "amount": 1000, "instr_id": "C_aa83539b26a4", "alias": "LIQ_H1"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H1", "creditor": "H2", "amount": 0, "due_day": 1, "payable_id": "PAY_8e67ea284fb4", "alias": "P_H1_H2"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H2", "creditor": "H3", "amount": 368, "due_day": 1, "payable_id": "PAY_54ff0f384958", "alias": "P_H2_H3"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H3", "creditor": "H4", "amount": 41, "due_day": 1, "payable_id": "PAY_49b9ae703fcf", "alias": "P_H3_H4"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H4", "creditor": "H5", "amount": 69, "due_day": 1, "payable_id": "PAY_d1e00a6c2997", "alias": "P_H4_H5"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H5", "creditor": "H1", "amount": 20, "due_day": 1, "payable_id": "PAY_08d0ad31a918", "alias": "P_H5_H1"}
+{"kind": "PhaseA", "day": 0, "phase": "simulation"}
+{"kind": "PhaseB", "day": 0, "phase": "simulation"}
+{"kind": "SubphaseB1", "day": 0, "phase": "simulation"}
+{"kind": "SubphaseB2", "day": 0, "phase": "simulation"}
+{"kind": "PhaseC", "day": 0, "phase": "simulation"}
+{"kind": "PhaseA", "day": 1, "phase": "simulation"}
+{"kind": "PhaseB", "day": 1, "phase": "simulation"}
+{"kind": "SubphaseB1", "day": 1, "phase": "simulation"}
+{"kind": "SubphaseB2", "day": 1, "phase": "simulation"}
+{"kind": "PayableSettled", "day": 1, "phase": "simulation", "pid": "PAY_8e67ea284fb4", "contract_id": "PAY_8e67ea284fb4", "alias": "P_H1_H2", "debtor": "H1", "creditor": "H2", "amount": 0}
+{"kind": "ObligationDefaulted", "day": 1, "phase": "simulation", "contract_id": "PAY_54ff0f384958", "alias": "P_H2_H3", "debtor": "H2", "creditor": "H3", "contract_kind": "payable", "shortfall": 368, "amount_paid": 0, "original_amount": 368, "amount": 368}
+{"kind": "AgentDefaulted", "day": 1, "phase": "simulation", "agent": "H2", "frm": "H2", "trigger_contract": "PAY_54ff0f384958", "contract_kind": "payable", "shortfall": 368, "mode": "expel-agent"}
+{"kind": "ObligationDefaulted", "day": 1, "phase": "simulation", "contract_id": "PAY_49b9ae703fcf", "alias": "P_H3_H4", "debtor": "H3", "creditor": "H4", "contract_kind": "payable", "shortfall": 41, "amount_paid": 0, "original_amount": 41, "amount": 41}
+{"kind": "AgentDefaulted", "day": 1, "phase": "simulation", "agent": "H3", "frm": "H3", "trigger_contract": "PAY_49b9ae703fcf", "contract_kind": "payable", "shortfall": 41, "mode": "expel-agent"}
+{"kind": "ObligationDefaulted", "day": 1, "phase": "simulation", "contract_id": "PAY_d1e00a6c2997", "alias": "P_H4_H5", "debtor": "H4", "creditor": "H5", "contract_kind": "payable", "shortfall": 69, "amount_paid": 0, "original_amount": 69, "amount": 69}
+{"kind": "AgentDefaulted", "day": 1, "phase": "simulation", "agent": "H4", "frm": "H4", "trigger_contract": "PAY_d1e00a6c2997", "contract_kind": "payable", "shortfall": 69, "mode": "expel-agent"}
+{"kind": "ObligationDefaulted", "day": 1, "phase": "simulation", "contract_id": "PAY_08d0ad31a918", "alias": "P_H5_H1", "debtor": "H5", "creditor": "H1", "contract_kind": "payable", "shortfall": 20, "amount_paid": 0, "original_amount": 20, "amount": 20}
+{"kind": "AgentDefaulted", "day": 1, "phase": "simulation", "agent": "H5", "frm": "H5", "trigger_contract": "PAY_08d0ad31a918", "contract_kind": "payable", "shortfall": 20, "mode": "expel-agent"}
+{"kind": "PhaseC", "day": 1, "phase": "simulation"}
+{"kind": "PhaseA", "day": 2, "phase": "simulation"}
+{"kind": "PhaseB", "day": 2, "phase": "simulation"}
+{"kind": "SubphaseB1", "day": 2, "phase": "simulation"}
+{"kind": "SubphaseB2", "day": 2, "phase": "simulation"}
+{"kind": "PhaseC", "day": 2, "phase": "simulation"}
+{"kind": "PhaseA", "day": 3, "phase": "simulation"}
+{"kind": "PhaseB", "day": 3, "phase": "simulation"}
+{"kind": "SubphaseB1", "day": 3, "phase": "simulation"}
+{"kind": "SubphaseB2", "day": 3, "phase": "simulation"}
+{"kind": "PhaseC", "day": 3, "phase": "simulation"}
