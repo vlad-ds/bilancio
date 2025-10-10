@@ -10,7 +10,22 @@ import json
 from dataclasses import asdict, dataclass
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Optional, Sequence
+
+from bilancio.analysis.metrics import (
+    dues_for_day,
+    net_vectors,
+    raw_minimum_liquidity,
+    size_and_bunching,
+    phi_delta,
+    replay_intraday_peak,
+    velocity,
+    creditor_hhi_plus,
+    debtor_shortfall_shares,
+    start_of_day_money,
+    liquidity_gap,
+    alpha as alpha_fn,
+)
 
 
 def _to_json(val: Any):
@@ -90,6 +105,193 @@ def _group_by(rows: List[Dict[str, Any]], key: str) -> Dict[Any, List[Dict[str, 
     for r in rows:
         out.setdefault(r.get(key), []).append(r)
     return out
+
+
+def parse_day_ranges(spec: str) -> List[int]:
+    """Parse comma-separated day ranges like "1,2-4" into a sorted list."""
+    out: List[int] = []
+    for part in spec.split(','):
+        part = part.strip()
+        if not part:
+            continue
+        if '-' in part:
+            a, b = part.split('-', 1)
+            try:
+                start = int(a)
+                end = int(b)
+            except Exception:
+                continue
+            rng = range(min(start, end), max(start, end) + 1)
+            out.extend(rng)
+        else:
+            try:
+                out.append(int(part))
+            except Exception:
+                continue
+    return sorted(set(out))
+
+
+def infer_day_list(events: Sequence[Dict[str, Any]]) -> List[int]:
+    """Infer useful day indices from events when none specified."""
+    due_days = sorted({int(e["due_day"]) for e in events if e.get("kind") == "PayableCreated" and e.get("due_day") is not None})
+    settled_days = sorted({int(e["day"]) for e in events if e.get("kind") == "PayableSettled" and e.get("day") is not None})
+    day_list = due_days or settled_days
+    return day_list
+
+
+def compute_day_metrics(
+    events: Sequence[Dict[str, Any]],
+    balances_rows: Optional[Sequence[Dict[str, Any]]] = None,
+    day_list: Optional[Sequence[int]] = None,
+) -> Dict[str, Any]:
+    """Compute Kalecki-style day metrics for a completed run."""
+    if day_list is None or len(day_list) == 0:
+        day_list = infer_day_list(events)
+
+    if not day_list:
+        return {
+            "days": [],
+            "day_metrics": [],
+            "debtor_shares": [],
+            "intraday": [],
+        }
+
+    metrics_rows: List[dict] = []
+    ds_rows: List[dict] = []
+    intraday_rows: List[dict] = []
+
+    for t in sorted(set(int(d) for d in day_list)):
+        dues = dues_for_day(events, t)
+        nets = net_vectors(dues)
+        Mbar_t = raw_minimum_liquidity(nets)
+        S_t, _ = size_and_bunching(dues)
+        phi_t, delta_t = phi_delta(events, dues, t)
+        Mpeak_t, steps, gross_t = replay_intraday_peak(events, t)
+        v_t = velocity(gross_t, Mpeak_t)
+        HHIp_t = creditor_hhi_plus(nets)
+        DS = debtor_shortfall_shares(nets)
+        n_debtors = sum(1 for a, v in nets.items() if v["F"] > v["I"])
+        n_creditors = sum(1 for a, v in nets.items() if v["n"] > 0)
+
+        M_t = None
+        G_t = None
+        if balances_rows is not None:
+            M_t = start_of_day_money(balances_rows, t)
+            G_t = liquidity_gap(Mbar_t, M_t)
+
+        alpha_t = alpha_fn(Mbar_t, S_t) if S_t is not None else None
+
+        notes: List[str] = []
+        if HHIp_t is None:
+            notes.append("no net creditors")
+        if all(v is None for v in DS.values()):
+            notes.append("no net debtors")
+
+        metrics_rows.append(
+            {
+                "day": t,
+                "S_t": S_t,
+                "Mbar_t": Mbar_t,
+                "M_t": M_t,
+                "G_t": G_t,
+                "alpha_t": alpha_t,
+                "Mpeak_t": Mpeak_t,
+                "gross_settled_t": gross_t,
+                "v_t": v_t,
+                "phi_t": phi_t,
+                "delta_t": delta_t,
+                "n_debtors": n_debtors,
+                "n_creditors": n_creditors,
+                "HHIplus_t": HHIp_t,
+                "notes": ", ".join(notes) if notes else "",
+            }
+        )
+
+        for agent, share in DS.items():
+            ds_rows.append({"day": t, "agent": agent, "DS_t": share})
+
+        for row in steps:
+            intraday_rows.append(row)
+
+    return {
+        "days": sorted(set(int(d) for d in day_list)),
+        "day_metrics": metrics_rows,
+        "debtor_shares": ds_rows,
+        "intraday": intraday_rows,
+    }
+
+
+def summarize_day_metrics(day_metrics: Sequence[Dict[str, Any]]) -> Dict[str, Optional[Decimal]]:
+    """Summarize a day metrics table into aggregate indicators."""
+    S_total = Decimal("0")
+    phi_weighted = Decimal("0")
+    delta_weighted = Decimal("0")
+    max_G: Optional[Decimal] = None
+    alpha_1 = None
+    Mpeak_1 = None
+    v_1 = None
+    HHIplus_1 = None
+    max_day = 0
+
+    for row in day_metrics:
+        day = int(row.get("day", 0)) if row.get("day") is not None else 0
+        max_day = max(max_day, day)
+
+        S_t = row.get("S_t")
+        phi_t = row.get("phi_t")
+        delta_t = row.get("delta_t")
+        G_t = row.get("G_t")
+
+        if isinstance(S_t, str):
+            S_t = _decimal_or_none(S_t)
+        if isinstance(phi_t, str):
+            phi_t = _decimal_or_none(phi_t)
+        if isinstance(delta_t, str):
+            delta_t = _decimal_or_none(delta_t)
+        if isinstance(G_t, str):
+            G_t = _decimal_or_none(G_t)
+
+        if S_t is not None:
+            S_total += S_t
+            if phi_t is not None:
+                phi_weighted += S_t * phi_t
+            if delta_t is not None:
+                delta_weighted += S_t * delta_t
+
+        if G_t is not None:
+            max_G = G_t if max_G is None else max(max_G, G_t)
+
+        if day == 1:
+            alpha_val = row.get("alpha_t")
+            Mpeak_val = row.get("Mpeak_t")
+            v_val = row.get("v_t")
+            HHI_val = row.get("HHIplus_t")
+            if isinstance(alpha_val, str):
+                alpha_val = _decimal_or_none(alpha_val)
+            if isinstance(Mpeak_val, str):
+                Mpeak_val = _decimal_or_none(Mpeak_val)
+            if isinstance(v_val, str):
+                v_val = _decimal_or_none(v_val)
+            if isinstance(HHI_val, str):
+                HHI_val = _decimal_or_none(HHI_val)
+            alpha_1 = alpha_1 or alpha_val
+            Mpeak_1 = Mpeak_1 or Mpeak_val
+            v_1 = v_1 or v_val
+            HHIplus_1 = HHIplus_1 or HHI_val
+
+    phi_total = (phi_weighted / S_total) if S_total and phi_weighted else None
+    delta_total = (delta_weighted / S_total) if S_total and delta_weighted else None
+
+    return {
+        "phi_total": phi_total,
+        "delta_total": delta_total,
+        "max_G_t": max_G,
+        "alpha_1": alpha_1,
+        "Mpeak_1": Mpeak_1,
+        "v_1": v_1,
+        "HHIplus_1": HHIplus_1,
+        "max_day": max_day,
+    }
 
 
 def write_metrics_html(
@@ -332,3 +534,193 @@ def write_metrics_html(
 
     with p.open("w") as f:
         f.write(html)
+
+
+def _resolve_path(base: Path, value: str) -> Path:
+    p = Path(value)
+    if not p.is_absolute():
+        return base / p
+    return p
+
+
+def _decimal_or_none(val: Any) -> Optional[Decimal]:
+    if val is None or val == "":
+        return None
+    try:
+        return Decimal(str(val))
+    except Exception:
+        return None
+
+
+def aggregate_runs(
+    registry_csv: Path | str,
+    results_csv: Path | str,
+) -> List[Dict[str, Any]]:
+    """Aggregate per-run metrics into a single CSV."""
+    registry_path = Path(registry_csv)
+    results_path = Path(results_csv)
+    results_path.parent.mkdir(parents=True, exist_ok=True)
+
+    rows: List[Dict[str, Any]] = []
+
+    with registry_path.open("r", newline="") as fh:
+        reader = csv.DictReader(fh)
+        registry_rows = list(reader)
+
+    for entry in registry_rows:
+        if entry.get("status") != "completed":
+            continue
+        metrics_rel = entry.get("metrics_csv")
+        if not metrics_rel:
+            continue
+
+        metrics_path = _resolve_path(registry_path.parent, metrics_rel)
+        if not metrics_path.exists():
+            continue
+
+        with metrics_path.open("r", newline="") as fh:
+            metrics_reader = csv.DictReader(fh)
+            metrics = list(metrics_reader)
+
+        if not metrics:
+            continue
+
+        summary = summarize_day_metrics(metrics)
+
+        rows.append({
+            "run_id": entry.get("run_id"),
+            "phase": entry.get("phase"),
+            "seed": entry.get("seed"),
+            "n_agents": entry.get("n_agents"),
+            "kappa": entry.get("kappa"),
+            "concentration": entry.get("concentration"),
+            "mu": entry.get("mu"),
+            "S1": entry.get("S1"),
+            "L0": entry.get("L0"),
+            "phi_total": summary.get("phi_total"),
+            "delta_total": summary.get("delta_total"),
+            "max_G_t": summary.get("max_G_t"),
+            "alpha_1": summary.get("alpha_1"),
+            "Mpeak_1": summary.get("Mpeak_1"),
+            "v_1": summary.get("v_1"),
+            "HHIplus_1": summary.get("HHIplus_1"),
+            "time_to_stability": entry.get("time_to_stability") or str(summary.get("max_day", "")),
+            "metrics_csv": metrics_rel,
+        })
+
+    fieldnames = [
+        "run_id",
+        "phase",
+        "seed",
+        "n_agents",
+        "kappa",
+        "concentration",
+        "mu",
+        "S1",
+        "L0",
+        "phi_total",
+        "delta_total",
+        "max_G_t",
+        "alpha_1",
+        "Mpeak_1",
+        "v_1",
+        "HHIplus_1",
+        "time_to_stability",
+        "metrics_csv",
+    ]
+
+    with results_path.open("w", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=fieldnames)
+        writer.writeheader()
+        for row in rows:
+            out_row = {}
+            for field in fieldnames:
+                val = row.get(field)
+                if isinstance(val, Decimal):
+                    out_row[field] = _fmt_num(val)
+                elif val is None:
+                    out_row[field] = ""
+                else:
+                    out_row[field] = val
+            writer.writerow(out_row)
+
+    return rows
+
+
+def render_dashboard(results_csv: Path | str, dashboard_html: Path | str) -> None:
+    """Render an aggregate HTML dashboard from results CSV."""
+    results_path = Path(results_csv)
+    dashboard_path = Path(dashboard_html)
+    dashboard_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with results_path.open("r", newline="") as fh:
+        reader = csv.DictReader(fh)
+        rows = list(reader)
+
+    total_runs = len(rows)
+    phi_values = [_decimal_or_none(r.get("phi_total")) for r in rows]
+    phi_values = [v for v in phi_values if v is not None]
+    delta_values = [_decimal_or_none(r.get("delta_total")) for r in rows]
+    delta_values = [v for v in delta_values if v is not None]
+    max_g_values = [_decimal_or_none(r.get("max_G_t")) for r in rows if r.get("max_G_t")]
+
+    avg_phi = (sum(phi_values, start=Decimal("0")) / Decimal(len(phi_values))) if phi_values else None
+    avg_delta = (sum(delta_values, start=Decimal("0")) / Decimal(len(delta_values))) if delta_values else None
+    max_gap = max(max_g_values) if max_g_values else None
+
+    table_rows = []
+    for r in rows:
+        table_rows.append(
+            "<tr>"
+            f"<td>{r.get('run_id')}</td>"
+            f"<td>{r.get('phase')}</td>"
+            f"<td>{r.get('kappa')}</td>"
+            f"<td>{r.get('concentration')}</td>"
+            f"<td>{r.get('mu')}</td>"
+            f"<td>{r.get('phi_total')}</td>"
+            f"<td>{r.get('delta_total')}</td>"
+            f"<td>{r.get('max_G_t')}</td>"
+            f"<td>{r.get('time_to_stability')}</td>"
+            "</tr>"
+        )
+
+    html = f"""
+<!doctype html>
+<html lang=\"en\">
+<head>
+  <meta charset=\"utf-8\" />
+  <title>Ring Sweep Dashboard</title>
+  <style>
+    body {{ font-family: system-ui, -apple-system, Segoe UI, sans-serif; margin: 24px; color: #222; }}
+    h1 {{ margin-top: 0; }}
+    .summary {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; }}
+    .card {{ border: 1px solid #ddd; border-radius: 6px; padding: 12px; background: #fafafa; }}
+    table {{ width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 13px; }}
+    th, td {{ border: 1px solid #ddd; padding: 6px 8px; text-align: left; }}
+    th {{ background: #f4f4f4; }}
+  </style>
+</head>
+<body>
+  <h1>Kalecki Ring Sweep Dashboard</h1>
+  <div class=\"summary\">
+    <div class=\"card\"><div>Total runs</div><strong>{total_runs}</strong></div>
+    <div class=\"card\"><div>Average \u03C6_total</div><strong>{_fmt_num(avg_phi)}</strong></div>
+    <div class=\"card\"><div>Average \u03B4_total</div><strong>{_fmt_num(avg_delta)}</strong></div>
+    <div class=\"card\"><div>Max liquidity gap</div><strong>{_fmt_num(max_gap)}</strong></div>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Run</th><th>Phase</th><th>\u03BA</th><th>c</th><th>\u03BC</th><th>\u03C6_total</th><th>\u03B4_total</th><th>max G_t</th><th>Days</th>
+      </tr>
+    </thead>
+    <tbody>
+      {''.join(table_rows)}
+    </tbody>
+  </table>
+</body>
+</html>
+"""
+
+    with dashboard_path.open("w", encoding="utf-8") as fh:
+        fh.write(html)

@@ -1,0 +1,39 @@
+{"kind": "CashMinted", "day": 0, "phase": "setup", "to": "H1", "amount": 500, "instr_id": "C_0e70fe4c48f1", "alias": "LIQ_H1"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H1", "creditor": "H2", "amount": 123, "due_day": 2, "payable_id": "PAY_c76b782e959b", "alias": "P_H1_H2"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H2", "creditor": "H3", "amount": 361, "due_day": 1, "payable_id": "PAY_1e679d5e1c52", "alias": "P_H2_H3"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H3", "creditor": "H4", "amount": 14, "due_day": 3, "payable_id": "PAY_8a2e1ad014db", "alias": "P_H3_H4"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H4", "creditor": "H5", "amount": 0, "due_day": 2, "payable_id": "PAY_3cabec1a659f", "alias": "P_H4_H5"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H5", "creditor": "H1", "amount": 0, "due_day": 1, "payable_id": "PAY_7314a4628d6b", "alias": "P_H5_H1"}
+{"kind": "PhaseA", "day": 0, "phase": "simulation"}
+{"kind": "PhaseB", "day": 0, "phase": "simulation"}
+{"kind": "SubphaseB1", "day": 0, "phase": "simulation"}
+{"kind": "SubphaseB2", "day": 0, "phase": "simulation"}
+{"kind": "PhaseC", "day": 0, "phase": "simulation"}
+{"kind": "PhaseA", "day": 1, "phase": "simulation"}
+{"kind": "PhaseB", "day": 1, "phase": "simulation"}
+{"kind": "SubphaseB1", "day": 1, "phase": "simulation"}
+{"kind": "SubphaseB2", "day": 1, "phase": "simulation"}
+{"kind": "ObligationDefaulted", "day": 1, "phase": "simulation", "contract_id": "PAY_1e679d5e1c52", "alias": "P_H2_H3", "debtor": "H2", "creditor": "H3", "contract_kind": "payable", "shortfall": 361, "amount_paid": 0, "original_amount": 361, "amount": 361}
+{"kind": "AgentDefaulted", "day": 1, "phase": "simulation", "agent": "H2", "frm": "H2", "trigger_contract": "PAY_1e679d5e1c52", "contract_kind": "payable", "shortfall": 361, "mode": "expel-agent"}
+{"kind": "PayableSettled", "day": 1, "phase": "simulation", "pid": "PAY_7314a4628d6b", "contract_id": "PAY_7314a4628d6b", "alias": "P_H5_H1", "debtor": "H5", "creditor": "H1", "amount": 0}
+{"kind": "PhaseC", "day": 1, "phase": "simulation"}
+{"kind": "PhaseA", "day": 2, "phase": "simulation"}
+{"kind": "PhaseB", "day": 2, "phase": "simulation"}
+{"kind": "SubphaseB1", "day": 2, "phase": "simulation"}
+{"kind": "SubphaseB2", "day": 2, "phase": "simulation"}
+{"kind": "CashTransferred", "day": 2, "phase": "simulation", "frm": "H1", "to": "H2", "amount": 123, "instr_id": "C_16f0895d56a8"}
+{"kind": "PayableSettled", "day": 2, "phase": "simulation", "pid": "PAY_c76b782e959b", "contract_id": "PAY_c76b782e959b", "alias": "P_H1_H2", "debtor": "H1", "creditor": "H2", "amount": 123}
+{"kind": "PayableSettled", "day": 2, "phase": "simulation", "pid": "PAY_3cabec1a659f", "contract_id": "PAY_3cabec1a659f", "alias": "P_H4_H5", "debtor": "H4", "creditor": "H5", "amount": 0}
+{"kind": "PhaseC", "day": 2, "phase": "simulation"}
+{"kind": "PhaseA", "day": 3, "phase": "simulation"}
+{"kind": "PhaseB", "day": 3, "phase": "simulation"}
+{"kind": "SubphaseB1", "day": 3, "phase": "simulation"}
+{"kind": "SubphaseB2", "day": 3, "phase": "simulation"}
+{"kind": "ObligationDefaulted", "day": 3, "phase": "simulation", "contract_id": "PAY_8a2e1ad014db", "alias": "P_H3_H4", "debtor": "H3", "creditor": "H4", "contract_kind": "payable", "shortfall": 14, "amount_paid": 0, "original_amount": 14, "amount": 14}
+{"kind": "AgentDefaulted", "day": 3, "phase": "simulation", "agent": "H3", "frm": "H3", "trigger_contract": "PAY_8a2e1ad014db", "contract_kind": "payable", "shortfall": 14, "mode": "expel-agent"}
+{"kind": "PhaseC", "day": 3, "phase": "simulation"}
+{"kind": "PhaseA", "day": 4, "phase": "simulation"}
+{"kind": "PhaseB", "day": 4, "phase": "simulation"}
+{"kind": "SubphaseB1", "day": 4, "phase": "simulation"}
+{"kind": "SubphaseB2", "day": 4, "phase": "simulation"}
+{"kind": "PhaseC", "day": 4, "phase": "simulation"}

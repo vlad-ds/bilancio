@@ -1,6 +1,6 @@
 """Pydantic models for Bilancio scenario configuration."""
 
-from typing import Literal, Optional, Union, List, Dict, Any
+from typing import Literal, Optional, Union, List, Dict, Any, Annotated
 from decimal import Decimal
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -378,3 +378,164 @@ class ScenarioConfig(BaseModel):
         if len(ids) != len(set(ids)):
             raise ValueError("Agent IDs must be unique")
         return v
+
+
+class RingExplorerLiquidityAllocation(BaseModel):
+    """Liquidity seeding strategy for ring explorer generator."""
+
+    mode: Literal["single_at", "uniform", "vector"] = Field(
+        "uniform",
+        description="Distribution mode for initial liquidity"
+    )
+    agent: Optional[str] = Field(
+        None,
+        description="Target agent for single_at mode"
+    )
+    vector: Optional[List[Decimal]] = Field(
+        None,
+        description="Explicit per-agent liquidity shares (length = n_agents)"
+    )
+
+    @model_validator(mode="after")
+    def validate_allocation(self):
+        if self.mode == "single_at" and not self.agent:
+            raise ValueError("liquidity.allocation.agent is required for single_at mode")
+        if self.mode == "vector":
+            if not self.vector:
+                raise ValueError("liquidity.allocation.vector is required for vector mode")
+            if any(v <= 0 for v in self.vector):
+                raise ValueError("liquidity.allocation.vector must contain positive values")
+        return self
+
+
+class RingExplorerLiquidityConfig(BaseModel):
+    """Liquidity configuration for ring explorer generator."""
+
+    total: Optional[Decimal] = Field(
+        None,
+        description="Total initial liquidity to seed",
+    )
+    allocation: RingExplorerLiquidityAllocation = Field(
+        default_factory=RingExplorerLiquidityAllocation,
+        description="Allocation strategy for initial liquidity",
+    )
+
+    @field_validator("total")
+    @classmethod
+    def total_positive(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError("liquidity.total must be positive when provided")
+        return v
+
+
+class RingExplorerInequalityConfig(BaseModel):
+    """Dirichlet-based inequality controls."""
+
+    scheme: Literal["dirichlet"] = Field(
+        "dirichlet",
+        description="Payable size distribution scheme"
+    )
+    concentration: Decimal = Field(
+        Decimal("1"),
+        description="Dirichlet concentration parameter (c > 0)"
+    )
+
+    @field_validator("concentration")
+    @classmethod
+    def concentration_positive(cls, v):
+        if v <= 0:
+            raise ValueError("inequality.concentration must be positive")
+        return v
+
+
+class RingExplorerMaturityConfig(BaseModel):
+    """Maturity misalignment controls."""
+
+    days: int = Field(
+        1,
+        ge=1,
+        description="Horizon of due days (max due_day)"
+    )
+    mode: Literal["lead_lag"] = Field(
+        "lead_lag",
+        description="Maturity offset mode"
+    )
+    mu: Decimal = Field(
+        Decimal("0"),
+        ge=Decimal("0"),
+        le=Decimal("1"),
+        description="Normalized lead-lag misalignment (0 <= mu <= 1)"
+    )
+
+
+class RingExplorerParamsModel(BaseModel):
+    """Parameter block for ring explorer generator."""
+
+    n_agents: int = Field(5, ge=3, description="Number of agents in the ring")
+    seed: int = Field(42, description="PRNG seed for reproducibility")
+    kappa: Decimal = Field(..., gt=0, description="Debt-to-liquidity ratio target")
+    liquidity: RingExplorerLiquidityConfig = Field(
+        default_factory=RingExplorerLiquidityConfig,
+        description="Liquidity seeding controls"
+    )
+    inequality: RingExplorerInequalityConfig = Field(
+        default_factory=RingExplorerInequalityConfig,
+        description="Payable distribution controls"
+    )
+    maturity: RingExplorerMaturityConfig = Field(
+        default_factory=RingExplorerMaturityConfig,
+        description="Maturity misalignment controls"
+    )
+    currency: str = Field("USD", description="Currency label for descriptions")
+    Q_total: Optional[Decimal] = Field(
+        None,
+        description="Total dues on day 1 (S1). Overrides derivation from liquidity when provided"
+    )
+    policy_overrides: Optional[PolicyOverrides] = Field(
+        None,
+        description="Policy overrides to apply to generated scenario"
+    )
+
+
+class GeneratorCompileConfig(BaseModel):
+    """Common compile-time options for generators."""
+
+    out_dir: Optional[str] = Field(
+        None,
+        description="Directory to emit compiled scenarios"
+    )
+    emit_yaml: bool = Field(
+        True,
+        description="Whether to write the compiled scenario to disk"
+    )
+
+
+class RingExplorerGeneratorConfig(BaseModel):
+    """Generator definition for ring explorer sweeps."""
+
+    version: int = Field(1, description="Configuration version")
+    generator: Literal["ring_explorer_v1"] = Field(
+        "ring_explorer_v1",
+        description="Generator identifier"
+    )
+    name_prefix: str = Field(..., description="Human-readable prefix for scenario names")
+    params: RingExplorerParamsModel = Field(..., description="Generator parameters")
+    compile: GeneratorCompileConfig = Field(
+        default_factory=GeneratorCompileConfig,
+        description="Compiler output controls"
+    )
+
+    @field_validator("version")
+    @classmethod
+    def version_supported(cls, v):
+        if v != 1:
+            raise ValueError(f"Unsupported generator version: {v}")
+        return v
+
+
+GeneratorConfig = Annotated[
+    Union[
+        RingExplorerGeneratorConfig,
+    ],
+    Field(discriminator="generator")
+]
