@@ -1,0 +1,75 @@
+version: 1
+name: Kalecki Ring Sweep (n=5, kappa=1, c=0.5, mu=1)
+description: Ring of 5 agents with total dues S1=500; initial liquidity L0=500 (kappa=1);
+  Dirichlet concentration c=0.5; maturity mu=1 over 3 day horizon
+agents:
+- id: CB
+  kind: central_bank
+  name: Central Bank
+- id: H1
+  kind: household
+  name: Agent 1
+- id: H2
+  kind: household
+  name: Agent 2
+- id: H3
+  kind: household
+  name: Agent 3
+- id: H4
+  kind: household
+  name: Agent 4
+- id: H5
+  kind: household
+  name: Agent 5
+initial_actions:
+- mint_cash:
+    to: H1
+    amount: 500
+    alias: LIQ_H1
+- create_payable:
+    from: H1
+    to: H2
+    amount: 244.6767086144785
+    due_day: 2
+    alias: P_H1_H2
+- create_payable:
+    from: H2
+    to: H3
+    amount: 158.0900778405797
+    due_day: 1
+    alias: P_H2_H3
+- create_payable:
+    from: H3
+    to: H4
+    amount: 33.339613371830474
+    due_day: 3
+    alias: P_H3_H4
+- create_payable:
+    from: H4
+    to: H5
+    amount: 60.30761184188271
+    due_day: 2
+    alias: P_H4_H5
+- create_payable:
+    from: H5
+    to: H1
+    amount: 3.5859883312286107
+    due_day: 1
+    alias: P_H5_H1
+scheduled_actions: []
+run:
+  mode: until_stable
+  max_days: 30
+  quiet_days: 2
+  show:
+    balances:
+    - H1
+    - H2
+    - H3
+    - H4
+    - H5
+    events: detailed
+  export:
+    balances_csv: out/balances.csv
+    events_jsonl: out/events.jsonl
+  default_handling: expel-agent

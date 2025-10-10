@@ -11,6 +11,9 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import random
 
+import yaml
+from pydantic import BaseModel, Field, ValidationError, model_validator
+
 from bilancio.analysis.loaders import read_balances_csv, read_events_jsonl
 from bilancio.analysis.report import (
     compute_day_metrics,
@@ -61,6 +64,118 @@ def _to_yaml_ready(obj: Any) -> Any:
             return int(norm)
         return float(norm)
     return obj
+
+
+class _RingSweepGridConfig(BaseModel):
+    enabled: bool = True
+    kappas: List[Decimal] = Field(default_factory=list)
+    concentrations: List[Decimal] = Field(default_factory=list)
+    mus: List[Decimal] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_lists(self) -> "_RingSweepGridConfig":
+        if self.enabled:
+            if not self.kappas:
+                raise ValueError("grid.kappas must be provided when grid.enabled is true")
+            if not self.concentrations:
+                raise ValueError("grid.concentrations must be provided when grid.enabled is true")
+            if not self.mus:
+                raise ValueError("grid.mus must be provided when grid.enabled is true")
+        return self
+
+
+class _RingSweepLHSConfig(BaseModel):
+    count: int = 0
+    kappa_range: Optional[Tuple[Decimal, Decimal]] = None
+    concentration_range: Optional[Tuple[Decimal, Decimal]] = None
+    mu_range: Optional[Tuple[Decimal, Decimal]] = None
+
+    @model_validator(mode="after")
+    def validate_ranges(self) -> "_RingSweepLHSConfig":
+        if self.count <= 0:
+            return self
+        for name, rng in (
+            ("kappa_range", self.kappa_range),
+            ("concentration_range", self.concentration_range),
+            ("mu_range", self.mu_range),
+        ):
+            if rng is None or len(rng) != 2:
+                raise ValueError(f"lhs.{name} must contain exactly two values when lhs.count > 0")
+        return self
+
+
+class _RingSweepFrontierConfig(BaseModel):
+    enabled: bool = False
+    kappa_low: Optional[Decimal] = None
+    kappa_high: Optional[Decimal] = None
+    tolerance: Optional[Decimal] = None
+    max_iterations: Optional[int] = None
+
+    @model_validator(mode="after")
+    def validate_frontier(self) -> "_RingSweepFrontierConfig":
+        if not self.enabled:
+            return self
+        missing = [
+            name
+            for name in ("kappa_low", "kappa_high", "tolerance", "max_iterations")
+            if getattr(self, name) is None
+        ]
+        if missing:
+            missing_list = ", ".join(missing)
+            raise ValueError(f"frontier fields missing when frontier.enabled is true: {missing_list}")
+        return self
+
+
+class _RingSweepRunnerConfig(BaseModel):
+    n_agents: Optional[int] = None
+    maturity_days: Optional[int] = None
+    q_total: Optional[Decimal] = None
+    liquidity_mode: Optional[str] = None
+    liquidity_agent: Optional[str] = None
+    base_seed: Optional[int] = None
+    name_prefix: Optional[str] = None
+    default_handling: Optional[str] = None
+
+
+class RingSweepConfig(BaseModel):
+    version: int = Field(1, description="Configuration version")
+    out_dir: Optional[str] = None
+    grid: Optional[_RingSweepGridConfig] = None
+    lhs: Optional[_RingSweepLHSConfig] = None
+    frontier: Optional[_RingSweepFrontierConfig] = None
+    runner: Optional[_RingSweepRunnerConfig] = None
+
+    @model_validator(mode="after")
+    def ensure_version(self) -> "RingSweepConfig":
+        if self.version != 1:
+            raise ValueError(f"Unsupported sweep config version: {self.version}")
+        return self
+
+
+def load_ring_sweep_config(path: Path | str) -> RingSweepConfig:
+    """Load and validate a ring sweep configuration from YAML."""
+    config_path = Path(path)
+    if not config_path.exists():
+        raise FileNotFoundError(f"Sweep configuration not found: {config_path}")
+
+    try:
+        with config_path.open("r", encoding="utf-8") as fh:
+            raw = yaml.safe_load(fh)
+    except yaml.YAMLError as exc:
+        raise yaml.YAMLError(f"Failed to parse YAML from {config_path}: {exc}")
+
+    if not isinstance(raw, dict):
+        raise ValueError("Sweep configuration must be a YAML mapping")
+
+    try:
+        return RingSweepConfig.model_validate(raw)
+    except ValidationError as exc:
+        messages = []
+        for error in exc.errors():
+            loc = " -> ".join(str(part) for part in error.get("loc", ()))
+            messages.append(f"  - {loc}: {error.get('msg')}")
+        details = "\n".join(messages)
+        raise ValueError(f"Invalid sweep configuration:\n{details}") from exc
 
 
 class RingSweepRunner:
@@ -446,5 +561,7 @@ class RingSweepRunner:
 __all__ = [
     "RingSweepRunner",
     "RingRunSummary",
+    "RingSweepConfig",
+    "load_ring_sweep_config",
     "_decimal_list",
 ]

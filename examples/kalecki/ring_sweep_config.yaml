@@ -1,0 +1,27 @@
+version: 1
+out_dir: "out/experiments/expel_ring_sweep"
+runner:
+  name_prefix: "Kalecki Ring Sweep"
+  n_agents: 5
+  maturity_days: 3
+  q_total: 500
+  liquidity_mode: single_at
+  liquidity_agent: H1
+  base_seed: 42
+  default_handling: expel-agent
+grid:
+  enabled: true
+  kappas: [0.25, 0.5, 1, 2, 4]
+  concentrations: [0.2, 0.5, 1, 2, 5]
+  mus: [0, 0.25, 0.5, 0.75, 1]
+lhs:
+  count: 0
+  kappa_range: [0.2, 5.0]
+  concentration_range: [0.2, 5.0]
+  mu_range: [0.0, 1.0]
+frontier:
+  enabled: false
+  kappa_low: 0.1
+  kappa_high: 4.0
+  tolerance: 0.02
+  max_iterations: 6

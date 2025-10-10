@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import Optional
 import sys
 
+from click.core import ParameterSource
+
 from rich.console import Console
 from rich.panel import Panel
 
@@ -24,10 +26,21 @@ from bilancio.analysis.report import (
     aggregate_runs,
     render_dashboard,
 )
-from bilancio.experiments.ring import RingSweepRunner, _decimal_list
+from bilancio.experiments.ring import (
+    RingSweepRunner,
+    RingSweepConfig,
+    load_ring_sweep_config,
+    _decimal_list,
+)
 
 
 console = Console()
+
+
+def _as_decimal_list(value):
+    if isinstance(value, (list, tuple)):
+        return [Decimal(str(item)) for item in value]
+    return _decimal_list(value)
 
 
 @click.group()
@@ -43,6 +56,7 @@ def sweep():
 
 
 @sweep.command("ring")
+@click.option('--config', type=click.Path(path_type=Path), default=None, help='Path to sweep config YAML')
 @click.option('--out-dir', type=click.Path(path_type=Path), default=None, help='Base output directory')
 @click.option('--grid/--no-grid', default=True, help='Run coarse grid sweep')
 @click.option('--kappas', type=str, default="0.25,0.5,1,2,4", help='Comma list for grid kappa values')
@@ -68,7 +82,10 @@ def sweep():
 @click.option('--base-seed', type=int, default=42, help='Base PRNG seed')
 @click.option('--name-prefix', type=str, default='Kalecki Ring Sweep', help='Scenario name prefix')
 @click.option('--default-handling', type=click.Choice(['fail-fast', 'expel-agent']), default='fail-fast', help='Default handling mode for runs')
+@click.pass_context
 def sweep_ring(
+    ctx,
+    config: Optional[Path],
     out_dir: Optional[Path],
     grid: bool,
     kappas: str,
@@ -96,6 +113,84 @@ def sweep_ring(
     default_handling: str,
 ):
     """Run the Kalecki ring experiment sweep."""
+    sweep_config: Optional[RingSweepConfig] = None
+    if config is not None:
+        sweep_config = load_ring_sweep_config(config)
+
+    def _using_default(param_name: str) -> bool:
+        source = ctx.get_parameter_source(param_name)
+        return source in (ParameterSource.DEFAULT, ParameterSource.DEFAULT_MAP)
+
+    if sweep_config is not None and sweep_config.out_dir and _using_default("out_dir"):
+        out_dir = Path(sweep_config.out_dir)
+
+    if sweep_config is not None and sweep_config.runner is not None:
+        runner_cfg = sweep_config.runner
+        if runner_cfg.n_agents is not None and _using_default("n_agents"):
+            n_agents = runner_cfg.n_agents
+        if runner_cfg.maturity_days is not None and _using_default("maturity_days"):
+            maturity_days = runner_cfg.maturity_days
+        if runner_cfg.q_total is not None and _using_default("q_total"):
+            q_total = float(runner_cfg.q_total)
+        if runner_cfg.liquidity_mode is not None and _using_default("liquidity_mode"):
+            liquidity_mode = runner_cfg.liquidity_mode
+        if runner_cfg.liquidity_agent is not None and _using_default("liquidity_agent"):
+            liquidity_agent = runner_cfg.liquidity_agent
+        if runner_cfg.base_seed is not None and _using_default("base_seed"):
+            base_seed = runner_cfg.base_seed
+        if runner_cfg.name_prefix is not None and _using_default("name_prefix"):
+            name_prefix = runner_cfg.name_prefix
+        if runner_cfg.default_handling is not None and _using_default("default_handling"):
+            default_handling = runner_cfg.default_handling
+
+    if sweep_config is not None and sweep_config.grid is not None:
+        grid_cfg = sweep_config.grid
+        if _using_default("grid"):
+            grid = grid_cfg.enabled
+        if grid_cfg.kappas and _using_default("kappas"):
+            kappas = grid_cfg.kappas
+        if grid_cfg.concentrations and _using_default("concentrations"):
+            concentrations = grid_cfg.concentrations
+        if grid_cfg.mus and _using_default("mus"):
+            mus = grid_cfg.mus
+
+    if sweep_config is not None and sweep_config.lhs is not None:
+        lhs_cfg = sweep_config.lhs
+        if _using_default("lhs_count"):
+            lhs_count = lhs_cfg.count
+        if lhs_cfg.kappa_range is not None:
+            if _using_default("kappa_min"):
+                kappa_min = float(lhs_cfg.kappa_range[0])
+            if _using_default("kappa_max"):
+                kappa_max = float(lhs_cfg.kappa_range[1])
+        if lhs_cfg.concentration_range is not None:
+            if _using_default("c_min"):
+                c_min = float(lhs_cfg.concentration_range[0])
+            if _using_default("c_max"):
+                c_max = float(lhs_cfg.concentration_range[1])
+        if lhs_cfg.mu_range is not None:
+            if _using_default("mu_min"):
+                mu_min = float(lhs_cfg.mu_range[0])
+            if _using_default("mu_max"):
+                mu_max = float(lhs_cfg.mu_range[1])
+
+    if sweep_config is not None and sweep_config.frontier is not None:
+        frontier_cfg = sweep_config.frontier
+        if _using_default("frontier"):
+            frontier = frontier_cfg.enabled
+        if frontier_cfg.enabled:
+            if frontier_cfg.kappa_low is not None and _using_default("frontier_low"):
+                frontier_low = float(frontier_cfg.kappa_low)
+            if frontier_cfg.kappa_high is not None and _using_default("frontier_high"):
+                frontier_high = float(frontier_cfg.kappa_high)
+            if frontier_cfg.tolerance is not None and _using_default("frontier_tolerance"):
+                frontier_tolerance = float(frontier_cfg.tolerance)
+            if frontier_cfg.max_iterations is not None and _using_default("frontier_iterations"):
+                frontier_iterations = frontier_cfg.max_iterations
+
+    if out_dir is not None and not isinstance(out_dir, Path):
+        out_dir = Path(out_dir)
+
     if out_dir is None:
         ts = datetime.now().strftime("%Y%m%d_%H%M%S")
         out_dir = Path("out") / "experiments" / f"{ts}_ring"
@@ -117,9 +212,9 @@ def sweep_ring(
 
     console.print(f"[dim]Output directory: {out_dir}[/dim]")
 
-    grid_kappas = _decimal_list(kappas)
-    grid_concentrations = _decimal_list(concentrations)
-    grid_mus = _decimal_list(mus)
+    grid_kappas = _as_decimal_list(kappas)
+    grid_concentrations = _as_decimal_list(concentrations)
+    grid_mus = _as_decimal_list(mus)
 
     if grid:
         console.print(f"[dim]Running grid sweep: {len(grid_kappas) * len(grid_concentrations) * len(grid_mus)} runs[/dim]")
