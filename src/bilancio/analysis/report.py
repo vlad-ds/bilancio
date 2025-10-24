@@ -595,6 +595,7 @@ def aggregate_runs(
             "kappa": entry.get("kappa"),
             "concentration": entry.get("concentration"),
             "mu": entry.get("mu"),
+            "monotonicity": entry.get("monotonicity"),
             "S1": entry.get("S1"),
             "L0": entry.get("L0"),
             "phi_total": summary.get("phi_total"),
@@ -616,6 +617,7 @@ def aggregate_runs(
         "kappa",
         "concentration",
         "mu",
+        "monotonicity",
         "S1",
         "L0",
         "phi_total",
@@ -677,6 +679,7 @@ def render_dashboard(results_csv: Path | str, dashboard_html: Path | str) -> Non
             f"<td>{r.get('kappa')}</td>"
             f"<td>{r.get('concentration')}</td>"
             f"<td>{r.get('mu')}</td>"
+            f"<td>{r.get('monotonicity')}</td>"
             f"<td>{r.get('phi_total')}</td>"
             f"<td>{r.get('delta_total')}</td>"
             f"<td>{r.get('max_G_t')}</td>"
@@ -711,7 +714,7 @@ def render_dashboard(results_csv: Path | str, dashboard_html: Path | str) -> Non
   <table>
     <thead>
       <tr>
-        <th>Run</th><th>Phase</th><th>\u03BA</th><th>c</th><th>\u03BC</th><th>\u03C6_total</th><th>\u03B4_total</th><th>max G_t</th><th>Days</th>
+        <th>Run</th><th>Phase</th><th>\u03BA</th><th>c</th><th>\u03BC</th><th>m</th><th>\u03C6_total</th><th>\u03B4_total</th><th>max G_t</th><th>Days</th>
       </tr>
     </thead>
     <tbody>

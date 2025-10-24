@@ -15,6 +15,14 @@ def _sum_amounts(actions, key):
     return total
 
 
+def _payable_amounts(actions):
+    return [
+        Decimal(str(action["create_payable"]["amount"]))
+        for action in actions
+        if "create_payable" in action
+    ]
+
+
 def test_compile_ring_explorer_basic(tmp_path):
     generator = RingExplorerGeneratorConfig.model_validate(
         {
@@ -106,3 +114,55 @@ def test_load_yaml_compiles_generator(tmp_path):
     assert len(config.initial_actions) > 0
     compiled_yaml = list(tmp_path.glob("*.yaml"))
     assert compiled_yaml, "expected emitted scenario YAML"
+
+
+def test_monotonicity_extremes():
+    base_params = {
+        "n_agents": 5,
+        "seed": 17,
+        "kappa": "1",
+        "Q_total": "500",
+        "liquidity": {"allocation": {"mode": "uniform"}},
+        "maturity": {"days": 2, "mode": "lead_lag", "mu": "0"},
+    }
+
+    descending = RingExplorerGeneratorConfig.model_validate(
+        {
+            "version": 1,
+            "generator": "ring_explorer_v1",
+            "name_prefix": "Mono Desc",
+            "params": {
+                **base_params,
+                "inequality": {
+                    "scheme": "dirichlet",
+                    "concentration": "1",
+                    "monotonicity": "1",
+                },
+            },
+            "compile": {"emit_yaml": False},
+        }
+    )
+    asc = RingExplorerGeneratorConfig.model_validate(
+        {
+            "version": 1,
+            "generator": "ring_explorer_v1",
+            "name_prefix": "Mono Asc",
+            "params": {
+                **base_params,
+                "inequality": {
+                    "scheme": "dirichlet",
+                    "concentration": "1",
+                    "monotonicity": "-1",
+                },
+            },
+            "compile": {"emit_yaml": False},
+        }
+    )
+
+    descending_amounts = _payable_amounts(compile_ring_explorer(descending, source_path=None)["initial_actions"])
+    ascending_amounts = _payable_amounts(compile_ring_explorer(asc, source_path=None)["initial_actions"])
+
+    assert descending_amounts == sorted(descending_amounts, reverse=True)
+    assert ascending_amounts == sorted(ascending_amounts, reverse=False)
+    assert all(amount > Decimal("0") for amount in descending_amounts)
+    assert all(amount > Decimal("0") for amount in ascending_amounts)

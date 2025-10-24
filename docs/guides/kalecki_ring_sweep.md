@@ -29,6 +29,7 @@ Outputs land under `out/experiments/<timestamp>_ring/`:
 - `--grid/--no-grid`: enable the coarse grid (`kappa`, `c`, `mu` sets from plan).
 - `--lhs N`: add `N` Latin Hypercube samples across specified ranges.
 - `--frontier`: bisection per (`c`, `μ`) cell to bracket minimal liquidity.
+- `--monotonicities`: comma-separated bias values for the payable ordering (`-1` asc, `0` random, `1` desc). Use `--monotonicity-min`/`--monotonicity-max` to span a range in LHS mode.
 - `--q-total`: fix day-1 dues (`S1`) for all generated scenarios.
 - `--liquidity-mode`: choose `single_at` (default, seeded at one agent) or `uniform`.
 - `--config PATH`: load sweep settings from a YAML file. Explicit CLI flags override YAML values.
@@ -60,14 +61,16 @@ runner:
   default_handling: expel-agent
 grid:
   enabled: true
-  kappas: [0.25, 0.5, 1, 2, 4]
-  concentrations: [0.2, 0.5, 1, 2, 5]
-  mus: [0, 0.25, 0.5, 0.75, 1]
+  kappas: [0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.75, 1, 1.5, 2, 2.5, 3, 4, 5, 6]
+  concentrations: [0.1, 0.2, 0.3, 0.4, 0.5, 0.75, 1, 2, 3, 5]
+  mus: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 1.0]
+  monotonicities: [-1.0, -0.75, -0.5, -0.25, 0.0, 0.25, 0.5, 0.75, 1.0]
 lhs:
   count: 0
-  kappa_range: [0.2, 5.0]
-  concentration_range: [0.2, 5.0]
+  kappa_range: [0.1, 6.0]
+  concentration_range: [0.1, 6.0]
   mu_range: [0.0, 1.0]
+  monotonicity_range: [-1.0, 1.0]
 frontier:
   enabled: false
   kappa_low: 0.1
@@ -77,3 +80,17 @@ frontier:
 ```
 
 Omit fields you do not need—the CLI will fall back to its defaults. Passing a flag on the command line always overrides the YAML value for that parameter.
+
+### Monotonicity control
+
+The `ring_explorer_v1` generator now accepts an optional Dirichlet ordering bias:
+
+```yaml
+params:
+  inequality:
+    scheme: dirichlet
+    concentration: 1.0
+    monotonicity: 0.75  # 1 → strictly descending, 0 → random, -1 → ascending
+```
+
+This `monotonicity` scalar only reorders the sampled payables; it does not alter the Dirichlet weights themselves. Use the Streamlit helper at `dashboards/monotonicity_demo/` to inspect how different values reshape the ring before wiring it into sweep configs.

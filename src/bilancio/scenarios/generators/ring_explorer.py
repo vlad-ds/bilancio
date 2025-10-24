@@ -31,6 +31,7 @@ class LiquiditySpec:
 @dataclass
 class InequalitySpec:
     concentration: Decimal
+    monotonicity: Decimal
 
 
 @dataclass
@@ -77,7 +78,10 @@ class RingExplorerParams:
             agent=model.liquidity.allocation.agent,
             vector=[Decimal(str(v)) for v in (model.liquidity.allocation.vector or [])] or None,
         )
-        inequality_spec = InequalitySpec(concentration=model.inequality.concentration)
+        inequality_spec = InequalitySpec(
+            concentration=model.inequality.concentration,
+            monotonicity=model.inequality.monotonicity,
+        )
         maturity_spec = MaturitySpec(
             days=model.maturity.days,
             mode=model.maturity.mode,
@@ -108,7 +112,13 @@ def compile_ring_explorer(
 ) -> Dict[str, Any]:
     params = RingExplorerParams.from_model(config.params)
 
-    payable_amounts = _draw_payables(params.n_agents, params.inequality.concentration, params.Q_total, params.seed)
+    payable_amounts = _draw_payables(
+        params.n_agents,
+        params.inequality.concentration,
+        params.inequality.monotonicity,
+        params.Q_total,
+        params.seed,
+    )
     liquidity_amounts = _allocate_liquidity(params)
     due_days = _build_due_days(params.n_agents, params.maturity.days, params.maturity.mu)
 
@@ -179,7 +189,13 @@ def compile_ring_explorer(
     return scenario
 
 
-def _draw_payables(n: int, concentration: Decimal, total: Decimal, seed: int) -> List[Decimal]:
+def _draw_payables(
+    n: int,
+    concentration: Decimal,
+    monotonicity: Decimal,
+    total: Decimal,
+    seed: int,
+) -> List[Decimal]:
     rng = random.Random(seed)
     alpha = float(concentration)
     if alpha <= 0:
@@ -202,7 +218,102 @@ def _draw_payables(n: int, concentration: Decimal, total: Decimal, seed: int) ->
             amount = (total * weight) / weight_total
             running += amount
         amounts.append(amount)
-    return amounts
+    amounts = _ensure_positive_amounts(amounts, total)
+    return _apply_monotonicity(amounts, monotonicity, rng)
+
+
+def _apply_monotonicity(
+    amounts: List[Decimal],
+    monotonicity: Decimal,
+    rng: random.Random,
+) -> List[Decimal]:
+    if len(amounts) <= 1:
+        return list(amounts)
+
+    try:
+        m = float(monotonicity)
+    except (ValueError, TypeError):
+        m = 0.0
+
+    if abs(m) < 1e-9:
+        return list(amounts)
+
+    strength = max(0.0, min(abs(m), 1.0))
+    direction_desc = m >= 0
+
+    ordered = sorted(amounts, reverse=direction_desc)
+    if strength >= 1.0 - 1e-9:
+        return ordered
+
+    swap_factor = 1.0 - strength
+    if swap_factor <= 1e-9:
+        return ordered
+
+    n = len(ordered)
+    swap_count = int(round(swap_factor * n * max(1, n - 1)))
+    if swap_count <= 0:
+        return ordered
+
+    max_swaps = n * (n - 1)
+    for _ in range(min(swap_count, max_swaps)):
+        idx = rng.randrange(n - 1)
+        ordered[idx], ordered[idx + 1] = ordered[idx + 1], ordered[idx]
+
+    return ordered
+
+
+def _ensure_positive_amounts(amounts: List[Decimal], total: Decimal) -> List[Decimal]:
+    """Clamp payable amounts to be strictly positive while preserving the total."""
+    min_amount = Decimal("0.01")
+    adjusted = list(amounts)
+    deficit = Decimal("0")
+
+    for idx, amt in enumerate(adjusted):
+        if amt <= 0:
+            need = min_amount - amt
+            deficit += need
+            adjusted[idx] = min_amount
+
+    if deficit > 0:
+        # Redistribute the deficit across larger payables.
+        order = sorted(range(len(adjusted)), key=lambda i: adjusted[i], reverse=True)
+        for idx in order:
+            if deficit <= 0:
+                break
+            available = adjusted[idx] - min_amount
+            if available <= 0:
+                continue
+            take = min(available, deficit)
+            adjusted[idx] -= take
+            deficit -= take
+
+    current_total = sum(adjusted)
+    diff = current_total - total
+    if diff > 0:
+        order = sorted(range(len(adjusted)), key=lambda i: adjusted[i], reverse=True)
+        for idx in order:
+            if diff <= 0:
+                break
+            available = adjusted[idx] - min_amount
+            if available <= 0:
+                continue
+            take = min(available, diff)
+            adjusted[idx] -= take
+            diff -= take
+    elif diff < 0:
+        adjusted[-1] += (-diff)
+
+    # Final guard to ensure all entries stay above the minimum after adjustments
+    for idx, amt in enumerate(adjusted):
+        if amt < min_amount:
+            adjusted[idx] = min_amount
+    final_total = sum(adjusted)
+    if final_total != total:
+        adjusted[-1] += (total - final_total)
+        if adjusted[-1] < min_amount:
+            adjusted[-1] = min_amount
+
+    return adjusted
 
 
 def _allocate_liquidity(params: RingExplorerParams) -> List[Decimal]:

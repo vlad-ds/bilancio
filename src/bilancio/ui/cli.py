@@ -62,6 +62,7 @@ def sweep():
 @click.option('--kappas', type=str, default="0.25,0.5,1,2,4", help='Comma list for grid kappa values')
 @click.option('--concentrations', type=str, default="0.2,0.5,1,2,5", help='Comma list for grid Dirichlet concentrations')
 @click.option('--mus', type=str, default="0,0.25,0.5,0.75,1", help='Comma list for grid mu values')
+@click.option('--monotonicities', type=str, default="0", help='Comma list for grid monotonicity values')
 @click.option('--lhs', 'lhs_count', type=int, default=0, help='Latin Hypercube samples to draw')
 @click.option('--kappa-min', type=float, default=0.2, help='LHS min kappa')
 @click.option('--kappa-max', type=float, default=5.0, help='LHS max kappa')
@@ -69,6 +70,8 @@ def sweep():
 @click.option('--c-max', type=float, default=5.0, help='LHS max concentration')
 @click.option('--mu-min', type=float, default=0.0, help='LHS min mu')
 @click.option('--mu-max', type=float, default=1.0, help='LHS max mu')
+@click.option('--monotonicity-min', type=float, default=0.0, help='LHS min monotonicity')
+@click.option('--monotonicity-max', type=float, default=0.0, help='LHS max monotonicity')
 @click.option('--frontier/--no-frontier', default=False, help='Run frontier search')
 @click.option('--frontier-low', type=float, default=0.1, help='Frontier lower bound for kappa')
 @click.option('--frontier-high', type=float, default=4.0, help='Initial frontier upper bound for kappa')
@@ -91,6 +94,7 @@ def sweep_ring(
     kappas: str,
     concentrations: str,
     mus: str,
+    monotonicities: str,
     lhs_count: int,
     kappa_min: float,
     kappa_max: float,
@@ -98,6 +102,8 @@ def sweep_ring(
     c_max: float,
     mu_min: float,
     mu_max: float,
+    monotonicity_min: float,
+    monotonicity_max: float,
     frontier: bool,
     frontier_low: float,
     frontier_high: float,
@@ -153,6 +159,8 @@ def sweep_ring(
             concentrations = grid_cfg.concentrations
         if grid_cfg.mus and _using_default("mus"):
             mus = grid_cfg.mus
+        if grid_cfg.monotonicities and _using_default("monotonicities"):
+            monotonicities = grid_cfg.monotonicities
 
     if sweep_config is not None and sweep_config.lhs is not None:
         lhs_cfg = sweep_config.lhs
@@ -173,6 +181,11 @@ def sweep_ring(
                 mu_min = float(lhs_cfg.mu_range[0])
             if _using_default("mu_max"):
                 mu_max = float(lhs_cfg.mu_range[1])
+        if lhs_cfg.monotonicity_range is not None:
+            if _using_default("monotonicity_min"):
+                monotonicity_min = float(lhs_cfg.monotonicity_range[0])
+            if _using_default("monotonicity_max"):
+                monotonicity_max = float(lhs_cfg.monotonicity_range[1])
 
     if sweep_config is not None and sweep_config.frontier is not None:
         frontier_cfg = sweep_config.frontier
@@ -215,10 +228,12 @@ def sweep_ring(
     grid_kappas = _as_decimal_list(kappas)
     grid_concentrations = _as_decimal_list(concentrations)
     grid_mus = _as_decimal_list(mus)
+    grid_monotonicities = _as_decimal_list(monotonicities)
 
     if grid:
-        console.print(f"[dim]Running grid sweep: {len(grid_kappas) * len(grid_concentrations) * len(grid_mus)} runs[/dim]")
-        runner.run_grid(grid_kappas, grid_concentrations, grid_mus)
+        total_runs = len(grid_kappas) * len(grid_concentrations) * len(grid_mus) * len(grid_monotonicities)
+        console.print(f"[dim]Running grid sweep: {total_runs} runs[/dim]")
+        runner.run_grid(grid_kappas, grid_concentrations, grid_mus, grid_monotonicities)
 
     if lhs_count > 0:
         console.print(f"[dim]Running Latin Hypercube ({lhs_count})[/dim]")
@@ -227,13 +242,15 @@ def sweep_ring(
             kappa_range=(Decimal(str(kappa_min)), Decimal(str(kappa_max))),
             concentration_range=(Decimal(str(c_min)), Decimal(str(c_max))),
             mu_range=(Decimal(str(mu_min)), Decimal(str(mu_max))),
+            monotonicity_range=(Decimal(str(monotonicity_min)), Decimal(str(monotonicity_max))),
         )
 
     if frontier:
-        console.print(f"[dim]Running frontier search across {len(grid_concentrations) * len(grid_mus)} cells[/dim]")
+        console.print(f"[dim]Running frontier search across {len(grid_concentrations) * len(grid_mus) * len(grid_monotonicities)} cells[/dim]")
         runner.run_frontier(
             grid_concentrations,
             grid_mus,
+            grid_monotonicities,
             kappa_low=Decimal(str(frontier_low)),
             kappa_high=Decimal(str(frontier_high)),
             tolerance=Decimal(str(frontier_tolerance)),

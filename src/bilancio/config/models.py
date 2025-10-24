@@ -439,6 +439,12 @@ class RingExplorerInequalityConfig(BaseModel):
         Decimal("1"),
         description="Dirichlet concentration parameter (c > 0)"
     )
+    monotonicity: Decimal = Field(
+        Decimal("0"),
+        ge=Decimal("-1"),
+        le=Decimal("1"),
+        description="Ordering control (-1 asc, 0 random, 1 desc)"
+    )
 
     @field_validator("concentration")
     @classmethod
