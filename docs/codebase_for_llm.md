@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2025-10-24 04:38:34 UTC | Branch: main | Commit: 6779654
+Generated: 2025-10-24 12:16:35 UTC | Branch: main | Commit: f68c199
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -1613,7 +1613,8 @@ This document contains the complete codebase structure and content for LLM inges
 │   │   │           └── scenario.yaml
 │   │   └── expel_ring_sweep_clean
 │   │       ├── aggregate
-│   │       │   └── dashboard.html
+│   │       │   ├── dashboard.html
+│   │       │   └── results.csv
 │   │       └── runs
 │   │           ├── grid_00410d2b687b
 │   │           │   ├── out
@@ -2496,7 +2497,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-808 directories, 1678 files
+808 directories, 1679 files
 
 ```
 
@@ -3337,6 +3338,12 @@ Complete git history from oldest to newest:
 
 - **67796549** (2025-10-24) by vladgheorghe
   Add monotonicity control to ring sweeps and tooling
+
+- **d0bd5db5** (2025-10-24) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **f68c1990** (2025-10-24) by vladgheorghe
+  Track expel ring sweep aggregate outputs
 
 ---
 
