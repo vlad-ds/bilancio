@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2025-10-24 02:56:49 UTC | Branch: main | Commit: dd8b94f
+Generated: 2025-10-24 04:38:34 UTC | Branch: main | Commit: 6779654
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -24,7 +24,10 @@ This document contains the complete codebase structure and content for LLM inges
 │   ├── expel_ring_analysis_dashboard
 │   │   ├── README.md
 │   │   └── streamlit_app.py
-│   └── expel_sweep_dashboard
+│   ├── expel_sweep_dashboard
+│   │   ├── README.md
+│   │   └── streamlit_app.py
+│   └── monotonicity_demo
 │       ├── README.md
 │       └── streamlit_app.py
 ├── docs
@@ -2493,7 +2496,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-807 directories, 1676 files
+808 directories, 1678 files
 
 ```
 
@@ -3328,6 +3331,12 @@ Complete git history from oldest to newest:
   All conflicts resolved by accepting feature branch additions.
   🤖 Generated with [Claude Code](https://claude.com/claude-code)
   Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **c6cb61fc** (2025-10-24) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **67796549** (2025-10-24) by vladgheorghe
+  Add monotonicity control to ring sweeps and tooling
 
 ---
 
@@ -4627,6 +4636,7 @@ def aggregate_runs(
             "kappa": entry.get("kappa"),
             "concentration": entry.get("concentration"),
             "mu": entry.get("mu"),
+            "monotonicity": entry.get("monotonicity"),
             "S1": entry.get("S1"),
             "L0": entry.get("L0"),
             "phi_total": summary.get("phi_total"),
@@ -4648,6 +4658,7 @@ def aggregate_runs(
         "kappa",
         "concentration",
         "mu",
+        "monotonicity",
         "S1",
         "L0",
         "phi_total",
@@ -4709,6 +4720,7 @@ def render_dashboard(results_csv: Path | str, dashboard_html: Path | str) -> Non
             f"<td>{r.get('kappa')}</td>"
             f"<td>{r.get('concentration')}</td>"
             f"<td>{r.get('mu')}</td>"
+            f"<td>{r.get('monotonicity')}</td>"
             f"<td>{r.get('phi_total')}</td>"
             f"<td>{r.get('delta_total')}</td>"
             f"<td>{r.get('max_G_t')}</td>"
@@ -4743,7 +4755,7 @@ def render_dashboard(results_csv: Path | str, dashboard_html: Path | str) -> Non
   <table>
     <thead>
       <tr>
-        <th>Run</th><th>Phase</th><th>\u03BA</th><th>c</th><th>\u03BC</th><th>\u03C6_total</th><th>\u03B4_total</th><th>max G_t</th><th>Days</th>
+        <th>Run</th><th>Phase</th><th>\u03BA</th><th>c</th><th>\u03BC</th><th>m</th><th>\u03C6_total</th><th>\u03B4_total</th><th>max G_t</th><th>Days</th>
       </tr>
     </thead>
     <tbody>
@@ -8205,6 +8217,12 @@ class RingExplorerInequalityConfig(BaseModel):
         Decimal("1"),
         description="Dirichlet concentration parameter (c > 0)"
     )
+    monotonicity: Decimal = Field(
+        Decimal("0"),
+        ge=Decimal("-1"),
+        le=Decimal("1"),
+        description="Ordering control (-1 asc, 0 random, 1 desc)"
+    )
 
     @field_validator("concentration")
     @classmethod
@@ -10587,6 +10605,7 @@ class RingRunSummary:
     kappa: Decimal
     concentration: Decimal
     mu: Decimal
+    monotonicity: Decimal
     delta_total: Optional[Decimal]
     phi_total: Optional[Decimal]
     time_to_stability: int
@@ -10622,6 +10641,7 @@ class _RingSweepGridConfig(BaseModel):
     kappas: List[Decimal] = Field(default_factory=list)
     concentrations: List[Decimal] = Field(default_factory=list)
     mus: List[Decimal] = Field(default_factory=list)
+    monotonicities: List[Decimal] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def validate_lists(self) -> "_RingSweepGridConfig":
@@ -10632,6 +10652,8 @@ class _RingSweepGridConfig(BaseModel):
                 raise ValueError("grid.concentrations must be provided when grid.enabled is true")
             if not self.mus:
                 raise ValueError("grid.mus must be provided when grid.enabled is true")
+            if not self.monotonicities:
+                self.monotonicities = [Decimal("0")]
         return self
 
 
@@ -10640,15 +10662,19 @@ class _RingSweepLHSConfig(BaseModel):
     kappa_range: Optional[Tuple[Decimal, Decimal]] = None
     concentration_range: Optional[Tuple[Decimal, Decimal]] = None
     mu_range: Optional[Tuple[Decimal, Decimal]] = None
+    monotonicity_range: Optional[Tuple[Decimal, Decimal]] = None
 
     @model_validator(mode="after")
     def validate_ranges(self) -> "_RingSweepLHSConfig":
         if self.count <= 0:
             return self
+        if self.monotonicity_range is None:
+            self.monotonicity_range = (Decimal("0"), Decimal("0"))
         for name, rng in (
             ("kappa_range", self.kappa_range),
             ("concentration_range", self.concentration_range),
             ("mu_range", self.mu_range),
+            ("monotonicity_range", self.monotonicity_range),
         ):
             if rng is None or len(rng) != 2:
                 raise ValueError(f"lhs.{name} must contain exactly two values when lhs.count > 0")
@@ -10740,6 +10766,7 @@ class RingSweepRunner:
         "kappa",
         "concentration",
         "mu",
+        "monotonicity",
         "maturity_days",
         "Q_total",
         "S1",
@@ -10818,13 +10845,29 @@ class RingSweepRunner:
             self.registry_rows.append(row)
         self._write_registry()
 
-    def run_grid(self, kappas: Sequence[Decimal], concentrations: Sequence[Decimal], mus: Sequence[Decimal]) -> List[RingRunSummary]:
+    def run_grid(
+        self,
+        kappas: Sequence[Decimal],
+        concentrations: Sequence[Decimal],
+        mus: Sequence[Decimal],
+        monotonicities: Sequence[Decimal],
+    ) -> List[RingRunSummary]:
         summaries: List[RingRunSummary] = []
         for kappa in kappas:
             for concentration in concentrations:
                 for mu in mus:
-                    seed = self._next_seed()
-                    summaries.append(self._execute_run("grid", kappa, concentration, mu, seed))
+                    for monotonicity in monotonicities:
+                        seed = self._next_seed()
+                        summaries.append(
+                            self._execute_run(
+                                "grid",
+                                kappa,
+                                concentration,
+                                mu,
+                                monotonicity,
+                                seed,
+                            )
+                        )
         return summaries
 
     def run_lhs(
@@ -10834,6 +10877,7 @@ class RingSweepRunner:
         kappa_range: Tuple[Decimal, Decimal],
         concentration_range: Tuple[Decimal, Decimal],
         mu_range: Tuple[Decimal, Decimal],
+        monotonicity_range: Tuple[Decimal, Decimal],
     ) -> List[RingRunSummary]:
         if count <= 0:
             return []
@@ -10843,6 +10887,8 @@ class RingSweepRunner:
         mus = self._lhs_axis(count, mu_range, rng)
         rng.shuffle(concentrations)
         rng.shuffle(mus)
+        monotonicities = self._lhs_axis(count, monotonicity_range, rng)
+        rng.shuffle(monotonicities)
         summaries: List[RingRunSummary] = []
         for idx in range(count):
             seed = self._next_seed()
@@ -10852,6 +10898,7 @@ class RingSweepRunner:
                     kappas[idx],
                     concentrations[idx],
                     mus[idx],
+                    monotonicities[idx],
                     seed,
                 )
             )
@@ -10873,6 +10920,7 @@ class RingSweepRunner:
         self,
         concentrations: Sequence[Decimal],
         mus: Sequence[Decimal],
+        monotonicities: Sequence[Decimal],
         *,
         kappa_low: Decimal,
         kappa_high: Decimal,
@@ -10882,22 +10930,25 @@ class RingSweepRunner:
         summaries: List[RingRunSummary] = []
         for concentration in concentrations:
             for mu in mus:
-                summaries.extend(
-                    self._run_frontier_cell(
-                        concentration,
-                        mu,
-                        kappa_low,
-                        kappa_high,
-                        tolerance,
-                        max_iterations,
+                for monotonicity in monotonicities:
+                    summaries.extend(
+                        self._run_frontier_cell(
+                            concentration,
+                            mu,
+                            monotonicity,
+                            kappa_low,
+                            kappa_high,
+                            tolerance,
+                            max_iterations,
+                        )
                     )
-                )
         return summaries
 
     def _run_frontier_cell(
         self,
         concentration: Decimal,
         mu: Decimal,
+        monotonicity: Decimal,
         kappa_low: Decimal,
         kappa_high: Decimal,
         tolerance: Decimal,
@@ -10905,18 +10956,18 @@ class RingSweepRunner:
     ) -> List[RingRunSummary]:
         runs: List[RingRunSummary] = []
 
-        low_summary = self._execute_run("frontier", kappa_low, concentration, mu, self._next_seed(), label="low")
+        low_summary = self._execute_run("frontier", kappa_low, concentration, mu, monotonicity, self._next_seed(), label="low")
         runs.append(low_summary)
         if low_summary.delta_total is not None and low_summary.delta_total <= tolerance:
             return runs
 
         hi_kappa = kappa_high
-        hi_summary = self._execute_run("frontier", hi_kappa, concentration, mu, self._next_seed(), label="high")
+        hi_summary = self._execute_run("frontier", hi_kappa, concentration, mu, monotonicity, self._next_seed(), label="high")
         runs.append(hi_summary)
 
         while (hi_summary.delta_total is None or hi_summary.delta_total > tolerance) and hi_kappa < kappa_high * 4:
             hi_kappa = hi_kappa * Decimal("1.5")
-            hi_summary = self._execute_run("frontier", hi_kappa, concentration, mu, self._next_seed(), label="high")
+            hi_summary = self._execute_run("frontier", hi_kappa, concentration, mu, monotonicity, self._next_seed(), label="high")
             runs.append(hi_summary)
             if hi_kappa > Decimal("128"):
                 break
@@ -10932,7 +10983,7 @@ class RingSweepRunner:
             if high - low <= tolerance:
                 break
             mid = (low + high) / 2
-            mid_summary = self._execute_run("frontier", mid, concentration, mu, self._next_seed(), label="mid")
+            mid_summary = self._execute_run("frontier", mid, concentration, mu, monotonicity, self._next_seed(), label="mid")
             runs.append(mid_summary)
             delta = mid_summary.delta_total
             if delta is None:
@@ -10952,6 +11003,7 @@ class RingSweepRunner:
         kappa: Decimal,
         concentration: Decimal,
         mu: Decimal,
+        monotonicity: Decimal,
         seed: int,
         *,
         label: Optional[str] = None,
@@ -10981,6 +11033,7 @@ class RingSweepRunner:
             "kappa": str(kappa),
             "concentration": str(concentration),
             "mu": str(mu),
+            "monotonicity": str(monotonicity),
             "maturity_days": str(self.maturity_days),
             "Q_total": str(self.Q_total),
             "default_handling": self.default_handling,
@@ -11000,6 +11053,7 @@ class RingSweepRunner:
                 "inequality": {
                     "scheme": "dirichlet",
                     "concentration": str(concentration),
+                    "monotonicity": str(monotonicity),
                 },
                 "maturity": {
                     "days": self.maturity_days,
@@ -11060,7 +11114,7 @@ class RingSweepRunner:
                 "run_html": self._rel_path(run_html_path),
             })
             self._upsert_registry(registry_entry)
-            return RingRunSummary(run_id, phase, kappa, concentration, mu, None, None, 0)
+            return RingRunSummary(run_id, phase, kappa, concentration, mu, monotonicity, None, None, 0)
 
         events = list(read_events_jsonl(events_path))
         balances_rows = read_balances_csv(balances_path) if balances_path.exists() else None
@@ -11094,7 +11148,7 @@ class RingSweepRunner:
         })
         self._upsert_registry(registry_entry)
 
-        return RingRunSummary(run_id, phase, kappa, concentration, mu, delta_total, phi_total, time_to_stability)
+        return RingRunSummary(run_id, phase, kappa, concentration, mu, monotonicity, delta_total, phi_total, time_to_stability)
 
     def _rel_path(self, absolute: Path) -> str:
         try:
@@ -11923,6 +11977,7 @@ class LiquiditySpec:
 @dataclass
 class InequalitySpec:
     concentration: Decimal
+    monotonicity: Decimal
 
 
 @dataclass
@@ -11969,7 +12024,10 @@ class RingExplorerParams:
             agent=model.liquidity.allocation.agent,
             vector=[Decimal(str(v)) for v in (model.liquidity.allocation.vector or [])] or None,
         )
-        inequality_spec = InequalitySpec(concentration=model.inequality.concentration)
+        inequality_spec = InequalitySpec(
+            concentration=model.inequality.concentration,
+            monotonicity=model.inequality.monotonicity,
+        )
         maturity_spec = MaturitySpec(
             days=model.maturity.days,
             mode=model.maturity.mode,
@@ -12000,7 +12058,13 @@ def compile_ring_explorer(
 ) -> Dict[str, Any]:
     params = RingExplorerParams.from_model(config.params)
 
-    payable_amounts = _draw_payables(params.n_agents, params.inequality.concentration, params.Q_total, params.seed)
+    payable_amounts = _draw_payables(
+        params.n_agents,
+        params.inequality.concentration,
+        params.inequality.monotonicity,
+        params.Q_total,
+        params.seed,
+    )
     liquidity_amounts = _allocate_liquidity(params)
     due_days = _build_due_days(params.n_agents, params.maturity.days, params.maturity.mu)
 
@@ -12071,7 +12135,13 @@ def compile_ring_explorer(
     return scenario
 
 
-def _draw_payables(n: int, concentration: Decimal, total: Decimal, seed: int) -> List[Decimal]:
+def _draw_payables(
+    n: int,
+    concentration: Decimal,
+    monotonicity: Decimal,
+    total: Decimal,
+    seed: int,
+) -> List[Decimal]:
     rng = random.Random(seed)
     alpha = float(concentration)
     if alpha <= 0:
@@ -12094,7 +12164,102 @@ def _draw_payables(n: int, concentration: Decimal, total: Decimal, seed: int) ->
             amount = (total * weight) / weight_total
             running += amount
         amounts.append(amount)
-    return amounts
+    amounts = _ensure_positive_amounts(amounts, total)
+    return _apply_monotonicity(amounts, monotonicity, rng)
+
+
+def _apply_monotonicity(
+    amounts: List[Decimal],
+    monotonicity: Decimal,
+    rng: random.Random,
+) -> List[Decimal]:
+    if len(amounts) <= 1:
+        return list(amounts)
+
+    try:
+        m = float(monotonicity)
+    except (ValueError, TypeError):
+        m = 0.0
+
+    if abs(m) < 1e-9:
+        return list(amounts)
+
+    strength = max(0.0, min(abs(m), 1.0))
+    direction_desc = m >= 0
+
+    ordered = sorted(amounts, reverse=direction_desc)
+    if strength >= 1.0 - 1e-9:
+        return ordered
+
+    swap_factor = 1.0 - strength
+    if swap_factor <= 1e-9:
+        return ordered
+
+    n = len(ordered)
+    swap_count = int(round(swap_factor * n * max(1, n - 1)))
+    if swap_count <= 0:
+        return ordered
+
+    max_swaps = n * (n - 1)
+    for _ in range(min(swap_count, max_swaps)):
+        idx = rng.randrange(n - 1)
+        ordered[idx], ordered[idx + 1] = ordered[idx + 1], ordered[idx]
+
+    return ordered
+
+
+def _ensure_positive_amounts(amounts: List[Decimal], total: Decimal) -> List[Decimal]:
+    """Clamp payable amounts to be strictly positive while preserving the total."""
+    min_amount = Decimal("0.01")
+    adjusted = list(amounts)
+    deficit = Decimal("0")
+
+    for idx, amt in enumerate(adjusted):
+        if amt <= 0:
+            need = min_amount - amt
+            deficit += need
+            adjusted[idx] = min_amount
+
+    if deficit > 0:
+        # Redistribute the deficit across larger payables.
+        order = sorted(range(len(adjusted)), key=lambda i: adjusted[i], reverse=True)
+        for idx in order:
+            if deficit <= 0:
+                break
+            available = adjusted[idx] - min_amount
+            if available <= 0:
+                continue
+            take = min(available, deficit)
+            adjusted[idx] -= take
+            deficit -= take
+
+    current_total = sum(adjusted)
+    diff = current_total - total
+    if diff > 0:
+        order = sorted(range(len(adjusted)), key=lambda i: adjusted[i], reverse=True)
+        for idx in order:
+            if diff <= 0:
+                break
+            available = adjusted[idx] - min_amount
+            if available <= 0:
+                continue
+            take = min(available, diff)
+            adjusted[idx] -= take
+            diff -= take
+    elif diff < 0:
+        adjusted[-1] += (-diff)
+
+    # Final guard to ensure all entries stay above the minimum after adjustments
+    for idx, amt in enumerate(adjusted):
+        if amt < min_amount:
+            adjusted[idx] = min_amount
+    final_total = sum(adjusted)
+    if final_total != total:
+        adjusted[-1] += (total - final_total)
+        if adjusted[-1] < min_amount:
+            adjusted[-1] = min_amount
+
+    return adjusted
 
 
 def _allocate_liquidity(params: RingExplorerParams) -> List[Decimal]:
@@ -12316,6 +12481,7 @@ def sweep():
 @click.option('--kappas', type=str, default="0.25,0.5,1,2,4", help='Comma list for grid kappa values')
 @click.option('--concentrations', type=str, default="0.2,0.5,1,2,5", help='Comma list for grid Dirichlet concentrations')
 @click.option('--mus', type=str, default="0,0.25,0.5,0.75,1", help='Comma list for grid mu values')
+@click.option('--monotonicities', type=str, default="0", help='Comma list for grid monotonicity values')
 @click.option('--lhs', 'lhs_count', type=int, default=0, help='Latin Hypercube samples to draw')
 @click.option('--kappa-min', type=float, default=0.2, help='LHS min kappa')
 @click.option('--kappa-max', type=float, default=5.0, help='LHS max kappa')
@@ -12323,6 +12489,8 @@ def sweep():
 @click.option('--c-max', type=float, default=5.0, help='LHS max concentration')
 @click.option('--mu-min', type=float, default=0.0, help='LHS min mu')
 @click.option('--mu-max', type=float, default=1.0, help='LHS max mu')
+@click.option('--monotonicity-min', type=float, default=0.0, help='LHS min monotonicity')
+@click.option('--monotonicity-max', type=float, default=0.0, help='LHS max monotonicity')
 @click.option('--frontier/--no-frontier', default=False, help='Run frontier search')
 @click.option('--frontier-low', type=float, default=0.1, help='Frontier lower bound for kappa')
 @click.option('--frontier-high', type=float, default=4.0, help='Initial frontier upper bound for kappa')
@@ -12345,6 +12513,7 @@ def sweep_ring(
     kappas: str,
     concentrations: str,
     mus: str,
+    monotonicities: str,
     lhs_count: int,
     kappa_min: float,
     kappa_max: float,
@@ -12352,6 +12521,8 @@ def sweep_ring(
     c_max: float,
     mu_min: float,
     mu_max: float,
+    monotonicity_min: float,
+    monotonicity_max: float,
     frontier: bool,
     frontier_low: float,
     frontier_high: float,
@@ -12407,6 +12578,8 @@ def sweep_ring(
             concentrations = grid_cfg.concentrations
         if grid_cfg.mus and _using_default("mus"):
             mus = grid_cfg.mus
+        if grid_cfg.monotonicities and _using_default("monotonicities"):
+            monotonicities = grid_cfg.monotonicities
 
     if sweep_config is not None and sweep_config.lhs is not None:
         lhs_cfg = sweep_config.lhs
@@ -12427,6 +12600,11 @@ def sweep_ring(
                 mu_min = float(lhs_cfg.mu_range[0])
             if _using_default("mu_max"):
                 mu_max = float(lhs_cfg.mu_range[1])
+        if lhs_cfg.monotonicity_range is not None:
+            if _using_default("monotonicity_min"):
+                monotonicity_min = float(lhs_cfg.monotonicity_range[0])
+            if _using_default("monotonicity_max"):
+                monotonicity_max = float(lhs_cfg.monotonicity_range[1])
 
     if sweep_config is not None and sweep_config.frontier is not None:
         frontier_cfg = sweep_config.frontier
@@ -12469,10 +12647,12 @@ def sweep_ring(
     grid_kappas = _as_decimal_list(kappas)
     grid_concentrations = _as_decimal_list(concentrations)
     grid_mus = _as_decimal_list(mus)
+    grid_monotonicities = _as_decimal_list(monotonicities)
 
     if grid:
-        console.print(f"[dim]Running grid sweep: {len(grid_kappas) * len(grid_concentrations) * len(grid_mus)} runs[/dim]")
-        runner.run_grid(grid_kappas, grid_concentrations, grid_mus)
+        total_runs = len(grid_kappas) * len(grid_concentrations) * len(grid_mus) * len(grid_monotonicities)
+        console.print(f"[dim]Running grid sweep: {total_runs} runs[/dim]")
+        runner.run_grid(grid_kappas, grid_concentrations, grid_mus, grid_monotonicities)
 
     if lhs_count > 0:
         console.print(f"[dim]Running Latin Hypercube ({lhs_count})[/dim]")
@@ -12481,13 +12661,15 @@ def sweep_ring(
             kappa_range=(Decimal(str(kappa_min)), Decimal(str(kappa_max))),
             concentration_range=(Decimal(str(c_min)), Decimal(str(c_max))),
             mu_range=(Decimal(str(mu_min)), Decimal(str(mu_max))),
+            monotonicity_range=(Decimal(str(monotonicity_min)), Decimal(str(monotonicity_max))),
         )
 
     if frontier:
-        console.print(f"[dim]Running frontier search across {len(grid_concentrations) * len(grid_mus)} cells[/dim]")
+        console.print(f"[dim]Running frontier search across {len(grid_concentrations) * len(grid_mus) * len(grid_monotonicities)} cells[/dim]")
         runner.run_frontier(
             grid_concentrations,
             grid_mus,
+            grid_monotonicities,
             kappa_low=Decimal(str(frontier_low)),
             kappa_high=Decimal(str(frontier_high)),
             tolerance=Decimal(str(frontier_tolerance)),
@@ -15518,8 +15700,8 @@ def test_aggregate_runs_and_dashboard(tmp_path):
 
     registry_csv = registry_dir / "experiments.csv"
     registry_csv.write_text(
-        "run_id,phase,seed,n_agents,kappa,concentration,mu,Q_total,S1,L0,scenario_yaml,events_jsonl,balances_csv,metrics_csv,metrics_html,run_html,status,time_to_stability,phi_total,delta_total,error\n"
-        "grid_abcd,grid,42,5,1,0.5,0.25,150,150,120,../runs/grid_abcd/scenario.yaml,../runs/grid_abcd/out/events.jsonl,../runs/grid_abcd/out/balances.csv,../runs/grid_abcd/out/metrics.csv,../runs/grid_abcd/out/metrics.html,../runs/grid_abcd/run.html,completed,2,,,\n"
+        "run_id,phase,seed,n_agents,kappa,concentration,mu,monotonicity,Q_total,S1,L0,scenario_yaml,events_jsonl,balances_csv,metrics_csv,metrics_html,run_html,status,time_to_stability,phi_total,delta_total,error\n"
+        "grid_abcd,grid,42,5,1,0.5,0.25,0,150,150,120,../runs/grid_abcd/scenario.yaml,../runs/grid_abcd/out/events.jsonl,../runs/grid_abcd/out/balances.csv,../runs/grid_abcd/out/metrics.csv,../runs/grid_abcd/out/metrics.html,../runs/grid_abcd/run.html,completed,2,,,\n"
     )
 
     results_csv = aggregate_dir / "results.csv"
@@ -15529,6 +15711,7 @@ def test_aggregate_runs_and_dashboard(tmp_path):
     row = rows[0]
     assert row["phi_total"] == Decimal("0.8333333333333333333333333333")
     assert row["delta_total"] == Decimal("0.1666666666666666666666666667")
+    assert row["monotonicity"] == "0"
     assert results_csv.exists()
 
     dashboard_html = aggregate_dir / "dashboard.html"
@@ -17731,6 +17914,14 @@ def _sum_amounts(actions, key):
     return total
 
 
+def _payable_amounts(actions):
+    return [
+        Decimal(str(action["create_payable"]["amount"]))
+        for action in actions
+        if "create_payable" in action
+    ]
+
+
 def test_compile_ring_explorer_basic(tmp_path):
     generator = RingExplorerGeneratorConfig.model_validate(
         {
@@ -17822,6 +18013,58 @@ def test_load_yaml_compiles_generator(tmp_path):
     assert len(config.initial_actions) > 0
     compiled_yaml = list(tmp_path.glob("*.yaml"))
     assert compiled_yaml, "expected emitted scenario YAML"
+
+
+def test_monotonicity_extremes():
+    base_params = {
+        "n_agents": 5,
+        "seed": 17,
+        "kappa": "1",
+        "Q_total": "500",
+        "liquidity": {"allocation": {"mode": "uniform"}},
+        "maturity": {"days": 2, "mode": "lead_lag", "mu": "0"},
+    }
+
+    descending = RingExplorerGeneratorConfig.model_validate(
+        {
+            "version": 1,
+            "generator": "ring_explorer_v1",
+            "name_prefix": "Mono Desc",
+            "params": {
+                **base_params,
+                "inequality": {
+                    "scheme": "dirichlet",
+                    "concentration": "1",
+                    "monotonicity": "1",
+                },
+            },
+            "compile": {"emit_yaml": False},
+        }
+    )
+    asc = RingExplorerGeneratorConfig.model_validate(
+        {
+            "version": 1,
+            "generator": "ring_explorer_v1",
+            "name_prefix": "Mono Asc",
+            "params": {
+                **base_params,
+                "inequality": {
+                    "scheme": "dirichlet",
+                    "concentration": "1",
+                    "monotonicity": "-1",
+                },
+            },
+            "compile": {"emit_yaml": False},
+        }
+    )
+
+    descending_amounts = _payable_amounts(compile_ring_explorer(descending, source_path=None)["initial_actions"])
+    ascending_amounts = _payable_amounts(compile_ring_explorer(asc, source_path=None)["initial_actions"])
+
+    assert descending_amounts == sorted(descending_amounts, reverse=True)
+    assert ascending_amounts == sorted(ascending_amounts, reverse=False)
+    assert all(amount > Decimal("0") for amount in descending_amounts)
+    assert all(amount > Decimal("0") for amount in ascending_amounts)
 
 ```
 
