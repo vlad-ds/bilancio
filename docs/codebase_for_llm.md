@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2025-10-10 07:54:14 UTC | Branch: main | Commit: 0d3d1f3
+Generated: 2025-10-24 02:56:49 UTC | Branch: main | Commit: dd8b94f
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -21,6 +21,9 @@ This document contains the complete codebase structure and content for LLM inges
 ├── README.md
 ├── TODO.md
 ├── dashboards
+│   ├── expel_ring_analysis_dashboard
+│   │   ├── README.md
+│   │   └── streamlit_app.py
 │   └── expel_sweep_dashboard
 │       ├── README.md
 │       └── streamlit_app.py
@@ -75,7 +78,8 @@ This document contains the complete codebase structure and content for LLM inges
 │   │       ├── ex6_goods_now_cash_later.yaml
 │   │       └── ex7_cash_now_goods_later.yaml
 │   ├── kalecki
-│   │   └── kalecki_ring_baseline.yaml
+│   │   ├── kalecki_ring_baseline.yaml
+│   │   └── ring_sweep_config.yaml
 │   └── scenarios
 │       ├── default_handling_demo.yaml
 │       ├── firm_delivery.yaml
@@ -848,757 +852,1511 @@ This document contains the complete codebase structure and content for LLM inges
 │   │   │           │   └── metrics.html
 │   │   │           ├── run.html
 │   │   │           └── scenario.yaml
-│   │   └── expel_ring_sweep
+│   │   ├── expel_ring_sweep
+│   │   │   ├── aggregate
+│   │   │   │   ├── dashboard.html
+│   │   │   │   ├── day_metrics.pkl
+│   │   │   │   └── day_metrics_enriched.pkl
+│   │   │   └── runs
+│   │   │       ├── grid_006d41348aec
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_042589d16799
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_050c86b68635
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_051704f2e859
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_0537e3310286
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_05f09fda3729
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_0b54ff3bec96
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_0cb226424791
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_0e944bafe1a9
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_0f03d3bdc6c1
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_0fc483729f40
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_12af65493eff
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_160f8f62879f
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_19b97e7ad3cf
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_1b0ea01668f7
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_1e47dd35d1bb
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_23e60e153628
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_24e20fc157bb
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_2748db4bd801
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_27ae5b249da8
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_2aefd62b25da
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_30df28a10963
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_32629c607417
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_35766a24b362
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_35c7cb4e8e69
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_3803b7e396ea
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_3d4174fde5c6
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_3ffeff12bbbe
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_410e22148ec1
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_428559365e4a
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_4786832d21dd
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_4d571b6eb6bd
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_4f2ad700fc0c
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_514adf52a6ec
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_53aeaa37ffff
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_54ffdf053a37
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_550091f08123
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_5530efbac4e0
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_56daf694bb61
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_5b8e3e2455a0
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_5ce2c4a97d3e
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_5fcd180a5b61
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_602ba57cc959
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_61875012b451
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_6228a1712695
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_644395de8238
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_660892dae0cd
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_66cd1328aaa3
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_6b21a646b017
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_6b24da8274c2
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_6b4b4ba8e67e
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_6e070ede6e52
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_701152452743
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_7097d49bce4f
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_740fc433c5f6
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_753b752540e4
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_75f4135017a2
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_798f39bbf8c7
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_79f3bb44a77c
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_7b33d960dea1
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_7cb81b8b4a2a
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_7ede287eda4a
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_805270cdb8ac
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_80eae6b1170b
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_8154380ebc73
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_86645f247c6a
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_86b10a806356
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_86cb1909d962
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_8aa30a7ec4ff
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_8f98e30bec16
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_8f9e70b6f64c
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_91912fcb2aa5
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_93bcfad8aa3c
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_940b0446f126
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_960109748030
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_a53fbda38a7e
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_a6d5878ab3ec
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_a7e773a659eb
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_a82e6c4efb4d
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_a9f4a770f506
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_aa85832d6eea
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_ad64105bb027
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_ae1e63b5e4ac
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_ae33b1898498
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_af3c32442e69
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_b08bd74fb517
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_b2b7a9a8d184
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_b31830206c54
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_b33ceb3a0650
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_b50115813401
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_b8cf5a4b522a
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_bff07f9ec223
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_c005953cacad
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_c25b833dc292
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_c294fec46eec
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_c3f0a92d4408
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_c413020d3597
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_c7d9c103bdce
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_cc0dcad677b1
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_ccf386fc637b
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_cd90abfa57b7
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_d057539adbb6
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_d07f6244325e
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_d85d0565c63f
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_d8a0ac2ab31e
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_d8d791586e6e
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_d9a8f05bde19
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_daaf161cbd43
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_dd967009cc04
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_de1ba34ca385
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_df2217276f6c
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_e05ff9d7b0a6
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_eb5b86349948
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_efd13dbdaf2c
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_f0259cc19595
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_f1f504139a0b
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_f2b48f7dc492
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_f2d8c2870241
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_f2f65b5acafa
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_f41b64e0d149
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_f56c164e8cae
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_f56ead5480de
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_f77db6e718a8
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       ├── grid_f9c955df9fc0
+│   │   │       │   ├── out
+│   │   │       │   │   ├── events.jsonl
+│   │   │       │   │   └── metrics.html
+│   │   │       │   ├── run.html
+│   │   │       │   └── scenario.yaml
+│   │   │       └── grid_ffc291593855
+│   │   │           ├── out
+│   │   │           │   ├── events.jsonl
+│   │   │           │   └── metrics.html
+│   │   │           ├── run.html
+│   │   │           └── scenario.yaml
+│   │   └── expel_ring_sweep_clean
 │   │       ├── aggregate
-│   │       │   ├── dashboard.html
-│   │       │   ├── day_metrics.pkl
-│   │       │   └── day_metrics_enriched.pkl
+│   │       │   └── dashboard.html
 │   │       └── runs
-│   │           ├── grid_006d41348aec
+│   │           ├── grid_00410d2b687b
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_042589d16799
+│   │           ├── grid_006b6c41a7fa
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_050c86b68635
+│   │           ├── grid_018a1c5f7ea8
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_051704f2e859
+│   │           ├── grid_066e8da4a0b0
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_0537e3310286
+│   │           ├── grid_08014e390505
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_05f09fda3729
+│   │           ├── grid_0a7a3622e9c3
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_0b54ff3bec96
+│   │           ├── grid_0c313392f468
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_0cb226424791
+│   │           ├── grid_0d17d7a9a4e5
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_0e944bafe1a9
+│   │           ├── grid_0e1d86cd9956
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_0f03d3bdc6c1
+│   │           ├── grid_102d8cc14db1
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_0fc483729f40
+│   │           ├── grid_11150d093732
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_12af65493eff
+│   │           ├── grid_129917105170
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_160f8f62879f
+│   │           ├── grid_12dbcd40a481
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_19b97e7ad3cf
+│   │           ├── grid_19374760cc4c
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_1b0ea01668f7
+│   │           ├── grid_1b39d3f4cf3a
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_1e47dd35d1bb
+│   │           ├── grid_1b7133707e7a
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_23e60e153628
+│   │           ├── grid_1bee699cb4b4
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_24e20fc157bb
+│   │           ├── grid_1c3be46b2abb
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_2748db4bd801
+│   │           ├── grid_22d8d3c750fc
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_27ae5b249da8
+│   │           ├── grid_237e1b876441
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_2aefd62b25da
+│   │           ├── grid_257b27ad2ed9
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_30df28a10963
+│   │           ├── grid_2773edb4c87a
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_32629c607417
+│   │           ├── grid_290221ea7f17
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_35766a24b362
+│   │           ├── grid_2c55012117f7
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_35c7cb4e8e69
+│   │           ├── grid_2d721910430b
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_3803b7e396ea
+│   │           ├── grid_2e660a3e24c8
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_3d4174fde5c6
+│   │           ├── grid_2ef4d880c083
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_3ffeff12bbbe
+│   │           ├── grid_2ef805654d89
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_410e22148ec1
+│   │           ├── grid_2fc9765993af
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_428559365e4a
+│   │           ├── grid_30c5c655e605
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_4786832d21dd
+│   │           ├── grid_3a9c6d936a84
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_4d571b6eb6bd
+│   │           ├── grid_3b7508820cb8
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_4f2ad700fc0c
+│   │           ├── grid_3c37a33fdd9e
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_514adf52a6ec
+│   │           ├── grid_3e87ece71250
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_53aeaa37ffff
+│   │           ├── grid_3fc877063beb
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_54ffdf053a37
+│   │           ├── grid_4045a599d04e
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_550091f08123
+│   │           ├── grid_40888e2857ed
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_5530efbac4e0
+│   │           ├── grid_40a364ee32c4
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_56daf694bb61
+│   │           ├── grid_4470b615c48d
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_5b8e3e2455a0
+│   │           ├── grid_4556e4562a16
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_5ce2c4a97d3e
+│   │           ├── grid_45e9311f90df
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_5fcd180a5b61
+│   │           ├── grid_4732b91411bf
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_602ba57cc959
+│   │           ├── grid_4c59468dc273
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_61875012b451
+│   │           ├── grid_4ec5160a68f3
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_6228a1712695
+│   │           ├── grid_5008acc18675
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_644395de8238
+│   │           ├── grid_533f006db4f5
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_660892dae0cd
+│   │           ├── grid_55548165511f
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_66cd1328aaa3
+│   │           ├── grid_55f3370ef1ff
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_6b21a646b017
+│   │           ├── grid_583a52e45214
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_6b24da8274c2
+│   │           ├── grid_5ed837a695df
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_6b4b4ba8e67e
+│   │           ├── grid_5f13847558fb
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_6e070ede6e52
+│   │           ├── grid_5fbbc9e12f24
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_701152452743
+│   │           ├── grid_600907e4aa39
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_7097d49bce4f
+│   │           ├── grid_62c9a2849ccf
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_740fc433c5f6
+│   │           ├── grid_639428fd0367
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_753b752540e4
+│   │           ├── grid_645c8f81bf3e
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_75f4135017a2
+│   │           ├── grid_64ea298613b0
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_798f39bbf8c7
+│   │           ├── grid_6c4988b036ff
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_79f3bb44a77c
+│   │           ├── grid_6cf591bffa18
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_7b33d960dea1
+│   │           ├── grid_6f551e36bf3b
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_7cb81b8b4a2a
+│   │           ├── grid_6f9cfc3ec55a
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_7ede287eda4a
+│   │           ├── grid_707a1112069e
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_805270cdb8ac
+│   │           ├── grid_71765b3c7a86
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_80eae6b1170b
+│   │           ├── grid_7210a81cd059
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_8154380ebc73
+│   │           ├── grid_75b83d0bac6e
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_86645f247c6a
+│   │           ├── grid_7617b8693185
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_86b10a806356
+│   │           ├── grid_76c3c3310257
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_86cb1909d962
+│   │           ├── grid_77d82f0fd29b
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_8aa30a7ec4ff
+│   │           ├── grid_783bcc642f4e
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_8f98e30bec16
+│   │           ├── grid_815778229979
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_8f9e70b6f64c
+│   │           ├── grid_8256fa7be6cc
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_91912fcb2aa5
+│   │           ├── grid_83253d47d089
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_93bcfad8aa3c
+│   │           ├── grid_8347e92db7b0
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_940b0446f126
+│   │           ├── grid_84df6d3bcff2
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_960109748030
+│   │           ├── grid_8725e4a9df8f
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_a53fbda38a7e
+│   │           ├── grid_886974c4496c
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_a6d5878ab3ec
+│   │           ├── grid_89758a91aeca
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_a7e773a659eb
+│   │           ├── grid_8a0527088dd1
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_a82e6c4efb4d
+│   │           ├── grid_8e36cc8eba0e
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_a9f4a770f506
+│   │           ├── grid_8e84d73425a6
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_aa85832d6eea
+│   │           ├── grid_8edbcfb238b3
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_ad64105bb027
+│   │           ├── grid_90ff3c320bb2
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_ae1e63b5e4ac
+│   │           ├── grid_93343d23bdfe
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_ae33b1898498
+│   │           ├── grid_9912027d194a
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_af3c32442e69
+│   │           ├── grid_9d2972753ad2
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_b08bd74fb517
+│   │           ├── grid_9dfbd45c84a5
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_b2b7a9a8d184
+│   │           ├── grid_9e0a6b8fbea6
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_b31830206c54
+│   │           ├── grid_a435478513eb
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_b33ceb3a0650
+│   │           ├── grid_a7082650482e
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_b50115813401
+│   │           ├── grid_aaa44fbf2f1a
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_b8cf5a4b522a
+│   │           ├── grid_acba38a4f05c
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_bff07f9ec223
+│   │           ├── grid_b00b769ae017
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_c005953cacad
+│   │           ├── grid_b23ed08b65bb
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_c25b833dc292
+│   │           ├── grid_b277f3d2cd7e
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_c294fec46eec
+│   │           ├── grid_b6c1c8d4bd2f
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_c3f0a92d4408
+│   │           ├── grid_b87a4bdeb0c8
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_c413020d3597
+│   │           ├── grid_bc2b877c8df4
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_c7d9c103bdce
+│   │           ├── grid_bf58caa231b5
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_cc0dcad677b1
+│   │           ├── grid_bfa2b8fa0a2d
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_ccf386fc637b
+│   │           ├── grid_cf6b11810764
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_cd90abfa57b7
+│   │           ├── grid_d192d529f1eb
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_d057539adbb6
+│   │           ├── grid_d441c7884bfe
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_d07f6244325e
+│   │           ├── grid_d472eeac89e2
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_d85d0565c63f
+│   │           ├── grid_d5af1b10d79d
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_d8a0ac2ab31e
+│   │           ├── grid_d9e67822d110
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_d8d791586e6e
+│   │           ├── grid_db1e4b21ace8
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_d9a8f05bde19
+│   │           ├── grid_dcda64803aa1
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_daaf161cbd43
+│   │           ├── grid_dce370742800
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_dd967009cc04
+│   │           ├── grid_e373aed4f35f
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_de1ba34ca385
+│   │           ├── grid_e64b299a3d1e
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_df2217276f6c
+│   │           ├── grid_eb4771dc8aa4
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_e05ff9d7b0a6
+│   │           ├── grid_eb80468d978a
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_eb5b86349948
+│   │           ├── grid_ef2b57d3ffd3
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_efd13dbdaf2c
+│   │           ├── grid_efa113f36474
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_f0259cc19595
+│   │           ├── grid_f23678c41ca1
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_f1f504139a0b
+│   │           ├── grid_f264dcf7edba
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_f2b48f7dc492
+│   │           ├── grid_f265ade9b6be
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_f2d8c2870241
+│   │           ├── grid_f57a67a6746e
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_f2f65b5acafa
+│   │           ├── grid_f5d1e86d6c2c
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_f41b64e0d149
+│   │           ├── grid_f674ba5c04ed
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_f56c164e8cae
+│   │           ├── grid_f77310adb9f0
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_f56ead5480de
+│   │           ├── grid_faecc01af6aa
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_f77db6e718a8
+│   │           ├── grid_fb296d8db56e
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           ├── grid_f9c955df9fc0
+│   │           ├── grid_fb48bc998728
 │   │           │   ├── out
 │   │           │   │   ├── events.jsonl
 │   │           │   │   └── metrics.html
 │   │           │   ├── run.html
 │   │           │   └── scenario.yaml
-│   │           └── grid_ffc291593855
+│   │           └── grid_fdbdc24e39b9
 │   │               ├── out
 │   │               │   ├── events.jsonl
 │   │               │   └── metrics.html
@@ -1735,7 +2493,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-553 directories, 1172 files
+807 directories, 1676 files
 
 ```
 
@@ -2513,6 +3271,30 @@ Complete git history from oldest to newest:
 - **f1d56f4a** (2025-09-25) by github-actions[bot]
   chore(docs): update codebase_for_llm.md
 
+- **3cc9d695** (2025-09-25) by vladgheorghe
+  Metric grid implementation & first sweep
+
+- **f92829f4** (2025-09-25) by vladgheorghe
+  Add Kalecki ring sweep findings
+
+- **c658929d** (2025-09-26) by vladgheorghe
+  Ring findings and metrics
+
+- **79dfc7f8** (2025-09-26) by vladgheorghe
+  Update ring findings
+
+- **7f8f3f15** (2025-09-26) by vladgheorghe
+  Ring findings
+
+- **9a63d09a** (2025-09-26) by vladgheorghe
+  Sweep report
+
+- **4a4601da** (2025-09-26) by vladgheorghe
+  Add expel-agent sweep report and dashboard
+
+- **70aa4a9c** (2025-09-29) by vladgheorghe
+  Add expel-agent sweep assets and default handling option
+
 - **0d3d1f39** (2025-10-10) by Vlad Gheorghe
   Implement Kalecki Ring Parameter Sweep Experiments (#17)
   * Metric grid implementation & first sweep
@@ -2523,6 +3305,29 @@ Complete git history from oldest to newest:
   * Sweep report
   * Add expel-agent sweep report and dashboard
   * Add expel-agent sweep assets and default handling option
+
+- **ee1bf4e4** (2025-10-10) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **764857ec** (2025-10-10) by vladgheorghe
+  Clean up experiment outputs and reorganize dashboards
+  - Remove old expel_sweep_dashboard, add new expel_ring_analysis_dashboard
+  - Delete temporary experiment output files
+  - Update ring sweep guide documentation
+  - Add ring sweep example config
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **dd8b94fe** (2025-10-10) by vladgheorghe
+  Merge feature/014-kalecki-experiments into main
+  Merge the Kalecki ring parameter sweep implementation from the feature branch.
+  Resolved conflicts in:
+  - docs/guides/kalecki_ring_sweep.md (added YAML config documentation)
+  - src/bilancio/experiments/ring.py (added config classes and loader)
+  - src/bilancio/ui/cli.py (added config file support)
+  All conflicts resolved by accepting feature branch additions.
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
 
 ---
 
@@ -9757,6 +10562,9 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import random
 
+import yaml
+from pydantic import BaseModel, Field, ValidationError, model_validator
+
 from bilancio.analysis.loaders import read_balances_csv, read_events_jsonl
 from bilancio.analysis.report import (
     compute_day_metrics,
@@ -9807,6 +10615,118 @@ def _to_yaml_ready(obj: Any) -> Any:
             return int(norm)
         return float(norm)
     return obj
+
+
+class _RingSweepGridConfig(BaseModel):
+    enabled: bool = True
+    kappas: List[Decimal] = Field(default_factory=list)
+    concentrations: List[Decimal] = Field(default_factory=list)
+    mus: List[Decimal] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_lists(self) -> "_RingSweepGridConfig":
+        if self.enabled:
+            if not self.kappas:
+                raise ValueError("grid.kappas must be provided when grid.enabled is true")
+            if not self.concentrations:
+                raise ValueError("grid.concentrations must be provided when grid.enabled is true")
+            if not self.mus:
+                raise ValueError("grid.mus must be provided when grid.enabled is true")
+        return self
+
+
+class _RingSweepLHSConfig(BaseModel):
+    count: int = 0
+    kappa_range: Optional[Tuple[Decimal, Decimal]] = None
+    concentration_range: Optional[Tuple[Decimal, Decimal]] = None
+    mu_range: Optional[Tuple[Decimal, Decimal]] = None
+
+    @model_validator(mode="after")
+    def validate_ranges(self) -> "_RingSweepLHSConfig":
+        if self.count <= 0:
+            return self
+        for name, rng in (
+            ("kappa_range", self.kappa_range),
+            ("concentration_range", self.concentration_range),
+            ("mu_range", self.mu_range),
+        ):
+            if rng is None or len(rng) != 2:
+                raise ValueError(f"lhs.{name} must contain exactly two values when lhs.count > 0")
+        return self
+
+
+class _RingSweepFrontierConfig(BaseModel):
+    enabled: bool = False
+    kappa_low: Optional[Decimal] = None
+    kappa_high: Optional[Decimal] = None
+    tolerance: Optional[Decimal] = None
+    max_iterations: Optional[int] = None
+
+    @model_validator(mode="after")
+    def validate_frontier(self) -> "_RingSweepFrontierConfig":
+        if not self.enabled:
+            return self
+        missing = [
+            name
+            for name in ("kappa_low", "kappa_high", "tolerance", "max_iterations")
+            if getattr(self, name) is None
+        ]
+        if missing:
+            missing_list = ", ".join(missing)
+            raise ValueError(f"frontier fields missing when frontier.enabled is true: {missing_list}")
+        return self
+
+
+class _RingSweepRunnerConfig(BaseModel):
+    n_agents: Optional[int] = None
+    maturity_days: Optional[int] = None
+    q_total: Optional[Decimal] = None
+    liquidity_mode: Optional[str] = None
+    liquidity_agent: Optional[str] = None
+    base_seed: Optional[int] = None
+    name_prefix: Optional[str] = None
+    default_handling: Optional[str] = None
+
+
+class RingSweepConfig(BaseModel):
+    version: int = Field(1, description="Configuration version")
+    out_dir: Optional[str] = None
+    grid: Optional[_RingSweepGridConfig] = None
+    lhs: Optional[_RingSweepLHSConfig] = None
+    frontier: Optional[_RingSweepFrontierConfig] = None
+    runner: Optional[_RingSweepRunnerConfig] = None
+
+    @model_validator(mode="after")
+    def ensure_version(self) -> "RingSweepConfig":
+        if self.version != 1:
+            raise ValueError(f"Unsupported sweep config version: {self.version}")
+        return self
+
+
+def load_ring_sweep_config(path: Path | str) -> RingSweepConfig:
+    """Load and validate a ring sweep configuration from YAML."""
+    config_path = Path(path)
+    if not config_path.exists():
+        raise FileNotFoundError(f"Sweep configuration not found: {config_path}")
+
+    try:
+        with config_path.open("r", encoding="utf-8") as fh:
+            raw = yaml.safe_load(fh)
+    except yaml.YAMLError as exc:
+        raise yaml.YAMLError(f"Failed to parse YAML from {config_path}: {exc}")
+
+    if not isinstance(raw, dict):
+        raise ValueError("Sweep configuration must be a YAML mapping")
+
+    try:
+        return RingSweepConfig.model_validate(raw)
+    except ValidationError as exc:
+        messages = []
+        for error in exc.errors():
+            loc = " -> ".join(str(part) for part in error.get("loc", ()))
+            messages.append(f"  - {loc}: {error.get('msg')}")
+        details = "\n".join(messages)
+        raise ValueError(f"Invalid sweep configuration:\n{details}") from exc
 
 
 class RingSweepRunner:
@@ -10192,6 +11112,8 @@ class RingSweepRunner:
 __all__ = [
     "RingSweepRunner",
     "RingRunSummary",
+    "RingSweepConfig",
+    "load_ring_sweep_config",
     "_decimal_list",
 ]
 
@@ -11339,6 +12261,8 @@ from pathlib import Path
 from typing import Optional
 import sys
 
+from click.core import ParameterSource
+
 from rich.console import Console
 from rich.panel import Panel
 
@@ -11356,10 +12280,21 @@ from bilancio.analysis.report import (
     aggregate_runs,
     render_dashboard,
 )
-from bilancio.experiments.ring import RingSweepRunner, _decimal_list
+from bilancio.experiments.ring import (
+    RingSweepRunner,
+    RingSweepConfig,
+    load_ring_sweep_config,
+    _decimal_list,
+)
 
 
 console = Console()
+
+
+def _as_decimal_list(value):
+    if isinstance(value, (list, tuple)):
+        return [Decimal(str(item)) for item in value]
+    return _decimal_list(value)
 
 
 @click.group()
@@ -11375,6 +12310,7 @@ def sweep():
 
 
 @sweep.command("ring")
+@click.option('--config', type=click.Path(path_type=Path), default=None, help='Path to sweep config YAML')
 @click.option('--out-dir', type=click.Path(path_type=Path), default=None, help='Base output directory')
 @click.option('--grid/--no-grid', default=True, help='Run coarse grid sweep')
 @click.option('--kappas', type=str, default="0.25,0.5,1,2,4", help='Comma list for grid kappa values')
@@ -11400,7 +12336,10 @@ def sweep():
 @click.option('--base-seed', type=int, default=42, help='Base PRNG seed')
 @click.option('--name-prefix', type=str, default='Kalecki Ring Sweep', help='Scenario name prefix')
 @click.option('--default-handling', type=click.Choice(['fail-fast', 'expel-agent']), default='fail-fast', help='Default handling mode for runs')
+@click.pass_context
 def sweep_ring(
+    ctx,
+    config: Optional[Path],
     out_dir: Optional[Path],
     grid: bool,
     kappas: str,
@@ -11428,6 +12367,84 @@ def sweep_ring(
     default_handling: str,
 ):
     """Run the Kalecki ring experiment sweep."""
+    sweep_config: Optional[RingSweepConfig] = None
+    if config is not None:
+        sweep_config = load_ring_sweep_config(config)
+
+    def _using_default(param_name: str) -> bool:
+        source = ctx.get_parameter_source(param_name)
+        return source in (ParameterSource.DEFAULT, ParameterSource.DEFAULT_MAP)
+
+    if sweep_config is not None and sweep_config.out_dir and _using_default("out_dir"):
+        out_dir = Path(sweep_config.out_dir)
+
+    if sweep_config is not None and sweep_config.runner is not None:
+        runner_cfg = sweep_config.runner
+        if runner_cfg.n_agents is not None and _using_default("n_agents"):
+            n_agents = runner_cfg.n_agents
+        if runner_cfg.maturity_days is not None and _using_default("maturity_days"):
+            maturity_days = runner_cfg.maturity_days
+        if runner_cfg.q_total is not None and _using_default("q_total"):
+            q_total = float(runner_cfg.q_total)
+        if runner_cfg.liquidity_mode is not None and _using_default("liquidity_mode"):
+            liquidity_mode = runner_cfg.liquidity_mode
+        if runner_cfg.liquidity_agent is not None and _using_default("liquidity_agent"):
+            liquidity_agent = runner_cfg.liquidity_agent
+        if runner_cfg.base_seed is not None and _using_default("base_seed"):
+            base_seed = runner_cfg.base_seed
+        if runner_cfg.name_prefix is not None and _using_default("name_prefix"):
+            name_prefix = runner_cfg.name_prefix
+        if runner_cfg.default_handling is not None and _using_default("default_handling"):
+            default_handling = runner_cfg.default_handling
+
+    if sweep_config is not None and sweep_config.grid is not None:
+        grid_cfg = sweep_config.grid
+        if _using_default("grid"):
+            grid = grid_cfg.enabled
+        if grid_cfg.kappas and _using_default("kappas"):
+            kappas = grid_cfg.kappas
+        if grid_cfg.concentrations and _using_default("concentrations"):
+            concentrations = grid_cfg.concentrations
+        if grid_cfg.mus and _using_default("mus"):
+            mus = grid_cfg.mus
+
+    if sweep_config is not None and sweep_config.lhs is not None:
+        lhs_cfg = sweep_config.lhs
+        if _using_default("lhs_count"):
+            lhs_count = lhs_cfg.count
+        if lhs_cfg.kappa_range is not None:
+            if _using_default("kappa_min"):
+                kappa_min = float(lhs_cfg.kappa_range[0])
+            if _using_default("kappa_max"):
+                kappa_max = float(lhs_cfg.kappa_range[1])
+        if lhs_cfg.concentration_range is not None:
+            if _using_default("c_min"):
+                c_min = float(lhs_cfg.concentration_range[0])
+            if _using_default("c_max"):
+                c_max = float(lhs_cfg.concentration_range[1])
+        if lhs_cfg.mu_range is not None:
+            if _using_default("mu_min"):
+                mu_min = float(lhs_cfg.mu_range[0])
+            if _using_default("mu_max"):
+                mu_max = float(lhs_cfg.mu_range[1])
+
+    if sweep_config is not None and sweep_config.frontier is not None:
+        frontier_cfg = sweep_config.frontier
+        if _using_default("frontier"):
+            frontier = frontier_cfg.enabled
+        if frontier_cfg.enabled:
+            if frontier_cfg.kappa_low is not None and _using_default("frontier_low"):
+                frontier_low = float(frontier_cfg.kappa_low)
+            if frontier_cfg.kappa_high is not None and _using_default("frontier_high"):
+                frontier_high = float(frontier_cfg.kappa_high)
+            if frontier_cfg.tolerance is not None and _using_default("frontier_tolerance"):
+                frontier_tolerance = float(frontier_cfg.tolerance)
+            if frontier_cfg.max_iterations is not None and _using_default("frontier_iterations"):
+                frontier_iterations = frontier_cfg.max_iterations
+
+    if out_dir is not None and not isinstance(out_dir, Path):
+        out_dir = Path(out_dir)
+
     if out_dir is None:
         ts = datetime.now().strftime("%Y%m%d_%H%M%S")
         out_dir = Path("out") / "experiments" / f"{ts}_ring"
@@ -11449,9 +12466,9 @@ def sweep_ring(
 
     console.print(f"[dim]Output directory: {out_dir}[/dim]")
 
-    grid_kappas = _decimal_list(kappas)
-    grid_concentrations = _decimal_list(concentrations)
-    grid_mus = _decimal_list(mus)
+    grid_kappas = _as_decimal_list(kappas)
+    grid_concentrations = _as_decimal_list(concentrations)
+    grid_mus = _as_decimal_list(mus)
 
     if grid:
         console.print(f"[dim]Running grid sweep: {len(grid_kappas) * len(grid_concentrations) * len(grid_mus)} runs[/dim]")
