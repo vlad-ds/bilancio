@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2025-10-24 12:16:35 UTC | Branch: main | Commit: f68c199
+Generated: 2025-10-24 14:10:08 UTC | Branch: main | Commit: 2cd65b8
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -3344,6 +3344,12 @@ Complete git history from oldest to newest:
 
 - **f68c1990** (2025-10-24) by vladgheorghe
   Track expel ring sweep aggregate outputs
+
+- **ffb59452** (2025-10-24) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **2cd65b8e** (2025-10-24) by vladgheorghe
+  Expand ring sweep horizon and refresh results
 
 ---
 
