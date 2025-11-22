@@ -82,6 +82,7 @@ def run_period(
                     new_dealer.cash -= mid_price
                     new_dealer.inventory += ticket_size
                     ticket_ops.system.transfer_ticket(cid, owner, new_dealer.dealer_id)
+                    ticket_ops.system.rebucket_ticket(cid, new_bucket_id=new_bucket)
             elif owner_kind == "vbt":
                 old_vbt = vbts.get(instr.bucket_id)
                 new_vbt = vbts.get(new_bucket)
@@ -92,6 +93,7 @@ def run_period(
                     new_vbt.cash -= mid_price
                     new_vbt.inventory += 1.0
                     ticket_ops.system.transfer_ticket(cid, owner, new_vbt.bucket)
+                    ticket_ops.system.rebucket_ticket(cid, new_bucket_id=new_bucket)
             else:
                 # trader: relabel only
                 ticket_ops.system.rebucket_ticket(cid, new_bucket_id=new_bucket)
