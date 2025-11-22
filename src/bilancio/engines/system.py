@@ -10,6 +10,7 @@ from bilancio.core.ids import AgentId, InstrId, new_id
 from bilancio.domain.agent import Agent
 from bilancio.domain.instruments.base import Instrument
 from bilancio.domain.instruments.means_of_payment import Cash, ReserveDeposit
+from bilancio.domain.instruments.ticket import Ticket
 from bilancio.domain.instruments.delivery import DeliveryObligation
 from bilancio.domain.goods import StockLot
 from bilancio.domain.policy import PolicyEngine
@@ -181,6 +182,63 @@ class System:
                 else:
                     seen[k] = cid
         return "ok"
+
+    # ---- ticket operations
+    def create_ticket(self, issuer_id: AgentId, owner_id: AgentId, face: int, maturity_time: int, bucket_id: str, serial: str | None = None) -> str:
+        """Create a ticket (face = amount) with issuer and owner."""
+        instr_id = self.new_contract_id("T")
+        t = Ticket(
+            id=instr_id,
+            kind="ticket",
+            amount=face,
+            denom="X",
+            asset_holder_id=owner_id,
+            liability_issuer_id=issuer_id,
+            maturity_time=maturity_time,
+            bucket_id=bucket_id,
+            serial=serial,
+        )
+        with atomic(self):
+            self.add_contract(t)
+            self.log("TicketCreated", issuer=issuer_id, owner=owner_id, face=face, maturity_time=maturity_time, bucket_id=bucket_id, ticket_id=instr_id, serial=serial)
+        return instr_id
+
+    def transfer_ticket(self, ticket_id: InstrId, from_agent_id: AgentId, to_agent_id: AgentId) -> None:
+        """Transfer ownership of a single ticket."""
+        if from_agent_id == to_agent_id:
+            return
+        instr = self.state.contracts.get(ticket_id)
+        if instr is None or instr.kind != "ticket":
+            raise ValidationError(f"ticket not found: {ticket_id}")
+        if instr.asset_holder_id != from_agent_id:
+            raise ValidationError(f"ticket {ticket_id} not owned by {from_agent_id}")
+        with atomic(self):
+            self.state.agents[from_agent_id].asset_ids.remove(ticket_id)
+            self.state.agents[to_agent_id].asset_ids.append(ticket_id)
+            instr.asset_holder_id = to_agent_id
+            self.log("TicketTransferred", ticket_id=ticket_id, frm=from_agent_id, to=to_agent_id, face=instr.amount, bucket_id=getattr(instr, "bucket_id", None), maturity_time=getattr(instr, "maturity_time", None))
+
+    def rebucket_ticket(self, ticket_id: InstrId, new_bucket_id: str) -> None:
+        """Update a ticket's bucket label (used when remaining_tau crosses a boundary)."""
+        instr = self.state.contracts.get(ticket_id)
+        if instr is None or instr.kind != "ticket":
+            raise ValidationError(f"ticket not found: {ticket_id}")
+        instr.bucket_id = new_bucket_id
+        self.log("TicketRebucketed", ticket_id=ticket_id, bucket_id=new_bucket_id)
+
+    def tickets_of(self, owner_id: AgentId, bucket_id: str | None = None, issuer_id: AgentId | None = None) -> list[InstrId]:
+        """List ticket ids held by owner, with optional bucket/issuer filters."""
+        result: list[InstrId] = []
+        for cid in self.state.agents[owner_id].asset_ids:
+            instr = self.state.contracts.get(cid)
+            if not instr or instr.kind != "ticket":
+                continue
+            if bucket_id is not None and getattr(instr, "bucket_id", None) != bucket_id:
+                continue
+            if issuer_id is not None and instr.liability_issuer_id != issuer_id:
+                continue
+            result.append(cid)
+        return result
 
     # ---- reserve operations
     def _central_bank_id(self) -> str:
