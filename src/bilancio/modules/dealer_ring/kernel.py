@@ -44,6 +44,8 @@ class DealerBucket:
         inventory: float,
         guard_m_min: float = 0.0,
         vbt: Optional[VBTBucket] = None,
+        dealer_id: Optional[str] = None,
+        vbt_id: Optional[str] = None,
     ):
         self.bucket = bucket
         self.S = float(ticket_size)
@@ -53,6 +55,8 @@ class DealerBucket:
         self.inventory = float(inventory)  # face units (tickets * S)
         self.guard_m_min = float(guard_m_min)
         self.vbt = vbt
+        self.dealer_id = dealer_id or bucket
+        self.vbt_id = vbt_id or (vbt.bucket if vbt else None)
 
         # derived at recompute
         self.quotes_cache: Optional[DealerQuotes] = None
@@ -180,8 +184,9 @@ class DealerBucket:
         price = q.outside_ask
         if self.vbt:
             self.vbt.sell_one()
-        if ticket_ops and customer_id and vbt_id and bucket_id:
-            ticket_ops.pass_through_buy_from_vbt(customer_id, vbt_id, bucket_id)
+        target_vbt = vbt_id or self.vbt_id
+        if ticket_ops and customer_id and target_vbt and bucket_id:
+            ticket_ops.pass_through_buy_from_vbt(customer_id, target_vbt, bucket_id)
         return price, True
 
     def execute_customer_sell(
@@ -212,8 +217,9 @@ class DealerBucket:
         price = q.outside_bid
         if self.vbt:
             self.vbt.buy_one()
-        if ticket_ops and customer_id and vbt_id and bucket_id:
-            ticket_ops.pass_through_sell_to_vbt(customer_id, vbt_id, bucket_id)
+        target_vbt = vbt_id or self.vbt_id
+        if ticket_ops and customer_id and target_vbt and bucket_id:
+            ticket_ops.pass_through_sell_to_vbt(customer_id, target_vbt, bucket_id)
         return price, True
 
     # ---- helpers for inventory/cash inspection ----
