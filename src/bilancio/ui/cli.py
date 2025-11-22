@@ -294,10 +294,10 @@ def analyze(
     if days:
         day_list = parse_days_arg(days)
     else:
-        # Infer days from events: prefer due_day set; fallback to settled day set
-        due_days = sorted({int(e["due_day"]) for e in events if e.get("kind") == "PayableCreated" and e.get("due_day") is not None})
-        settled_days = sorted({int(e["day"]) for e in events if e.get("kind") == "PayableSettled" and e.get("day") is not None})
-        day_list = due_days or settled_days
+        # Infer days from events: include both due_day values and actual settlement days
+        due_days = {int(e["due_day"]) for e in events if e.get("kind") == "PayableCreated" and e.get("due_day") is not None}
+        settled_days = {int(e["day"]) for e in events if e.get("kind") == "PayableSettled" and e.get("day") is not None}
+        day_list = sorted(due_days | settled_days)
     if not day_list:
         console.print("[yellow]No days found to analyze.[/yellow]")
         return
