@@ -58,6 +58,31 @@ def default_eligibility(system: System, cash_buffer: int = 1, horizon: int = 3) 
     return Eligibility(sellers=sellers, buyers=buyers)
 
 
-def bucket_pref(agent_id: str, bucket_ids: List[str], side: str) -> str:
-    """Bucket selection policy stub: pick the first bucket. Extend with shortest maturity/highest bid."""
-    return bucket_ids[0]
+def bucket_pref_sell(system: System, agent_id: str, bucket_ids: List[str], buckets) -> str:
+    """SELL: pick ticket with shortest remaining τ; tie-break on highest dealer bid."""
+    best_bucket = None
+    best_tau = None
+    best_bid = None
+    for bid in bucket_ids:
+        tids = system.tickets_of(agent_id, bucket_id=bid)
+        for tid in tids:
+            instr = system.state.contracts.get(tid)
+            if not instr or instr.maturity_time is None:
+                continue
+            tau = instr.maturity_time - system.state.day
+            dealer_bid = buckets[bid].quotes.bid
+            if best_tau is None or tau < best_tau or (tau == best_tau and dealer_bid > (best_bid or -1)):
+                best_tau = tau
+                best_bucket = bid
+                best_bid = dealer_bid
+    return best_bucket or bucket_ids[0]
+
+
+def bucket_pref_buy(system: System, agent_id: str, ordered_buckets: List[str], buckets) -> str:
+    """BUY: prefer Short->Mid->Long order; skip buckets whose dealer is pinned ask if possible."""
+    # ordered_buckets should already be short->mid->long
+    for bid in ordered_buckets:
+        dq = buckets[bid].quotes
+        if not dq.pinned_ask:
+            return bid
+    return ordered_buckets[0]

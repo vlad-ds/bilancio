@@ -10,7 +10,7 @@ from .kernel import DealerBucket
 from .vbt import VBTBucket
 from .ticket_ops import TicketOps
 from .settlement import settle_bucket_maturities
-from .policy import Eligibility
+from .policy import Eligibility, bucket_pref_sell, bucket_pref_buy
 
 
 @dataclass
@@ -39,6 +39,7 @@ def run_period(
     eligible_fn: Callable[[Any], Eligibility],
     bucket_selector: Callable[[str, list[str], str], str] | None = None,
     ticket_size: int = 1,
+    bucket_ranges: list[tuple[str, int, int | None]] | None = None,
 ) -> List[ArrivalResult]:
     """Run a single period: rebucket -> arrivals -> settlement -> anchor update.
 
@@ -47,6 +48,53 @@ def run_period(
     - vbts: VBT bucket objects keyed by bucket name
     """
     arrivals: List[ArrivalResult] = []
+
+    # Rebucketing step: move tickets to new bucket by remaining tau
+    if bucket_ranges:
+        day = system.state.day
+        # build lookup by bucket_id -> (min,max)
+        ranges = bucket_ranges
+        def _find_bucket(tau: int) -> str | None:
+            for bid, lo, hi in ranges:
+                if tau >= lo and (hi is None or tau <= hi):
+                    return bid
+            return None
+
+        for cid, instr in list(system.state.contracts.items()):
+            if getattr(instr, "kind", None) != "ticket":
+                continue
+            tau = instr.maturity_time - day if instr.maturity_time is not None else None
+            if tau is None:
+                continue
+            new_bucket = _find_bucket(tau)
+            if new_bucket is None or new_bucket == instr.bucket_id:
+                continue
+            owner = instr.asset_holder_id
+            owner_kind = system.state.agents[owner].kind
+            # dealer/VBT internal sale at new bucket mid
+            if owner_kind == "dealer":
+                old_dealer = buckets.get(instr.bucket_id)
+                new_dealer = buckets.get(new_bucket)
+                if old_dealer and new_dealer:
+                    mid_price = new_dealer.mid
+                    old_dealer.cash += mid_price
+                    old_dealer.inventory -= ticket_size
+                    new_dealer.cash -= mid_price
+                    new_dealer.inventory += ticket_size
+                    ticket_ops.system.transfer_ticket(cid, owner, new_dealer.dealer_id)
+            elif owner_kind == "vbt":
+                old_vbt = vbts.get(instr.bucket_id)
+                new_vbt = vbts.get(new_bucket)
+                if old_vbt and new_vbt:
+                    mid_price = new_vbt.mid
+                    old_vbt.cash += mid_price
+                    old_vbt.inventory -= 1.0
+                    new_vbt.cash -= mid_price
+                    new_vbt.inventory += 1.0
+                    ticket_ops.system.transfer_ticket(cid, owner, new_vbt.bucket)
+            else:
+                # trader: relabel only
+                ticket_ops.system.rebucket_ticket(cid, new_bucket_id=new_bucket)
     sellers = list(eligible_fn(system).sellers)
     buyers = list(eligible_fn(system).buyers)
 
@@ -58,7 +106,10 @@ def run_period(
         if side == "SELL":
             if sellers:
                 agent_id = random.choice(sellers)
-                bucket_id = bucket_selector(agent_id, list(buckets.keys()), "SELL") if bucket_selector else next(iter(buckets.keys()))
+                if bucket_selector:
+                    bucket_id = bucket_selector(agent_id, list(buckets.keys()), "SELL")
+                else:
+                    bucket_id = bucket_pref_sell(system, agent_id, list(buckets.keys()), buckets)
                 dealer = buckets[bucket_id]
                 vbt = vbts[bucket_id]
                 price, pinned = dealer.execute_customer_sell(
@@ -79,7 +130,10 @@ def run_period(
         if side == "BUY":
             if buyers:
                 agent_id = random.choice(buyers)
-                bucket_id = bucket_selector(agent_id, list(buckets.keys()), "BUY") if bucket_selector else next(iter(buckets.keys()))
+                if bucket_selector:
+                    bucket_id = bucket_selector(agent_id, list(buckets.keys()), "BUY")
+                else:
+                    bucket_id = bucket_pref_buy(system, agent_id, list(buckets.keys()), buckets)
                 dealer = buckets[bucket_id]
                 vbt = vbts[bucket_id]
                 price, pinned = dealer.execute_customer_buy(

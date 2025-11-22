@@ -21,6 +21,26 @@ class TicketOps:
             raise ValidationError(f"no ticket available for owner={owner} bucket={bucket_id}")
         return tickets[0]
 
+    def _pick_for_buyer(self, owner: str, buyer: str, bucket_id: str) -> str:
+        """Pick a ticket honoring buyer's issuer constraint (single-issuer asset)."""
+        buyer_agent = self.system.state.agents[buyer]
+        issuer_pref = getattr(buyer_agent, "issuer_asset", None)
+        candidates = []
+        for tid in self.system.tickets_of(owner, bucket_id=bucket_id):
+            instr = self.system.state.contracts.get(tid)
+            if not instr:
+                continue
+            if issuer_pref is None or instr.liability_issuer_id == issuer_pref:
+                candidates.append(tid)
+        if not candidates:
+            raise ValidationError(f"no ticket for buyer={buyer} matching issuer constraint in bucket={bucket_id}")
+        tid = sorted(candidates)[0]
+        instr = self.system.state.contracts[tid]
+        if issuer_pref is None:
+            # set issuer constraint for future buys
+            setattr(buyer_agent, "issuer_asset", instr.liability_issuer_id)
+        return tid
+
     def customer_sell_to_dealer(self, customer_id: str, dealer_id: str, bucket_id: str) -> str:
         """Customer sells one ticket to dealer; returns ticket_id moved."""
         tid = self._pick_one(customer_id, bucket_id)
@@ -29,7 +49,7 @@ class TicketOps:
 
     def customer_buy_from_dealer(self, customer_id: str, dealer_id: str, bucket_id: str) -> str:
         """Customer buys one ticket from dealer; returns ticket_id moved."""
-        tid = self._pick_one(dealer_id, bucket_id)
+        tid = self._pick_for_buyer(dealer_id, customer_id, bucket_id)
         self.system.transfer_ticket(tid, from_agent_id=dealer_id, to_agent_id=customer_id)
         return tid
 
@@ -41,7 +61,7 @@ class TicketOps:
 
     def pass_through_buy_from_vbt(self, customer_id: str, vbt_id: str, bucket_id: str) -> str:
         """Dealer pins ask: customer buys, ticket goes from VBT to customer."""
-        tid = self._pick_one(vbt_id, bucket_id)
+        tid = self._pick_for_buyer(vbt_id, customer_id, bucket_id)
         self.system.transfer_ticket(tid, from_agent_id=vbt_id, to_agent_id=customer_id)
         return tid
 
