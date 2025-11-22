@@ -1,0 +1,1920 @@
+Unknown speaker
+00:00
+to the requirements
+Vlad
+00:03
+Not bad.
+Vlad
+00:06
+I speak of my mom's time here. She's still here this week, she's traveling on Sunday morning.
+Vlad
+00:19
+That's the schedule.
+Vlad
+00:26
+Are you becoming German?
+Colleague
+00:27
+Oh, I...
+Colleague
+00:31
+I hope so. Yeah.
+Vlad
+00:34
+When is it happening?
+Colleague
+00:35
+days the test.
+Colleague
+00:40
+But I looked at the materials and it's really easy.
+Colleague
+00:48
+I only need to pass four modules, but each module I only need to get 60% of the score.
+Vlad
+00:56
+Oh.
+Vlad
+00:57
+Not even becoming a German is a serious thing anymore.
+Colleague
+01:01
+Exactly.
+Vlad
+01:03
+this world.
+Vlad
+01:07
+Well, good. I'm sure you will cross and it will be fine.
+Colleague
+01:12
+Yeah.
+Vlad
+01:15
+Shall we get into it?
+Colleague
+01:17
+Yeah, I just read what Jan sent, the essay.
+Vlad
+01:21
+Right.
+Vlad
+01:24
+I think that's fine. We can put together a version that can be okay in terms of texture, with GPT not worrying about putting any piece of text together anymore. Of course, the amount of hands-on work on the text we put mid-year ultimately is going to benefit, but that's fine. I think the question is more for us to understand what we're going to do, how can we expand it.
+Colleague
+02:00
+Hmm.
+Vlad
+02:03
+And I have an idea.
+Colleague
+02:04
+Okay.
+Vlad
+02:05
+Basically with Yamaha we have many different people. Do you want to turn on recording on your thing?
+Colleague
+02:11
+I am.
+Vlad
+02:13
+Okay, basically right, there were a number of things that we could improve and probably all of them are interesting in their own right, but I think the two main things—as long as we hold on to the same topology and a sense of equilibrium, basically like on one round of that settlement, right until the debt is settled.
+Vlad
+02:46
+As long as those two are the way that they are, then there are two things to do, right? I think especially the equilibrium has to do with decision making and actions, and I feel that's an important bit, but maybe we can do a couple of things before we go into that, and then we can extend all these smaller things first and then get into the action choice in the chicken, because I think that's going to be a very different flavor of simulation once we get that thing.
+Colleague
+03:32
+Yeah.
+Vlad
+03:34
+So I thought the two things that would make sense would be basically to have a market for debt where these entities can sell this debt and buy it also possibly, but we can also just keep it about selling it. And also the banking system, borrowing money. So I would say these are the two things that would be good to integrate and they would be also good for my own at that point because what we would introduce for those two are a dealer and a bank, and those are the two things that I've been trying to model and they're important pieces.
+Vlad
+04:37
+From my own standpoint of this money view type of research, my general project will be safe. So in both of these, I already have a pretty clearly set model for a simple bank and a simple dealer.
+Vlad
+05:13
+So I think what we can do is introduce from the sampling of what we have, we should introduce an option to our borrower, the party involved, which is that they sell the assets that they hold if they hold an asset, in order to obtain liquidity that they can then use to repay their own debt.
+Colleague
+05:41
+So they have the debt claim from another agent and sorry—
+Vlad
+05:49
+Bless you.
+Vlad
+05:54
+Are you okay?
+Colleague
+05:54
+My ass hurts so much because I saw Jay and I fell from this bench in a bar.
+Vlad
+06:06
+You fell from a bench.
+Colleague
+06:07
+Yeah, it was an elevated bench and was not attached to anything and I was just swinging on it like an idiot. And I fell and it crashed the table, it crashed all the glasses and crashed the lamp, everyone's looking at me.
+Vlad
+06:24
+He crushed your ass.
+Colleague
+06:26
+I fell on my ass and since Friday evening, it still hurts me.
+Vlad
+06:34
+Do you want to go check it?
+Colleague
+06:36
+I think it's improving, give it some more days, but if I sneeze it hurts.
+Vlad
+06:43
+Good God.
+Vlad
+06:44
+I feel like you should go check the bones a little bit.
+Colleague
+06:48
+Maybe.
+Vlad
+06:50
+If you come to your seatbone, that's not good. You have to stay alone.
+Colleague
+06:56
+Yeah, I hope it's not the bone and that it passes, but if it doesn't pass I'll check.
+Colleague
+07:04
+Anyway, we're saying that in our simulation all they have is debt claims.
+Vlad
+07:13
+So the point would be they sell the debt claim for cash.
+Vlad
+07:18
+And we have a dealer who buys it.
+Vlad
+07:25
+First of all, we'll have to make the model a little bigger in terms of the number of entities. So we can still keep all the parameters as they are, but we need to get the model to evolve more, because the dealer doesn't really make sense if we talk about the market proper, and we can't talk about a market proper if it's not a lot of claims.
+Colleague
+07:53
+But do we want to start first with the banking because we already have some banking logic in our code? Or do you want to start with the dealer?
+Vlad
+08:01
+Banking is going to be more complicated from this standpoint.
+Colleague
+08:06
+Then we start with the dealer.
+Vlad
+08:07
+For the moment, we don't have any banks. We just have a liability side of a central bank as a cash liability for the central bank.
+Colleague
+08:20
+In this simulation, but in our broader library, there was a bit of work done on banking.
+Vlad
+08:27
+It will be harder, and I have the work on the dealer complete and I will hopefully have the work on the banks complete in a week or so on that very simple map. The questions that we have here, the point is this: what we are looking at as a mechanism is you are a...
+Vlad
+08:54
+We have more entities, they work the exact same way, they have the same story that we already have.
+Vlad
+09:02
+If you're at the point where you need to repay, however, you don't have the money, you could sell an asset debt claim on another entity that you're holding to the...
+Vlad
+09:14
+To the dealer and you could get money on that and you could use that money to repay your loan.
+Colleague
+09:20
+Yeah.
+Vlad
+09:27
+And that would be what we have. And then we have a deal where the price is this, right?
+Colleague
+09:35
+So you can never get more money than what you're owed. You're going to get actually a bit less than what you're owed.
+Colleague
+09:43
+Like, if you owe me 100 and I go and sell the debt to the dealer, the dealer will give me 80.
+Vlad
+09:49
+Yeah. So, yeah.
+Vlad
+09:53
+So this is the main point, right? The main introduction that we need to make here is the dealer pricing model.
+Vlad
+10:04
+Right, we need a dealer pricing model and to have the dealer pricing model I will give you a paper that explains how this model works. We'll have to have a dealer and we'll keep a value-based trader. The difference between the two of them is they're both automatic, they're both going to be automatic, and they quote a price to buy and to sell the debt ultimately so that the dealer is the kind of someone who basically makes the market. But if the dealer runs out of the given type of money or of a given kind of security, then the value-based trader who offers worse prices steps in and takes over the trade.
+Colleague
+10:54
+Huh.
+Vlad
+10:54
+And offers you obviously worse price than the dealer, so you always want to trade with the dealer, but then if the dealer can't, then you go to the value-based trader. That's the logic. The main question with applying the dealer to this story is going to be about how does the dealer—and the point with this is that what we have is our security, our debt, our asset, our instrument is specified.
+Vlad
+11:40
+The UMI in terms of the size, all the debt, and the counterparty they need to pay, and the time. So what we need to do, because for the dealer to make a market in it, to quote a price on it, there needs to be—we cannot have completely diverse instruments. These instruments are going to make a market if there is more than a single instrument, right?
+Vlad
+12:17
+So we need to kind of classify this debt somehow.
+Colleague
+12:21
+Oh.
+Vlad
+12:23
+Right, so that the dealer could be buying or selling debt of a specific class.
+Vlad
+12:35
+For example, so you as a holder hold a claim over someone, someone's debt. And when you go to sell it to the dealer, if you're in that situation where you need to sell it to the dealer, you are holding the debt of a particular class. So the dealer is going to pay you this much or that much for that. You can think of corporate A-grade debt versus B-grade versus C-grade or something like that.
+Vlad
+13:10
+And obviously depending on which security you give to the dealer, the price on that security is going to change.
+Vlad
+13:21
+Yeah. Right.
+Vlad
+13:23
+The idea here is that we don't want to introduce the ability to buy the debt from the dealer because that would be more like an investment decision.
+Vlad
+13:44
+Right, so let's imagine you have an entity and it has some cash and it doesn't need to repay anything anytime soon.
+Colleague
+13:49
+Yeah, it's a way to make money,
+Vlad
+13:51
+What the entity could do is it could invest and buy upon the dealer. But it complicates things and we don't necessarily need it. Why? Because what we can have is a mode of buying from the dealer is simply repayment. So if you think of the dealer holding some debt claim on someone,
+Colleague
+14:26
+Mm-hmm.
+Vlad
+14:26
+who buys the debt from the dealer in the sense that they could pay and take the claim or the borrower could simply repay.
+Vlad
+14:42
+And when the borrower repays the dealer, it looks exactly as if somebody bought it from the dealer in the sense that the dealer is going to lose the asset and obtain money.
+Colleague
+14:53
+No,
+Vlad
+14:53
+Right.
+Colleague
+14:54
+I didn't get this part because you have a debt and you repay the dealer.
+Colleague
+15:02
+So you're just saying.
+Vlad
+15:04
+A claim on a debt claim on someone, one of these IOUs, one that we were working with, right? The same way as one entity calls it on another.
+Vlad
+15:21
+In a secondary market someone could come and buy that debt from the dealer. We have an entity and he has a lot of money that he doesn't need right now, he could come and buy.
+Colleague
+15:27
+Yeah.
+Vlad
+15:27
+Right?
+Colleague
+15:31
+Mm-hmm.
+Vlad
+15:32
+He buys it, the dealer gives the asset, and gains some money.
+Vlad
+15:40
+Let's now imagine that borrower, that the dealer has the claim on,
+Colleague
+15:46
+Yeah.
+Vlad
+15:46
+whose debt is failing.
+Colleague
+15:48
+Repays the debt.
+Vlad
+15:50
+Again, the dealer will lose the asset and gain money.
+Colleague
+15:53
+Yeah, but that's not buying because only one person can repay the debt. Only one entity can repay the debt.
+Vlad
+15:59
+It's a repayment.
+Colleague
+16:01
+So the debt is not for sale.
+Vlad
+16:04
+Of course.
+Colleague
+16:12
+Like what do you want to achieve here? Because you're saying, you know, buying debt as investment is maybe out of scope.
+Vlad
+16:20
+Yeah, okay, you're right. Let's first think of what we want to achieve here. The point of introducing a dealer is to say if I have a dealer in a system, he is going to make the market more liquid, and making the market more liquid is going to make the default rate lower.
+Colleague
+16:50
+Right, I get that.
+Vlad
+16:51
+This is the point of the whole thing. The same thing with the Mac, right? If you have a bank that you can borrow from, the market is more liquid, right?
+Vlad
+17:04
+So these are the two ideas. How will a bank and a dealer help this? What if there is a bank? What if there is a dealer in this system?
+Vlad
+17:20
+And so for the dealer, if we would want to specify properly, we would specify both the possibility of selling to the dealer and the situation at which it happens and how it ends up being executed, and there's a possibility of buying from the dealer.
+Colleague
+17:41
+But think about in our simulation, what do our agents want? Currently, they just want to pay their debts. So they're not interested in investing.
+Colleague
+17:52
+They're interested in just getting liquidity.
+Vlad
+17:56
+Yes.
+Colleague
+17:56
+So if we have a situation where they can just
+Vlad
+17:59
+sell their debt and get liquidity.
+Vlad
+18:03
+Isn't that enough?
+Colleague
+18:06
+Is it an issue if a debt,
+Vlad
+18:08
+is.
+Vlad
+18:14
+Possibly awkward because the dealer operates as someone who stands in the middle of a market between the borrowers and the debtors.
+Colleague
+18:21
+Right, but in this situation the dealer would just accumulate.
+Colleague
+18:25
+That, yeah.
+Vlad
+18:26
+Yeah, the problem is that the dealer function will look a little weird in comparison to how it should look. And the other reason why this limitation is probably not a good idea is also because your goal is to repair debt.
+Colleague
+18:31
+Yeah.
+Vlad
+18:51
+But if you need to repay, let's say, an amount of debt and you are in a position where you have some money, but you don't have enough of it, or you just have some claim on someone else.
+Vlad
+19:02
+And that claim is...
+Vlad
+19:08
+Let's say you have some money, but you don't have enough of it.
+Colleague
+19:13
+Yeah.
+Vlad
+19:15
+You would be interested in investing the money that you have in a claim if that is going to lead to a situation where later on when you sell it, you get more money.
+Vlad
+19:27
+If it's going to lead to a situation where later on when you sell it, you get more money.
+Vlad
+19:37
+And you would want to sell it at the point where you need to repay, right?
+Vlad
+19:45
+Yeah, I get it. Let's say you have 90 dollars and your repayment is a hundred in 10 days. If you can invest in something for 90 right now and earn 10 so that when you sell it you get
+Vlad
+20:06
+you get a hundred,
+Vlad
+20:10
+then you are going to be very happy to do that because that's going to let you not default later on.
+Colleague
+20:18
+One thing is that we don't have partial repayment, we don't have interest.
+Colleague
+20:23
+Because in real life, I would actually...
+Vlad
+20:25
+Here the interest is not necessary. What is necessary is that you have an expectation that if you buy the debt now and sell it later,
+Vlad
+20:40
+you are going to earn more. We just need capital gain. We don't need interest necessarily.
+Colleague
+20:46
+Yeah, no, I was just thinking aloud that in real life I would consider
+Colleague
+20:51
+The expected return of those $90.
+Vlad
+20:56
+Mm-hmm.
+Colleague
+20:56
+Is it better to partially repay my debt? But that's determined by interest, right? It's better to partially repay my debt and reduce interest on my debt.
+Colleague
+21:06
+Or is it better to invest it and the risk adjusted returns are better than that?
+Vlad
+21:13
+Yeah, so we said there is no way for you to repay anything before the maturity, right? You simply pay what you pay when you have to pay. Our system is simple.
+Vlad
+21:26
+There is no interest, there is no flexibility in repayment, right? We want to play with it as simple of a system as possible. Why you still believe that if you bought an instrument
+Vlad
+21:39
+you could earn more money in the future than you would have now is because
+Vlad
+21:50
+two reasons. One is that if you buy an instrument now
+Vlad
+21:56
+and you sell it later, you are buying it at an earlier time with regards to its own maturity.
+Vlad
+22:05
+So if I buy a debt that is going to pay $100 in 10 days, if I buy it today, it is going to be more discounted than when I sell it three days before maturity. Because today there are 10 days to its maturity and then when I sell it there are three days to its maturity. If somebody is buying that at that point, they will be willing to pay more for it in principle.
+Colleague
+22:33
+Yeah.
+Vlad
+22:33
+Because it's less risk.
+Colleague
+22:35
+So we have a pricing function that takes in time along with other stuff.
+Vlad
+22:39
+Dealer, we don't have a pricing function besides the function. The dealer is our pricing function.
+Colleague
+22:45
+So the agent looks at how much the dealer would pay.
+Colleague
+22:51
+Now
+Vlad
+22:51
+There
+Colleague
+22:52
+versus in
+Vlad
+22:53
+is another
+Colleague
+22:53
+the future.
+Vlad
+22:54
+reason in general with our dealer, which is that our dealer at the beginning of the simulation holds an amount of debt. Maybe he's going to buy more and some money and he's going to buy more debts in the meantime.
+Vlad
+23:15
+Later on, what is going to be happening to our dealer is that the debt that he's holding is either going to be defaulted or repaid.
+Vlad
+23:29
+If
+Colleague
+23:29
+Yeah.
+Vlad
+23:30
+the debt gets defaulted or repaid, in any case his inventory is going to involve more money and less debt claims.
+Vlad
+23:40
+The more money and the less debt claims the dealer has, and this is how his pricing function works.
+Vlad
+23:48
+The more he's willing to offer.
+Vlad
+23:52
+The higher is the price that he's willing to pay on it.
+Colleague
+23:59
+Right, because
+Vlad
+24:00
+Right.
+Colleague
+24:00
+he wants to spend his money, he wants to invest his money.
+Vlad
+24:03
+He always wants to be in this
+Colleague
+24:04
+showing me
+Vlad
+24:04
+has equal value in debt and security. So for these two reasons,
+Vlad
+24:13
+he will in principle be interested in
+Vlad
+24:18
+He should be in principle interested in giving you more later on than he wants from you right now.
+Colleague
+24:30
+Hmm.
+Colleague
+24:32
+because he will have less
+Colleague
+24:35
+a debt.
+Colleague
+24:36
+So the dealer needs to be able to do this projection.
+Colleague
+24:41
+And
+Vlad
+24:41
+Yes,
+Colleague
+24:42
+the agent needs to be able to
+Colleague
+24:47
+predict what the dealer will do at different points in time to make this calculation.
+Vlad
+24:56
+And we should keep things as simple as we can, right? So the point would be that simply our dealer, our agents
+Vlad
+25:06
+is looking at
+Vlad
+25:09
+not defaulting in the future.
+Vlad
+25:12
+And he is going to always invest
+Vlad
+25:17
+the money that he has
+Vlad
+25:22
+in order not to default in the future. And in order to
+Vlad
+25:33
+And as he does, he's going to buy stuff from the business.
+Colleague
+25:40
+Yeah.
+Vlad
+25:43
+And we have the dealer pricing things, which is the one part that we pretty much have how it works. And so the price would be set and he would buy. And then we basically have
+Vlad
+26:00
+the hope of obviously the expectation of that agent to be able to earn enough.
+Vlad
+26:10
+And that's either going to come true.
+Vlad
+26:13
+Or not.
+Vlad
+26:14
+That is going to come through in the case that things happen exactly as the agent predicts, but it's not going to come through if the particular kind of debt that he bought ends up facing a lot of defaults, right?
+Colleague
+26:31
+Yeah.
+Vlad
+26:33
+And things like that.
+Colleague
+26:38
+Mm-hmm.
+Colleague
+26:39
+Okay.
+Colleague
+26:43
+So I get the general idea and then the devil will be in the details, right?
+Vlad
+26:51
+Yes, so what I think could possibly be the first step
+Colleague
+26:58
+to go in this direction would be to
+Colleague
+27:01
+implement the dealer.
+Vlad
+27:05
+Yes.
+Colleague
+27:05
+Implement the pricing.
+Colleague
+27:09
+the DS.
+Colleague
+27:10
+And then.
+Vlad
+27:12
+without even running the whole simulation or the interactions.
+Colleague
+27:16
+to just make sure that the dealer works as intended.
+Vlad
+27:20
+Yes.
+Colleague
+27:20
+So we just create some scenarios and make sure that the pricing works as intended to validate this dealer.
+Vlad
+27:32
+Yes, that sounds good.
+Colleague
+27:39
+And I think you have the paper, which you already sent.
+Vlad
+27:44
+Yes.
+Colleague
+27:54
+The other thing is these classes of debt, right?
+Colleague
+27:59
+Do we specify that?
+Vlad
+28:02
+Yes, there is a piece that we need to figure out a little bit.
+Colleague
+28:09
+I mean, maybe you decide to start
+Colleague
+28:14
+Like you just decide that it's going to be ABC and then you define post hoc what that means for you or something.
+Colleague
+28:24
+The other thing is that, in real life, the class of debt depends on the history and the credit worthiness of the person, but we don't have that.
+Vlad
+28:35
+Everyone starts with no history.
+Colleague
+28:50
+If this ends up being too complex, maybe you could even
+Vlad
+29:00
+You could have a super simple thing where
+Colleague
+29:04
+they can just
+Colleague
+29:07
+get liquidity for their debt
+Colleague
+29:10
+from the central bank or something.
+Colleague
+29:14
+And it's just
+Vlad
+29:16
+Getting liquidity.
+Vlad
+29:20
+The problem is always how is that going to be priced, right? That is the main and that is the dealer function done by the bank or done by the dealer as we have it.
+Vlad
+29:36
+The idea here could be maybe a simpler one to say that the dealer doesn't really have this multiple
+Vlad
+29:44
+classes of debt.
+Vlad
+29:47
+He simply treats all the debt equally.
+Vlad
+29:52
+And then he basically prices the debt down if he sees defaults
+Vlad
+30:07
+and up if he sees the repayments.
+Vlad
+30:15
+Then beyond that, prices went down as he is
+Vlad
+30:23
+buying a lot of it and prices it up as if he's selling a lot. That could be the simplest dealer. There will be no class of debt, there would simply be debt as it is.
+Vlad
+30:40
+Those four things: default, repayments, and the demand and the supply
+Vlad
+30:49
+movements that he's facing.
+Colleague
+30:53
+Yeah, and then
+Colleague
+30:56
+The price is basically the spread between the value of the debt and how much the dealer will give you for it.
+Colleague
+31:05
+Is that the price?
+Vlad
+31:07
+So the way that the dealer prices is basically looking at his own inventory size.
+Colleague
+31:14
+Yeah, supply
+Colleague
+31:15
+and demand, like you said.
+Vlad
+31:16
+The dealer is basically the alternative to the supply-demand
+Vlad
+31:23
+like the way that microeconomics thinks about pricing.
+Colleague
+31:28
+But my question was more basic.
+Colleague
+31:30
+How does price, what's the price of debt? What is it concretely? Is it the difference between, okay, you owe me 100
+Colleague
+31:41
+and the dealer gives me 90 liquidity.
+Colleague
+31:44
+Does that mean the price is 10?
+Vlad
+31:47
+No, the price is not. The price is what the dealer gives you.
+Colleague
+31:50
+Ah!
+Vlad
+31:52
+Or what you give to the dealer if you're buying the debt from him.
+Colleague
+31:57
+But it's going to be always lower, right?
+Vlad
+32:00
+There are always two prices. The dealer always quotes two prices. There is never one price. These two prices are the price at which he's buying and the price at which he
+Colleague
+32:11
+So, okay, so he's buying at 90.
+Vlad
+32:17
+and he's selling at 95.
+Colleague
+32:20
+All right. 95, okay.
+Vlad
+32:22
+The debt that costs 100, like repays 100.
+Colleague
+32:26
+Okay.
+Vlad
+32:28
+So he moves. That's the main point of having the dealer involved.
+Vlad
+32:38
+The dealer makes the debt liquid because he stands ready to sell it or buy it whenever the counterparties want, right?
+Vlad
+32:49
+And he prices the liquidity of that, because there is the cash flow that you will receive when the debt is repaid, but the liquidity of that is priced based on the current situation
+Vlad
+33:05
+in terms of how many other parties are willing to buy it and how many other parties are willing to sell it, right?
+Vlad
+33:15
+And so he prices the liquidity and what is that? The price of liquidity ultimately is that spread between
+Vlad
+33:25
+the price that he buys and the price that he sells.
+Colleague
+33:28
+He's going to keep five and pocket that.
+Vlad
+33:31
+He's going to pocket five or more or less. He's going to pocket five on a 95 or five on 85. That is basically telling you how liquid it ultimately is.
+Vlad
+33:47
+So I think what we can do is maybe start with treating all debt the same.
+Colleague
+33:54
+Mm-hmm.
+Vlad
+33:55
+Treating all debt the same and then
+Vlad
+34:00
+which is unrealistic in the sense that exactly the dealer
+Vlad
+34:08
+could have certain brackets for this debt, right?
+Vlad
+34:15
+But treating all debt the same.
+Vlad
+34:29
+And then we see, right?
+Vlad
+34:32
+The idea would be that if the dealer is in there, he should be able to
+Vlad
+34:38
+make things better in terms of the defaults.
+Colleague
+34:43
+Yeah, but first we need to, I think first we're going to simulate the dealer in a void and just give him inputs and outputs to make sure.
+Vlad
+34:52
+how he works. Exactly.
+Colleague
+34:54
+And the input will be
+Colleague
+34:56
+somebody buying debt or somebody selling
+Vlad
+34:59
+Can I give you a read a little bit to it? Is that okay?
+Colleague
+35:03
+Yeah.
+Colleague
+35:06
+But this will be what we
+Colleague
+35:11
+put in and get. The input is somebody buying debt or selling debt from the dealer and then
+Vlad
+35:18
+Every time this happens, all the prices will shift.
+Vlad
+35:22
+Yeah.
+Colleague
+35:22
+Because the equilibrium shifts. So we basically will have the dealer and we'll feed him different inputs and then we'll see how the prices vary.
+Vlad
+35:32
+Whether he changes properly. So
+Vlad
+35:37
+we can test that and then if that works how it should then we can try to make that input for the dealer.
+Vlad
+35:47
+people from these counterparts in the market.
+Vlad
+35:52
+Right, these agents we have around.
+Vlad
+35:55
+That's all.
+Colleague
+35:55
+Because in the month
+Vlad
+35:57
+Yeah, in the market
+Colleague
+36:01
+Like, the dealer is kind of passive. It doesn't initiate stuff.
+Vlad
+36:04
+Exactly. He doesn't initiate stuff. And the point is that the way that they are going to initiate with him is also going to be automatic,
+Colleague
+36:13
+Right?
+Vlad
+36:13
+So we don't want them to have some specific risk appetite or anything like that. They're simply going to look at how much money they have and then they're going to buy the debt that they can buy.
+Colleague
+36:33
+Yeah.
+Vlad
+36:45
+So, can I give you a sense of how it works?
+Vlad
+36:50
+And I can send this to you immediately.
+Vlad
+37:11
+But this is this extremely simple dealer, right?
+Vlad
+37:20
+There will be a little bit more addition because this here assumes a single type of debt or a single security. The point of the single security here is that the maturity of that debt is always the same, right?
+Vlad
+37:36
+Counterparties are treated the same and then maturity is treated the same.
+Vlad
+37:43
+We can keep the counterparty treatment as the same, but obviously our maturities cannot be the same, so we will need to introduce an additional function that is going to price
+Colleague
+37:49
+Sure.
+Vlad
+37:49
+That could kill our product.
+Vlad
+37:57
+Still treating the debt as exactly the same, however it's going to treat shorter term debts.
+Vlad
+38:07
+The size of the debt and the maturity is not the same for us. So we are going to come up with a function that is going to standardize the pricing.
+Vlad
+38:24
+Standardize the pricing over maturities and sizes.
+Colleague
+38:32
+And the less maturity, the better, right? Because there's less risk over time.
+Vlad
+38:39
+Yeah, and what we can also do here is
+Vlad
+38:43
+I think maybe that can help us. We can split the debt
+Vlad
+38:51
+in standardized size.
+Vlad
+38:54
+So we currently have IOU 100 Euro, the third person 50.
+Colleague
+38:59
+Yeah.
+Vlad
+39:00
+We can make it so that IOU ten times ten and you owe the other guy five times ten.
+Colleague
+39:08
+Okay.
+Vlad
+39:09
+So we are working with this small debt instruments
+Vlad
+39:14
+which are all of equal status. They have different maturity, but they are of equal size.
+Colleague
+39:22
+Yeah, and then you
+Colleague
+39:25
+You factored out the size, it's out of the equation.
+Vlad
+39:28
+Exactly. And so we don't have this problem where the dealer has some debt to sell, but it's a lot bigger piece and you might not have the money for the bigger piece, but you have money for a smaller piece. So we have a standard small piece, that is,
+Colleague
+39:47
+Yeah.
+Colleague
+39:50
+Like, yeah.
+Vlad
+39:53
+Like a debt unit, it's kind of like a debt unit. So I owe you five debt units, you owe the other guy ten debt units and whatever.
+Colleague
+40:01
+Yeah.
+Vlad
+40:05
+So we simply have the difference in maturity and we are obviously ignoring the differences between counterparties, right? All the counterparties are treated as the same.
+Colleague
+40:16
+Yeah.
+Vlad
+40:19
+So we have this dealer that has a balance.
+Vlad
+40:25
+In terms of A and B, and then what we need for him is a standard ticket size
+Vlad
+40:34
+which is going to be the amount of trades. Wait.
+Vlad
+40:45
+Let me start from the beginning.
+Vlad
+40:50
+I will rewrite this for our purposes differently.
+Vlad
+41:11
+Okay, let's read from the introduction number three: reconstruct a single security deal two-sided inside market to accommodate one ticket customer flow while laying off an outside venue formed by value-based traders
+Vlad
+41:31
+at quotes B and A and plus or minus O half.
+Vlad
+41:40
+There is no short-term borrowing, this doesn't really matter how it works. So there is an inventory for our dealer.
+Vlad
+41:51
+And this inventory involves an amount of money and an amount of debt that he's holding currently,
+Colleague
+41:57
+Yeah.
+Vlad
+41:57
+Right? There is a
+Vlad
+42:05
+The securities are A and cash is B.
+Colleague
+42:08
+Hmm.
+Vlad
+42:14
+And then we have
+Vlad
+42:18
+outside spread so we need to have this value-based trader and he has a
+Vlad
+42:25
+spread that he's setting up and there is a midpoint of that spread
+Vlad
+42:32
+And then there is the standard ticket size, right? So this is going to be the standard size of trade.
+Vlad
+42:42
+We did the other
+Colleague
+42:51
+About ticket size, I don't get it.
+Vlad
+42:56
+The ticket size is basically the
+Vlad
+43:04
+So, the way this works is basically our dealer
+Vlad
+43:09
+is going to be looking at his
+Vlad
+43:12
+You can go to this page six if you want.
+Colleague
+43:15
+I
+Vlad
+43:16
+So
+Colleague
+43:17
+No.
+Vlad
+43:17
+On the visual ones.
+Colleague
+43:20
+Okay, now I see.
+Vlad
+43:22
+So if you look at this, the unit here is a ticket size, right?
+Vlad
+43:29
+So let's imagine the dealer is at position two. This is a position where our dealer is
+Vlad
+43:38
+going to have equal value in securities and in debts.
+Vlad
+43:46
+Right, and ticket size is
+Vlad
+43:52
+what key measures, right? So he says, I'm three ticket sizes away
+Vlad
+44:00
+from running out of securities and three ticket sizes away from running out of money.
+Colleague
+44:09
+Aww.
+Vlad
+44:10
+Right, in the sense that there is a standard ticket size which means that over the next day, one trading day or one market
+Vlad
+44:26
+activity sequence, I would move
+Vlad
+44:30
+4-1
+Vlad
+44:33
+in either direction, right? This is the standard.
+Vlad
+44:36
+What kind would I move? I would move from two to three, for example, which is going to need me to price these securities lower because I have had, let's say, ten securities more that were sold to me than bought from me.
+Vlad
+45:00
+So I got 100 securities sold to me and 90 securities bought from me. So now I'm finding myself at situation three, which is a situation where I ended up having ten more securities than I used to, which is my one ticket size.
+Vlad
+45:20
+And that is how I set this up. I know how much standard daily movement would be and I also know how much I can take.
+Vlad
+45:33
+I can take three ticket sizes. Right?
+Colleague
+45:38
+No, I need maybe more time because I'm missing the basics, like ticket size and what the axes represent.
+Colleague
+45:50
+I'm missing all the context, so you lost me.
+Vlad
+45:53
+Do you want me to do it again?
+Colleague
+45:56
+We can try, or I can try by myself.
+Vlad
+46:02
+Let me try one more time. I teach this one all the time. Let me try it somewhere.
+Colleague
+46:08
+You just say very simply what's a ticket size because that I don't know.
+Vlad
+46:13
+It's the standard net movement over a trading sequence of the dealer inventory position day.
+Colleague
+46:22
+What's the trading sequence? Is it how he...
+Vlad
+46:26
+Let's say day. In our story, we have days, right?
+Colleague
+46:31
+And every day we have the exact same change we assume that.
+Vlad
+46:35
+No, no, no. We say the dealer has a standard ticket size, which is his expectation of how much he would usually lose within the day.
+Colleague
+46:51
+Okay, and so in our model, we assume that.
+Vlad
+46:56
+He kind of does the same amount of stuff every day.
+Colleague
+47:02
+It's not that one day he does a million things and the next day he chills.
+Vlad
+47:05
+It doesn't have to be the case that he is going to be having the standard ticket size. The idea would be that he just has a generally good understanding and typically the stuff moves within one ticket size.
+Vlad
+47:25
+I mean, yeah, like we can also simplify that further. Instead of him estimating the standard ticket size, we could simply say there is an amount of how far the dealer is going to move.
+Vlad
+47:49
+Willing to net sell or net buy over a day and that's it.
+Vlad
+47:55
+And that's on the X axis.
+Vlad
+47:58
+Yeah, the x-axis is the dealer's inventory. So the x-axis is such that if a dealer has, let's say, hundred dollars in securities and hundred dollars in money...
+Colleague
+48:11
+How do you derive that from just seeing two?
+Vlad
+48:17
+This is our representation using the ticket size, right? The point of it is that I'm taking the two because it is the middle.
+Colleague
+48:25
+It corresponds to price zero.
+Vlad
+48:29
+It corresponds to mid price zero and it's the middle, right?
+Colleague
+48:35
+So what?
+Vlad
+48:35
+The good thing is...
+Colleague
+48:38
+Sorry, what is the y-axis?
+Vlad
+48:42
+The y-axis is the price.
+Colleague
+48:45
+And the price is...
+Vlad
+48:49
+So the logic of this, if you want to understand the logic, is you need to understand why it puts the two and the zero price together.
+Vlad
+49:01
+Whatever, call it zero price. But the point here is that the dealer says I have a balance sheet made out of money and securities.
+Vlad
+49:13
+I have two values. One is the value of my security, the other is value of my money.
+Vlad
+49:19
+What I want to determine, and I know, is externally set prices of the value-based trade.
+Vlad
+49:30
+And I want to take the mid of my value-based trader, between the two prices that he sets for buying and selling.
+Vlad
+49:42
+That is my midpoint when I am in the balanced inventory position where my balance sheet has equal amount of money and full amount of debt placed.
+Vlad
+49:55
+So as I end up filling myself with securities or filling myself with money depending on what counterparties come to do with me, I'm going to be moving as I'm getting filled up with securities.
+Vlad
+50:13
+Down to the right hand side up until I'm filled with securities and I will quote the lowest price.
+Vlad
+50:22
+That I can just a moment before I run out of money.
+Vlad
+50:27
+And so if I'm running out of securities here at the highest point at the left edge,
+Vlad
+50:36
+I am at the point where I will quote the highest possible price just before I run out of security.
+Vlad
+50:48
+That is going to make me do most trades.
+Vlad
+50:53
+That I can be doing.
+Colleague
+50:55
+I want to do as many because I basically make money from each trade.
+Vlad
+51:01
+Exactly.
+Colleague
+51:01
+The objective is to maximize the number of trades.
+Vlad
+51:05
+Exactly. I am the market maker. I want to operate in this market and exploit my balance sheet to the maximum that I can so that I lay off to the value-based trader only at the point where I can't do any more trades because I have run out of the theme.
+Colleague
+51:26
+Right. So here,
+Colleague
+51:28
+we conventionally assume that the two is the midpoint and then
+Colleague
+51:34
+If you move to the right,
+Colleague
+51:37
+then you have more securities.
+Colleague
+51:40
+If you move to the left,
+Vlad
+51:41
+And you're working at a lower price,
+Colleague
+51:43
+you move to the left.
+Vlad
+51:43
+I don't think you may run out of security.
+Vlad
+51:48
+You want to quote the exact price.
+Vlad
+51:53
+The value-based trader is going to quote.
+Vlad
+51:58
+Because you want to
+Vlad
+52:01
+sell everything to
+Vlad
+52:03
+sell as many as you can, right? But if you need to be buying,
+Vlad
+52:07
+to a point where he only takes over where you can buy.
+Vlad
+52:16
+You want to attract the customer
+Vlad
+52:19
+right up until that point where you can't
+Vlad
+52:24
+trade with a customer anymore.
+Colleague
+52:26
+And why is the price negative?
+Vlad
+52:30
+Don't worry, don't think of these prices as actual prices. Think of these as price corrections.
+Colleague
+52:37
+Okay.
+Vlad
+52:38
+Or the variations.
+Colleague
+52:40
+Okay, now I get the idea. This is, yeah.
+Vlad
+52:45
+Then the other thing is that you're going to have,
+Vlad
+52:49
+you're going to quote two prices depending on the method that you are in.
+Vlad
+52:54
+They are going to be equally removed from that median,
+Vlad
+52:59
+such that the price at which you are buying
+Vlad
+53:02
+is the lower one. You buy for a lower price and you sell at a higher price. And that is what you will be earning.
+Colleague
+53:12
+Yeah, they have this, one is bid and then it's ask. So the ask is above, that's your, the arrow is what you're earning.
+Vlad
+53:23
+Yeah.
+Colleague
+53:24
+So basically this is a function where you input the dealer inventory and you get back
+Colleague
+53:32
+the bid and the ask.
+Vlad
+53:35
+Exactly. You input the dealer inventory, you input the value-based trader price.
+Vlad
+53:43
+And you get the bid and the ask.
+Vlad
+53:45
+And then you input the trades that the counterparties want to do with the dealer.
+Vlad
+53:53
+Right?
+Vlad
+53:55
+And then you understand where the dealer is moving and how is the price going to be moving.
+Colleague
+54:04
+Yeah.
+Vlad
+54:05
+That's
+Colleague
+54:06
+the X, there's VBT anchors, but where is the X?
+Colleague
+54:12
+Lower right and upper left.
+Vlad
+54:15
+Yeah, it's the exact intersection between the higher and the mid and the lower.
+Colleague
+54:25
+Yeah, and in our simulation how do we get the VBT, the VBT price?
+Vlad
+54:32
+The VBT needs to be externally set and we need to see how we do that, right?
+Vlad
+54:39
+Yeah, we need to see how we do this. The point is that the adjustments would be, I would say, three first adjustments that we need to make in terms of the model itself while we work on the dealer on the other side.
+Vlad
+54:52
+They are to have more parties, number one. We can't have five parties because five is too little to think of a market. There are really only existing markets that are big enough, with constant movement in terms of buying and selling.
+Vlad
+55:10
+In very liquid, very deep markets.
+Colleague
+55:14
+Mm-hmm.
+Vlad
+55:15
+And then we need to have the dealer. We need to give him an amount of money and securities, and he needs to have a bigger balance sheet than any of the traders.
+Vlad
+55:34
+Then we need to have the value-based trader, and he has to have a big balance sheet as well.
+Vlad
+55:41
+Where he also holds money and securities.
+Vlad
+55:52
+So that will be the first step. The two of them need to be pretty big, both of them.
+Colleague
+56:00
+Mm-hmm.
+Vlad
+56:05
+We can simplify it as much as we want to. Maybe what we can do is set them up in such a way that all the entities,
+Vlad
+56:18
+all the borrowers in our system or our normal entities,
+Vlad
+56:25
+have an amount of debt towards some other entity in the ring.
+Vlad
+56:32
+Let's say whatever amount they have, 50. They have five units of ten.
+Vlad
+56:38
+And then we can say,
+Vlad
+56:41
+they also have five towards the dealer and five towards the value-based trader.
+Vlad
+56:51
+So the dealer and the value-based trader are on all of the plates, on all of the animals, right?
+Colleague
+57:02
+Mm-hmm.
+Vlad
+57:03
+And we can set them at the beginning to be in a balanced position. So given the amount of securities that they have,
+Vlad
+57:13
+they are going to have an amount of money as well that's going to be equal, given the value of securities that they're going to be setting up.
+Colleague
+57:20
+You mean they start in the middle at like two?
+Vlad
+57:24
+Yes.
+Vlad
+57:30
+And they need to be large, and the value-based trader ultimately needs to be extremely large. He needs to be in a position where he has a lot of securities. We can also see whether it's going to happen, and it would be a result where either one of them is getting swamped and cannot stay on.
+Vlad
+57:56
+Can you deal with it?
+Vlad
+57:59
+But generally they should be pretty large and they should not be getting in trouble very easily.
+Vlad
+58:06
+Easier,
+Vlad
+58:08
+because then ultimately the dealer should be in the position where he could hit the extreme, running out of either money or security.
+Vlad
+58:19
+But the value-based trader should always be able to pick up.
+Vlad
+58:27
+Yeah, got that.
+Vlad
+58:30
+So this is the setup, right? This is the setup.
+Colleague
+58:37
+Anyway, this whole thing of saying
+Colleague
+58:42
+There's a lot of agents and each of them,
+Colleague
+58:47
+the dealer gets five from each of them. That can be a second step.
+Vlad
+58:52
+The first step, I would say, let's just
+Colleague
+58:55
+have this dealer function.
+Vlad
+58:59
+Yeah, I think what we
+Colleague
+59:01
+means to get there is
+Colleague
+59:05
+the VBT prices
+Vlad
+59:08
+Mm-hmm.
+Colleague
+59:09
+the function
+Vlad
+59:10
+that you showed needs to be
+Vlad
+59:14
+able to account for maturity.
+Colleague
+59:21
+And then we need
+Vlad
+59:22
+We need to define
+Colleague
+59:25
+some toy inputs like
+Colleague
+59:28
+Yeah, but I think, yeah, if you can
+Vlad
+59:33
+fully specify the dealer function
+Vlad
+59:36
+with these two things,
+Vlad
+59:39
+then I can simulate the dealer function.
+Vlad
+59:45
+Yeah,
+Colleague
+59:47
+and then we can play with it.
+Vlad
+59:58
+Right.
+Vlad
+59:59
+Okay.
+Vlad
+01:00:02
+Sounds good.
+Colleague
+01:00:20
+These VBT
+Vlad
+01:00:20
+Oh
+Colleague
+01:00:20
+prices, we're going to hard code them.
+Vlad
+01:00:24
+Yeah, I mean we need to see. I'm up for hard coding them as long as we can do it in a reasonable manner.
+Vlad
+01:00:34
+We need to set it up in such a way.
+Vlad
+01:00:38
+I think we should cut. The point of them, the other story is that they are external.
+Vlad
+01:00:45
+The idea in theory is that the dealer prices liquidity, the VBT prices credit.
+Vlad
+01:00:59
+Right? Because the VBT ends up holding the security long.
+Vlad
+01:01:04
+So often he hits the maturity on the security.
+Vlad
+01:01:12
+He is interested in
+Vlad
+01:01:15
+not being defaulted.
+Vlad
+01:01:21
+So what we can say is maybe there is some kind of starting point. I can work with GPT to figure out what would be a reasonable
+Vlad
+01:01:35
+initial price that he could be setting.
+Vlad
+01:01:42
+And then we could say he can adjust it
+Vlad
+01:01:46
+based on the
+Vlad
+01:01:49
+default.
+Vlad
+01:01:57
+And then for the maturity accounting, that's the other bit, right? That's the other bit.
+Vlad
+01:02:08
+That's going to be harder because the debt is not on the same
+Colleague
+01:02:16
+No, but you said we're going to make it into equal slices.
+Vlad
+01:02:21
+Equal slices in terms of the cash flow, but in terms of the maturity...
+Colleague
+01:02:25
+The maturity will be the only thing that
+Vlad
+01:02:29
+is the legal. So maybe that defines the baskets.
+Colleague
+01:02:34
+That can be the ABC thing. Maybe you don't want to fragment it on every possible maturity.
+Colleague
+01:02:44
+But maybe you want to put, I don't know, one.
+Vlad
+01:02:46
+Like short, medium and long.
+Vlad
+01:02:50
+My trade is
+Colleague
+01:02:52
+Yeah, I mean we will still have all the different maturities, but in terms of pricing it will be in buckets.
+Colleague
+01:03:02
+I don't know.
+Vlad
+01:03:10
+I mean, I feel like the point here is
+Vlad
+01:03:17
+Yeah,
+Vlad
+01:03:19
+Yeah, I think we probably have to have the buckets.
+Vlad
+01:03:29
+Yeah.
+Vlad
+01:03:37
+And then there needs to be a way in which
+Vlad
+01:03:45
+Let me think about it.
+Colleague
+01:03:46
+Sure.
+Vlad
+01:03:50
+Okay, so let me try to think about it this week and get back to you.
+Vlad
+01:03:57
+And then
+Vlad
+01:03:59
+Let's try to do it.
+Vlad
+01:04:02
+The price to the dealer on its own, it works.
+Colleague
+01:04:05
+Mm-hmm.
+Vlad
+01:04:06
+And then put them into the simulation.
+Vlad
+01:04:17
+All right.
+Vlad
+01:04:20
+I'll get back to you.
+Vlad
+01:04:23
+By Friday, I'll have something that we can talk about if you get done.
+Colleague
+01:04:26
+Mm-hmm.
+Colleague
+01:04:29
+For new.
+Vlad
+01:04:31
+Are you going to text the people?
+Colleague
+01:04:34
+Yeah, so I saw my friend yesterday and he's like, I'm the bottleneck.
+Colleague
+01:04:40
+Because I'm supposed to design a case study for you, but I've been busy doing other stuff.
+Colleague
+01:04:48
+And then I was like, so you don't have anyone else in the pipeline and you're just taking your time. So yeah, we don't have anyone else.
+Vlad
+01:04:55
+So that's good.
+Colleague
+01:04:56
+Yeah, and honestly, I'm fine with it taking time. I'm not in a hurry.
+Vlad
+01:05:01
+Right.
+Colleague
+01:05:01
+Because meanwhile I can work with you, I can do the German stuff, right?
+Colleague
+01:05:08
+So just...
+Vlad
+01:05:08
+You'll be here if most of the things are clear from your schedule by the time you...
+Vlad
+01:05:14
+Exactly. And he was like, what I'm preparing is that today...
+Colleague
+01:05:19
+Basically, we have this game where I'm arguing for Alibaba stock.
+Colleague
+01:05:25
+Because he's on China and he knows a lot about China, which is very cool. And everyone else tries to demolish my thesis.
+Colleague
+01:05:36
+And I was like, okay, that sounds fun. He's like, no, it's more like a rectal exam. Everyone's trying to fuck you.
+Vlad
+01:05:44
+But it's really interesting because he really studied China a lot, so he knew a lot of the stuff that I experienced.
+Vlad
+01:05:52
+What did he do in his life?
+Colleague
+01:05:55
+These guys, he's a financial analyst, right?
+Vlad
+01:05:59
+Okay.
+Colleague
+01:06:00
+But he's very technical, like he codes a lot and he works with AI a lot.
+Colleague
+01:06:05
+He gets AI very deeply.
+Colleague
+01:06:09
+And then he goes really deep into these companies, right?
+Colleague
+01:06:14
+So he's really good.
+Vlad
+01:06:19
+He's the one I told you interviewed with the...
+Colleague
+01:06:23
+Leo Baldassio Brenna.
+Vlad
+01:06:25
+Right.
+Vlad
+01:06:30
+Then where did he study?
+Colleague
+01:06:32
+So he studied in...
+Colleague
+01:06:37
+He studied in India.
+Vlad
+01:06:40
+Bachelors of Science in Physics.
+Colleague
+01:06:44
+He got a master's in physics in Frankfurt University.
+Vlad
+01:06:49
+Mm-hmm.
+Colleague
+01:06:50
+And then he did a master's in finance in Frankfurt.
+Vlad
+01:06:54
+In the House of Finance.
+Colleague
+01:06:57
+Frankfurt School of Finance and Management.
+Vlad
+01:07:02
+Okay. And then he became a data scientist.
+Colleague
+01:07:07
+In a couple banks.
+Colleague
+01:07:10
+And then he became a quantitative analyst at this big capital fund in Berlin.
+Vlad
+01:07:19
+Wow.
+Colleague
+01:07:22
+If you come to Berlin, you can meet him.
+Vlad
+01:07:26
+I would love to. Yeah.
+Vlad
+01:07:29
+Let's see what is going to be next. How was with Jake?
+Colleague
+01:07:33
+It was great.
+Colleague
+01:07:36
+We drank too much.
+Vlad
+01:07:37
+How does he seem to...
+Vlad
+01:07:41
+He seems good, he started a PhD.
+Vlad
+01:07:45
+Yes, yes, I know, yes.
+Colleague
+01:07:48
+And he has the child.
+Colleague
+01:07:52
+He has the home so he's obviously very busy, right?
+Vlad
+01:07:59
+Yeah. I want to talk to him. I haven't talked to him for a long time. Today's his birthday. I'm going to send him a message.
+Colleague
+01:08:05
+Shit, it's true. He told me. Yeah, I'm gonna send him too.
+Colleague
+01:08:13
+Yeah, I also didn't talk to him for months because he was so busy.
+Vlad
+01:08:17
+Yeah, I haven't also talked to him.
+Vlad
+01:08:23
+We work closely but yeah, I'll talk to you, let's see how it is.
+Vlad
+01:08:32
+Okay, I'm going to go do more stuff.
+Vlad
+01:08:35
+And I'll try to get something for you relatively soon.
+Colleague
+01:08:40
+Okay.
+Vlad
+01:08:40
+And we can try rolling this out if we can. It will be amazing.
+Vlad
+01:08:48
+If you get all it out.
+Vlad
+01:08:54
+Because what I want to do for these presentations is basically to present our simulation and if I can do these additions to it and also show like a dealer.
+Vlad
+01:09:03
+Also show like a band.
+Vlad
+01:09:06
+Will be major.
+Vlad
+01:09:09
+Or like mid-December.
+Colleague
+01:09:10
+Mid-December.
+Vlad
+01:09:13
+We can certainly have progress, right? Let's see how far we get.
+Vlad
+01:09:18
+Yeah, let's see how far we get. Yeah, of course.
+Vlad
+01:09:21
+I think if we could once we nail these two...
+Vlad
+01:09:26
+Then besides the risk, expense and all the stuff that goes with it, we are in a really good spot, right? That's the only major kind of thing.
+Colleague
+01:09:44
+Okay, cool.
+Vlad
+01:09:47
+Yeah, let's do it. I think it's anyway going to be publishable before that but once we have those things...
+Vlad
+01:09:58
+I think ultimately each of these is going to be its own paper, right?
+Vlad
+01:10:02
+There will be a single paper, kind of basic paper on what you already have, maybe improve the base. And then there are going to be these papers that add these to each of them.
+Vlad
+01:10:15
+Right. And so we can have a final paper that says all the pieces apply to the decision making.
+Vlad
+01:10:23
+And that's it.
+Vlad
+01:10:28
+Hopefully.
+Vlad
+01:10:37
+Okay, but I...
+Colleague
+01:10:38
+All right,
+Vlad
+01:10:38
+Hope you get to sit down soon in your life.
+Colleague
+01:10:41
+Hope so too. Okay, say hi to your mom, to Sally.
+Vlad
+01:10:48
+Say hi to her if you talk to her.
+Colleague
+01:10:50
+Okay.
+Vlad
+01:10:53
+Ciao.
+Colleague
+01:10:53
+Ciao, have a good evening.

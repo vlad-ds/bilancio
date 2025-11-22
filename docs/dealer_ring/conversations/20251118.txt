@@ -1,0 +1,765 @@
+Vlad
+00:00
+entities, right? Three dealers, three VBT.
+Vlad
+00:04
+Right, and we need that. Are you recording on your thing?
+Colleague
+00:08
+I just remembered, I just started.
+Vlad
+00:11
+Okay, so we need three dealers and three
+Vlad
+00:16
+VBTs.
+Colleague
+00:17
+Yeah.
+Vlad
+00:19
+They are defined by the term, so there is a short-term, mid-term, and long-term. We then define the debt in terms of when it's maturing: short-term if it's maturing next period or in one or two periods. I'm not sure whether that's fully fixed or being specified; maybe the double of that, and then long-term is everything beyond.
+Vlad
+00:52
+We can generally have our
+Vlad
+01:00
+number of days and number of maturities that show up be more than what we have. It will be a bit hard to make this work with only five
+Vlad
+01:13
+days, so maybe we can try to do it with 10 days or 15 days.
+Colleague
+01:17
+Yeah.
+Vlad
+01:18
+We need that because what becomes important in this story is this moment
+Vlad
+01:24
+when certain debt moves from being in the mid-term into the short-term market, from the long-term into the mid-term market. The reality of the debt term structure is such that we always have this very long stuff, like 10 year, 20 year, 30 year, and then we have this very short stuff, like day, week, month. We need to replicate that reality a little bit for this whole distinction between money market and debt market to really make sense.
+Vlad
+02:00
+For the dealer to really be able to make a difference, let me put it this way: the next piece of the story is
+Vlad
+02:09
+that the balance sheets are simple. The balance sheets of both VBTs and dealers are such that they hold cash.
+Vlad
+02:18
+The relevant type of security. Next piece of information is that unlike other traders,
+Vlad
+02:28
+which in terms of what they hold as assets can only hold a debt claim at the beginning, can only hold the debt claim over one other entity in a ring story,
+Colleague
+02:39
+Mm-hmm.
+Vlad
+02:39
+the dealers will hold debt of more than one place.
+Colleague
+02:46
+Yeah, of course.
+Vlad
+02:47
+And the other important piece is that our dealers and value-based traders need to be much larger than our traders.
+Vlad
+02:59
+And the initial setup that I came up with is this.
+Vlad
+03:05
+Of a hundred percent debt in a given maturity, 25% is held by the dealer at the starting points and 50% by the value-based trader.
+Vlad
+03:17
+So value-based trader is this huge balance sheet. There is this big balance sheet and there are a lot of these small trader balance sheets.
+Colleague
+03:27
+Yes.
+Vlad
+03:29
+The next piece is that
+Vlad
+03:37
+we then have the dealer at the beginning set at the good dealer and value-based trader, in terms of the balance sheet, set to be in a balanced position, which means that they have equal value of securities valued at the
+Vlad
+03:56
+value-based trader's mid value, which we'll talk about in a second, and money. So they have a hundred million dollars of money and a hundred million dollars of security on the relevant maturity, given
+Vlad
+04:10
+the value estimate of the securities, that is the mid of the outside of the value-based trader.
+Vlad
+04:21
+So they're in the middle, and this means that they can do most. They have more space to move in either one of the directions in terms of their operations.
+Vlad
+04:34
+Okay, so there is the setup. There is our setup.
+Colleague
+04:38
+Okay, so
+Colleague
+04:41
+my question—
+Colleague
+04:44
+One thing that comes to mind, or do you want to say more?
+Vlad
+04:47
+I'm going to say both. And the next piece is the pricing.
+Vlad
+04:52
+So the value-based trader is externally set at the beginning,
+Colleague
+04:57
+Yeah,
+Vlad
+04:57
+right?
+Colleague
+04:57
+yeah, the anchorage.
+Vlad
+04:58
+He simply sets his pricing.
+Vlad
+05:01
+Based on his pricing, based on our equations, we can derive the dealer pricing for the first trade.
+Vlad
+05:12
+And there is that whole
+Vlad
+05:19
+set of equations that we have
+Vlad
+05:25
+dictate the balance sheet of the dealer and the quotes from the value-based trader and set up what the dealer has.
+Vlad
+05:34
+Quotes, and then we can start. We can start your simulation.
+Vlad
+05:41
+Right, and what then is going to be happening immediately in the first period
+Vlad
+05:46
+and in general in every period after, to different extents,
+Vlad
+05:54
+is that the traders, the holders of debt and debt repairs, are going to be basically two types of situations.
+Vlad
+06:03
+One is going to be the situation where they are in need of money because they are supposed to pay very soon.
+Vlad
+06:16
+and they don't have enough cash on hand.
+Vlad
+06:19
+and there is a situation in which they are going to have
+Vlad
+06:28
+sufficient cash, more than they need, and maybe they need more than they need in the short term either because they simply have more cash than they need to pay or because they don't need to pay their debt in the short term, but will have to pay it down the line.
+Vlad
+06:48
+And the point of
+Vlad
+06:53
+that is that then those who have a shortfall, who have less cash than needed, are going to try to sell their securities that they hold, their debt claims over others,
+Vlad
+07:09
+to the right kind of dealer.
+Vlad
+07:13
+And those that are having a surplus in terms of cash are going to try to invest it in securities.
+Vlad
+07:26
+in that place, and they're going to buy that place from the dealer.
+Colleague
+07:31
+Yes.
+Vlad
+07:33
+ends
+Vlad
+07:36
+and so that's the second piece, and then there we have the whole kind of quantitative setup for how they make this decision
+Vlad
+07:46
+right, which is fully specified.
+Vlad
+07:54
+Yeah. And we can run, and then as we run, there are a couple of things that are happening. First, they are coming to the dealer, there is a random pick. They come to the dealer one by one.
+Colleague
+08:07
+Yeah.
+Vlad
+08:09
+So we pick one of the traders, he has the need to do one of the things mentioned, we get the right kind of dealer, the dealer then using the quote executes the trade and then sets a new quote.
+Vlad
+08:26
+And we repeat until
+Vlad
+08:30
+either all of them are executed
+Vlad
+08:35
+or they are not executed.
+Vlad
+08:41
+But the dealer has reached the limit.
+Vlad
+08:45
+In which case, then the dealer needs to help you with the value-based trader.
+Vlad
+08:51
+He needs to obtain the money or the security from the relevant kind of value-based trader at his spread.
+Vlad
+08:58
+and then he's going to perform the thing for the trader.
+Vlad
+09:06
+The next step is
+Vlad
+09:09
+default. So what can happen is we can have default
+Vlad
+09:15
+in which case
+Vlad
+09:18
+the defaulting party is going to be always a party that ultimately only has cash, because the defaulting party is the party that had the shortfall.
+Vlad
+09:31
+It needed cash and it sold off whatever debt claim it held, but
+Vlad
+09:37
+what ended up happening is that the amount of cash that he ended up with was not enough, so he had to default. In the case where he defaults, the cash is distributed proportionally to all that hold that claim over it. Very simple rule.
+Vlad
+09:57
+We just distribute the cash.
+Vlad
+09:59
+which happens in the case of defaults.
+Vlad
+10:08
+Two other things: one is that the dealer's balance changes in the sense that the asset that he possibly had is now disappearing and he has received some cash. So his balance is changing or his inventory position is changing, and also the size of his inventory is changing altogether because he has received less than he was supposed to.
+Vlad
+10:31
+So he will reset his quotes on that basis, right? But what is also happening is that the value-based trader has also been holding the ES.
+Vlad
+10:44
+Now that the default has occurred, he is going to price the thing. So we have the quantity to set up for the value-based trader, which changes his mid-end quote from wherever it was based on the amount of defaults that has happened.
+Colleague
+11:00
+Mm-hmm.
+Vlad
+11:02
+Okay.
+Colleague
+11:07
+Yes.
+Vlad
+11:07
+So the default that's going to then happen and then the final piece, based on what he quotes and based on the new position of the dealer in terms of his balance sheet, he's going to now reset his quote.
+Vlad
+11:19
+And the final piece of the story is the case where it has changed its bucket in the sense that at a certain time point some debt becomes short term and was midterm, in which case we have the rules that set the way in which the dealer, let's say the short-term dealer—
+Vlad
+11:50
+The thing is quite simple, right? The case is that the midterm debt is becoming short-term debt. Current midterm becomes short-term at the same time when the short-term debt matures.
+Colleague
+12:08
+Hmm.
+Vlad
+12:08
+So our short-term dealer is going to be receiving cash flow on the maturing short-term debts.
+Vlad
+12:17
+Then he's going to use that cash flow to buy up what is now becoming the short-term debt from the midterm dealer.
+Vlad
+12:26
+The midterm dealer is going to be receiving cash and then he's going to buy up the long-term debt that is becoming the midterm debt.
+Colleague
+12:36
+Okay.
+Vlad
+12:38
+Right. And the same thing with the value-based treatment.
+Vlad
+12:42
+This is to some extent going to change the shape of their balance sheet and then they're going to recall the dealers, but ultimately, all the same rules are going to be applied.
+Vlad
+13:01
+That's all that's happening. The debt is being repaid and we are ultimately still concerned with the same kind of dependent variables, output variables that we are interested in, which is what is happening to repayment, first and foremost. How good is our system now at clearing that given the parameters?
+Colleague
+13:26
+So it's the same observed variable that—
+Vlad
+13:28
+Exactly.
+Colleague
+13:28
+You care about.
+Vlad
+13:29
+We are still analyzing the same thing. We are just trying to see whether, as Jan says in the video,
+Vlad
+13:38
+ultimately the presence of this kind of centralized market maker for this is going to help this become better. The idea would be the comparable system—the simple test should be that in most cases the comparable system that has the dealer to the one which doesn't ends up repainting work.
+Colleague
+14:05
+So you will redo the same simulation just with the classic ring or something.
+Colleague
+14:10
+Then look at the difference.
+Vlad
+14:11
+Yeah, we are not going to work on all the other things we want to implement, we will implement later. For the moment, we want to bring these two functionalities in.
+Vlad
+14:22
+If that works, when we get that to work, we can then go back to adding other stuff if you want.
+Colleague
+14:32
+Okay, so a more specific question was that this is how time currently works.
+Colleague
+14:41
+In our simulation, you go by days.
+Colleague
+14:45
+Each day I'm just going to read it for the recording. Phase A starts the day and simply logs the time marker. I think Phase A we kept as a placeholder for
+Colleague
+14:55
+Brokers
+Colleague
+14:56
+and stuff. Phase B executes any user scheduled action first and then automatically settles all payables or delivery obligations
+Colleague
+15:06
+fall due on that day.
+Colleague
+15:08
+And Phase C performs the intraday clearing pass so banks square their nets before the clock turns over.
+Vlad
+15:16
+We don't have that yet.
+Colleague
+15:18
+What do you mean?
+Vlad
+15:20
+That doesn't exist currently. There are no banks.
+Colleague
+15:23
+It does exist in the Bilantro.
+Colleague
+15:26
+Yes, it—
+Vlad
+15:26
+Yeah,
+Colleague
+15:26
+was implemented.
+Vlad
+15:27
+Yeah, but you're not using it, right?
+Colleague
+15:28
+Not using it. But this is our time structure, okay, so we need to figure out how to
+Colleague
+15:39
+integrate.
+Colleague
+15:41
+So...
+Vlad
+15:42
+Yes.
+Colleague
+15:44
+I mean, the dealer stuff happens before the...
+Colleague
+15:49
+The...
+Colleague
+15:50
+the debt clearing.
+Vlad
+15:51
+I have that, I have that, please.
+Vlad
+16:12
+So that is section 11, stimulation event loop.
+Vlad
+16:21
+We are going to take this time step and then we are going to obviously add things there.
+Vlad
+16:31
+First we update the maturities in buckets.
+Colleague
+16:34
+Yeah.
+Vlad
+16:37
+Then the dealer does his quotations.
+Vlad
+16:45
+Then the agents compute their liquidity shortfall. This question of do I need to pay and do I have enough cash.
+Colleague
+16:56
+Yeah.
+Vlad
+17:07
+Then we are going to determine whether the shortfall-facing agents are going to be eligible to sell because
+Vlad
+17:18
+they are in a shortfall-facing situation and they are owning some claim on someone else at the current moment.
+Vlad
+17:29
+They are eligible to buy in the case where they have surplus cash. They have cash and they don't have any shortfall.
+Vlad
+17:48
+Then we're going to set up that and then we're going to do this dealer interaction. One of the agents will be drawn, then he will approach the right dealer with the right proposition.
+Vlad
+18:02
+The proposition will be executed at the quotes the dealer gives, then the dealer will record.
+Vlad
+18:18
+Until we get to a place where all of the agents that have either one of the two positions—that they want to buy or that they want to sell—are out.
+Colleague
+18:31
+Right.
+Vlad
+18:33
+Everybody will be out. Then we are going to do the settlement of the maturing debt.
+Vlad
+18:42
+That's exactly the same as it was.
+Colleague
+18:46
+Mm-hmm.
+Vlad
+18:48
+We are just going to do that. In the case that there is a bank default, now we have the rule for the default which we didn't have.
+Vlad
+18:58
+We are not going to stop the simulation at default. We're going to count the default but we're also going to distribute the cash
+Vlad
+19:11
+that exists on the balance sheet of the defaulting party to the holders. We have a rule for how that's going to happen.
+Vlad
+19:21
+If that has happened, the value-based trader, if there are any defaults, will re-quote according to the rule.
+Colleague
+19:32
+Hmm.
+Vlad
+19:32
+As he quotes, then the dealer will re-quote too.
+Vlad
+19:37
+And that's the end of the day. Then we go on to the next day.
+Colleague
+19:42
+Right.
+Colleague
+19:47
+Yeah, I just need on the technical side to figure out whether
+Colleague
+19:51
+to fit it in the current
+Colleague
+19:54
+simulation engine or to make a new simulation engine, but that's just a technical question.
+Colleague
+20:00
+I think.
+Vlad
+20:00
+I would not want us to lose what we already have, right? So it would be good to copy everything in.
+Vlad
+20:10
+Keep the version that you have
+Vlad
+20:13
+on the one side and then do a new version based on the version we have plus changing things.
+Colleague
+20:20
+Yeah, no, we won't lose anything.
+Colleague
+20:23
+Yeah, it's just a technical thing.
+Vlad
+20:29
+Okay, cool.
+Colleague
+20:34
+I think the best will be to just start and then as I work through it I can send more questions.
+Vlad
+20:49
+Yeah, I mean, I think when you get the setup for the dealer and the time thing, then you can try out this toy example.
+Vlad
+21:03
+Right, we are not going to have the real thing.
+Colleague
+21:03
+Yeah.
+Colleague
+21:06
+Yep.
+Vlad
+21:08
+But I'm going to prompt the dealer to do something based on some of the events that are a matter.
+Colleague
+21:17
+So these are just dealer-centered.
+Vlad
+21:20
+Yeah, these are all dealer-centric.
+Colleague
+21:27
+And then...
+Vlad
+21:28
+I hope they're good. I didn't check the examples as much, but I got GPT to check it several times in several ways. He said they would be acceptable.
+Colleague
+21:41
+And then this is this last document.
+Colleague
+21:47
+Is it more information?
+Vlad
+21:50
+Additional instructions for specifications.
+Vlad
+21:57
+I asked him if he has any additional things that he thinks we should be specifying.
+Colleague
+22:03
+Okay.
+Vlad
+22:06
+He said this.
+Colleague
+22:08
+Did you do it with 5 Pro?
+Colleague
+22:11
+Nice, okay.
+Vlad
+22:13
+I did almost everything here with a five draw, step by step, piece by piece.
+Colleague
+22:18
+Right.
+Colleague
+22:23
+Okay, so yeah, I think I'm good for now.
+Vlad
+22:27
+Okay, if anything is not fully clear, I checked as much as I could, you let me know, and we can, I think it will always be something minor so we can just get some kind of...
+Vlad
+22:46
+We can resolve it in whatever way and then we can change the way we resolve it if we decide.
+Vlad
+22:52
+You know, some equation is missing or something is not exactly clear.
+Vlad
+23:01
+But it should be, I worked through it quite in detail.
+Colleague
+23:08
+What else did I want to say?
+Vlad
+23:13
+Will you come to Frankfurt?
+Vlad
+23:16
+When?
+Colleague
+23:32
+I think I might not be able.
+Vlad
+23:36
+You know, is it in December?
+Vlad
+23:43
+Yes.
+Colleague
+23:43
+Ah.
+Colleague
+23:45
+I filled my December with trips.
+Vlad
+23:49
+Good. Where are you going?
+Colleague
+23:50
+I'm gonna go to Istanbul.
+Vlad
+23:54
+Okay, that's cool.
+Colleague
+23:55
+So I get a piece of Asia.
+Vlad
+23:58
+Ukrainian.
+Colleague
+23:59
+Now I mean like travel, I'm in travel mode. I have to go outside of Europe, like I told you, right?
+Vlad
+24:08
+You should.
+Colleague
+24:09
+And this is an easy choice because it's close and it's cheap.
+Vlad
+24:14
+I thought you had Istanbul there in Berlin, but you know.
+Colleague
+24:17
+I do.
+Vlad
+24:19
+But you want the real thing.
+Colleague
+24:21
+Yeah, I want the second row vibe.
+Colleague
+24:28
+And I'm going, I'm going to go to my parents for a week.
+Vlad
+24:35
+Right, for the Christmas.
+Vlad
+24:38
+Okay.
+Colleague
+24:41
+When is the Frankfurt...
+Vlad
+24:44
+Mid-December.
+Vlad
+24:56
+18th, on the 18th.
+Colleague
+24:58
+Hmm.
+Colleague
+25:00
+Because I'm back from Italy on the 19th.
+Colleague
+25:05
+Maybe, but it starts on the 18th.
+Vlad
+25:09
+It's just the 18th.
+Vlad
+25:11
+Just before the 18th I will be there, but the 18th is the presentation, but you can be online, it's fine, it doesn't matter.
+Colleague
+25:16
+Because, you know, maybe instead of taking the plane to Berlin from Italy, I take the plane to Frankfurt.
+Vlad
+25:26
+You can share the room with me.
+Colleague
+25:30
+Let me look at the flights. Yeah, it's good that we mentioned this because...
+Vlad
+25:38
+I mean, if you come a day or two early, I'll be there, but hopefully...
+Colleague
+25:41
+Okay, no day too early, no, because that will take my time in Italy, but maybe Wednesday or Thursday.
+Vlad
+25:48
+That sounds great. If you can, I'd be very happy to have you and we can go together to Darmstadt and see what they're doing.
+Colleague
+26:00
+The other thing is this, we got this email from Toporowski.
+Colleague
+26:06
+First draft.
+Colleague
+26:08
+Did you answer that?
+Vlad
+26:10
+No.
+Colleague
+26:11
+It was 11 days ago.
+Vlad
+26:15
+It's okay, don't worry, he's an old man, he has no impatience, you know.
+Colleague
+26:20
+I don't care, I just wanted to remind you.
+Vlad
+26:23
+I get your feet, right? Like the...
+Vlad
+26:27
+What we are doing is all within the program of studying this problem that he said. So we are not wasting our time doing what we are doing and what I want to do is finish up on our stuff. What he helps with is pitch this and frame this right because you can train the simulation that we are doing, the analysis that we are doing in many ways, ultimately.
+Vlad
+26:58
+But the question is what conversation you want to focus on. And I think the conversation that you want to focus on that he suggests is exactly that one, it's the conversation around what in macroeconomics is the debt to GDP analysis or debt to cash flow analysis.
+Vlad
+27:20
+With the idea that somehow you need an amount of cash flow to be occurring within the economy in order to deal with that.
+Colleague
+27:30
+Yeah.
+Vlad
+27:32
+Otherwise, you're in trouble and with fear trying to say not necessarily.
+Colleague
+27:40
+Right. What do you mean not necessarily? I thought we wanted to say that you need liquidity to...
+Vlad
+27:47
+No, we need liquidity, but liquidity is not about generating a bulk of cash flow.
+Vlad
+28:00
+It's about alignment of debts, it's about the right liquidity being accessible at the right place at the right time, all the sizes, it's about this much more than we need to make real stuff and earn money otherwise.
+Colleague
+28:15
+Ah, cash flow in sense of actual production, yeah.
+Vlad
+28:19
+Exactly.
+Vlad
+28:22
+Okay.
+Vlad
+28:26
+So that's the very fundamental conversation in economics and we have...
+Vlad
+28:34
+They have a rigorous method for studying this problem, more rigorous than anyone up until now.
+Vlad
+28:48
+And so he gives us that kind of motivation background.
+Vlad
+28:55
+So we will, I will,
+Vlad
+28:59
+That's the least of our problems, right? It's good that we have him, it's good that he gave us his speech for it, and it's good to have him on board because he has a lot of knowledge and experience.
+Vlad
+29:17
+I would follow his gut instinct in these things rather than my own.
+Vlad
+29:23
+So that's it, right? Now it's just for us to continue planning through it and developing it.
+Vlad
+29:38
+We can see about it. Let's plumb through it as far as we can and as much as we can up until the beginning of December.
+Vlad
+29:45
+Then I'll put together the presentation and we can think of the publication, because we could already try publishing the way we have it.
+Vlad
+29:54
+But I think with the neurosurgeon, we could have a bit more if we want to have a more serious type of publication with the team meeting.
+Colleague
+30:07
+Alright, let's do it.
