@@ -152,36 +152,68 @@ class DealerBucket:
         return q.capacity > 0 and (self.inventory + self.S) <= q.capacity and self.cash >= q.bid
 
     # ---- executions ----
-    def execute_customer_buy(self) -> Tuple[float, bool]:
-        """Customer BUYs one ticket from dealer. Returns (price, pinned)."""
+    def execute_customer_buy(
+        self,
+        customer_id: str | None = None,
+        dealer_id: str | None = None,
+        vbt_id: str | None = None,
+        bucket_id: str | None = None,
+        ticket_ops=None,
+    ) -> Tuple[float, bool]:
+        """Customer BUYs one ticket from dealer. Returns (price, pinned).
+
+        If ticket_ops and ids are provided, moves a concrete ticket:
+        - interior: dealer -> customer
+        - pass-through: VBT -> customer
+        """
         q = self.recompute()
 
         if self.can_sell_one():
             price = q.ask
             self.inventory -= self.S
             self.cash += price
+            if ticket_ops and customer_id and dealer_id and bucket_id:
+                ticket_ops.customer_buy_from_dealer(customer_id, dealer_id, bucket_id)
             return price, q.pinned_ask
 
         # pass-through at outside ask
         price = q.outside_ask
         if self.vbt:
             self.vbt.sell_one()
+        if ticket_ops and customer_id and vbt_id and bucket_id:
+            ticket_ops.pass_through_buy_from_vbt(customer_id, vbt_id, bucket_id)
         return price, True
 
-    def execute_customer_sell(self) -> Tuple[float, bool]:
-        """Customer SELLs one ticket to dealer. Returns (price, pinned)."""
+    def execute_customer_sell(
+        self,
+        customer_id: str | None = None,
+        dealer_id: str | None = None,
+        vbt_id: str | None = None,
+        bucket_id: str | None = None,
+        ticket_ops=None,
+    ) -> Tuple[float, bool]:
+        """Customer SELLs one ticket to dealer. Returns (price, pinned).
+
+        If ticket_ops and ids are provided, moves a concrete ticket:
+        - interior: customer -> dealer
+        - pass-through: customer -> VBT
+        """
         q = self.recompute()
 
         if self.can_buy_one():
             price = q.bid
             self.inventory += self.S
             self.cash -= price
+            if ticket_ops and customer_id and dealer_id and bucket_id:
+                ticket_ops.customer_sell_to_dealer(customer_id, dealer_id, bucket_id)
             return price, q.pinned_bid
 
         # pass-through at outside bid
         price = q.outside_bid
         if self.vbt:
             self.vbt.buy_one()
+        if ticket_ops and customer_id and vbt_id and bucket_id:
+            ticket_ops.pass_through_sell_to_vbt(customer_id, vbt_id, bucket_id)
         return price, True
 
     # ---- helpers for inventory/cash inspection ----
