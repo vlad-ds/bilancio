@@ -1,4 +1,4 @@
-"""Per-period event loop for dealer ring (skeleton)."""
+"""Per-period event loop for dealer ring (rebucket -> quotes -> arrivals -> settlement -> anchors)."""
 
 from __future__ import annotations
 
@@ -9,6 +9,8 @@ from typing import Any, List, Optional, Callable
 from .kernel import DealerBucket
 from .vbt import VBTBucket
 from .ticket_ops import TicketOps
+from .settlement import settle_bucket_maturities
+from .policy import Eligibility
 
 
 @dataclass
@@ -36,8 +38,9 @@ def run_period(
     N_max: int,
     eligible_fn: Callable[[Any], Eligibility],
     bucket_selector: Callable[[str, list[str], str], str] | None = None,
+    ticket_size: int = 1,
 ) -> List[ArrivalResult]:
-    """Run a single period of order flow (no settlement/defaults here).
+    """Run a single period: rebucket -> arrivals -> settlement -> anchor update.
 
     - eligible_fn(system) -> Eligibility lists of seller/buyer agent ids
     - buckets: dealer bucket objects keyed by bucket name
@@ -95,5 +98,21 @@ def run_period(
                 break
 
         n += 1
+
+    # Settlement with proportional recovery per bucket
+    loss_rates: dict[str, float] = {}
+    for bucket_id in buckets.keys():
+        loss_rates[bucket_id] = settle_bucket_maturities(system, bucket_id=bucket_id, ticket_face=ticket_size)
+
+    # VBT anchor updates using bucket loss rates
+    for bucket_id, vbt in vbts.items():
+        lr = loss_rates.get(bucket_id, 0.0)
+        vbt.update_anchors(lr)
+        # sync dealer outside quotes from VBT mid/spread
+        if bucket_id in buckets:
+            dealer = buckets[bucket_id]
+            dealer.mid = vbt.mid
+            dealer.spread = vbt.spread
+            dealer.recompute()
 
     return arrivals
