@@ -5,6 +5,8 @@ from decimal import Decimal
 
 from bilancio.engines.system import System
 from bilancio.domain.agents import Bank, Household, Firm, CentralBank, Treasury
+from bilancio.domain.agents.dealer import Dealer
+from bilancio.domain.agents.vbt import VBT
 from bilancio.ops.banking import deposit_cash, withdraw_cash, client_payment
 from bilancio.domain.instruments.credit import Payable
 from bilancio.core.errors import ValidationError
@@ -31,7 +33,9 @@ def create_agent(spec: AgentSpec) -> Any:
         "bank": Bank,
         "household": Household,
         "firm": Firm,
-        "treasury": Treasury
+        "treasury": Treasury,
+        "dealer": Dealer,
+        "vbt": VBT,
     }
     
     agent_class = agent_classes.get(spec.kind)

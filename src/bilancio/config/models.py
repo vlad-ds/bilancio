@@ -16,7 +16,7 @@ class PolicyOverrides(BaseModel):
 class AgentSpec(BaseModel):
     """Specification for an agent in the scenario."""
     id: str = Field(..., description="Unique identifier for the agent")
-    kind: Literal["central_bank", "bank", "household", "firm", "treasury"] = Field(
+    kind: Literal["central_bank", "bank", "household", "firm", "treasury", "dealer", "vbt"] = Field(
         ..., description="Type of agent"
     )
     name: str = Field(..., description="Human-readable name for the agent")

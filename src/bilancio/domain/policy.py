@@ -9,10 +9,13 @@ from bilancio.domain.agents.central_bank import CentralBank
 from bilancio.domain.agents.firm import Firm
 from bilancio.domain.agents.household import Household
 from bilancio.domain.agents.treasury import Treasury
+from bilancio.domain.agents.dealer import Dealer
+from bilancio.domain.agents.vbt import VBT
 from bilancio.domain.instruments.base import Instrument
 from bilancio.domain.instruments.credit import Payable
 from bilancio.domain.instruments.means_of_payment import BankDeposit, Cash, ReserveDeposit
 from bilancio.domain.instruments.delivery import DeliveryObligation
+from bilancio.domain.instruments.ticket import Ticket
 
 AgentType = type[Agent]
 InstrType = type[Instrument]
@@ -34,13 +37,15 @@ class PolicyEngine:
                 ReserveDeposit: (CentralBank,),
                 Payable:     (Agent,),            # any agent can issue a payable
                 DeliveryObligation: (Agent,),     # any agent can promise to deliver
+                Ticket:      (Agent,),            # ring debts ticketized per issuer
             },
             holders={
                 Cash:            (Agent,),
-                BankDeposit:     (Household, Firm, Treasury, Bank),  # banks may hold but not for interbank settlement
-                ReserveDeposit:  (Bank, Treasury),
+                BankDeposit:     (Household, Firm, Treasury, Bank, Dealer, VBT),  # allow dealers/VBTs to bank
+                ReserveDeposit:  (Bank, Treasury, Dealer, VBT),
                 Payable:         (Agent,),
                 DeliveryObligation: (Agent,),         # any agent can hold a delivery claim
+                Ticket:          (Agent,),
             },
             mop_rank={
                 "household":     ["bank_deposit", "cash"],     # use deposit first, then cash
@@ -48,6 +53,8 @@ class PolicyEngine:
                 "bank":          ["reserve_deposit"],          # banks settle in reserves
                 "treasury":      ["reserve_deposit"],
                 "central_bank":  ["reserve_deposit"],
+                "dealer":        ["cash"],
+                "vbt":           ["cash"],
             },
         )
 
