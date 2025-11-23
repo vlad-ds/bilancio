@@ -83,6 +83,14 @@ def _validate_counts(system: System, trader_min: int = 100, dealers_expected: in
         raise ValueError(f"Expected at least {trader_min} traders, found {len(traders)}")
 
 
+def _validate_buckets(buckets_cfg: list, dealer_ids: list, vbt_ids: list):
+    if len(buckets_cfg) != len(dealer_ids) or len(buckets_cfg) != len(vbt_ids):
+        raise ValueError("Buckets, dealers, and VBTs must have the same length")
+    names = [b["name"] for b in buckets_cfg]
+    if len(set(names)) != len(names):
+        raise ValueError("Bucket names must be unique")
+
+
 @click.command()
 @click.argument('config_file', type=click.Path(exists=True, path_type=Path))
 @click.option('--days', type=int, default=5, help='Number of periods to run')
@@ -112,6 +120,7 @@ def cli(config_file: Path, days: int):
     buckets_cfg = cfg["buckets"]
     dealer_ids = cfg["dealers"]
     vbt_ids = cfg["vbts"]
+    _validate_buckets(buckets_cfg, dealer_ids, vbt_ids)
     shares = cfg.get("shares", {})
     dealer_share = float(shares.get("dealer", 0.25))
     vbt_share = float(shares.get("vbt", 0.5))
