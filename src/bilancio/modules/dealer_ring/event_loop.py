@@ -40,6 +40,7 @@ def run_period(
     bucket_selector: Callable[[str, list[str], str], str] | None = None,
     ticket_size: int = 1,
     bucket_ranges: list[tuple[str, int, int | None]] | None = None,
+    post_trade_hook: Callable[[Any], None] | None = None,
 ) -> List[ArrivalResult]:
     """Run a single period: rebucket -> arrivals -> settlement -> anchor update.
 
@@ -127,6 +128,8 @@ def run_period(
                 )
                 arrivals.append(ArrivalResult(True, "SELL", price, pinned, agent_id, bucket_id))
                 sellers = [s for s in sellers if s != agent_id]
+                if post_trade_hook:
+                    post_trade_hook(system)
             elif buyers:
                 # fallback to BUY
                 side = "BUY"
@@ -151,6 +154,8 @@ def run_period(
                 )
                 arrivals.append(ArrivalResult(True, "BUY", price, pinned, agent_id, bucket_id))
                 buyers = [b for b in buyers if b != agent_id]
+                if post_trade_hook:
+                    post_trade_hook(system)
             elif sellers:
                 # fallback to SELL
                 continue
