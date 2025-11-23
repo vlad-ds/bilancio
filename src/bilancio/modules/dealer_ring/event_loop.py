@@ -253,5 +253,6 @@ def run_period(
             dealer.mid = vbt.mid
             dealer.spread = vbt.spread
             dealer.recompute()
+            system.log("DealerQuotes", bucket=bucket_id, ask=dealer.quotes.ask, bid=dealer.quotes.bid, outside_ask=dealer.quotes.outside_ask, outside_bid=dealer.quotes.outside_bid)
 
     return arrivals
