@@ -103,6 +103,7 @@ def run_period(
     # Precompute dealer quotes at start of period
     for dealer in buckets.values():
         dealer.recompute()
+        system.log("DealerQuotes", bucket=dealer.bucket, ask=dealer.quotes.ask, bid=dealer.quotes.bid, outside_ask=dealer.quotes.outside_ask, outside_bid=dealer.quotes.outside_bid)
     sellers = list(eligible_fn(system).sellers)
     buyers = list(eligible_fn(system).buyers)
 
@@ -132,6 +133,7 @@ def run_period(
                     bucket_id=bucket_id,
                     ticket_ops=ticket_ops,
                 )
+                system.log("Trade", side="SELL", agent=agent_id, bucket=bucket_id, price=price, pinned=pinned)
                 # include VBT if pass-through
                 if pinned:
                     parties.append(vbt.bucket)
@@ -193,6 +195,7 @@ def run_period(
                     bucket_id=bucket_id,
                     ticket_ops=ticket_ops,
                 )
+                system.log("Trade", side="BUY", agent=agent_id, bucket=bucket_id, price=price, pinned=pinned)
                 if pinned:
                     parties.append(vbt.bucket)
                     pre_cash_map.setdefault(vbt.bucket, cash_of(system, vbt.bucket))

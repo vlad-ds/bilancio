@@ -67,6 +67,7 @@ def settle_bucket_maturities(system: System, bucket_id: str, ticket_face: int) -
                 if tid in system.state.agents[issuer].liability_ids:
                     system.state.agents[issuer].liability_ids.remove(tid)
                 system.state.contracts.pop(tid, None)
+            system.log("Settlement", issuer=issuer, bucket=bucket_id, recovery=R, tickets=n, due=total_due)
             # if default, set issuer cash to zero (consume remaining cash)
             if R < 1.0:
                 remaining = _cash_available(system, issuer)
