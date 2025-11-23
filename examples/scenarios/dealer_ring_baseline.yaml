@@ -4,6 +4,7 @@ description: "Self-contained dealer-ring scenario with 100 traders in a ring and
 
 ticket_size: 1
 
+# Compact agent definitions
 agents:
   - { id: CB, kind: central_bank, name: "Central Bank" }
   - { id: D_short, kind: dealer, name: "Dealer Short" }
@@ -12,210 +13,62 @@ agents:
   - { id: V_short, kind: vbt, name: "VBT Short" }
   - { id: V_mid, kind: vbt, name: "VBT Mid" }
   - { id: V_long, kind: vbt, name: "VBT Long" }
-  # 100 traders
-  - { id: T1, kind: household, name: "Trader 1" }
-  - { id: T2, kind: household, name: "Trader 2" }
-  - { id: T3, kind: household, name: "Trader 3" }
-  - { id: T4, kind: household, name: "Trader 4" }
-  - { id: T5, kind: household, name: "Trader 5" }
-  - { id: T6, kind: household, name: "Trader 6" }
-  - { id: T7, kind: household, name: "Trader 7" }
-  - { id: T8, kind: household, name: "Trader 8" }
-  - { id: T9, kind: household, name: "Trader 9" }
-  - { id: T10, kind: household, name: "Trader 10" }
-  - { id: T11, kind: household, name: "Trader 11" }
-  - { id: T12, kind: household, name: "Trader 12" }
-  - { id: T13, kind: household, name: "Trader 13" }
-  - { id: T14, kind: household, name: "Trader 14" }
-  - { id: T15, kind: household, name: "Trader 15" }
-  - { id: T16, kind: household, name: "Trader 16" }
-  - { id: T17, kind: household, name: "Trader 17" }
-  - { id: T18, kind: household, name: "Trader 18" }
-  - { id: T19, kind: household, name: "Trader 19" }
-  - { id: T20, kind: household, name: "Trader 20" }
-  - { id: T21, kind: household, name: "Trader 21" }
-  - { id: T22, kind: household, name: "Trader 22" }
-  - { id: T23, kind: household, name: "Trader 23" }
-  - { id: T24, kind: household, name: "Trader 24" }
-  - { id: T25, kind: household, name: "Trader 25" }
-  - { id: T26, kind: household, name: "Trader 26" }
-  - { id: T27, kind: household, name: "Trader 27" }
-  - { id: T28, kind: household, name: "Trader 28" }
-  - { id: T29, kind: household, name: "Trader 29" }
-  - { id: T30, kind: household, name: "Trader 30" }
-  - { id: T31, kind: household, name: "Trader 31" }
-  - { id: T32, kind: household, name: "Trader 32" }
-  - { id: T33, kind: household, name: "Trader 33" }
-  - { id: T34, kind: household, name: "Trader 34" }
-  - { id: T35, kind: household, name: "Trader 35" }
-  - { id: T36, kind: household, name: "Trader 36" }
-  - { id: T37, kind: household, name: "Trader 37" }
-  - { id: T38, kind: household, name: "Trader 38" }
-  - { id: T39, kind: household, name: "Trader 39" }
-  - { id: T40, kind: household, name: "Trader 40" }
-  - { id: T41, kind: household, name: "Trader 41" }
-  - { id: T42, kind: household, name: "Trader 42" }
-  - { id: T43, kind: household, name: "Trader 43" }
-  - { id: T44, kind: household, name: "Trader 44" }
-  - { id: T45, kind: household, name: "Trader 45" }
-  - { id: T46, kind: household, name: "Trader 46" }
-  - { id: T47, kind: household, name: "Trader 47" }
-  - { id: T48, kind: household, name: "Trader 48" }
-  - { id: T49, kind: household, name: "Trader 49" }
-  - { id: T50, kind: household, name: "Trader 50" }
-  - { id: T51, kind: household, name: "Trader 51" }
-  - { id: T52, kind: household, name: "Trader 52" }
-  - { id: T53, kind: household, name: "Trader 53" }
-  - { id: T54, kind: household, name: "Trader 54" }
-  - { id: T55, kind: household, name: "Trader 55" }
-  - { id: T56, kind: household, name: "Trader 56" }
-  - { id: T57, kind: household, name: "Trader 57" }
-  - { id: T58, kind: household, name: "Trader 58" }
-  - { id: T59, kind: household, name: "Trader 59" }
-  - { id: T60, kind: household, name: "Trader 60" }
-  - { id: T61, kind: household, name: "Trader 61" }
-  - { id: T62, kind: household, name: "Trader 62" }
-  - { id: T63, kind: household, name: "Trader 63" }
-  - { id: T64, kind: household, name: "Trader 64" }
-  - { id: T65, kind: household, name: "Trader 65" }
-  - { id: T66, kind: household, name: "Trader 66" }
-  - { id: T67, kind: household, name: "Trader 67" }
-  - { id: T68, kind: household, name: "Trader 68" }
-  - { id: T69, kind: household, name: "Trader 69" }
-  - { id: T70, kind: household, name: "Trader 70" }
-  - { id: T71, kind: household, name: "Trader 71" }
-  - { id: T72, kind: household, name: "Trader 72" }
-  - { id: T73, kind: household, name: "Trader 73" }
-  - { id: T74, kind: household, name: "Trader 74" }
-  - { id: T75, kind: household, name: "Trader 75" }
-  - { id: T76, kind: household, name: "Trader 76" }
-  - { id: T77, kind: household, name: "Trader 77" }
-  - { id: T78, kind: household, name: "Trader 78" }
-  - { id: T79, kind: household, name: "Trader 79" }
-  - { id: T80, kind: household, name: "Trader 80" }
-  - { id: T81, kind: household, name: "Trader 81" }
-  - { id: T82, kind: household, name: "Trader 82" }
-  - { id: T83, kind: household, name: "Trader 83" }
-  - { id: T84, kind: household, name: "Trader 84" }
-  - { id: T85, kind: household, name: "Trader 85" }
-  - { id: T86, kind: household, name: "Trader 86" }
-  - { id: T87, kind: household, name: "Trader 87" }
-  - { id: T88, kind: household, name: "Trader 88" }
-  - { id: T89, kind: household, name: "Trader 89" }
-  - { id: T90, kind: household, name: "Trader 90" }
-  - { id: T91, kind: household, name: "Trader 91" }
-  - { id: T92, kind: household, name: "Trader 92" }
-  - { id: T93, kind: household, name: "Trader 93" }
-  - { id: T94, kind: household, name: "Trader 94" }
-  - { id: T95, kind: household, name: "Trader 95" }
-  - { id: T96, kind: household, name: "Trader 96" }
-  - { id: T97, kind: household, name: "Trader 97" }
-  - { id: T98, kind: household, name: "Trader 98" }
-  - { id: T99, kind: household, name: "Trader 99" }
-  - { id: T100, kind: household, name: "Trader 100" }
+  - kind: household
+    count: 100
+    id_prefix: T
+    name_prefix: "Trader "
 
+# Initial actions: mint cash to T1; create ring payables of amount=100 due day 1 among 100 traders
 initial_actions:
   - mint_cash: { to: T1, amount: 10000 }
-  - create_payable: { from: T1, to: T2, amount: 100, due_day: 1 }
-  - create_payable: { from: T2, to: T3, amount: 100, due_day: 1 }
-  - create_payable: { from: T3, to: T4, amount: 100, due_day: 1 }
-  - create_payable: { from: T4, to: T5, amount: 100, due_day: 1 }
-  - create_payable: { from: T5, to: T6, amount: 100, due_day: 1 }
-  - create_payable: { from: T6, to: T7, amount: 100, due_day: 1 }
-  - create_payable: { from: T7, to: T8, amount: 100, due_day: 1 }
-  - create_payable: { from: T8, to: T9, amount: 100, due_day: 1 }
-  - create_payable: { from: T9, to: T10, amount: 100, due_day: 1 }
-  - create_payable: { from: T10, to: T11, amount: 100, due_day: 1 }
-  - create_payable: { from: T11, to: T12, amount: 100, due_day: 1 }
-  - create_payable: { from: T12, to: T13, amount: 100, due_day: 1 }
-  - create_payable: { from: T13, to: T14, amount: 100, due_day: 1 }
-  - create_payable: { from: T14, to: T15, amount: 100, due_day: 1 }
-  - create_payable: { from: T15, to: T16, amount: 100, due_day: 1 }
-  - create_payable: { from: T16, to: T17, amount: 100, due_day: 1 }
-  - create_payable: { from: T17, to: T18, amount: 100, due_day: 1 }
-  - create_payable: { from: T18, to: T19, amount: 100, due_day: 1 }
-  - create_payable: { from: T19, to: T20, amount: 100, due_day: 1 }
-  - create_payable: { from: T20, to: T21, amount: 100, due_day: 1 }
-  - create_payable: { from: T21, to: T22, amount: 100, due_day: 1 }
-  - create_payable: { from: T22, to: T23, amount: 100, due_day: 1 }
-  - create_payable: { from: T23, to: T24, amount: 100, due_day: 1 }
-  - create_payable: { from: T24, to: T25, amount: 100, due_day: 1 }
-  - create_payable: { from: T25, to: T26, amount: 100, due_day: 1 }
-  - create_payable: { from: T26, to: T27, amount: 100, due_day: 1 }
-  - create_payable: { from: T27, to: T28, amount: 100, due_day: 1 }
-  - create_payable: { from: T28, to: T29, amount: 100, due_day: 1 }
-  - create_payable: { from: T29, to: T30, amount: 100, due_day: 1 }
-  - create_payable: { from: T30, to: T31, amount: 100, due_day: 1 }
-  - create_payable: { from: T31, to: T32, amount: 100, due_day: 1 }
-  - create_payable: { from: T32, to: T33, amount: 100, due_day: 1 }
-  - create_payable: { from: T33, to: T34, amount: 100, due_day: 1 }
-  - create_payable: { from: T34, to: T35, amount: 100, due_day: 1 }
-  - create_payable: { from: T35, to: T36, amount: 100, due_day: 1 }
-  - create_payable: { from: T36, to: T37, amount: 100, due_day: 1 }
-  - create_payable: { from: T37, to: T38, amount: 100, due_day: 1 }
-  - create_payable: { from: T38, to: T39, amount: 100, due_day: 1 }
-  - create_payable: { from: T39, to: T40, amount: 100, due_day: 1 }
-  - create_payable: { from: T40, to: T41, amount: 100, due_day: 1 }
-  - create_payable: { from: T41, to: T42, amount: 100, due_day: 1 }
-  - create_payable: { from: T42, to: T43, amount: 100, due_day: 1 }
-  - create_payable: { from: T43, to: T44, amount: 100, due_day: 1 }
-  - create_payable: { from: T44, to: T45, amount: 100, due_day: 1 }
-  - create_payable: { from: T45, to: T46, amount: 100, due_day: 1 }
-  - create_payable: { from: T46, to: T47, amount: 100, due_day: 1 }
-  - create_payable: { from: T47, to: T48, amount: 100, due_day: 1 }
-  - create_payable: { from: T48, to: T49, amount: 100, due_day: 1 }
-  - create_payable: { from: T49, to: T50, amount: 100, due_day: 1 }
-  - create_payable: { from: T50, to: T51, amount: 100, due_day: 1 }
-  - create_payable: { from: T51, to: T52, amount: 100, due_day: 1 }
-  - create_payable: { from: T52, to: T53, amount: 100, due_day: 1 }
-  - create_payable: { from: T53, to: T54, amount: 100, due_day: 1 }
-  - create_payable: { from: T54, to: T55, amount: 100, due_day: 1 }
-  - create_payable: { from: T55, to: T56, amount: 100, due_day: 1 }
-  - create_payable: { from: T56, to: T57, amount: 100, due_day: 1 }
-  - create_payable: { from: T57, to: T58, amount: 100, due_day: 1 }
-  - create_payable: { from: T58, to: T59, amount: 100, due_day: 1 }
-  - create_payable: { from: T59, to: T60, amount: 100, due_day: 1 }
-  - create_payable: { from: T60, to: T61, amount: 100, due_day: 1 }
-  - create_payable: { from: T61, to: T62, amount: 100, due_day: 1 }
-  - create_payable: { from: T62, to: T63, amount: 100, due_day: 1 }
-  - create_payable: { from: T63, to: T64, amount: 100, due_day: 1 }
-  - create_payable: { from: T64, to: T65, amount: 100, due_day: 1 }
-  - create_payable: { from: T65, to: T66, amount: 100, due_day: 1 }
-  - create_payable: { from: T66, to: T67, amount: 100, due_day: 1 }
-  - create_payable: { from: T67, to: T68, amount: 100, due_day: 1 }
-  - create_payable: { from: T68, to: T69, amount: 100, due_day: 1 }
-  - create_payable: { from: T69, to: T70, amount: 100, due_day: 1 }
-  - create_payable: { from: T70, to: T71, amount: 100, due_day: 1 }
-  - create_payable: { from: T71, to: T72, amount: 100, due_day: 1 }
-  - create_payable: { from: T72, to: T73, amount: 100, due_day: 1 }
-  - create_payable: { from: T73, to: T74, amount: 100, due_day: 1 }
-  - create_payable: { from: T74, to: T75, amount: 100, due_day: 1 }
-  - create_payable: { from: T75, to: T76, amount: 100, due_day: 1 }
-  - create_payable: { from: T76, to: T77, amount: 100, due_day: 1 }
-  - create_payable: { from: T77, to: T78, amount: 100, due_day: 1 }
-  - create_payable: { from: T78, to: T79, amount: 100, due_day: 1 }
-  - create_payable: { from: T79, to: T80, amount: 100, due_day: 1 }
-  - create_payable: { from: T80, to: T81, amount: 100, due_day: 1 }
-  - create_payable: { from: T81, to: T82, amount: 100, due_day: 1 }
-  - create_payable: { from: T82, to: T83, amount: 100, due_day: 1 }
-  - create_payable: { from: T83, to: T84, amount: 100, due_day: 1 }
-  - create_payable: { from: T84, to: T85, amount: 100, due_day: 1 }
-  - create_payable: { from: T85, to: T86, amount: 100, due_day: 1 }
-  - create_payable: { from: T86, to: T87, amount: 100, due_day: 1 }
-  - create_payable: { from: T87, to: T88, amount: 100, due_day: 1 }
-  - create_payable: { from: T88, to: T89, amount: 100, due_day: 1 }
-  - create_payable: { from: T89, to: T90, amount: 100, due_day: 1 }
-  - create_payable: { from: T90, to: T91, amount: 100, due_day: 1 }
-  - create_payable: { from: T91, to: T92, amount: 100, due_day: 1 }
-  - create_payable: { from: T92, to: T93, amount: 100, due_day: 1 }
-  - create_payable: { from: T93, to: T94, amount: 100, due_day: 1 }
-  - create_payable: { from: T94, to: T95, amount: 100, due_day: 1 }
-  - create_payable: { from: T95, to: T96, amount: 100, due_day: 1 }
-  - create_payable: { from: T96, to: T97, amount: 100, due_day: 1 }
-  - create_payable: { from: T97, to: T98, amount: 100, due_day: 1 }
-  - create_payable: { from: T98, to: T99, amount: 100, due_day: 1 }
-  - create_payable: { from: T99, to: T100, amount: 100, due_day: 1 }
-  - create_payable: { from: T100, to: T1, amount: 100, due_day: 1 }
+  - create_ring_payables:
+      from_prefix: T
+      to_prefix: T
+      count: 100
+      amount: 100
+      due_day: 1
+
+buckets:
+  - name: Short
+    tau_range: [1, 3]
+    M0: 1.0
+    O0: 0.20
+    phi_M: 1.0
+    phi_O: 0.6
+    guard_M_min: 0.0
+    clip_nonneg_bid: true
+    Xstar_target: 4
+  - name: Mid
+    tau_range: [4, 8]
+    M0: 1.0
+    O0: 0.30
+    phi_M: 1.0
+    phi_O: 0.6
+    guard_M_min: 0.0
+    clip_nonneg_bid: true
+    Xstar_target: 4
+  - name: Long
+    tau_range: [9, null]
+    M0: 1.0
+    O0: 0.40
+    phi_M: 1.0
+    phi_O: 0.6
+    guard_M_min: 0.0
+    clip_nonneg_bid: true
+    Xstar_target: 4
+
+dealers: [D_short, D_mid, D_long]
+vbts:    [V_short, V_mid, V_long]
+
+shares:
+  dealer: 0.25
+  vbt: 0.50
+
+flow:
+  pi_sell: 0.5
+  N_max: 3
+  invest_horizon: 3
+  cash_buffer: 1
 
 run:
   mode: until_stable
