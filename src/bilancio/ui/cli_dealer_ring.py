@@ -71,6 +71,18 @@ def _validate_ids_exist(required_ids, agents_map):
         raise ValueError(f"Missing agents: {missing}")
 
 
+def _validate_counts(system: System, trader_min: int = 100, dealers_expected: int = 3, vbts_expected: int = 3):
+    dealers = [a.id for a in system.state.agents.values() if a.kind == "dealer"]
+    vbts = [a.id for a in system.state.agents.values() if a.kind == "vbt"]
+    traders = [a.id for a in system.state.agents.values() if a.kind == "household"]
+    if len(dealers) != dealers_expected:
+        raise ValueError(f"Expected {dealers_expected} dealers, found {len(dealers)}: {dealers}")
+    if len(vbts) != vbts_expected:
+        raise ValueError(f"Expected {vbts_expected} VBTs, found {len(vbts)}: {vbts}")
+    if len(traders) < trader_min:
+        raise ValueError(f"Expected at least {trader_min} traders, found {len(traders)}")
+
+
 @click.command()
 @click.argument('config_file', type=click.Path(exists=True, path_type=Path))
 @click.option('--days', type=int, default=5, help='Number of periods to run')
@@ -125,6 +137,7 @@ def cli(config_file: Path, days: int):
 
     # Validate required ids present
     _validate_ids_exist(dealer_ids + vbt_ids, system.state.agents)
+    _validate_counts(system)
 
     # Build bucket_ranges and dealer/VBT objects
     bucket_ranges = []

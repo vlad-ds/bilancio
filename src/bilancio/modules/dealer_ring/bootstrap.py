@@ -20,7 +20,7 @@ def ticketize_payables(
     system: System,
     bucket_ranges: List[Tuple[str, int, int | None]],
     ticket_size: int,
-    remove_payables: bool = False,
+    remove_payables: bool = True,
 ) -> List[str]:
     """
     Convert payables into tickets by bucket; returns created ticket IDs.
