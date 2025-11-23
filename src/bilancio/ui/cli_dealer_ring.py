@@ -69,6 +69,7 @@ class DealerRingConfig(BaseModel):
     vbts: List[str]
     shares: SharesCfg = SharesCfg()
     flow: FlowCfg = FlowCfg()
+    run: dict = {}
 
 
 def _load_config(path: Path) -> DealerRingConfig:
@@ -123,8 +124,8 @@ def _validate_counts(system: System, cfg: DealerRingConfig, trader_min: int = 10
 
 @click.command()
 @click.argument('config_file', type=click.Path(exists=True, path_type=Path))
-@click.option('--days', type=int, default=5, help='Number of periods to run')
-def cli(config_file: Path, days: int):
+@click.option('--days', type=int, default=None, help='Number of periods to run (override config)')
+def cli(config_file: Path, days: int | None):
     """Run a dealer-ring scenario using a config file."""
     cfg = _load_config(config_file)
     ticket_size = cfg.ticket_size
@@ -192,7 +193,8 @@ def cli(config_file: Path, days: int):
         allocate_tickets(system, bucket_id=b.name, dealer_id=buckets[b.name].dealer_id, vbt_id=vbts[b.name].bucket, dealer_share=cfg.shares.dealer, vbt_share=cfg.shares.vbt)
 
     # Run
-    for _ in range(days):
+    run_days = days if days is not None else int(cfg.run.get("max_days", 5))
+    for _ in range(run_days):
         run_period(
             system=system,
             buckets=buckets,
