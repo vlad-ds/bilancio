@@ -1,10 +1,11 @@
-"""CLI entry for dealer-ring scenarios (config-driven, alpha)."""
+"""CLI entry for dealer-ring scenarios (config-driven)."""
 
 from pathlib import Path
-from typing import Optional
+from typing import List
 
 import click
 import yaml
+from pydantic import BaseModel, ValidationError
 from rich.console import Console
 
 from bilancio.engines.system import System
@@ -24,32 +25,75 @@ from bilancio.modules.dealer_ring import (
 console = Console()
 
 
-def _load_dealer_ring_config(path: Path) -> dict:
-    with open(path, "r") as f:
-        data = yaml.safe_load(f)
-    if not isinstance(data, dict):
-        raise ValueError("Dealer-ring config must be a mapping")
-    return data
+class AgentGroup(BaseModel):
+    kind: str
+    count: int
+    id_prefix: str
+    name_prefix: str
 
 
-def _expand_agents(config: dict) -> list[dict]:
-    agents = []
-    for entry in config.get("agents", []):
-        if "count" in entry and entry.get("id_prefix"):
-            count = int(entry["count"])
-            prefix = entry["id_prefix"]
-            name_prefix = entry.get("name_prefix", prefix)
-            kind = entry["kind"]
-            for i in range(1, count + 1):
-                agents.append({"id": f"{prefix}{i}", "kind": kind, "name": f"{name_prefix}{i}"})
-        else:
-            agents.append(entry)
-    return agents
+class BucketCfg(BaseModel):
+    name: str
+    tau_range: List[int | None]
+    M0: float
+    O0: float
+    phi_M: float = 1.0
+    phi_O: float = 0.6
+    guard_M_min: float = 0.0
+    clip_nonneg_bid: bool = True
+    Xstar_target: int = 4
 
 
-def _expand_initial_actions(config: dict) -> list[dict]:
+class SharesCfg(BaseModel):
+    dealer: float = 0.25
+    vbt: float = 0.5
+
+
+class FlowCfg(BaseModel):
+    pi_sell: float = 0.5
+    N_max: int = 3
+    invest_horizon: int = 3
+    cash_buffer: int = 1
+
+
+class DealerRingConfig(BaseModel):
+    version: int = 1
+    name: str
+    description: str | None = None
+    ticket_size: int = 1
+    agents: List[dict] = []
+    agent_groups: List[AgentGroup] = []
+    initial_actions: List[dict] = []
+    buckets: List[BucketCfg]
+    dealers: List[str]
+    vbts: List[str]
+    shares: SharesCfg = SharesCfg()
+    flow: FlowCfg = FlowCfg()
+
+
+def _load_config(path: Path) -> DealerRingConfig:
+    data = yaml.safe_load(path.read_text())
+    try:
+        return DealerRingConfig(**data)
+    except ValidationError as e:
+        raise ValueError(f"Invalid dealer-ring config: {e}")
+
+
+def _expand_agents(cfg: DealerRingConfig) -> List[dict]:
+    out = list(cfg.agents)
+    for grp in cfg.agent_groups:
+        for i in range(1, grp.count + 1):
+            out.append({
+                "id": f"{grp.id_prefix}{i}",
+                "kind": grp.kind,
+                "name": f"{grp.name_prefix}{i}",
+            })
+    return out
+
+
+def _expand_actions(cfg: DealerRingConfig) -> List[dict]:
     actions = []
-    for act in config.get("initial_actions", []):
+    for act in cfg.initial_actions:
         if "create_ring_payables" in act:
             params = act["create_ring_payables"]
             count = int(params["count"])
@@ -65,127 +109,73 @@ def _expand_initial_actions(config: dict) -> list[dict]:
     return actions
 
 
-def _validate_ids_exist(required_ids, agents_map):
-    missing = [aid for aid in required_ids if aid not in agents_map]
-    if missing:
-        raise ValueError(f"Missing agents: {missing}")
-
-
-def _validate_counts(system: System, trader_min: int = 100, dealers_expected: int = 3, vbts_expected: int = 3):
+def _validate_counts(system: System, cfg: DealerRingConfig, trader_min: int = 100):
     dealers = [a.id for a in system.state.agents.values() if a.kind == "dealer"]
     vbts = [a.id for a in system.state.agents.values() if a.kind == "vbt"]
     traders = [a.id for a in system.state.agents.values() if a.kind == "household"]
-    if len(dealers) != dealers_expected:
-        raise ValueError(f"Expected {dealers_expected} dealers, found {len(dealers)}: {dealers}")
-    if len(vbts) != vbts_expected:
-        raise ValueError(f"Expected {vbts_expected} VBTs, found {len(vbts)}: {vbts}")
+    if dealers != cfg.dealers:
+        raise ValueError(f"Dealers mismatch: expected {cfg.dealers}, found {dealers}")
+    if vbts != cfg.vbts:
+        raise ValueError(f"VBTs mismatch: expected {cfg.vbts}, found {vbts}")
     if len(traders) < trader_min:
         raise ValueError(f"Expected at least {trader_min} traders, found {len(traders)}")
-
-
-def _validate_buckets(buckets_cfg: list, dealer_ids: list, vbt_ids: list):
-    if len(buckets_cfg) != len(dealer_ids) or len(buckets_cfg) != len(vbt_ids):
-        raise ValueError("Buckets, dealers, and VBTs must have the same length")
-    names = [b["name"] for b in buckets_cfg]
-    if len(set(names)) != len(names):
-        raise ValueError("Bucket names must be unique")
-    required_fields = {"name", "tau_range", "M0", "O0"}
-    for b in buckets_cfg:
-        missing = required_fields - set(b.keys())
-        if missing:
-            raise ValueError(f"Bucket {b} missing fields: {missing}")
 
 
 @click.command()
 @click.argument('config_file', type=click.Path(exists=True, path_type=Path))
 @click.option('--days', type=int, default=5, help='Number of periods to run')
 def cli(config_file: Path, days: int):
-    """Run a dealer-ring scenario using a config file.
-
-    Config schema (YAML):
-      base_scenario: path to base YAML (agents, payables)
-      ticket_size: int
-      buckets:
-        - name: Short
-          tau_range: [1,3]
-          M0: 1.0
-          O0: 0.20
-          phi_M: 1.0
-          phi_O: 0.6
-          guard_M_min: 0.0
-          clip_nonneg_bid: true
-          Xstar_target: 4
-      dealers: [D_short, D_mid, D_long]
-      vbts:    [V_short, V_mid, V_long]
-      shares: {dealer: 0.25, vbt: 0.5}
-      flow: {pi_sell: 0.5, N_max: 3, invest_horizon: 3, cash_buffer: 1}
-    """
-    cfg = _load_dealer_ring_config(config_file)
-    ticket_size = int(cfg.get("ticket_size", 1))
-    buckets_cfg = cfg["buckets"]
-    dealer_ids = cfg["dealers"]
-    vbt_ids = cfg["vbts"]
-    _validate_buckets(buckets_cfg, dealer_ids, vbt_ids)
-    shares = cfg.get("shares", {})
-    dealer_share = float(shares.get("dealer", 0.25))
-    vbt_share = float(shares.get("vbt", 0.5))
-    flow = cfg.get("flow", {})
-    pi_sell = float(flow.get("pi_sell", 0.5))
-    N_max = int(flow.get("N_max", 3))
-    invest_horizon = int(flow.get("invest_horizon", 3))
-    cash_buffer = int(flow.get("cash_buffer", 1))
+    """Run a dealer-ring scenario using a config file."""
+    cfg = _load_config(config_file)
+    ticket_size = cfg.ticket_size
 
     system = System()
 
-    # Expand dealer-ring agents/actions and apply
-    expanded_agents = _expand_agents(cfg)
-    for agent_spec in expanded_agents:
-        spec = AgentSpec(**agent_spec)
+    # Agents
+    for agent_dict in _expand_agents(cfg):
+        spec = AgentSpec(**agent_dict)
         agent_obj = create_agent(spec)
         system.add_agent(agent_obj)
 
-    expanded_actions = _expand_initial_actions(cfg)
-    agents_map = system.state.agents
-    for act in expanded_actions:
-        apply_action(system, act, agents_map)
+    # Initial actions
+    for act in _expand_actions(cfg):
+        apply_action(system, act, system.state.agents)
 
-    # Validate required ids present
-    _validate_ids_exist(dealer_ids + vbt_ids, system.state.agents)
-    _validate_counts(system)
+    # Validate counts/ids
+    _validate_counts(system, cfg)
 
-    # Build bucket_ranges and dealer/VBT objects
+    # Buckets
     bucket_ranges = []
     buckets = {}
     vbts = {}
-    for i, b in enumerate(buckets_cfg):
-        name = b["name"]
-        tau_range = b["tau_range"]
-        lo = int(tau_range[0])
-        hi = int(tau_range[1]) if len(tau_range) > 1 and tau_range[1] is not None else None
-        bucket_ranges.append((name, lo, hi))
-        dealer_id = dealer_ids[i]
-        vbt_id = vbt_ids[i]
-        buckets[name] = DealerBucket(
-            bucket=name,
+    for i, b in enumerate(cfg.buckets):
+        tau = b.tau_range
+        lo = int(tau[0])
+        hi = int(tau[1]) if len(tau) > 1 and tau[1] is not None else None
+        bucket_ranges.append((b.name, lo, hi))
+        dealer_id = cfg.dealers[i]
+        vbt_id = cfg.vbts[i]
+        buckets[b.name] = DealerBucket(
+            bucket=b.name,
             ticket_size=ticket_size,
-            mid=float(b["M0"]),
-            spread=float(b["O0"]),
+            mid=b.M0,
+            spread=b.O0,
             cash=0.0,
             inventory=0.0,
-            guard_m_min=float(b.get("guard_M_min", 0.0)),
+            guard_m_min=b.guard_M_min,
             vbt=None,
             dealer_id=dealer_id,
             vbt_id=vbt_id,
         )
-        vbts[name] = VBTBucket(
-            bucket=name,
+        vbts[b.name] = VBTBucket(
+            bucket=b.name,
             ticket_size=ticket_size,
-            mid=float(b["M0"]),
-            spread=float(b["O0"]),
-            phi_M=float(b.get("phi_M", 1.0)),
-            phi_O=float(b.get("phi_O", 0.6)),
-            guard_M_min=float(b.get("guard_M_min", 0.0)),
-            clip_nonneg_bid=bool(b.get("clip_nonneg_bid", True)),
+            mid=b.M0,
+            spread=b.O0,
+            phi_M=b.phi_M,
+            phi_O=b.phi_O,
+            guard_M_min=b.guard_M_min,
+            clip_nonneg_bid=b.clip_nonneg_bid,
         )
 
     ticket_ops = TicketOps(system)
@@ -193,25 +183,24 @@ def cli(config_file: Path, days: int):
     # Ticketize payables
     ticketize_payables(system, bucket_ranges=bucket_ranges, ticket_size=ticket_size, remove_payables=True)
 
-    # Seed cash/inventory mid-shelf per bucket
-    for i, (name, dealer) in enumerate(buckets.items()):
-        X_target = int(buckets_cfg[i].get("Xstar_target", 4))
-        seed_dealer_vbt_cash(system, dealer_id=dealer.dealer_id, vbt_id=vbts[name].bucket, mid=dealer.mid, X_target=X_target, ticket_size=ticket_size)
+    # Seed cash/inventory
+    for b in cfg.buckets:
+        seed_dealer_vbt_cash(system, dealer_id=buckets[b.name].dealer_id, vbt_id=vbts[b.name].bucket, mid=b.M0, X_target=b.Xstar_target, ticket_size=ticket_size)
 
-    # Allocate tickets to dealer/VBT shares
-    for name in buckets.keys():
-        allocate_tickets(system, bucket_id=name, dealer_id=buckets[name].dealer_id, vbt_id=vbts[name].bucket, dealer_share=dealer_share, vbt_share=vbt_share)
+    # Allocate tickets
+    for b in cfg.buckets:
+        allocate_tickets(system, bucket_id=b.name, dealer_id=buckets[b.name].dealer_id, vbt_id=vbts[b.name].bucket, dealer_share=cfg.shares.dealer, vbt_share=cfg.shares.vbt)
 
-    # Run periods
+    # Run
     for _ in range(days):
         run_period(
             system=system,
             buckets=buckets,
             vbts=vbts,
             ticket_ops=ticket_ops,
-            pi_sell=pi_sell,
-            N_max=N_max,
-            eligible_fn=lambda sys: default_eligibility(sys, cash_buffer=cash_buffer, horizon=invest_horizon),
+            pi_sell=cfg.flow.pi_sell,
+            N_max=cfg.flow.N_max,
+            eligible_fn=lambda sys: default_eligibility(sys, cash_buffer=cfg.flow.cash_buffer, horizon=cfg.flow.invest_horizon),
             bucket_selector=None,
             ticket_size=ticket_size,
             bucket_ranges=bucket_ranges,

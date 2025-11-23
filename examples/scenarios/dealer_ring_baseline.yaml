@@ -4,7 +4,6 @@ description: "Self-contained dealer-ring scenario with 100 traders in a ring and
 
 ticket_size: 1
 
-# Compact agent definitions
 agents:
   - { id: CB, kind: central_bank, name: "Central Bank" }
   - { id: D_short, kind: dealer, name: "Dealer Short" }
@@ -13,12 +12,13 @@ agents:
   - { id: V_short, kind: vbt, name: "VBT Short" }
   - { id: V_mid, kind: vbt, name: "VBT Mid" }
   - { id: V_long, kind: vbt, name: "VBT Long" }
+
+agent_groups:
   - kind: household
     count: 100
     id_prefix: T
     name_prefix: "Trader "
 
-# Initial actions: mint cash to T1; create ring payables of amount=100 due day 1 among 100 traders
 initial_actions:
   - mint_cash: { to: T1, amount: 10000 }
   - create_ring_payables:
