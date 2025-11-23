@@ -186,11 +186,11 @@ def cli(config_file: Path, days: int | None):
 
     # Seed cash/inventory
     for b in cfg.buckets:
-        seed_dealer_vbt_cash(system, dealer_id=buckets[b.name].dealer_id, vbt_id=vbts[b.name].bucket, mid=b.M0, X_target=b.Xstar_target, ticket_size=ticket_size)
+        seed_dealer_vbt_cash(system, dealer_id=buckets[b.name].dealer_id, vbt_id=buckets[b.name].vbt_id, mid=b.M0, X_target=b.Xstar_target, ticket_size=ticket_size)
 
     # Allocate tickets
     for b in cfg.buckets:
-        allocate_tickets(system, bucket_id=b.name, dealer_id=buckets[b.name].dealer_id, vbt_id=vbts[b.name].bucket, dealer_share=cfg.shares.dealer, vbt_share=cfg.shares.vbt)
+        allocate_tickets(system, bucket_id=b.name, dealer_id=buckets[b.name].dealer_id, vbt_id=buckets[b.name].vbt_id, dealer_share=cfg.shares.dealer, vbt_share=cfg.shares.vbt)
 
     # Run
     run_days = days if days is not None else int(cfg.run.get("max_days", 5))
