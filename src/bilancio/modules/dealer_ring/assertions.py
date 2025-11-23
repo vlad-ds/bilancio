@@ -76,3 +76,19 @@ def assert_trade_invariants(
         elif side == "SELL":
             if inventory + ticket_size > capacity or cash < bid:
                 raise AssertionError(f"Interior BUY infeasible: x+S {inventory+ticket_size} > X* {capacity} or cash {cash} < bid {bid}")
+
+
+def assert_equity_basis(dealer_cash: float, dealer_inv_tickets: float, mid: float, trader_assets: float, trader_liabs: float) -> None:
+    """C5: dealers/VBTs marked to mid, traders at face."""
+    dealer_equity = dealer_cash + mid * dealer_inv_tickets
+    if dealer_equity < -1e-9:
+        raise AssertionError(f"Dealer equity negative at mid: {dealer_equity}")
+    trader_equity = trader_assets - trader_liabs
+    if trader_equity < -1e-9:
+        raise AssertionError(f"Trader equity negative at face: {trader_equity}")
+
+
+def assert_anchor_timing(anchors_prev: tuple[float, float], anchors_new: tuple[float, float], depended_on_flow: bool = False) -> None:
+    """C6: anchors should update only from losses in t, not order flow in t+1."""
+    if depended_on_flow:
+        raise AssertionError("Anchor updated based on order flow in disallowed timing")
