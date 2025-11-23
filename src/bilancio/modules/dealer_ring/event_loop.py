@@ -11,6 +11,7 @@ from .vbt import VBTBucket
 from .ticket_ops import TicketOps
 from .settlement import settle_bucket_maturities
 from .policy import Eligibility, bucket_pref_sell, bucket_pref_buy
+from .assertions import assert_trade_invariants
 
 
 @dataclass
@@ -119,12 +120,26 @@ def run_period(
                     bucket_id = bucket_pref_sell(system, agent_id, list(buckets.keys()), buckets)
                 dealer = buckets[bucket_id]
                 vbt = vbts[bucket_id]
+                pre_cash, pre_inv = dealer.cash, dealer.inventory
+                q = dealer.recompute()
                 price, pinned = dealer.execute_customer_sell(
                     customer_id=agent_id,
                     dealer_id=dealer.bucket,
                     vbt_id=vbt.bucket,
                     bucket_id=bucket_id,
                     ticket_ops=ticket_ops,
+                )
+                assert_trade_invariants(
+                    pre_cash=pre_cash,
+                    pre_inv=pre_inv,
+                    post_cash=dealer.cash,
+                    post_inv=dealer.inventory,
+                    bid=q.bid,
+                    ask=q.ask,
+                    outside_bid=q.outside_bid,
+                    outside_ask=q.outside_ask,
+                    pinned=pinned,
+                    side="SELL",
                 )
                 arrivals.append(ArrivalResult(True, "SELL", price, pinned, agent_id, bucket_id))
                 sellers = [s for s in sellers if s != agent_id]
@@ -145,12 +160,26 @@ def run_period(
                     bucket_id = bucket_pref_buy(system, agent_id, list(buckets.keys()), buckets)
                 dealer = buckets[bucket_id]
                 vbt = vbts[bucket_id]
+                pre_cash, pre_inv = dealer.cash, dealer.inventory
+                q = dealer.recompute()
                 price, pinned = dealer.execute_customer_buy(
                     customer_id=agent_id,
                     dealer_id=dealer.bucket,
                     vbt_id=vbt.bucket,
                     bucket_id=bucket_id,
                     ticket_ops=ticket_ops,
+                )
+                assert_trade_invariants(
+                    pre_cash=pre_cash,
+                    pre_inv=pre_inv,
+                    post_cash=dealer.cash,
+                    post_inv=dealer.inventory,
+                    bid=q.bid,
+                    ask=q.ask,
+                    outside_bid=q.outside_bid,
+                    outside_ask=q.outside_ask,
+                    pinned=pinned,
+                    side="BUY",
                 )
                 arrivals.append(ArrivalResult(True, "BUY", price, pinned, agent_id, bucket_id))
                 buyers = [b for b in buyers if b != agent_id]

@@ -38,3 +38,21 @@ def assert_pass_through_state(dealer_cash: float, dealer_inv: float, dealer_cash
     """C4: pass-through leaves dealer state unchanged."""
     if abs(dealer_cash_after - dealer_cash) > 1e-12 or abs(dealer_inv_after - dealer_inv) > 1e-12:
         raise AssertionError("Dealer state changed on pass-through pin")
+
+
+def assert_trade_invariants(
+    pre_cash: float,
+    pre_inv: float,
+    post_cash: float,
+    post_inv: float,
+    bid: float,
+    ask: float,
+    outside_bid: float,
+    outside_ask: float,
+    pinned: bool,
+    side: str,
+):
+    """Check C2 bounds and C4 pass-through when pinned."""
+    assert_quotes_within_bounds(bid, ask, outside_bid, outside_ask)
+    if pinned:
+        assert_pass_through_state(pre_cash, pre_inv, post_cash, post_inv)
