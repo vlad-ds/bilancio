@@ -48,6 +48,7 @@ def settle_bucket_maturities(system: System, bucket_id: str, ticket_face: int) -
 
         # pay each holder proportionally; delete tickets
         with atomic(system):
+            cash_before = {issuer: _cash_available(system, issuer)}
             for tid in ticket_ids:
                 instr = system.state.contracts.get(tid)
                 if instr is None:
@@ -75,6 +76,12 @@ def settle_bucket_maturities(system: System, bucket_id: str, ticket_face: int) -
                     except ValidationError:
                         # best effort
                         pass
+            cash_after = _cash_available(system, issuer)
+            # C1 cash conservation within issuer+holders on this cohort
+            paid_out = sum(int(ticket_face * R) for _ in ticket_ids)
+            cash_delta = (cash_after - cash_before[issuer]) + paid_out
+            if abs(cash_delta) > 1e-9:
+                raise AssertionError(f"Cash not conserved in settlement issuer={issuer}: delta={cash_delta}")
         total_tickets += n
         total_loss += n * (1.0 - R)
 
