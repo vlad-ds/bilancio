@@ -65,6 +65,12 @@ def _expand_initial_actions(config: dict) -> list[dict]:
     return actions
 
 
+def _validate_ids_exist(required_ids, agents_map):
+    missing = [aid for aid in required_ids if aid not in agents_map]
+    if missing:
+        raise ValueError(f"Missing agents: {missing}")
+
+
 @click.command()
 @click.argument('config_file', type=click.Path(exists=True, path_type=Path))
 @click.option('--days', type=int, default=5, help='Number of periods to run')
@@ -116,6 +122,9 @@ def cli(config_file: Path, days: int):
     agents_map = system.state.agents
     for act in expanded_actions:
         apply_action(system, act, agents_map)
+
+    # Validate required ids present
+    _validate_ids_exist(dealer_ids + vbt_ids, system.state.agents)
 
     # Build bucket_ranges and dealer/VBT objects
     bucket_ranges = []
