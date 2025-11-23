@@ -59,8 +59,20 @@ def assert_trade_invariants(
     outside_ask: float,
     pinned: bool,
     side: str,
+    capacity: float,
+    inventory: float,
+    cash: float,
+    ticket_size: float,
 ):
     """Check C2 bounds and C4 pass-through when pinned."""
     assert_quotes_within_bounds(bid, ask, outside_bid, outside_ask)
     if pinned:
         assert_pass_through_state(pre_cash, pre_inv, post_cash, post_inv)
+    else:
+        # C3 feasibility: SELL interior requires inventory >= S; BUY interior requires x+S<=X* and cash>=bid
+        if side == "BUY":
+            if inventory < ticket_size:
+                raise AssertionError(f"Interior SELL infeasible: inventory {inventory} < ticket_size {ticket_size}")
+        elif side == "SELL":
+            if inventory + ticket_size > capacity or cash < bid:
+                raise AssertionError(f"Interior BUY infeasible: x+S {inventory+ticket_size} > X* {capacity} or cash {cash} < bid {bid}")

@@ -148,6 +148,10 @@ def run_period(
                     outside_ask=q.outside_ask,
                     pinned=pinned,
                     side="SELL",
+                    capacity=q.capacity,
+                    inventory=pre_inv,
+                    cash=pre_cash,
+                    ticket_size=ticket_size,
                 )
                 # C1: cash and tickets conserved across involved parties
                 post_cash_map = {p: cash_of(system, p) for p in parties}
@@ -204,6 +208,10 @@ def run_period(
                     outside_ask=q.outside_ask,
                     pinned=pinned,
                     side="BUY",
+                    capacity=q.capacity,
+                    inventory=pre_inv,
+                    cash=pre_cash,
+                    ticket_size=ticket_size,
                 )
                 post_cash_map = {p: cash_of(system, p) for p in parties}
                 post_tickets = {p: tickets_of(system, p, bucket_id) for p in parties}
