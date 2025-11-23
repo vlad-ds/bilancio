@@ -28,6 +28,7 @@ class VBTBucket:
     clip_nonneg_bid: bool = True
     cash: float = 0.0
     inventory: float = 0.0  # measured in tickets (face units / ticket_size)
+    agent_id: str | None = None
 
     def quotes(self) -> Tuple[float, float]:
         """Return (ask, bid) applying optional non-negative bid clip."""

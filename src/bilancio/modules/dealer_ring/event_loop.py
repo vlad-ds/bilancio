@@ -94,7 +94,8 @@ def run_period(
                     old_vbt.inventory -= 1.0
                     new_vbt.cash -= mid_price
                     new_vbt.inventory += 1.0
-                    ticket_ops.system.transfer_ticket(cid, owner, new_vbt.bucket)
+                    tgt_vbt_id = new_vbt.agent_id or new_vbt.bucket
+                    ticket_ops.system.transfer_ticket(cid, owner, tgt_vbt_id)
                     ticket_ops.system.rebucket_ticket(cid, new_bucket_id=new_bucket)
             else:
                 # trader: relabel only
@@ -126,6 +127,9 @@ def run_period(
                 parties = [agent_id, dealer.dealer_id]
                 pre_cash_map = {p: cash_of(system, p) for p in parties}
                 pre_tickets = {p: tickets_of(system, p, bucket_id) for p in parties}
+                vbt_id = dealer.vbt_id
+                vbt_pre_cash = cash_of(system, vbt_id)
+                vbt_pre_tickets = tickets_of(system, vbt_id, bucket_id)
                 price, pinned = dealer.execute_customer_sell(
                     customer_id=agent_id,
                     dealer_id=dealer.bucket,
@@ -136,10 +140,9 @@ def run_period(
                 system.log("Trade", side="SELL", agent=agent_id, bucket=bucket_id, price=price, pinned=pinned)
                 # include VBT if pass-through
                 if pinned:
-                    vbt_id = dealer.vbt_id
                     parties.append(vbt_id)
-                    pre_cash_map[vbt_id] = cash_of(system, vbt_id)
-                    pre_tickets[vbt_id] = tickets_of(system, vbt_id, bucket_id)
+                    pre_cash_map[vbt_id] = vbt_pre_cash
+                    pre_tickets[vbt_id] = vbt_pre_tickets
                 assert_trade_invariants(
                     pre_cash=pre_cash,
                     pre_inv=pre_inv,
@@ -181,7 +184,7 @@ def run_period(
                 if bucket_selector:
                     bucket_id = bucket_selector(agent_id, list(buckets.keys()), "BUY")
                 else:
-                    bucket_id = bucket_pref_buy(system, agent_id, list(buckets.keys()), buckets)
+                    bucket_id = bucket_pref_buy(system, agent_id, list(buckets.keys()), buckets, vbts)
                 dealer = buckets[bucket_id]
                 vbt = vbts[bucket_id]
                 pre_cash, pre_inv = dealer.cash, dealer.inventory
@@ -189,6 +192,9 @@ def run_period(
                 parties = [agent_id, dealer.dealer_id]
                 pre_cash_map = {p: cash_of(system, p) for p in parties}
                 pre_tickets = {p: tickets_of(system, p, bucket_id) for p in parties}
+                vbt_id = dealer.vbt_id
+                vbt_pre_cash = cash_of(system, vbt_id)
+                vbt_pre_tickets = tickets_of(system, vbt_id, bucket_id)
                 price, pinned = dealer.execute_customer_buy(
                     customer_id=agent_id,
                     dealer_id=dealer.bucket,
@@ -198,10 +204,9 @@ def run_period(
                 )
                 system.log("Trade", side="BUY", agent=agent_id, bucket=bucket_id, price=price, pinned=pinned)
                 if pinned:
-                    vbt_id = dealer.vbt_id
                     parties.append(vbt_id)
-                    pre_cash_map.setdefault(vbt_id, cash_of(system, vbt_id))
-                    pre_tickets.setdefault(vbt_id, tickets_of(system, vbt_id, bucket_id))
+                    pre_cash_map.setdefault(vbt_id, vbt_pre_cash)
+                    pre_tickets.setdefault(vbt_id, vbt_pre_tickets)
                 assert_trade_invariants(
                     pre_cash=pre_cash,
                     pre_inv=pre_inv,

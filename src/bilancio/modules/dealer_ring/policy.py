@@ -78,11 +78,16 @@ def bucket_pref_sell(system: System, agent_id: str, bucket_ids: List[str], bucke
     return best_bucket or bucket_ids[0]
 
 
-def bucket_pref_buy(system: System, agent_id: str, ordered_buckets: List[str], buckets) -> str:
-    """BUY: prefer Short->Mid->Long order; skip buckets whose dealer is pinned ask if possible."""
-    # ordered_buckets should already be short->mid->long
+def bucket_pref_buy(system: System, agent_id: str, ordered_buckets: List[str], buckets, vbts) -> str:
+    """BUY: prefer Short->Mid->Long; skip buckets pinned ask or with no dealer/VBT inventory if possible."""
     for bid in ordered_buckets:
         dq = buckets[bid].quotes
-        if not dq.pinned_ask:
+        inv_ok = buckets[bid].inventory > 0 or vbts[bid].inventory > 0
+        if not dq.pinned_ask and inv_ok:
+            return bid
+    # fallback any with inventory
+    for bid in ordered_buckets:
+        inv_ok = buckets[bid].inventory > 0 or vbts[bid].inventory > 0
+        if inv_ok:
             return bid
     return ordered_buckets[0]
