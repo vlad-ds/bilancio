@@ -8,7 +8,8 @@ import yaml
 from rich.console import Console
 
 from bilancio.engines.system import System
-from bilancio.config import load_yaml, apply_to_system
+from bilancio.config.apply import create_agent, apply_action
+from bilancio.config.models import AgentSpec
 from bilancio.modules.dealer_ring import (
     ticketize_payables,
     allocate_tickets,
@@ -89,7 +90,6 @@ def cli(config_file: Path, days: int):
       flow: {pi_sell: 0.5, N_max: 3, invest_horizon: 3, cash_buffer: 1}
     """
     cfg = _load_dealer_ring_config(config_file)
-    base_path = Path(cfg["base_scenario"])
     ticket_size = int(cfg.get("ticket_size", 1))
     buckets_cfg = cfg["buckets"]
     dealer_ids = cfg["dealers"]
@@ -103,16 +103,13 @@ def cli(config_file: Path, days: int):
     invest_horizon = int(flow.get("invest_horizon", 3))
     cash_buffer = int(flow.get("cash_buffer", 1))
 
-    # Load base scenario and apply to system
-    config = load_yaml(base_path)
     system = System()
-    apply_to_system(config, system)
 
     # Expand dealer-ring agents/actions and apply
     expanded_agents = _expand_agents(cfg)
-    from bilancio.config.apply import create_agent, apply_action
     for agent_spec in expanded_agents:
-        agent_obj = create_agent(type("Obj", (object,), agent_spec)())
+        spec = AgentSpec(**agent_spec)
+        agent_obj = create_agent(spec)
         system.add_agent(agent_obj)
 
     expanded_actions = _expand_initial_actions(cfg)
