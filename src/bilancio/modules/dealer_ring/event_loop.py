@@ -129,16 +129,17 @@ def run_period(
                 price, pinned = dealer.execute_customer_sell(
                     customer_id=agent_id,
                     dealer_id=dealer.bucket,
-                    vbt_id=vbt.bucket,
+                    vbt_id=dealer.vbt_id,
                     bucket_id=bucket_id,
                     ticket_ops=ticket_ops,
                 )
                 system.log("Trade", side="SELL", agent=agent_id, bucket=bucket_id, price=price, pinned=pinned)
                 # include VBT if pass-through
                 if pinned:
-                    parties.append(vbt.bucket)
-                    pre_cash_map[vbt.bucket] = cash_of(system, vbt.bucket)
-                    pre_tickets[vbt.bucket] = tickets_of(system, vbt.bucket, bucket_id)
+                    vbt_id = dealer.vbt_id
+                    parties.append(vbt_id)
+                    pre_cash_map[vbt_id] = cash_of(system, vbt_id)
+                    pre_tickets[vbt_id] = tickets_of(system, vbt_id, bucket_id)
                 assert_trade_invariants(
                     pre_cash=pre_cash,
                     pre_inv=pre_inv,
@@ -191,15 +192,16 @@ def run_period(
                 price, pinned = dealer.execute_customer_buy(
                     customer_id=agent_id,
                     dealer_id=dealer.bucket,
-                    vbt_id=vbt.bucket,
+                    vbt_id=dealer.vbt_id,
                     bucket_id=bucket_id,
                     ticket_ops=ticket_ops,
                 )
                 system.log("Trade", side="BUY", agent=agent_id, bucket=bucket_id, price=price, pinned=pinned)
                 if pinned:
-                    parties.append(vbt.bucket)
-                    pre_cash_map.setdefault(vbt.bucket, cash_of(system, vbt.bucket))
-                    pre_tickets.setdefault(vbt.bucket, tickets_of(system, vbt.bucket, bucket_id))
+                    vbt_id = dealer.vbt_id
+                    parties.append(vbt_id)
+                    pre_cash_map.setdefault(vbt_id, cash_of(system, vbt_id))
+                    pre_tickets.setdefault(vbt_id, tickets_of(system, vbt_id, bucket_id))
                 assert_trade_invariants(
                     pre_cash=pre_cash,
                     pre_inv=pre_inv,
