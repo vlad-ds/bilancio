@@ -7,6 +7,14 @@ from typing import Iterable
 from bilancio.engines.system import System
 
 
+def cash_of(system: System, agent_id: str) -> float:
+    return sum(c.amount for c in system.state.contracts.values() if c.kind == "cash" and c.asset_holder_id == agent_id)
+
+
+def tickets_of(system: System, agent_id: str, bucket_id: str) -> int:
+    return len(system.tickets_of(agent_id, bucket_id=bucket_id))
+
+
 def assert_double_entry_cash(system: System, party_ids: Iterable[str], eps: float = 1e-10) -> None:
     """C1: sum of cash deltas across parties ~= 0."""
     total = 0.0

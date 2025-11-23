@@ -11,7 +11,7 @@ from .vbt import VBTBucket
 from .ticket_ops import TicketOps
 from .settlement import settle_bucket_maturities
 from .policy import Eligibility, bucket_pref_sell, bucket_pref_buy
-from .assertions import assert_trade_invariants
+from .assertions import assert_trade_invariants, cash_of, tickets_of
 
 
 @dataclass
@@ -122,6 +122,9 @@ def run_period(
                 vbt = vbts[bucket_id]
                 pre_cash, pre_inv = dealer.cash, dealer.inventory
                 q = dealer.recompute()
+                parties = [agent_id, dealer.dealer_id]
+                pre_cash_map = {p: cash_of(system, p) for p in parties}
+                pre_tickets = {p: tickets_of(system, p, bucket_id) for p in parties}
                 price, pinned = dealer.execute_customer_sell(
                     customer_id=agent_id,
                     dealer_id=dealer.bucket,
@@ -129,6 +132,11 @@ def run_period(
                     bucket_id=bucket_id,
                     ticket_ops=ticket_ops,
                 )
+                # include VBT if pass-through
+                if pinned:
+                    parties.append(vbt.bucket)
+                    pre_cash_map[vbt.bucket] = cash_of(system, vbt.bucket)
+                    pre_tickets[vbt.bucket] = tickets_of(system, vbt.bucket, bucket_id)
                 assert_trade_invariants(
                     pre_cash=pre_cash,
                     pre_inv=pre_inv,
@@ -141,6 +149,15 @@ def run_period(
                     pinned=pinned,
                     side="SELL",
                 )
+                # C1: cash and tickets conserved across involved parties
+                post_cash_map = {p: cash_of(system, p) for p in parties}
+                post_tickets = {p: tickets_of(system, p, bucket_id) for p in parties}
+                cash_delta = sum(post_cash_map[p] - pre_cash_map[p] for p in parties)
+                ticket_delta = sum(post_tickets[p] - pre_tickets[p] for p in parties)
+                if abs(cash_delta) > 1e-9:
+                    raise AssertionError(f"Cash not conserved on SELL: delta={cash_delta}")
+                if ticket_delta != 0:
+                    raise AssertionError(f"Tickets not conserved on SELL: delta={ticket_delta}")
                 arrivals.append(ArrivalResult(True, "SELL", price, pinned, agent_id, bucket_id))
                 sellers = [s for s in sellers if s != agent_id]
                 if post_trade_hook:
@@ -162,6 +179,9 @@ def run_period(
                 vbt = vbts[bucket_id]
                 pre_cash, pre_inv = dealer.cash, dealer.inventory
                 q = dealer.recompute()
+                parties = [agent_id, dealer.dealer_id]
+                pre_cash_map = {p: cash_of(system, p) for p in parties}
+                pre_tickets = {p: tickets_of(system, p, bucket_id) for p in parties}
                 price, pinned = dealer.execute_customer_buy(
                     customer_id=agent_id,
                     dealer_id=dealer.bucket,
@@ -169,6 +189,10 @@ def run_period(
                     bucket_id=bucket_id,
                     ticket_ops=ticket_ops,
                 )
+                if pinned:
+                    parties.append(vbt.bucket)
+                    pre_cash_map.setdefault(vbt.bucket, cash_of(system, vbt.bucket))
+                    pre_tickets.setdefault(vbt.bucket, tickets_of(system, vbt.bucket, bucket_id))
                 assert_trade_invariants(
                     pre_cash=pre_cash,
                     pre_inv=pre_inv,
@@ -181,6 +205,14 @@ def run_period(
                     pinned=pinned,
                     side="BUY",
                 )
+                post_cash_map = {p: cash_of(system, p) for p in parties}
+                post_tickets = {p: tickets_of(system, p, bucket_id) for p in parties}
+                cash_delta = sum(post_cash_map[p] - pre_cash_map[p] for p in parties)
+                ticket_delta = sum(post_tickets[p] - pre_tickets[p] for p in parties)
+                if abs(cash_delta) > 1e-9:
+                    raise AssertionError(f"Cash not conserved on BUY: delta={cash_delta}")
+                if ticket_delta != 0:
+                    raise AssertionError(f"Tickets not conserved on BUY: delta={ticket_delta}")
                 arrivals.append(ArrivalResult(True, "BUY", price, pinned, agent_id, bucket_id))
                 buyers = [b for b in buyers if b != agent_id]
                 if post_trade_hook:
