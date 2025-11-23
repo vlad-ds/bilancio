@@ -244,7 +244,9 @@ def run_period(
     # VBT anchor updates using bucket loss rates
     for bucket_id, vbt in vbts.items():
         lr = loss_rates.get(bucket_id, 0.0)
+        prev_mid, prev_spread = vbt.mid, vbt.spread
         vbt.update_anchors(lr)
+        system.log("AnchorUpdate", bucket=bucket_id, prev_mid=prev_mid, prev_spread=prev_spread, new_mid=vbt.mid, new_spread=vbt.spread, loss_rate=lr)
         # sync dealer outside quotes from VBT mid/spread
         if bucket_id in buckets:
             dealer = buckets[bucket_id]
