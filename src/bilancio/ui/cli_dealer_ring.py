@@ -89,6 +89,11 @@ def _validate_buckets(buckets_cfg: list, dealer_ids: list, vbt_ids: list):
     names = [b["name"] for b in buckets_cfg]
     if len(set(names)) != len(names):
         raise ValueError("Bucket names must be unique")
+    required_fields = {"name", "tau_range", "M0", "O0"}
+    for b in buckets_cfg:
+        missing = required_fields - set(b.keys())
+        if missing:
+            raise ValueError(f"Bucket {b} missing fields: {missing}")
 
 
 @click.command()
@@ -186,11 +191,12 @@ def cli(config_file: Path, days: int):
     ticket_ops = TicketOps(system)
 
     # Ticketize payables
-    ticketize_payables(system, bucket_ranges=bucket_ranges, ticket_size=ticket_size, remove_payables=False)
+    ticketize_payables(system, bucket_ranges=bucket_ranges, ticket_size=ticket_size, remove_payables=True)
 
     # Seed cash/inventory mid-shelf per bucket
-    for name, dealer in buckets.items():
-        seed_dealer_vbt_cash(system, dealer_id=dealer.dealer_id, vbt_id=vbts[name].bucket, mid=dealer.mid, X_target=buckets_cfg[[b["name"] for b in buckets_cfg].index(name)].get("Xstar_target", 4), ticket_size=ticket_size)
+    for i, (name, dealer) in enumerate(buckets.items()):
+        X_target = int(buckets_cfg[i].get("Xstar_target", 4))
+        seed_dealer_vbt_cash(system, dealer_id=dealer.dealer_id, vbt_id=vbts[name].bucket, mid=dealer.mid, X_target=X_target, ticket_size=ticket_size)
 
     # Allocate tickets to dealer/VBT shares
     for name in buckets.keys():
