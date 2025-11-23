@@ -97,6 +97,10 @@ def run_period(
             else:
                 # trader: relabel only
                 ticket_ops.system.rebucket_ticket(cid, new_bucket_id=new_bucket)
+
+    # Precompute dealer quotes at start of period
+    for dealer in buckets.values():
+        dealer.recompute()
     sellers = list(eligible_fn(system).sellers)
     buyers = list(eligible_fn(system).buyers)
 
