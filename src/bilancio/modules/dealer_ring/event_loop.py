@@ -85,6 +85,7 @@ def run_period(
                     new_dealer.inventory += ticket_size
                     ticket_ops.system.transfer_ticket(cid, owner, new_dealer.dealer_id)
                     ticket_ops.system.rebucket_ticket(cid, new_bucket_id=new_bucket)
+                    system.log("Rebucket", holder=owner, from_bucket=instr.bucket_id, to_bucket=new_bucket, mid_price=mid_price, ticket_id=cid)
             elif owner_kind == "vbt":
                 old_vbt = vbts.get(instr.bucket_id)
                 new_vbt = vbts.get(new_bucket)
@@ -97,6 +98,7 @@ def run_period(
                     tgt_vbt_id = new_vbt.agent_id or new_vbt.bucket
                     ticket_ops.system.transfer_ticket(cid, owner, tgt_vbt_id)
                     ticket_ops.system.rebucket_ticket(cid, new_bucket_id=new_bucket)
+                    system.log("Rebucket", holder=owner, from_bucket=instr.bucket_id, to_bucket=new_bucket, mid_price=mid_price, ticket_id=cid)
             else:
                 # trader: relabel only
                 ticket_ops.system.rebucket_ticket(cid, new_bucket_id=new_bucket)
@@ -104,7 +106,7 @@ def run_period(
     # Precompute dealer quotes at start of period
     for dealer in buckets.values():
         dealer.recompute()
-        system.log("DealerQuotes", bucket=dealer.bucket, ask=dealer.quotes.ask, bid=dealer.quotes.bid, outside_ask=dealer.quotes.outside_ask, outside_bid=dealer.quotes.outside_bid)
+        system.log("DealerQuotes", bucket=dealer.bucket, ask=dealer.quotes.ask, bid=dealer.quotes.bid, outside_ask=dealer.quotes.outside_ask, outside_bid=dealer.quotes.outside_bid, cash=dealer.cash, inventory=dealer.inventory)
     sellers = list(eligible_fn(system).sellers)
     buyers = list(eligible_fn(system).buyers)
 
@@ -137,7 +139,7 @@ def run_period(
                     bucket_id=bucket_id,
                     ticket_ops=ticket_ops,
                 )
-                system.log("Trade", side="SELL", agent=agent_id, bucket=bucket_id, price=price, pinned=pinned)
+                system.log("Trade", side="SELL", agent=agent_id, bucket=bucket_id, price=price, pinned=pinned, dealer_cash_pre=pre_cash, dealer_inv_pre=pre_inv, dealer_cash_post=dealer.cash, dealer_inv_post=dealer.inventory)
                 # include VBT if pass-through
                 if pinned:
                     parties.append(vbt_id)
@@ -202,7 +204,7 @@ def run_period(
                     bucket_id=bucket_id,
                     ticket_ops=ticket_ops,
                 )
-                system.log("Trade", side="BUY", agent=agent_id, bucket=bucket_id, price=price, pinned=pinned)
+                system.log("Trade", side="BUY", agent=agent_id, bucket=bucket_id, price=price, pinned=pinned, dealer_cash_pre=pre_cash, dealer_inv_pre=pre_inv, dealer_cash_post=dealer.cash, dealer_inv_post=dealer.inventory)
                 if pinned:
                     parties.append(vbt_id)
                     pre_cash_map.setdefault(vbt_id, vbt_pre_cash)

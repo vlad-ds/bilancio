@@ -70,6 +70,9 @@ class DealerRingConfig(BaseModel):
     shares: SharesCfg = SharesCfg()
     flow: FlowCfg = FlowCfg()
     run: dict = {}
+    auto_ticketize: bool = True
+    auto_seed: bool = True
+    auto_allocate: bool = True
 
 
 def _load_config(path: Path) -> DealerRingConfig:
@@ -170,6 +173,7 @@ def cli(config_file: Path, days: int | None):
         )
         vbts[b.name] = VBTBucket(
             bucket=b.name,
+            agent_id=vbt_id,
             ticket_size=ticket_size,
             mid=b.M0,
             spread=b.O0,
@@ -181,16 +185,19 @@ def cli(config_file: Path, days: int | None):
 
     ticket_ops = TicketOps(system)
 
-    # Ticketize payables
-    ticketize_payables(system, bucket_ranges=bucket_ranges, ticket_size=ticket_size, remove_payables=True)
+    # Ticketize payables (optional)
+    if cfg.auto_ticketize:
+        ticketize_payables(system, bucket_ranges=bucket_ranges, ticket_size=ticket_size, remove_payables=True)
 
-    # Seed cash/inventory
-    for b in cfg.buckets:
-        seed_dealer_vbt_cash(system, dealer_id=buckets[b.name].dealer_id, vbt_id=buckets[b.name].vbt_id, mid=b.M0, X_target=b.Xstar_target, ticket_size=ticket_size)
+    # Seed cash/inventory (optional)
+    if cfg.auto_seed:
+        for b in cfg.buckets:
+            seed_dealer_vbt_cash(system, dealer_id=buckets[b.name].dealer_id, vbt_id=buckets[b.name].vbt_id, mid=b.M0, X_target=b.Xstar_target, ticket_size=ticket_size)
 
-    # Allocate tickets
-    for b in cfg.buckets:
-        allocate_tickets(system, bucket_id=b.name, dealer_id=buckets[b.name].dealer_id, vbt_id=buckets[b.name].vbt_id, dealer_share=cfg.shares.dealer, vbt_share=cfg.shares.vbt)
+    # Allocate tickets (optional)
+    if cfg.auto_allocate:
+        for b in cfg.buckets:
+            allocate_tickets(system, bucket_id=b.name, dealer_id=buckets[b.name].dealer_id, vbt_id=buckets[b.name].vbt_id, dealer_share=cfg.shares.dealer, vbt_share=cfg.shares.vbt)
 
     # Run
     run_days = days if days is not None else int(cfg.run.get("max_days", 5))

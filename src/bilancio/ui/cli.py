@@ -401,9 +401,8 @@ def main():
     cli()
 
 
-if __name__ == '__main__':
-    main()
-
-# Register dealer-ring runner
 from .cli_dealer_ring import cli as dealer_ring_cli  # noqa: E402
 cli.add_command(dealer_ring_cli, name="dealer-ring-run")
+
+if __name__ == '__main__':
+    main()

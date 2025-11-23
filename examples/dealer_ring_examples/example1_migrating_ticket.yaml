@@ -1,0 +1,64 @@
+version: 1
+name: "Example1 Migrating Ticket"
+description: "Two-bucket (Long/Mid) migration test with one trade then rebucketing."
+
+ticket_size: 1
+
+agents:
+  - { id: CB, kind: central_bank, name: "Central Bank" }
+  - { id: D_long, kind: dealer, name: "Dealer Long" }
+  - { id: D_mid, kind: dealer, name: "Dealer Mid" }
+  - { id: V_long, kind: vbt, name: "VBT Long" }
+  - { id: V_mid, kind: vbt, name: "VBT Mid" }
+
+agent_groups:
+  - kind: household
+    count: 100
+    id_prefix: T
+    name_prefix: "Trader "
+
+initial_actions:
+  # Seed A1 cash ~1.05 (use minor units scaled by 100)
+  - mint_cash: { to: T1, amount: 105 }
+  # A1 owes 200 (2.00) on day 1 to force shortfall
+  - create_payable: { from: T1, to: T3, amount: 200, due_day: 1 }
+  # Long ticket from A2 to A1, maturity day 9 (tau=9 at t0)
+  - create_payable: { from: T2, to: T1, amount: 100, due_day: 9 }
+
+buckets:
+  - name: Long
+    tau_range: [9, null]
+    M0: 1.0
+    O0: 0.30
+    phi_M: 0.0
+    phi_O: 0.0
+    guard_M_min: 0.0
+    clip_nonneg_bid: true
+    Xstar_target: 2
+  - name: Mid
+    tau_range: [4, 8]
+    M0: 1.0
+    O0: 0.20
+    phi_M: 0.0
+    phi_O: 0.0
+    guard_M_min: 0.0
+    clip_nonneg_bid: true
+    Xstar_target: 2
+
+dealers: [D_long, D_mid]
+vbts:    [V_long, V_mid]
+
+shares:
+  dealer: 0.25
+  vbt: 0.50
+
+flow:
+  pi_sell: 1.0
+  N_max: 1
+  invest_horizon: 3
+  cash_buffer: 1
+
+run:
+  mode: until_stable
+  max_days: 2
+  quiet_days: 0
