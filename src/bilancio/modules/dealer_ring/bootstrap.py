@@ -40,7 +40,7 @@ def ticketize_payables(
         tau = instr.due_day - day if getattr(instr, "due_day", None) is not None else 0
         bucket_id = compute_bucket_id(tau, bucket_ranges)
         if bucket_id is None:
-            raise ValidationError(f"no bucket for tau={tau}")
+            continue  # skip payables that don't map to a bucket
         for _ in range(n):
             tid = system.create_ticket(
                 issuer_id=instr.liability_issuer_id,

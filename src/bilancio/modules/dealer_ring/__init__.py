@@ -21,3 +21,4 @@ from .bootstrap import (  # noqa: F401
     seed_dealer_vbt_cash,
     compute_bucket_id,
 )
+from .event_loop import run_period  # noqa: F401
