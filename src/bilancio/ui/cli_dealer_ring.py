@@ -31,6 +31,39 @@ def _load_dealer_ring_config(path: Path) -> dict:
     return data
 
 
+def _expand_agents(config: dict) -> list[dict]:
+    agents = []
+    for entry in config.get("agents", []):
+        if "count" in entry and entry.get("id_prefix"):
+            count = int(entry["count"])
+            prefix = entry["id_prefix"]
+            name_prefix = entry.get("name_prefix", prefix)
+            kind = entry["kind"]
+            for i in range(1, count + 1):
+                agents.append({"id": f"{prefix}{i}", "kind": kind, "name": f"{name_prefix}{i}"})
+        else:
+            agents.append(entry)
+    return agents
+
+
+def _expand_initial_actions(config: dict) -> list[dict]:
+    actions = []
+    for act in config.get("initial_actions", []):
+        if "create_ring_payables" in act:
+            params = act["create_ring_payables"]
+            count = int(params["count"])
+            amount = params["amount"]
+            due_day = params["due_day"]
+            from_prefix = params.get("from_prefix", "T")
+            to_prefix = params.get("to_prefix", "T")
+            for i in range(1, count):
+                actions.append({"create_payable": {"from": f"{from_prefix}{i}", "to": f"{to_prefix}{i+1}", "amount": amount, "due_day": due_day}})
+            actions.append({"create_payable": {"from": f"{from_prefix}{count}", "to": f"{to_prefix}1", "amount": amount, "due_day": due_day}})
+        else:
+            actions.append(act)
+    return actions
+
+
 @click.command()
 @click.argument('config_file', type=click.Path(exists=True, path_type=Path))
 @click.option('--days', type=int, default=5, help='Number of periods to run')
@@ -74,6 +107,18 @@ def cli(config_file: Path, days: int):
     config = load_yaml(base_path)
     system = System()
     apply_to_system(config, system)
+
+    # Expand dealer-ring agents/actions and apply
+    expanded_agents = _expand_agents(cfg)
+    from bilancio.config.apply import create_agent, apply_action
+    for agent_spec in expanded_agents:
+        agent_obj = create_agent(type("Obj", (object,), agent_spec)())
+        system.add_agent(agent_obj)
+
+    expanded_actions = _expand_initial_actions(cfg)
+    agents_map = system.state.agents
+    for act in expanded_actions:
+        apply_action(system, act, agents_map)
 
     # Build bucket_ranges and dealer/VBT objects
     bucket_ranges = []
