@@ -55,8 +55,14 @@ from .events import EventLog
 from .trading import TradeExecutor
 
 from .simulation import (
+    DaySnapshot,
     DealerRingConfig,
     DealerRingSimulation,
+)
+
+from .report import (
+    generate_dealer_ring_html,
+    export_dealer_ring_html,
 )
 
 __all__ = [
@@ -90,6 +96,10 @@ __all__ = [
     # Trading
     "TradeExecutor",
     # Simulation
+    "DaySnapshot",
     "DealerRingConfig",
     "DealerRingSimulation",
+    # Report
+    "generate_dealer_ring_html",
+    "export_dealer_ring_html",
 ]

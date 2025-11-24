@@ -22,6 +22,7 @@ References:
 from dataclasses import dataclass, field
 from decimal import Decimal
 import random
+from copy import deepcopy
 
 from bilancio.core.ids import AgentId, new_id
 from .models import (
@@ -32,6 +33,29 @@ from .kernel import KernelParams, recompute_dealer_state
 from .trading import TradeExecutor
 from .events import EventLog
 from .assertions import run_all_assertions, assert_c6_anchor_timing
+
+
+@dataclass
+class DaySnapshot:
+    """
+    Snapshot of simulation state at end of day.
+
+    Captures deep copies of all mutable state for reporting.
+
+    Attributes:
+        day: Day number (0 for initial setup, 1+ for each run_day)
+        dealers: Per-bucket dealer states as serializable dicts
+        vbts: Per-bucket VBT states as serializable dicts
+        traders: Trader states as serializable dicts
+        tickets: All tickets as serializable dicts
+        events: Events that occurred on this day
+    """
+    day: int
+    dealers: dict[str, dict]  # bucket_id -> dealer state dict
+    vbts: dict[str, dict]      # bucket_id -> VBT state dict
+    traders: dict[str, dict]   # agent_id -> trader state dict
+    tickets: dict[str, dict]   # ticket_id -> ticket dict
+    events: list[dict]         # Events for this day only
 
 
 @dataclass
@@ -159,6 +183,9 @@ class DealerRingSimulation:
         # Event log
         self.events = EventLog()
 
+        # Snapshots for reporting
+        self.snapshots: list[DaySnapshot] = []
+
         # Kernel params
         self.params = KernelParams(S=config.ticket_size)
         self.executor = TradeExecutor(self.params, self.rng)
@@ -200,6 +227,100 @@ class DealerRingSimulation:
             )
             vbt.recompute_quotes()
             self.vbts[bucket_id] = vbt
+
+    def _capture_snapshot(self) -> None:
+        """
+        Capture deep copy of current state for reporting.
+
+        Creates serializable dicts from all state objects.
+        Called at end of setup and after each day.
+        """
+        # Serialize dealer states
+        dealers_dict = {}
+        for bucket_id, dealer in self.dealers.items():
+            dealers_dict[bucket_id] = {
+                "bucket_id": dealer.bucket_id,
+                "agent_id": dealer.agent_id,
+                "cash": dealer.cash,
+                "a": dealer.a,
+                "x": dealer.x,
+                "V": dealer.V,
+                "K_star": dealer.K_star,
+                "X_star": dealer.X_star,
+                "N": dealer.N,
+                "lambda_": dealer.lambda_,
+                "I": dealer.I,
+                "midline": dealer.midline,
+                "bid": dealer.bid,
+                "ask": dealer.ask,
+                "is_pinned_bid": dealer.is_pinned_bid,
+                "is_pinned_ask": dealer.is_pinned_ask,
+                "inventory": [
+                    {"id": t.id, "issuer_id": t.issuer_id, "face": t.face, "remaining_tau": t.remaining_tau}
+                    for t in dealer.inventory
+                ],
+            }
+
+        # Serialize VBT states
+        vbts_dict = {}
+        for bucket_id, vbt in self.vbts.items():
+            vbts_dict[bucket_id] = {
+                "bucket_id": vbt.bucket_id,
+                "agent_id": vbt.agent_id,
+                "M": vbt.M,
+                "O": vbt.O,
+                "A": vbt.A,
+                "B": vbt.B,
+                "cash": vbt.cash,
+                "inventory": [
+                    {"id": t.id, "issuer_id": t.issuer_id, "face": t.face, "remaining_tau": t.remaining_tau}
+                    for t in vbt.inventory
+                ],
+            }
+
+        # Serialize trader states
+        traders_dict = {}
+        for agent_id, trader in self.traders.items():
+            traders_dict[agent_id] = {
+                "agent_id": trader.agent_id,
+                "cash": trader.cash,
+                "defaulted": trader.defaulted,
+                "asset_issuer_id": trader.asset_issuer_id,
+                "tickets_owned": [
+                    {"id": t.id, "issuer_id": t.issuer_id, "face": t.face, "remaining_tau": t.remaining_tau, "bucket_id": t.bucket_id}
+                    for t in trader.tickets_owned
+                ],
+                "obligations": [
+                    {"id": t.id, "owner_id": t.owner_id, "face": t.face, "maturity_day": t.maturity_day}
+                    for t in trader.obligations
+                ],
+            }
+
+        # Serialize all tickets
+        tickets_dict = {}
+        for ticket_id, ticket in self.all_tickets.items():
+            tickets_dict[ticket_id] = {
+                "id": ticket.id,
+                "issuer_id": ticket.issuer_id,
+                "owner_id": ticket.owner_id,
+                "face": ticket.face,
+                "maturity_day": ticket.maturity_day,
+                "remaining_tau": ticket.remaining_tau,
+                "bucket_id": ticket.bucket_id,
+            }
+
+        # Get events for this day only
+        day_events = [e for e in self.events.events if e.get("day") == self.day]
+
+        snapshot = DaySnapshot(
+            day=self.day,
+            dealers=dealers_dict,
+            vbts=vbts_dict,
+            traders=traders_dict,
+            tickets=tickets_dict,
+            events=day_events,
+        )
+        self.snapshots.append(snapshot)
 
     def setup_ring(
         self,
@@ -300,6 +421,9 @@ class DealerRingSimulation:
                 self.params,
             )
 
+        # Capture initial state snapshot (Day 0)
+        self._capture_snapshot()
+
     def run_day(self) -> None:
         """
         Execute one simulation day (Section 11 event loop).
@@ -345,6 +469,9 @@ class DealerRingSimulation:
         # Phase 6: VBT anchor update
         if self.config.enable_vbt_anchor_updates:
             self._update_vbt_anchors()
+
+        # Capture end-of-day snapshot
+        self._capture_snapshot()
 
     def run(self, max_days: int | None = None) -> None:
         """
@@ -1043,3 +1170,26 @@ class DealerRingSimulation:
                 # Recompute dealer state with new anchors
                 dealer = self.dealers[bucket_id]
                 recompute_dealer_state(dealer, vbt, self.params)
+
+    def to_html(
+        self,
+        path: "Path | str",
+        title: str | None = None,
+        subtitle: str | None = None,
+    ) -> None:
+        """
+        Export simulation to HTML report.
+
+        Args:
+            path: Output file path
+            title: Report title (default: "Dealer Ring Simulation")
+            subtitle: Report subtitle (optional)
+        """
+        from .report import export_dealer_ring_html
+        export_dealer_ring_html(
+            snapshots=self.snapshots,
+            config=self.config,
+            path=path,
+            title=title,
+            subtitle=subtitle,
+        )
