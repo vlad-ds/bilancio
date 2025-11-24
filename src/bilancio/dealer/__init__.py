@@ -12,7 +12,7 @@ Components:
 - assertions: C1-C6 programmatic invariant checks
 - events: Event logging system
 - trading: Trade execution logic (Events 1-2, 9-10)
-- simulation: Dealer ring event loop (TODO)
+- simulation: Dealer ring event loop orchestrator
 
 References:
 - Specification of the Dealer Module for the Kalecki Ring (Bilancio Simulation)
@@ -54,6 +54,11 @@ from .events import EventLog
 
 from .trading import TradeExecutor
 
+from .simulation import (
+    DealerRingConfig,
+    DealerRingSimulation,
+)
+
 __all__ = [
     # Models
     "TicketId",
@@ -84,4 +89,7 @@ __all__ = [
     "EventLog",
     # Trading
     "TradeExecutor",
+    # Simulation
+    "DealerRingConfig",
+    "DealerRingSimulation",
 ]
