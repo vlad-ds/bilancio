@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2025-10-24 14:10:08 UTC | Branch: main | Commit: 2cd65b8
+Generated: 2025-11-24 20:19:15 UTC | Branch: main | Commit: fddff5a
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -37,6 +37,15 @@ This document contains the complete codebase structure and content for LLM inges
 │   ├── Money modeling software.pdf
 │   ├── SP239 Kalecki on Credit and Debt extended.pdf
 │   ├── codebase_for_llm.md
+│   ├── dealer_ring
+│   │   ├── IMPLEMENTATION_NOTES.md
+│   │   ├── conversations
+│   │   │   ├── 20251110.txt
+│   │   │   ├── 20251114.txt
+│   │   │   └── 20251118.txt
+│   │   ├── dealer_examples.pdf
+│   │   ├── dealer_implementation_readiness.pdf
+│   │   └── dealer_specification.pdf
 │   ├── exercises_scenarios.md
 │   ├── guides
 │   │   └── kalecki_ring_sweep.md
@@ -2497,7 +2506,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-808 directories, 1679 files
+810 directories, 1686 files
 
 ```
 
@@ -3350,6 +3359,18 @@ Complete git history from oldest to newest:
 
 - **2cd65b8e** (2025-10-24) by vladgheorghe
   Expand ring sweep horizon and refresh results
+
+- **8fe4980f** (2025-10-24) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **fddff5ab** (2025-11-24) by vladgheorghe
+  Add dealer ring documentation from feature branch
+  Import docs/dealer_ring folder from feature/dealer-ring-module branch containing:
+  - Implementation notes and specifications
+  - Design conversations and examples
+  - Three detailed PDF documents on dealer system
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
 
 ---
 
