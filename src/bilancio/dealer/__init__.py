@@ -10,8 +10,8 @@ Components:
 - models: Data models (Ticket, DealerState, VBTState, TraderState)
 - kernel: L1 dealer pricing kernel
 - assertions: C1-C6 programmatic invariant checks
-- trading: Trade execution logic (TODO)
-- events: Event logging system (TODO)
+- events: Event logging system
+- trading: Trade execution logic (Events 1-2, 9-10)
 - simulation: Dealer ring event loop (TODO)
 
 References:
@@ -50,6 +50,10 @@ from .assertions import (
     run_all_assertions,
 )
 
+from .events import EventLog
+
+from .trading import TradeExecutor
+
 __all__ = [
     # Models
     "TicketId",
@@ -76,4 +80,8 @@ __all__ = [
     "assert_c5_equity_basis",
     "assert_c6_anchor_timing",
     "run_all_assertions",
+    # Events
+    "EventLog",
+    # Trading
+    "TradeExecutor",
 ]
