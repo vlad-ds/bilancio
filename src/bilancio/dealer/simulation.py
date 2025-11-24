@@ -656,6 +656,8 @@ class DealerRingSimulation:
             - Section 11.4: Order flow generation
         """
         # Determine number of arrivals (1 to N_max)
+        if self.config.N_max <= 0:
+            return  # No order flow
         n_arrivals = self.rng.randint(1, self.config.N_max)
 
         for _ in range(n_arrivals):
