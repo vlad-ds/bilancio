@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2025-11-24 20:19:15 UTC | Branch: main | Commit: fddff5a
+Generated: 2025-11-24 20:25:13 UTC | Branch: main | Commit: be83b12
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -38,7 +38,6 @@ This document contains the complete codebase structure and content for LLM inges
 │   ├── SP239 Kalecki on Credit and Debt extended.pdf
 │   ├── codebase_for_llm.md
 │   ├── dealer_ring
-│   │   ├── IMPLEMENTATION_NOTES.md
 │   │   ├── conversations
 │   │   │   ├── 20251110.txt
 │   │   │   ├── 20251114.txt
@@ -2506,7 +2505,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-810 directories, 1686 files
+810 directories, 1685 files
 
 ```
 
@@ -3369,6 +3368,14 @@ Complete git history from oldest to newest:
   - Implementation notes and specifications
   - Design conversations and examples
   - Three detailed PDF documents on dealer system
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **3ae98fe5** (2025-11-24) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **be83b122** (2025-11-24) by vladgheorghe
+  Remove IMPLEMENTATION_NOTES.md from dealer_ring docs
   🤖 Generated with [Claude Code](https://claude.com/claude-code)
   Co-Authored-By: Claude <noreply@anthropic.com>
 
