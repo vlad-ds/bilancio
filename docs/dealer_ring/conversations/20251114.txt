@@ -1,0 +1,861 @@
+Unidentified
+00:00
+Yeah, let's start recording.
+Alex
+00:02
+It's looking good. One question I had: is there one dealer with three different states per each bucket or three different dealers?
+Unidentified
+00:19
+Be different dealers.
+Vlad Gheorghe
+00:20
+That's better. That's easier.
+Alex
+00:22
+Ah, okay, three different... But then the things move between buckets, so are they just going to be transferred to another dealer?
+Vlad Gheorghe
+00:33
+What's moving between buckets?
+Alex
+00:34
+The tickets, as their maturity changes, they jump between buckets.
+Vlad Gheorghe
+00:42
+That is a good question.
+Vlad Gheorghe
+00:44
+I didn't think about it.
+Vlad Gheorghe
+00:50
+Yes, I think what we should do is simply have a mechanism where when the maturity grows below a certain point, the dealers move as the maturity time point comes closer, it moves towards the short-term deal.
+Alex
+01:14
+But why do we need three dealers?
+Vlad Gheorghe
+01:17
+We need it because if one dealer deals with three, then the inventory logic for price setting doesn't work as easily.
+Alex
+01:29
+Okay, for the maturities.
+Alex
+01:35
+Like if one dealer deals with three buckets, the price setting doesn't work easily.
+Alex
+01:42
+I'm losing you.
+Vlad Gheorghe
+02:35
+Yeah.
+Alex
+02:37
+I lost you.
+Alex
+02:41
+Okay.
+Vlad Gheorghe
+02:46
+So, yeah, just quickly. We need to add a piece that makes dealers shift the security between each other as it comes closer to maturing, right? That we definitely need to add.
+Alex
+03:10
+Yeah.
+Vlad Gheorghe
+03:13
+But otherwise it's much simpler than I thought it needs to be because basically it has this Markov chain logic, which is simply saying that the dealer takes one trade per time. That simplifies things a lot. I discussed it with GPT for a while and I realized that basically the model that I had, which works with this Markov chain, is in fact making things simpler. So that when you simulate it, it's very simple in the sense that you have this sequence when they buy and sell, when everybody who wants to buy and sell in that period, in that standpoint, one comes to the dealer and then there is just a random draw until they all conclude and the dealer changes the price after each transaction, right?
+Vlad Gheorghe
+04:12
+Right, and that's much easier than what I thought initially, which is kind of like an auction mechanism. All the people that want to sell come, all the people that want to buy come, and then the dealer gives them an initial quote, takes all the requests, calculates where he would end, comes up with prices that match where he would end, and then they need to accept or not the price.
+Vlad Gheorghe
+04:49
+And the point for us is it's much simpler than that. It's just each person on their own comes, there is a random draw, right?
+Alex
+04:56
+Yeah.
+Vlad Gheorghe
+04:58
+And then we go through them and ultimately everybody gets the price that they get. The first drawn might get a very good price or might get a very bad price compared to the seventh party that is also selling or buying, but that's fine.
+Alex
+05:17
+Yeah, got it.
+Alex
+05:23
+Stuff for agents and dealers. And I think you've also put a decision.
+Vlad Gheorghe
+05:25
+Yeah, I mean it's not like action, it's more like an automatic one.
+Alex
+05:35
+Although that's not the immediate priority because I would just do the dealer first.
+Vlad Gheorghe
+05:40
+Yeah, I know, but the point for me was to also consider this piece where we have the logic of investment and sell-off, right? And it should be a pretty simple logic as well, right?
+Vlad Gheorghe
+06:02
+Yeah.
+Alex
+06:03
+Yeah, I'm seeing it. It's fully specified.
+Alex
+06:13
+The other question that I had is...
+Alex
+06:21
+One second.
+Vlad Gheorghe
+06:25
+One more.
+Alex
+06:44
+I'm just thinking of the entry point for this whole thing.
+Alex
+06:49
+So we have the VBT per bucket.
+Alex
+06:56
+And he has midpoint spread and outside quotes.
+Alex
+07:01
+How, where do I get this number? The actual number.
+Vlad Gheorghe
+07:05
+You get the VBT numbers?
+Alex
+07:09
+Yeah, like we have to use real numbers, right? We have to get them from somewhere.
+Vlad Gheorghe
+07:21
+So we have a couple of issues over there.
+Vlad Gheorghe
+08:23
+I think in the chat there was something we figured out about this.
+Vlad Gheorghe
+08:49
+One sec.
+Vlad Gheorghe
+09:16
+We'll be right back.
+Vlad Gheorghe
+09:36
+Okay, so here is what we have. Here's what he says here, and I can get this into the doc. He says initial values: suggestion initial outside mid M and spread O per ticket that has face value of one short market.
+Vlad Gheorghe
+10:06
+M should be one for all the buckets. M is one, basically the mid is still one and then the spread is 0.2 for the first, which means that I would say spread is one or one versus 0.99.
+Vlad Gheorghe
+10:32
+The medium market, it's 0.03 the spread, which means that we have 1.015 and not 0.985, and the third one is 0.04 as a spread, which means that the ask is 1.02 and the bar is at 0.98.
+Alex
+10:59
+Okay.
+Vlad Gheorghe
+11:01
+All right, so I can just send you this.
+Alex
+11:05
+Those are the starting numbers, those are the outside anchors for the VBT.
+Alex
+11:12
+And then I guess you need to give the dealer an inventory.
+Vlad Gheorghe
+11:21
+Yes.
+Alex
+11:21
+And the balance.
+Vlad Gheorghe
+11:25
+Yes, so is this not specified?
+Alex
+11:31
+I think the one small step that's needed is laying down the actual numbers.
+Vlad Gheorghe
+11:42
+Yes, so for the size of the dealer, I don't think we specified this completely. The idea is simply that the dealer is large. The dealer is large, and that means that we could make this into a—the dealer holds like one-fourth of all issues that offer given maturity, and then he has equal amount of money. So depending, right, because our system is going to now be like whatever we said over there, like 100 entities, we can simply say that the setup needs to be such that for the amount of debt that has been issued, if we have, let's say, 100 entities, overall they have issued 400 units of debt, each ticket is a single unit.
+Vlad Gheorghe
+13:02
+So of the 400, for each metric bucket, we have 400, which means that each dealer holds a hundred.
+Vlad Gheorghe
+13:13
+Out of the 400.
+Vlad Gheorghe
+13:17
+Holds a hundred cash, right, because the mid is the same.
+Alex
+13:24
+100.
+Vlad Gheorghe
+13:27
+Tickets.
+Vlad Gheorghe
+13:28
+And 100 of cash.
+Alex
+13:30
+Okay, yeah. And the other 300 are between the entities.
+Vlad Gheorghe
+13:37
+I think we can try with that.
+Alex
+13:40
+So something like 100 entities.
+Alex
+13:51
+Each of them will have—what do they have at the start? Do they have this, like tickets spread between them? Is it what we were doing until now?
+Vlad Gheorghe
+14:06
+Yeah, absolutely. The only point is that the debt is spread.
+Vlad Gheorghe
+14:17
+Like in these forms of unit tickets, so the debt is granted.
+Vlad Gheorghe
+14:21
+Instead of you having like a conjuring—yeah, IOU—right, we have a hundred one-unit IOUs.
+Alex
+14:32
+Okay, anyway, the dealer first, so let me see if I have other questions.
+Alex
+15:20
+Okay, this we saw.
+Alex
+15:49
+What is this ladder, like why do we have that, you know, what 4.2?
+Vlad Gheorghe
+15:55
+Wait, let me go look.
+Vlad Gheorghe
+16:02
+Or point two, yeah.
+Vlad Gheorghe
+16:28
+Just give me one second.
+Vlad Gheorghe
+18:48
+Yeah, okay, wait, so we have basically—the dealer in a given bucket holds an amount of securities and an amount of cash.
+Vlad Gheorghe
+19:02
+Where securities are A and cash is C.
+Vlad Gheorghe
+19:07
+And then mid-inventory value is M A plus B.
+Alex
+19:20
+Cash is B in your document, not C.
+Alex
+19:25
+You can see that, 4.1.
+Vlad Gheorghe
+19:31
+Standard size.
+Alex
+19:32
+No, it's dealer balances, securities A and cash B.
+Vlad Gheorghe
+19:39
+It's 4.1.
+Vlad Gheorghe
+19:43
+They're going to need their own doc.
+Vlad Gheorghe
+19:55
+What's the name of the document you're reading?
+Alex
+19:57
+The one you sent in WhatsApp.
+Alex
+20:00
+Kalec key ring with dealers.
+Vlad Gheorghe
+20:06
+Yeah.
+Vlad Gheorghe
+20:10
+So 4.1, her package we have, is that what you're...
+Alex
+20:13
+The third bullet point.
+Vlad Gheorghe
+20:16
+Yeah, securities A and cash B.
+Vlad Gheorghe
+20:23
+So the mid-value inventory is M A plus B.
+Vlad Gheorghe
+20:32
+Where M is the current mid price for the securities, right?
+Alex
+20:40
+Oh, yeah. Okay.
+Vlad Gheorghe
+20:42
+Right.
+Alex
+20:42
+I get that.
+Vlad Gheorghe
+20:43
+So it's basically saying this is the size of the balance, right? Maximum number of buy tickets fundable without borrowing is W is V.
+Alex
+20:55
+Your inventory.
+Vlad Gheorghe
+20:57
+Yes, over M times S.
+Alex
+21:00
+That's clear.
+Vlad Gheorghe
+21:04
+Right, one-sided capacity in units of security.
+Vlad Gheorghe
+21:09
+Is S time K.
+Alex
+21:13
+It's like if you only wanted to buy securities, those are all the securities you could buy.
+Alex
+21:20
+Or something.
+Alex
+21:22
+Yes.
+Vlad Gheorghe
+21:24
+Yeah, one second, I'm just...
+Vlad Gheorghe
+21:38
+Yeah, this is assuming that ultimately I can buy this amount of securities if I only had cash, right?
+Vlad Gheorghe
+21:49
+Okay.
+Alex
+21:57
+I think it's about...
+Vlad Gheorghe
+22:01
+Because V is my total...
+Alex
+22:02
+Yeah.
+Vlad Gheorghe
+22:03
+Value of the balance sheet.
+Alex
+22:04
+If I convert it everything to cash.
+Alex
+22:10
+And I would buy all the securities, that's how many I could get.
+Vlad Gheorghe
+22:14
+Yes.
+Alex
+22:16
+Then the ladder.
+Alex
+22:20
+Ah, the ladder, that's from your graph, it's basically like one dimension. It's the security dimension.
+Vlad Gheorghe
+22:29
+Yes.
+Alex
+22:32
+Okay.
+Alex
+22:35
+I think that's the dimension of how many securities I can buy.
+Alex
+22:42
+Okay.
+Vlad Gheorghe
+22:44
+Yes, the problem that I have with this now that I'm looking at it is that I can't necessarily buy these securities, right? I can only buy them if I sell all the securities that I'm holding currently for cash, right?
+Alex
+22:59
+Yeah, but it covers the full dimension of how many I could buy theoretically as my inventory moves.
+Vlad Gheorghe
+23:12
+Yes. X-Star is my extreme position, right, given the current mid-price.
+Alex
+23:22
+Although it will change with time because my inventory will change with time.
+Vlad Gheorghe
+23:27
+Yeah, but this is the—exactly. If you change with time, obviously, because the value of my balance sheet is going to change over time as a dealer. I might be over time earning value or losing value.
+Vlad Gheorghe
+23:48
+But yes, at any given point, this is like the extreme position where zero is.
+Vlad Gheorghe
+23:58
+That is, I can't buy any securities, and X-Star is I can buy all securities at the maximum of securities that I can buy.
+Alex
+24:07
+Exactly.
+Vlad Gheorghe
+24:11
+So given the symmetric reflecting range of the ladder, the execution probability per ticket is Lambda, which is one over N.
+Vlad Gheorghe
+24:23
+Where N is...
+Alex
+24:25
+The number of runs.
+Alex
+24:33
+But what is layoff?
+Vlad Gheorghe
+24:36
+Layoff is this case in which you can't perform what the counterparty wants, what the trader wants, and he needs to go to the value-based trading.
+Alex
+24:54
+And why is the probability one over the number of ramps?
+Vlad Gheorghe
+25:05
+One second.
+Vlad Gheorghe
+26:01
+Why is it one over N?
+Alex
+27:28
+I'm going to go to the toilet.
+Vlad Gheorghe
+27:30
+Okay.
+Vlad Gheorghe
+29:20
+Yeah.
+Vlad Gheorghe
+31:09
+Do you hear me?
+Alex
+31:10
+Yeah, I'm on my data, I can do audio only.
+Vlad Gheorghe
+31:16
+Do you hear me?
+Alex
+31:16
+Yeah. Do you hear me?
+Vlad Gheorghe
+31:21
+No, I don't hear you. Wait.
+Alex
+31:23
+Hello?
+Alex
+31:38
+Hello?
+Alex
+31:42
+Hello.
+Alex
+31:45
+Hello.
+Alex
+31:50
+Hello.
+Vlad Gheorghe
+32:39
+Yes.
+Alex
+32:40
+Yes, can you—okay.
+Vlad Gheorghe
+32:43
+I can.
+Alex
+32:44
+Cool.
+Vlad Gheorghe
+32:44
+Do we still get to have our transcript or no?
+Alex
+32:48
+Yes.
+Vlad Gheorghe
+32:52
+Okay, good. So let me read—I prompted him to explain this deeper, let me read it to you.
+Alex
+32:58
+All right.
+Vlad Gheorghe
+32:59
+So mid-value inventory, V is equal to M times A plus B. A is the amount of security that we have, B is the amount of cash we have, and M is the outside mid price.
+Vlad Gheorghe
+33:14
+Price is set by the middle, the value-based trading, an externally set price. This is the total portfolio value of the dealer, maximum number of buy tickets fundable without borrowing. K star is V over M S.
+Vlad Gheorghe
+33:44
+A customer sell means that the dealer buys a ticket. One ticket is S units of security.
+Vlad Gheorghe
+33:56
+Worst case, the dealer has to pay up roughly M per unit of security. So conservative cash costs per buy is M times S.
+Vlad Gheorghe
+34:10
+If the total value of wealth is real, then this gives us how much money I could buy.
+Vlad Gheorghe
+34:22
+Everything at the price M. We take the floor because we can only fund an integer number of tickets without borrowing. That integer is K star, the maximum number of customer sell tickets that the dealer could absorb by his current wealth. So one side is capacity in units of security.
+Alex
+34:41
+Right.
+Vlad Gheorghe
+34:47
+X star is equal to S times K star. Each ticket is S units of security. K star is the maximum number of tickets that the dealer can absorb.
+Vlad Gheorghe
+35:05
+X star, the maximum inventory in security units, is going to be the units the dealer is allowed to have.
+Vlad Gheorghe
+35:20
+On the shelf without ordering. So that's fine, right? Extract the maximum amount of inventory in terms of security units.
+Alex
+35:34
+Right.
+Vlad Gheorghe
+35:35
+So inventory is moving between zero and X star in terms of the number of security units.
+Alex
+35:38
+Yeah.
+Vlad Gheorghe
+35:39
+We can define it as 0S, 2S, 3S, and so on, such that n is equal to X star over S plus 1.
+Vlad Gheorghe
+35:54
+So, ranks. X is dealer's current inventory in units of security.
+Vlad Gheorghe
+36:07
+Trades are always chunks of size S, one ticket, so inventory moves in steps S from 0S up until X star. This discrete set is the ladder or the grid of possible positions.
+Vlad Gheorghe
+36:22
+The number of points on that ladder is n, which is equal to X star over S plus one.
+Vlad Gheorghe
+36:36
+From zero up to X star inclusive, stepping by S. So our horizontal line is from zero to X star in S units.
+Alex
+36:50
+Yeah.
+Vlad Gheorghe
+36:50
+Basically, X star over S, right?
+Alex
+37:01
+But that's already what we said, right? So I think it matches what we said. Can you try to open the Zoom, maybe it works now.
+Vlad Gheorghe
+37:10
+Okay.
+Vlad Gheorghe
+37:24
+Is it okay?
+Alex
+37:26
+Yeah, for now, looks to work.
+Vlad Gheorghe
+37:29
+Okay.
+Vlad Gheorghe
+37:30
+Given the symmetric reflecting random walk on the ladder, the layoff outside the execution probability for tickets is 1 over N.
+Vlad Gheorghe
+37:43
+Which is equal to S over X S.
+Vlad Gheorghe
+37:57
+X plus S, X times plus X.
+Vlad Gheorghe
+38:01
+Just give me a second.
+Vlad Gheorghe
+38:10
+So.
+Vlad Gheorghe
+38:24
+Why is the N X star over...
+Vlad Gheorghe
+38:31
+Yes.
+Alex
+38:31
+But that's defined just above.
+Vlad Gheorghe
+38:34
+Yeah, but why is this plus one?
+Alex
+38:38
+That's because N equals X.
+Vlad Gheorghe
+38:44
+There is always at least one point of the ladder.
+Alex
+38:50
+No, I think the plus one is because when there's zero, when S is zero, meaning you have zero securities.
+Alex
+39:05
+Then you're wrong.
+Alex
+39:06
+Is a number that's zero, but it still counts as one rung.
+Alex
+39:13
+So you have to add one.
+Vlad Gheorghe
+39:14
+I think the denominator is S plus one.
+Alex
+39:18
+No, no, no. The denominator is X divided by S plus 1.
+Vlad Gheorghe
+39:27
+Because...
+Vlad Gheorghe
+39:31
+Because if X is zero, X star...
+Alex
+39:34
+No.
+Vlad Gheorghe
+39:34
+Is zero.
+Alex
+39:35
+No. If S is zero...
+Vlad Gheorghe
+39:39
+No, if S is zero, we have a problem because we can't divide by zero.
+Vlad Gheorghe
+39:44
+All right.
+Alex
+39:45
+Right. Sorry. Yeah.
+Vlad Gheorghe
+39:47
+It's interesting.
+Alex
+39:47
+Not sure.
+Vlad Gheorghe
+39:49
+If X is zero and X is zero...
+Vlad Gheorghe
+39:54
+Basically, you have zero maximum inventory in security.
+Alex
+40:03
+You cannot get any security at all.
+Vlad Gheorghe
+40:06
+Yeah, then we still have one as rung.
+Alex
+40:09
+Yeah, you have one state.
+Vlad Gheorghe
+40:18
+Yeah, right.
+Alex
+40:18
+So you add plus ones to...
+Alex
+40:22
+Rungs are states.
+Vlad Gheorghe
+40:23
+Are states.
+Vlad Gheorghe
+40:24
+Oh, right.
+Alex
+40:25
+Rungs are states that you move between in your simulation.
+Vlad Gheorghe
+40:28
+Right, you have one state. So then lambda is one.
+Vlad Gheorghe
+40:39
+We assume, so why is the number one over...
+Alex
+40:44
+It's like there's an equal probability at every rung to lay off.
+Vlad Gheorghe
+40:52
+Buy or sell, right? We assume that order signs are IID, 50-50 buy or sell.
+Vlad Gheorghe
+41:01
+Likely, inventory X behaves like a reflecting random walk.
+Vlad Gheorghe
+41:09
+Between zero and X star, interior rungs you move plus minus S with equal probability. At an edge, at zero or X star, you sometimes bump outward, which triggers an outside trade, then reflect back.
+Vlad Gheorghe
+41:27
+The baseline model of this stationary distribution over rungs is uniform. Each rung is hit with one over n probability.
+Vlad Gheorghe
+41:39
+You only lay off at outside market if you're at an edge and next step wants you to go forward.
+Vlad Gheorghe
+41:48
+Which happens probabilistically one over N. We simplify to S over X plus X star plus S.
+Vlad Gheorghe
+42:10
+Okay, and you know why this is the case. The idea is this: there is one over n probability that you will find yourself in the extreme position, at the limit of your inventory.
+Vlad Gheorghe
+42:28
+So that would be two over N, the chance to be at the limit of the event, right?
+Alex
+42:33
+Okay.
+Vlad Gheorghe
+42:35
+But there is only 50% chance that when you are at the limit, you are going to go over and you will have to lay off, right? Because when you're at the limit, there is still a 50% chance that you're going to go back.
+Alex
+42:49
+Why? Ah, because it's a random walk.
+Alex
+42:52
+That's...
+Vlad Gheorghe
+42:53
+Right?
+Alex
+42:53
+Cool. I get
+Vlad Gheorghe
+42:54
+Right? So the point of this is why it's one over n.
+Vlad Gheorghe
+43:02
+And then times one half. So it's one over n.
+Alex
+43:08
+Got it.
+Vlad Gheorghe
+43:09
+And that simplifies to...
+Vlad Gheorghe
+43:26
+s over x star process, right, simply because of the calculation.
+Vlad Gheorghe
+43:32
+And that's the probability that the next customer ticket is going to be executed at the outside market rather than the inside market of the dealer's own board.
+Vlad Gheorghe
+43:45
+Right? Competition pins the inside win, which is I is
+Vlad Gheorghe
+43:53
+one that might fall so O is the outside spread.
+Vlad Gheorghe
+44:04
+Yeah, I get to go. Try to walk through this very quickly.
+Vlad Gheorghe
+44:12
+Five minutes, yeah.
+Alex
+44:12
+I didn't get this sentence at all. Competition pins the inside width. I don't know what it means.
+Vlad Gheorghe
+44:19
+So, okay.
+Vlad Gheorghe
+44:22
+Out all is the outside spread a minus b b where a is the vvts and b is the vvtp, right? It's the outside spread inside.
+Alex
+44:31
+Yeah.
+Vlad Gheorghe
+44:32
+Spread, right, so in terms of visually, outside spread is the wider spread set by the OBD and then you are setting the inside spread which is smaller and the question is how should you relate your inside spread to the outside spread, which is given, right?
+Vlad Gheorghe
+44:52
+How you should do it is by taking account of numbers.
+Vlad Gheorghe
+44:57
+Why? Because lambda is the probability that you are going to be laying off with the VBT at the outside spread.
+Alex
+45:06
+Okay.
+Vlad Gheorghe
+45:12
+So every customer trade is dealer plus I half of all. And I, if it happens inside, with a probability of 1 that they must pay minus or a couple people. Right, when forced to trade outside quotes and traded outside quotes on the bond market, the dealer gets I half, half of his inside spread, and he pays one half of the outside spread. He gets this from the VBT at the half of the outside spread and he earns half of his own spread. So I minus two is what he earns minus.
+Vlad Gheorghe
+46:04
+Lambda tengah Indonesia O half, right? I have minus lambda O half. Lambda is the probability that you're going to be paying the O half.
+Vlad Gheorghe
+46:16
+And the competitive market is the one where you end up earning nothing, right? You have zero profit.
+Vlad Gheorghe
+46:25
+Which is the market where your earning, which is I half, is equal to your ultimate cost, which is four half times longer.
+Alex
+46:38
+No, so this part I stayed at lambda, this part I didn't follow but I can take some time. I know what lambda is.
+Vlad Gheorghe
+46:48
+Right? And so the point is that this is the probability that you will be paying the half of the outside spread, right?
+Vlad Gheorghe
+47:02
+So if you want your costs, your ultimate costs in your market to be equal to your ultimate earnings in the market so you have zero profits, that's a competitive market where nobody is able to make profits because everybody's competing to the maximum. Everybody's just breaking even. That is going to be I half minus lambda times O half has to be zero, which means that I has to be lambda O.
+Vlad Gheorghe
+47:34
+Right? So basically your inside spread needs to be lambda, which is the probability of laying off, times the outside spread, and the probability of laying off should be lower than one, which means that ultimately your inside spread is lower than the outside spread.
+Vlad Gheorghe
+47:54
+Don't give a coefficient.
+Vlad Gheorghe
+47:55
+Right.
+Vlad Gheorghe
+47:58
+The more often you hit the outside spread, the lambda being larger, or the more expensive the outside is, the bigger the outside spread is, the wider the instructing size spread will be. That makes sense.
+Alex
+48:10
+Okay.
+Vlad Gheorghe
+48:11
+Right.
+Vlad Gheorghe
+48:13
+So inventory sensitive midline, the mean inside midline is linear inventory and encourage one step beyond at his vehicle's points. So he creates these growth points, which are the points one step beyond at the edge of my inventory.
+Vlad Gheorghe
+48:41
+And then these two points, one step beyond, give him the possibility to draw his midline, right?
+Vlad Gheorghe
+48:57
+Okay, I have to go.
+Alex
+49:03
+I can read it more on my own and also with AI and get some charts, it would be better.
+Vlad Gheorghe
+49:08
+Yeah. So, okay. It should be fine in terms of it working in a simple model where we don't do the whole simulation by just giving the numbers to work out.
+Vlad Gheorghe
+49:24
+If you try that with these formulas you can send me what you got and we can take a look together.
+Vlad Gheorghe
+49:32
+Each one separately and then maybe together and then if we are happy with the way it works we can proceed to implement it into the simulator.
+Alex
+49:40
+Yeah, okay.
+Vlad Gheorghe
+49:42
+Okay.
+Alex
+49:42
+Yeah. So next Thursday I have this language exam, so I'll be a bit slower.
+Vlad Gheorghe
+49:48
+Okay. In the meantime, you mean?
+Alex
+49:52
+Until next Thursday, I'll do some stuff.
+Alex
+49:57
+A bit slower.
+Vlad Gheorghe
+50:00
+You let me know. I'll be no freer but I have other things to work on and I can also work more in this, so if you do anything you just let me know and then I can continue where you stop.
+Alex
+50:11
+Of course.
+Alex
+50:15
+All right. Talk soon.
+Vlad Gheorghe
+50:15
+Yes, sir.
