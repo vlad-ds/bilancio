@@ -576,8 +576,8 @@ class DealerRingSimulation:
         """
         Event 11: Internal sale from old-bucket dealer to new-bucket dealer.
 
-        Transfer occurs at old-bucket dealer's ask price. This implements
-        dealer-to-dealer internal liquidity provision.
+        Transfer occurs at the receiving bucket's VBT mid anchor M. This
+        preserves equity for both dealers (E = C + M*a is unchanged).
 
         Args:
             ticket: Ticket to transfer
@@ -586,12 +586,13 @@ class DealerRingSimulation:
 
         References:
             - Section 6.11: Internal dealer sale
+            - PDF spec: "internal sale at the Mid bucket mid M_M"
         """
         old_dealer = self.dealers[old_bucket]
         new_dealer = self.dealers[new_bucket]
 
-        # Execute at old-bucket ask
-        price = old_dealer.ask
+        # Execute at receiving bucket's VBT mid anchor (preserves equity)
+        price = self.vbts[new_bucket].M
 
         # Update balance sheets
         old_dealer.inventory.remove(ticket)
