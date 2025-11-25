@@ -143,6 +143,8 @@ class _RingSweepRunnerConfig(BaseModel):
     base_seed: Optional[int] = None
     name_prefix: Optional[str] = None
     default_handling: Optional[str] = None
+    dealer_enabled: bool = False
+    dealer_config: Optional[Dict[str, Any]] = None
 
 
 class RingSweepConfig(BaseModel):
@@ -209,6 +211,7 @@ class RingSweepRunner:
         "metrics_html",
         "run_html",
         "default_handling",
+        "dealer_enabled",
         "status",
         "time_to_stability",
         "phi_total",
@@ -228,6 +231,8 @@ class RingSweepRunner:
         liquidity_agent: Optional[str],
         base_seed: int,
         default_handling: str = "fail-fast",
+        dealer_enabled: bool = False,
+        dealer_config: Optional[Dict[str, Any]] = None,
     ) -> None:
         self.base_dir = out_dir
         self.registry_dir = self.base_dir / "registry"
@@ -241,6 +246,8 @@ class RingSweepRunner:
         self.liquidity_agent = liquidity_agent
         self.seed_counter = base_seed
         self.default_handling = default_handling
+        self.dealer_enabled = dealer_enabled
+        self.dealer_config = dealer_config
         self.registry_rows: List[Dict[str, Any]] = []
 
         self.registry_dir.mkdir(parents=True, exist_ok=True)
@@ -468,6 +475,7 @@ class RingSweepRunner:
             "maturity_days": str(self.maturity_days),
             "Q_total": str(self.Q_total),
             "default_handling": self.default_handling,
+            "dealer_enabled": str(self.dealer_enabled),
             "status": "running",
         }
         self._upsert_registry(registry_entry)
@@ -500,6 +508,18 @@ class RingSweepRunner:
 
         generator_config = RingExplorerGeneratorConfig.model_validate(generator_data)
         scenario = compile_ring_explorer(generator_config, source_path=None)
+
+        if self.dealer_enabled:
+            dealer_section: Dict[str, Any] = {"enabled": True}
+            if self.dealer_config:
+                dealer_section.update(self.dealer_config)
+            else:
+                dealer_section.update({
+                    "ticket_size": 1,
+                    "dealer_share": Decimal("0.25"),
+                    "vbt_share": Decimal("0.50"),
+                })
+            scenario["dealer"] = dealer_section
 
         if self.default_handling:
             scenario_run = scenario.setdefault("run", {})

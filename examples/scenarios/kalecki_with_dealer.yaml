@@ -1,0 +1,64 @@
+# Example: Kalecki Ring with Dealer Secondary Market
+# This scenario demonstrates a 5-agent Kalecki ring where agents can trade
+# their debt obligations through a dealer-mediated secondary market.
+#
+# Key concepts:
+# - κ (kappa) = 1.0: Total debt equals total liquidity
+# - Dealer provides bid-ask quotes for debt trading
+# - VBT (Value-Based Trader) provides outside liquidity
+# - Households can sell claims to get cash before settlement
+#
+# Run with: uv run bilancio run examples/scenarios/kalecki_with_dealer.yaml
+
+version: 1
+generator: ring_explorer_v1
+name_prefix: "Kalecki Ring with Dealer"
+
+params:
+  n_agents: 5
+  seed: 42
+  kappa: "1.0"
+  Q_total: "1000"
+  liquidity:
+    allocation:
+      mode: uniform
+  inequality:
+    scheme: dirichlet
+    concentration: "1.0"
+    monotonicity: "0"
+  maturity:
+    days: 3
+    mode: lead_lag
+    mu: "0.5"
+
+# Dealer configuration
+dealer:
+  enabled: true
+  ticket_size: 1
+  buckets:
+    short:
+      tau_min: 1
+      tau_max: 3
+      M: "1.0"
+      O: "0.20"
+    mid:
+      tau_min: 4
+      tau_max: 8
+      M: "1.0"
+      O: "0.30"
+    long:
+      tau_min: 9
+      tau_max: 999
+      M: "1.0"
+      O: "0.40"
+  dealer_share: "0.25"
+  vbt_share: "0.50"
+  order_flow:
+    pi_sell: "0.5"
+    N_max: 3
+  trader_policy:
+    horizon_H: 3
+    buffer_B: "1.0"
+
+compile:
+  emit_yaml: false

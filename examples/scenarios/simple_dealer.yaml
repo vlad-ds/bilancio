@@ -1,0 +1,20 @@
+# Minimal dealer-enabled scenario
+# Run with: uv run bilancio run examples/scenarios/simple_dealer.yaml
+
+version: 1
+generator: ring_explorer_v1
+name_prefix: "Simple Dealer Demo"
+
+params:
+  n_agents: 3
+  seed: 123
+  kappa: "0.5"
+  Q_total: "300"
+  maturity:
+    days: 2
+    mode: lead_lag
+    mu: "0"
+
+# Enable dealer with defaults
+dealer:
+  enabled: true
