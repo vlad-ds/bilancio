@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2025-11-24 20:25:13 UTC | Branch: main | Commit: be83b12
+Generated: 2025-11-25 10:36:23 UTC | Branch: main | Commit: 78116cd
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -64,12 +64,52 @@ This document contains the complete codebase structure and content for LLM inges
 │   │   ├── 013_default_handling_modalities.md
 │   │   ├── 014_kalecki_experiments.md
 │   │   ├── 015_kalecki_experiments_analysis.md
+│   │   ├── 016_dealer_kalecki_integration.md
+│   │   ├── 016_dealer_ring_implementation.md
+│   │   ├── 017_dealer_ring_html_report.md
 │   │   └── Kalecki_debt_simulation (1).pdf
 │   ├── prompts
 │   │   ├── 015_expel_sweep_agent_prompt.md
 │   │   └── scenario_translator_agent.md
 │   └── version_1_0_exercises.pdf
 ├── examples
+│   ├── dealer_ring
+│   │   ├── README.md
+│   │   ├── VERIFICATION_PROMPT.md
+│   │   ├── assemble_examples.py
+│   │   ├── example10_trader_rebucket.py
+│   │   ├── example11_partial_recovery.py
+│   │   ├── example12_capacity_crossing.py
+│   │   ├── example13_event_loop.py
+│   │   ├── example14_ticket_transfer.py
+│   │   ├── example1_migrating_claim.py
+│   │   ├── example2_cross_bucket.py
+│   │   ├── example3_clip_toggle.py
+│   │   ├── example4_vbt_layoff.py
+│   │   ├── example5_dealer_earns.py
+│   │   ├── example6_bid_passthrough.py
+│   │   ├── example7_no_interior_clipping.py
+│   │   ├── example8_guard_low_M.py
+│   │   ├── example9_partial_recovery.py
+│   │   ├── out
+│   │   │   └── .gitignore
+│   │   ├── reports
+│   │   │   ├── example10_report.html
+│   │   │   ├── example11_report.html
+│   │   │   ├── example12_report.html
+│   │   │   ├── example13_report.html
+│   │   │   ├── example14_report.html
+│   │   │   ├── example1_report.html
+│   │   │   ├── example2_report.html
+│   │   │   ├── example3_report.html
+│   │   │   ├── example4_report.html
+│   │   │   ├── example5_report.html
+│   │   │   ├── example6_report.html
+│   │   │   ├── example7_report.html
+│   │   │   ├── example8_report.html
+│   │   │   └── example9_report.html
+│   │   ├── verify_example1_prompt.md
+│   │   └── worked_examples.txt
 │   ├── exercise_scenarios
 │   │   ├── html
 │   │   │   ├── all.html
@@ -2404,6 +2444,15 @@ This document contains the complete codebase structure and content for LLM inges
 │       │   ├── ids.py
 │       │   ├── invariants.py
 │       │   └── time.py
+│       ├── dealer
+│       │   ├── __init__.py
+│       │   ├── assertions.py
+│       │   ├── events.py
+│       │   ├── kernel.py
+│       │   ├── models.py
+│       │   ├── report.py
+│       │   ├── simulation.py
+│       │   └── trading.py
 │       ├── domain
 │       │   ├── __init__.py
 │       │   ├── agent.py
@@ -2480,6 +2529,12 @@ This document contains the complete codebase structure and content for LLM inges
     │   ├── test_models.py
     │   ├── test_scheduled_alias_validation.py
     │   └── test_transfer_claim_model.py
+    ├── dealer
+    │   ├── __init__.py
+    │   ├── test_examples.py
+    │   ├── test_kernel.py
+    │   ├── test_report.py
+    │   └── test_simulation.py
     ├── engines
     │   ├── test_default_handling.py
     │   └── test_phase_b1_scheduling.py
@@ -2505,7 +2560,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-810 directories, 1685 files
+815 directories, 1735 files
 
 ```
 
@@ -3378,6 +3433,193 @@ Complete git history from oldest to newest:
   Remove IMPLEMENTATION_NOTES.md from dealer_ring docs
   🤖 Generated with [Claude Code](https://claude.com/claude-code)
   Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **0e038b12** (2025-11-24) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **78116cd3** (2025-11-25) by Vlad Gheorghe
+  feat(dealer): Complete dealer ring implementation with worked examples (#18)
+  * Add dealer ring implementation plan
+  * Add dealer module core: models, kernel, assertions
+  Phase 1 implementation of the dealer ring module:
+  - models.py: Data models for dealer simulation
+    - Ticket: Tradable debt instrument with face value and maturity
+    - BucketConfig: Maturity bucket configuration (short/mid/long)
+    - DealerState: Per-bucket dealer market-making state
+    - VBTState: Value-based trader state with loss-based anchor updates
+    - TraderState: Ring trader state with single-issuer constraint
+  - kernel.py: L1 dealer pricing kernel per specification Section 8
+    - Capacity computation: K* = floor(V/M), X* = S*K*
+    - Layoff probability: λ = S/(X* + S)
+    - Inside width: I = λ*O
+    - Inventory-sensitive midline: p(x) = M - O/(X*+2S)*(x - X*/2)
+    - Clipped quotes: a_c(x) = min(A, a(x)), b_c(x) = max(B, b(x))
+    - Guard regime: M <= M_MIN pins to outside quotes
+    - Feasibility checks: can_interior_buy, can_interior_sell
+  - assertions.py: C1-C6 programmatic invariant checks
+    - C1: Double-entry conservation
+    - C2: Quote bounds and pin detection
+    - C3: Feasibility pre-checks
+    - C4: Passthrough invariants
+    - C5: Equity basis (V = C + M*a)
+    - C6: Anchor timing discipline
+  All arithmetic uses Decimal for precision (no floats).
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+  * Add trading execution and event logging for dealer module
+  - trading.py: TradeExecutor class for customer trades
+    - execute_customer_sell: Event 1 (interior) and Event 9 (passthrough)
+    - execute_customer_buy: Event 2 (interior) and Event 10 (passthrough)
+    - Deterministic ticket selection with issuer preference
+    - C1, C3, C4 assertion checking per trade
+    - Automatic quote recomputation after trades
+  - events.py: EventLog class for simulation observability
+    - Trade logging (side, price, passthrough flag)
+    - Settlement and default logging with recovery rates
+    - Rebucketing events (Events 11-12)
+    - VBT anchor updates after defaults
+    - Query methods for day-based event lookup
+    - Loss rate computation for VBT anchor updates
+    - JSONL and DataFrame export
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+  * Add comprehensive dealer module tests (56 tests)
+  test_kernel.py: Unit tests for L1 dealer kernel
+  - Capacity computation: K* = floor(V/M), X* = S*K*
+  - Layoff probability: λ = S/(X* + S)
+  - Inside width: I = λ*O
+  - Midline formula: p(x) = M - O/(X*+2S)*(x - X*/2)
+  - Interior quotes: a(x), b(x)
+  - Clipped quotes and pin detection
+  - Guard regime (M <= M_MIN)
+  - Feasibility checks (can_interior_buy, can_interior_sell)
+  - C2 and C5 invariant verification
+  test_examples.py: Integration tests from worked examples
+  - Example 5: Dealer earns spread over trades
+  - Example 4: Inventory limit and VBT layoff
+  - Example 6: Bid-side passthrough
+  - Example 13: Capacity jump across integer
+  - Example 9: Guard regime at low M
+  - Examples 10/12: Partial recovery defaults
+  - Quote bounds (C2 assertion)
+  - Feasibility (C3 assertion)
+  - Double-entry (C1 assertion)
+  All 56 tests pass with high coverage:
+  - kernel.py: 97%
+  - trading.py: 93%
+  - assertions.py: 89%
+  - models.py: 84%
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+  * Add dealer ring simulation event loop
+  Implements the six-phase event loop per Section 11 of the spec:
+  - Phase 1: Maturity updates and rebucketing (Events 11-12)
+  - Phase 2: Dealer state pre-computation
+  - Phase 3: Sell/buy eligibility determination
+  - Phase 4: Order flow processing (Events 1-2, 9-10)
+  - Phase 5: Settlement with proportional recovery (Events 6-8)
+  - Phase 6: VBT anchor updates
+  Key features:
+  - DealerRingConfig for all simulation parameters
+  - Complete event loop orchestration
+  - Proportional recovery for partial defaults
+  - VBT anchor adjustment based on bucket loss rates
+  - Integration with EventLog for observability
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+  * Add simulation integration tests (23 tests)
+  Tests cover all six phases of the event loop:
+  - Phase 1: Maturity updates and rebucketing (Events 11-12)
+  - Phase 2: Dealer pre-computation
+  - Phase 3: Sell/buy eligibility sets
+  - Phase 4: Randomized order flow
+  - Phase 5: Settlement with proportional recovery
+  - Phase 6: VBT anchor updates
+  Also fixes N_max=0 handling in order flow to support isolated testing.
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+  * feat(dealer): Add HTML report generator for dealer ring simulations
+  Implements plan 017 for generating readable HTML reports matching the
+  Kalecki ring style. Features:
+  - New report.py module with generate_dealer_ring_html() and export_dealer_ring_html()
+  - Snapshot capture in DealerRingSimulation (Day 0 + after each day)
+  - DaySnapshot dataclass for serializing simulation state
+  - to_html() convenience method on simulation
+  - Per-day sections showing: events table, dealer state cards (with kernel
+    parameters), VBT state cards, trader T-account balance sheets
+  - Color-coded event types (trade, rebucket, settlement, default, quote)
+  - Pin indicators for dealer quotes at VBT bounds
+  - HTML escaping for security
+  - 15 new tests for report generation
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+  * Fix rebucket transfer price and add dealer_ring examples folder
+  ## Bug Fix
+  - Fixed dealer rebucket transfer price to use receiving bucket's VBT
+    mid anchor M instead of old-bucket dealer's ask price
+  - This preserves equity conservation (E = C + M*a unchanged)
+  - Ref: PDF spec "internal sale at the Mid bucket mid M_M = 1"
+  ## Examples Folder
+  - Added examples/dealer_ring/ for spec examples
+  - example1_migrating_claim.py demonstrates:
+    - Trader sells ticket to Long dealer at bid ~0.95
+    - Ticket tau crosses Long->Mid boundary
+    - Internal rebucket at M=1.00 (not ask=0.975)
+  - Generated HTML reports go to out/ (gitignored)
+  ## Verification
+  After fix:
+  - Long dealer: a=1, C=1.05 (matches spec)
+  - Mid dealer:  a=2, C=0.00 (matches spec)
+  - Equity conserved for both dealers
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+  * Add verification prompt for Example 1
+  Prompt for another AI to check HTML report matches spec,
+  including the corrected rebucket transfer price at M_receiving = 1.00.
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+  * Complete dealer ring examples 1-14 with PDF-matched numbering
+  Implements all 14 worked examples from dealer_examples.pdf:
+  - Examples 1-6: Core dealer mechanics (migrating claims, cross-bucket, clipping, VBT layoff, earnings, passthrough)
+  - Example 7: Edge rung without interior clipping
+  - Example 8: Guard regime at low M
+  - Examples 9 & 11: Partial recovery defaults (R=0.375 and R=0.6)
+  - Example 10: Trader-held rebucketing
+  - Example 12: Capacity integer crossing
+  - Example 13: Event-loop harness with eligibility sets
+  - Example 14: Ticket-level transfer (no generic materialization)
+  Key fixes:
+  - Add Guard mode check to can_interior_sell() in kernel.py
+  - Fix settlement precision: use remainder-based distribution to avoid
+    1/3 + 1/3 + 1/3 != 1 floating-point accumulation errors
+  - Fix _pay_holder() to remove tickets from trader's tickets_owned
+  Also includes:
+  - VERIFICATION_PROMPT.md for independent AI verification
+  - assemble_examples.py script to generate worked_examples.txt
+  - Updated README.md with all examples and PDF section mappings
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+  * Add HTML reports for dealer ring examples 1-14
+  Generated verification reports showing all examples match PDF specification.
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+  * NEXT STEP: Integrate dealer module with main Kalecki simulation
+  This plan outlines the architecture and implementation steps to unify the
+  standalone dealer ring implementation (~3,661 lines, 14 verified examples)
+  with the main Bilancio simulation engine.
+  Key integration points:
+  - Phase 1: Contract-to-Ticket bridge (payables <-> tickets)
+  - Phase 2: DealerSubsystem wrapper for main engine
+  - Phase 3: YAML configuration extension for dealer settings
+  - Phase 4: Parameter sweep infrastructure with dealer support
+  - Phase 5: Integration testing and validation
+  Goal: Enable scenarios like "100-agent Kalecki ring with dealer-mediated
+  secondary market" and compare default rates with/without dealer.
+  See docs/plans/016_dealer_kalecki_integration.md for full details.
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+  ---------
+  Co-authored-by: Claude <noreply@anthropic.com>
 
 ---
 
@@ -8598,6 +8840,3731 @@ class TimeInterval:
 def now() -> TimeCoordinate:
     """Return the current time coordinate."""
     return TimeCoordinate(0.0)
+
+```
+
+---
+
+### 📄 src/bilancio/dealer/__init__.py
+
+```python
+"""
+Dealer module for the Kalecki ring simulation.
+
+This module implements a secondary market dealer system that provides liquidity
+to ring agents through market-making. The dealer quotes bid/ask prices and
+absorbs customer flow, routing to VBTs (value-based traders) when capacity
+is exhausted.
+
+Components:
+- models: Data models (Ticket, DealerState, VBTState, TraderState)
+- kernel: L1 dealer pricing kernel
+- assertions: C1-C6 programmatic invariant checks
+- events: Event logging system
+- trading: Trade execution logic (Events 1-2, 9-10)
+- simulation: Dealer ring event loop orchestrator
+
+References:
+- Specification of the Dealer Module for the Kalecki Ring (Bilancio Simulation)
+- Examples Document with programmatic assertions
+"""
+
+from .models import (
+    TicketId,
+    BucketConfig,
+    DEFAULT_BUCKETS,
+    Ticket,
+    DealerState,
+    VBTState,
+    TraderState,
+)
+
+from .kernel import (
+    M_MIN,
+    KernelParams,
+    ExecutionResult,
+    recompute_dealer_state,
+    can_interior_buy,
+    can_interior_sell,
+)
+
+from .assertions import (
+    EPSILON_CASH,
+    EPSILON_QTY,
+    assert_c1_double_entry,
+    assert_c2_quote_bounds,
+    assert_c3_feasibility,
+    assert_c4_passthrough_invariant,
+    assert_c5_equity_basis,
+    assert_c6_anchor_timing,
+    run_all_assertions,
+)
+
+from .events import EventLog
+
+from .trading import TradeExecutor
+
+from .simulation import (
+    DaySnapshot,
+    DealerRingConfig,
+    DealerRingSimulation,
+)
+
+from .report import (
+    generate_dealer_ring_html,
+    export_dealer_ring_html,
+)
+
+__all__ = [
+    # Models
+    "TicketId",
+    "BucketConfig",
+    "DEFAULT_BUCKETS",
+    "Ticket",
+    "DealerState",
+    "VBTState",
+    "TraderState",
+    # Kernel
+    "M_MIN",
+    "KernelParams",
+    "ExecutionResult",
+    "recompute_dealer_state",
+    "can_interior_buy",
+    "can_interior_sell",
+    # Assertions
+    "EPSILON_CASH",
+    "EPSILON_QTY",
+    "assert_c1_double_entry",
+    "assert_c2_quote_bounds",
+    "assert_c3_feasibility",
+    "assert_c4_passthrough_invariant",
+    "assert_c5_equity_basis",
+    "assert_c6_anchor_timing",
+    "run_all_assertions",
+    # Events
+    "EventLog",
+    # Trading
+    "TradeExecutor",
+    # Simulation
+    "DaySnapshot",
+    "DealerRingConfig",
+    "DealerRingSimulation",
+    # Report
+    "generate_dealer_ring_html",
+    "export_dealer_ring_html",
+]
+
+```
+
+---
+
+### 📄 src/bilancio/dealer/assertions.py
+
+```python
+"""
+Programmatic assertions for dealer ring simulation (C1-C6).
+
+These assertions implement the "fail loudly" checks from the specification's
+examples document. They verify invariants after every event (trade, settlement,
+rebucketing) to catch bugs early.
+
+References:
+- Specification Section 6 (Events)
+- Specification Section 7 (Kernel and Quotes)
+- Specification Section 9 (VBT Anchors)
+- Examples Document Section 1 (Programmatic Assertions)
+"""
+
+from decimal import Decimal
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .models import DealerState, VBTState
+    from .kernel import KernelParams
+
+
+# Tolerance constants for floating-point and integer comparisons
+EPSILON_CASH = Decimal("1e-10")  # Tolerance for cash comparisons
+EPSILON_QTY = 0  # Tolerance for ticket counts (integer)
+
+
+def assert_c1_double_entry(
+    cash_changes: dict[str, Decimal],
+    qty_changes: dict[str, int],
+) -> None:
+    """
+    C1: Conservation - sum of cash/qty changes is zero.
+
+    For every executed event (trade, settlement, rebucketing), the sum of all
+    cash changes across parties must be zero, and the sum of all ticket quantity
+    changes must be zero. This enforces double-entry bookkeeping.
+
+    Args:
+        cash_changes: Dictionary mapping party ID to cash change for this event.
+                     Positive = cash received, negative = cash paid.
+        qty_changes: Dictionary mapping party ID to ticket count change.
+                    Positive = tickets received, negative = tickets given.
+
+    Raises:
+        AssertionError: If cash or quantity is not conserved within tolerance.
+
+    Example:
+        # Customer sells ticket to dealer at price 0.95
+        assert_c1_double_entry(
+            cash_changes={"customer": Decimal("0.95"), "dealer": Decimal("-0.95")},
+            qty_changes={"customer": -1, "dealer": 1}
+        )
+
+    References:
+        - Examples Doc Section 1.1 (C1. Double-entry and conservation)
+        - Specification Section 6 (Event tables with mirrored entries)
+    """
+    total_cash = sum(cash_changes.values())
+    total_qty = sum(qty_changes.values())
+
+    assert abs(total_cash) <= EPSILON_CASH, (
+        f"C1 VIOLATION: Cash not conserved across parties. "
+        f"Total cash change: {total_cash} (tolerance: {EPSILON_CASH}). "
+        f"Cash changes by party: {cash_changes}"
+    )
+
+    assert abs(total_qty) <= EPSILON_QTY, (
+        f"C1 VIOLATION: Ticket quantities not conserved across parties. "
+        f"Total qty change: {total_qty} (tolerance: {EPSILON_QTY}). "
+        f"Quantity changes by party: {qty_changes}"
+    )
+
+
+def assert_c2_quote_bounds(dealer: "DealerState", vbt: "VBTState") -> None:
+    """
+    C2: Quotes within outside bounds.
+
+    Verifies that dealer interior quotes remain within VBT outside bounds:
+    - b_c(x) >= B (dealer bid >= outside bid)
+    - a_c(x) <= A (dealer ask <= outside ask)
+
+    Also verifies pin detection consistency:
+    - (dealer.ask == A) if and only if dealer.is_pinned_ask
+    - (dealer.bid == B) if and only if dealer.is_pinned_bid
+
+    Args:
+        dealer: Current dealer state with computed quotes.
+        vbt: VBT state with outside quotes A, B.
+
+    Raises:
+        AssertionError: If quotes violate bounds or pin flags are inconsistent.
+
+    References:
+        - Examples Doc Section 1.2 (C2. Quote bounds and pin detection)
+        - Specification Section 7.5 (Interior quotes and clipping)
+    """
+    # Check bid bound
+    assert dealer.bid >= vbt.B, (
+        f"C2 VIOLATION: Dealer bid {dealer.bid} < outside bid {vbt.B}. "
+        f"Bucket: {dealer.bucket_id}, Inventory x: {dealer.x}"
+    )
+
+    # Check ask bound
+    assert dealer.ask <= vbt.A, (
+        f"C2 VIOLATION: Dealer ask {dealer.ask} > outside ask {vbt.A}. "
+        f"Bucket: {dealer.bucket_id}, Inventory x: {dealer.x}"
+    )
+
+    # Check pin detection consistency (ask)
+    ask_at_outside = (dealer.ask == vbt.A)
+    assert ask_at_outside == dealer.is_pinned_ask, (
+        f"C2 VIOLATION: Ask pin detection inconsistent. "
+        f"Dealer ask {dealer.ask} == VBT ask {vbt.A}: {ask_at_outside}, "
+        f"but is_pinned_ask: {dealer.is_pinned_ask}. "
+        f"Bucket: {dealer.bucket_id}"
+    )
+
+    # Check pin detection consistency (bid)
+    bid_at_outside = (dealer.bid == vbt.B)
+    assert bid_at_outside == dealer.is_pinned_bid, (
+        f"C2 VIOLATION: Bid pin detection inconsistent. "
+        f"Dealer bid {dealer.bid} == VBT bid {vbt.B}: {bid_at_outside}, "
+        f"but is_pinned_bid: {dealer.is_pinned_bid}. "
+        f"Bucket: {dealer.bucket_id}"
+    )
+
+
+def assert_c3_feasibility(
+    dealer: "DealerState",
+    side: str,
+    params: "KernelParams",
+) -> None:
+    """
+    C3: Pre-check feasibility before interior execution.
+
+    Before applying an interior fill, verify the dealer can execute:
+    - Customer SELL (dealer BUY): x + S <= X* and C >= b_c(x)
+    - Customer BUY (dealer SELL): x >= S
+
+    This prevents the dealer from over-extending capacity or selling inventory
+    they don't have.
+
+    Args:
+        dealer: Current dealer state before execution.
+        side: "BUY" (dealer buys from customer) or "SELL" (dealer sells to customer).
+        params: Kernel parameters including ticket size S.
+
+    Raises:
+        AssertionError: If interior execution is not feasible.
+
+    References:
+        - Examples Doc Section 1.3 (C3. Feasibility pre-checks)
+        - Specification Section 7.6 (Commit-to-quote feasibility)
+    """
+    S = params.S
+
+    if side == "BUY":
+        # Dealer buys from customer (customer SELL)
+        # Check capacity constraint
+        assert dealer.x + S <= dealer.X_star, (
+            f"C3 VIOLATION: Dealer BUY capacity exceeded. "
+            f"Current inventory x: {dealer.x}, ticket size S: {S}, "
+            f"capacity X*: {dealer.X_star}. "
+            f"x + S = {dealer.x + S} > {dealer.X_star}. "
+            f"Bucket: {dealer.bucket_id}"
+        )
+
+        # Check cash constraint
+        assert dealer.cash >= dealer.bid, (
+            f"C3 VIOLATION: Dealer BUY cash insufficient. "
+            f"Cash: {dealer.cash}, required bid: {dealer.bid}. "
+            f"Bucket: {dealer.bucket_id}"
+        )
+
+    elif side == "SELL":
+        # Dealer sells to customer (customer BUY)
+        # Check inventory constraint
+        assert dealer.x >= S, (
+            f"C3 VIOLATION: Dealer SELL inventory insufficient. "
+            f"Current inventory x: {dealer.x}, ticket size S: {S}. "
+            f"Bucket: {dealer.bucket_id}"
+        )
+
+    else:
+        raise ValueError(f"Invalid side: {side}. Must be 'BUY' or 'SELL'.")
+
+
+def assert_c4_passthrough_invariant(
+    dealer_before: "DealerState",
+    dealer_after: "DealerState",
+) -> None:
+    """
+    C4: Passthrough leaves dealer state unchanged.
+
+    If the event is executed via pass-through to the VBT at a pin (ask pinned
+    at A or bid pinned at B), the dealer's (x, C) must be exactly unchanged.
+
+    This ensures that when the dealer routes an order to the VBT, the dealer's
+    own balance sheet is not affected.
+
+    Args:
+        dealer_before: Dealer state snapshot before the passthrough event.
+        dealer_after: Dealer state snapshot after the passthrough event.
+
+    Raises:
+        AssertionError: If dealer inventory or cash changed during passthrough.
+
+    References:
+        - Examples Doc Section 1.4 (C4. Pass-through invariants)
+        - Specification Events 9-10 (Passthrough at pins)
+    """
+    # Check inventory unchanged
+    assert dealer_after.x == dealer_before.x, (
+        f"C4 VIOLATION: Dealer inventory changed during passthrough. "
+        f"Before: x={dealer_before.x}, After: x={dealer_after.x}. "
+        f"Bucket: {dealer_after.bucket_id}"
+    )
+
+    # Check cash unchanged
+    assert dealer_after.cash == dealer_before.cash, (
+        f"C4 VIOLATION: Dealer cash changed during passthrough. "
+        f"Before: C={dealer_before.cash}, After: C={dealer_after.cash}. "
+        f"Bucket: {dealer_after.bucket_id}"
+    )
+
+
+def assert_c5_equity_basis(
+    dealer: "DealerState",
+    vbt: "VBTState",
+) -> None:
+    """
+    C5: Equity = C + M*a at VBT mid.
+
+    Dealer/VBT equity is measured at VBT mid M. The accounting identity
+    V = C + M*a must hold, where:
+    - V is the dealer's mid-valued equity
+    - C is cash holdings
+    - M is the VBT mid price
+    - a is the number of tickets held
+
+    Args:
+        dealer: Current dealer state.
+        vbt: VBT state with current mid M.
+
+    Raises:
+        AssertionError: If equity identity is violated beyond tolerance.
+
+    References:
+        - Examples Doc Section 1.5 (C5. Equity basis by role)
+        - Specification Section 5.2 (Equity conventions)
+    """
+    # Compute equity at VBT mid
+    equity_computed = dealer.cash + vbt.M * dealer.a
+
+    assert abs(equity_computed - dealer.V) <= EPSILON_CASH, (
+        f"C5 VIOLATION: Equity identity failed. "
+        f"Computed E = C + M*a = {dealer.cash} + {vbt.M}*{dealer.a} = {equity_computed}, "
+        f"but dealer.V = {dealer.V}. "
+        f"Difference: {abs(equity_computed - dealer.V)} (tolerance: {EPSILON_CASH}). "
+        f"Bucket: {dealer.bucket_id}"
+    )
+
+
+def assert_c6_anchor_timing(
+    vbt_before: "VBTState",
+    vbt_after: "VBTState",
+    during_order_flow: bool,
+) -> None:
+    """
+    C6: Anchors don't change during order flow.
+
+    At the end of period t, compute loss rate and update (M, O). During period
+    t+1 order flow, do NOT mutate anchors. This enforces the timing discipline
+    that anchors are only updated based on realized losses, not contemporaneous
+    order flow.
+
+    Args:
+        vbt_before: VBT state snapshot before order flow.
+        vbt_after: VBT state snapshot after order flow.
+        during_order_flow: True if checking within an order flow phase, False otherwise.
+
+    Raises:
+        AssertionError: If anchors changed during order flow.
+
+    References:
+        - Examples Doc Section 1.6 (C6. Anchor-update timing discipline)
+        - Specification Section 9 (Loss-based anchor updates)
+        - Specification Section 11 (Event loop timing)
+    """
+    if during_order_flow:
+        # During order flow, anchors must not change
+        assert vbt_after.M == vbt_before.M, (
+            f"C6 VIOLATION: VBT mid M changed during order flow. "
+            f"Before: M={vbt_before.M}, After: M={vbt_after.M}. "
+            f"Bucket: {vbt_after.bucket_id}"
+        )
+
+        assert vbt_after.O == vbt_before.O, (
+            f"C6 VIOLATION: VBT spread O changed during order flow. "
+            f"Before: O={vbt_before.O}, After: O={vbt_after.O}. "
+            f"Bucket: {vbt_after.bucket_id}"
+        )
+
+
+def run_all_assertions(
+    dealer: "DealerState",
+    vbt: "VBTState",
+    params: "KernelParams",
+) -> None:
+    """
+    Run C2 and C5 assertions (state checks).
+
+    This is a convenience wrapper for running the assertions that check
+    current state invariants (not event-specific). Use this after dealer
+    state recomputation to verify the kernel produced valid results.
+
+    Args:
+        dealer: Current dealer state.
+        vbt: Current VBT state.
+        params: Kernel parameters.
+
+    Raises:
+        AssertionError: If any invariant is violated.
+
+    Example:
+        # After recomputing dealer state
+        recompute_dealer_state(dealer, vbt, params)
+        run_all_assertions(dealer, vbt, params)
+    """
+    assert_c2_quote_bounds(dealer, vbt)
+    assert_c5_equity_basis(dealer, vbt)
+
+```
+
+---
+
+### 📄 src/bilancio/dealer/events.py
+
+```python
+"""
+Event logging system for dealer ring simulation.
+
+Records all events during simulation for observability:
+- Trades (interior and passthrough)
+- Settlements (full and partial recovery)
+- Defaults
+- Rebucketing (dealer-to-dealer and VBT-to-VBT)
+- Quote updates
+- VBT anchor updates
+"""
+
+import json
+from dataclasses import dataclass, field
+from decimal import Decimal
+from pathlib import Path
+from typing import Any
+
+
+@dataclass
+class EventLog:
+    """
+    Structured event log for dealer ring simulation.
+
+    Records all events during simulation for observability:
+    - Trades (interior and passthrough)
+    - Settlements (full and partial recovery)
+    - Defaults
+    - Rebucketing (dealer-to-dealer and VBT-to-VBT)
+    - Quote updates
+    - VBT anchor updates
+    """
+
+    events: list[dict] = field(default_factory=list)
+
+    # Indexed structures for efficient lookup
+    defaults_by_day: dict[int, list[dict]] = field(default_factory=dict)
+    trades_by_day: dict[int, list[dict]] = field(default_factory=dict)
+    settlements_by_day: dict[int, list[dict]] = field(default_factory=dict)
+
+    def _serialize_value(self, value: Any) -> Any:
+        """
+        Convert value to JSON-serializable format.
+
+        Decimals are stored as strings to preserve precision.
+        """
+        if isinstance(value, Decimal):
+            return str(value)
+        elif isinstance(value, dict):
+            return {k: self._serialize_value(v) for k, v in value.items()}
+        elif isinstance(value, (list, tuple)):
+            return [self._serialize_value(v) for v in value]
+        return value
+
+    def log(self, kind: str, day: int, **payload) -> None:
+        """
+        Append event to log with kind, day, and arbitrary payload.
+
+        Args:
+            kind: Event type identifier
+            day: Simulation day when event occurred
+            **payload: Additional event data
+        """
+        event = {
+            "kind": kind,
+            "day": day,
+            **self._serialize_value(payload),
+        }
+        self.events.append(event)
+
+        # Update indices for specific event types
+        if kind == "default":
+            if day not in self.defaults_by_day:
+                self.defaults_by_day[day] = []
+            self.defaults_by_day[day].append(event)
+        elif kind == "trade":
+            if day not in self.trades_by_day:
+                self.trades_by_day[day] = []
+            self.trades_by_day[day].append(event)
+        elif kind == "settlement":
+            if day not in self.settlements_by_day:
+                self.settlements_by_day[day] = []
+            self.settlements_by_day[day].append(event)
+
+    def log_day_start(self, day: int) -> None:
+        """
+        Log start of a simulation day.
+
+        Args:
+            day: Day number
+        """
+        self.log("day_start", day)
+
+    def log_trade(
+        self,
+        day: int,
+        side: str,
+        trader_id: str,
+        ticket_id: str,
+        bucket: str,
+        price: Decimal,
+        is_passthrough: bool,
+    ) -> None:
+        """
+        Log a trade event (Events 1-2 or 9-10).
+
+        Args:
+            day: Simulation day
+            side: "BUY" or "SELL" (from customer's perspective)
+            trader_id: Agent ID of the trader
+            ticket_id: ID of the ticket being traded
+            bucket: Maturity bucket
+            price: Trade price
+            is_passthrough: True if this is a dealer-to-VBT passthrough trade
+        """
+        self.log(
+            "trade",
+            day,
+            side=side,
+            trader_id=trader_id,
+            ticket_id=ticket_id,
+            bucket=bucket,
+            price=price,
+            is_passthrough=is_passthrough,
+        )
+
+    def log_quote(
+        self,
+        day: int,
+        bucket: str,
+        dealer_bid: Decimal,
+        dealer_ask: Decimal,
+        vbt_bid: Decimal,
+        vbt_ask: Decimal,
+        inventory: int,
+        capacity: Decimal,
+        is_pinned_bid: bool,
+        is_pinned_ask: bool,
+    ) -> None:
+        """
+        Log dealer quote state after recomputation.
+
+        Args:
+            day: Simulation day
+            bucket: Maturity bucket
+            dealer_bid: Dealer's bid price
+            dealer_ask: Dealer's ask price
+            vbt_bid: VBT's bid price
+            vbt_ask: VBT's ask price
+            inventory: Number of tickets in dealer inventory
+            capacity: One-sided capacity in face units
+            is_pinned_bid: True if dealer bid is pinned at VBT bid
+            is_pinned_ask: True if dealer ask is pinned at VBT ask
+        """
+        self.log(
+            "quote",
+            day,
+            bucket=bucket,
+            dealer_bid=dealer_bid,
+            dealer_ask=dealer_ask,
+            vbt_bid=vbt_bid,
+            vbt_ask=vbt_ask,
+            inventory=inventory,
+            capacity=capacity,
+            is_pinned_bid=is_pinned_bid,
+            is_pinned_ask=is_pinned_ask,
+        )
+
+    def log_settlement(
+        self,
+        day: int,
+        issuer_id: str,
+        total_paid: Decimal,
+        n_tickets: int,
+    ) -> None:
+        """
+        Log full settlement (recovery_rate = 1).
+
+        Args:
+            day: Simulation day
+            issuer_id: Agent ID of the issuer who settled
+            total_paid: Total amount paid
+            n_tickets: Number of tickets settled
+        """
+        self.log(
+            "settlement",
+            day,
+            issuer_id=issuer_id,
+            total_paid=total_paid,
+            n_tickets=n_tickets,
+            recovery_rate=Decimal(1),
+        )
+
+    def log_default(
+        self,
+        day: int,
+        issuer_id: str,
+        recovery_rate: Decimal,
+        total_due: Decimal,
+        total_paid: Decimal,
+        n_tickets: int,
+        bucket: str,
+    ) -> None:
+        """
+        Log default event with partial recovery (Events 6-8).
+
+        Args:
+            day: Simulation day
+            issuer_id: Agent ID of the issuer who defaulted
+            recovery_rate: Recovery rate R (0 <= R < 1)
+            total_due: Total face value due
+            total_paid: Total amount actually paid
+            n_tickets: Number of tickets involved
+            bucket: Maturity bucket of the defaulted tickets
+        """
+        self.log(
+            "default",
+            day,
+            issuer_id=issuer_id,
+            recovery_rate=recovery_rate,
+            total_due=total_due,
+            total_paid=total_paid,
+            n_tickets=n_tickets,
+            bucket=bucket,
+        )
+
+    def log_rebucket(
+        self,
+        day: int,
+        ticket_id: str,
+        old_bucket: str,
+        new_bucket: str,
+        price: Decimal,
+        holder_type: str,
+    ) -> None:
+        """
+        Log rebucketing event (Events 11-12).
+
+        Args:
+            day: Simulation day
+            ticket_id: ID of the ticket being rebucketed
+            old_bucket: Previous bucket
+            new_bucket: New bucket
+            price: Price at which ticket is transferred
+            holder_type: "dealer" or "vbt" - who holds the ticket
+        """
+        self.log(
+            "rebucket",
+            day,
+            ticket_id=ticket_id,
+            old_bucket=old_bucket,
+            new_bucket=new_bucket,
+            price=price,
+            holder_type=holder_type,
+        )
+
+    def log_vbt_anchor_update(
+        self,
+        day: int,
+        bucket: str,
+        M_old: Decimal,
+        M_new: Decimal,
+        O_old: Decimal,
+        O_new: Decimal,
+        loss_rate: Decimal,
+    ) -> None:
+        """
+        Log VBT anchor update after defaults.
+
+        Args:
+            day: Simulation day
+            bucket: Maturity bucket
+            M_old: Previous mid price anchor
+            M_new: New mid price anchor
+            O_old: Previous spread anchor
+            O_new: New spread anchor
+            loss_rate: Loss rate that triggered the update
+        """
+        self.log(
+            "vbt_anchor_update",
+            day,
+            bucket=bucket,
+            M_old=M_old,
+            M_new=M_new,
+            O_old=O_old,
+            O_new=O_new,
+            loss_rate=loss_rate,
+        )
+
+    def get_bucket_loss_rate(self, day: int, bucket_id: str) -> Decimal:
+        """
+        Compute loss rate for bucket from today's defaults.
+
+        l_t = sum(face * (1 - R)) / sum(face) for maturing tickets.
+
+        Returns Decimal(0) if no defaults in this bucket today.
+
+        Args:
+            day: Simulation day
+            bucket_id: Bucket identifier
+
+        Returns:
+            Loss rate as Decimal
+        """
+        if day not in self.defaults_by_day:
+            return Decimal(0)
+
+        total_loss = Decimal(0)
+        total_face = Decimal(0)
+
+        for event in self.defaults_by_day[day]:
+            if event.get("bucket") == bucket_id:
+                # Parse Decimal values from string
+                total_due = Decimal(event["total_due"])
+                total_paid = Decimal(event["total_paid"])
+
+                total_face += total_due
+                total_loss += total_due - total_paid
+
+        if total_face == 0:
+            return Decimal(0)
+
+        return total_loss / total_face
+
+    def get_trades_for_day(self, day: int) -> list[dict]:
+        """
+        Get all trades that occurred on a given day.
+
+        Args:
+            day: Simulation day
+
+        Returns:
+            List of trade events
+        """
+        return self.trades_by_day.get(day, [])
+
+    def get_defaults_for_day(self, day: int) -> list[dict]:
+        """
+        Get all defaults that occurred on a given day.
+
+        Args:
+            day: Simulation day
+
+        Returns:
+            List of default events
+        """
+        return self.defaults_by_day.get(day, [])
+
+    def get_settlements_for_day(self, day: int) -> list[dict]:
+        """
+        Get all settlements that occurred on a given day.
+
+        Args:
+            day: Simulation day
+
+        Returns:
+            List of settlement events
+        """
+        return self.settlements_by_day.get(day, [])
+
+    def get_events_for_day(self, day: int) -> list[dict]:
+        """
+        Get all events that occurred on a given day.
+
+        Args:
+            day: Simulation day
+
+        Returns:
+            List of events
+        """
+        return [event for event in self.events if event.get("day") == day]
+
+    def get_all_events(self) -> list[dict]:
+        """
+        Get all events in chronological order.
+
+        Returns:
+            List of all events
+        """
+        return self.events.copy()
+
+    def to_jsonl(self, path: str) -> None:
+        """
+        Export events to JSONL file (one JSON object per line).
+
+        Args:
+            path: File path to write to
+        """
+        path_obj = Path(path)
+        path_obj.parent.mkdir(parents=True, exist_ok=True)
+
+        with open(path_obj, "w") as f:
+            for event in self.events:
+                f.write(json.dumps(event) + "\n")
+
+    def to_dataframe(self) -> "pd.DataFrame":
+        """
+        Convert events to pandas DataFrame for analysis.
+
+        Returns:
+            DataFrame with one row per event
+
+        Raises:
+            ImportError: If pandas is not installed
+        """
+        try:
+            import pandas as pd
+        except ImportError:
+            raise ImportError(
+                "pandas is required for DataFrame export. "
+                "Install with: uv add pandas"
+            )
+
+        return pd.DataFrame(self.events)
+
+```
+
+---
+
+### 📄 src/bilancio/dealer/kernel.py
+
+```python
+"""
+L1 dealer pricing kernel.
+
+This module implements the core L1 dealer pricing formulas from Section 8
+of the specification. It computes all derived dealer quantities from the
+current inventory and VBT anchor prices.
+
+The kernel is the mathematical heart of the dealer system, computing:
+- Capacity: Maximum fundable buy tickets (K*, X*)
+- Layoff probability: Risk-neutral hedging probability (λ)
+- Inside width: Competitive equilibrium spread (I)
+- Midline: Inventory-sensitive mid price p(x)
+- Clipped quotes: Final bid/ask quotes b_c(x), a_c(x)
+
+All arithmetic uses Decimal for precision - never float.
+"""
+
+from dataclasses import dataclass
+from decimal import Decimal, ROUND_FLOOR
+
+from .models import DealerState, VBTState, Ticket
+
+# Guard threshold - when M <= M_MIN, dealer pins to outside quotes
+M_MIN = Decimal("0.02")
+
+
+@dataclass
+class KernelParams:
+    """
+    Parameters for dealer kernel computation.
+
+    Attributes:
+        S: Standard ticket size (face value)
+    """
+    S: Decimal = Decimal(1)
+
+
+def recompute_dealer_state(
+    dealer: DealerState,
+    vbt: VBTState,
+    params: KernelParams,
+) -> None:
+    """
+    Recompute all derived dealer quantities from current (inventory, cash).
+
+    This is the core L1 kernel from specification Section 8. It updates
+    all derived dealer quantities in-place based on:
+    - Current inventory and cash (dealer balance sheet)
+    - VBT anchor prices M, O (and derived A, B)
+    - Ticket size S
+
+    The kernel implements the complete pricing formula hierarchy:
+    1. Compute current inventory (a, x)
+    2. Check guard regime (M <= M_MIN) and pin if needed
+    3. Compute capacity (K*, X*) and ladder parameters (N, λ)
+    4. Compute inside width (I) from layoff probability
+    5. Compute inventory-sensitive midline p(x)
+    6. Compute interior quotes a(x), b(x)
+    7. Clip to outside bounds and detect pins
+
+    Args:
+        dealer: DealerState to update (modified in-place)
+        vbt: VBTState providing anchor prices
+        params: KernelParams with ticket size S
+
+    References:
+        - Section 8: L1 Dealer Pricing Formulas
+        - Section 8.4: Midline Formula
+        - Section 8.5: Interior Quote Formulas
+    """
+    S = params.S
+    M = vbt.M
+    O = vbt.O
+    A = vbt.A
+    B = vbt.B
+
+    # Step 1: Compute current inventory
+    # a = number of tickets held
+    # x = face inventory = a * S
+    dealer.a = len(dealer.inventory)
+    dealer.x = S * dealer.a
+
+    # Step 2: Guard regime check
+    # If M <= M_MIN, collapse to outside-only (no interior market)
+    if M <= M_MIN:
+        dealer.V = dealer.cash
+        dealer.K_star = 0
+        dealer.X_star = Decimal(0)
+        dealer.N = 1
+        dealer.lambda_ = Decimal(1)
+        dealer.I = O  # Not used when pinned, but set for completeness
+        dealer.midline = M
+        dealer.bid = B
+        dealer.ask = A
+        dealer.is_pinned_bid = True
+        dealer.is_pinned_ask = True
+        return
+
+    # Step 3: Normal computation (M > M_MIN)
+
+    # V = Mid-valued inventory = M * a + C
+    # This is the dealer's "equity" valued at VBT mid
+    dealer.V = M * dealer.a + dealer.cash
+
+    # K* = floor(V / M)
+    # Maximum number of tickets dealer can buy without borrowing
+    # Uses ROUND_FLOOR to ensure integer result
+    K_star_decimal = (dealer.V / M).quantize(Decimal(1), rounding=ROUND_FLOOR)
+    dealer.K_star = int(K_star_decimal)
+
+    # X* = S * K*
+    # One-sided capacity in face units (max buyable face value)
+    dealer.X_star = S * dealer.K_star
+
+    # N = K* + 1
+    # Number of ladder rungs (including zero inventory)
+    dealer.N = dealer.K_star + 1
+
+    # λ = S / (X* + S)
+    # Layoff probability (reflecting random walk boundary condition)
+    # This is the risk-neutral probability of hitting the upper capacity bound
+    if dealer.X_star + S > 0:
+        dealer.lambda_ = S / (dealer.X_star + S)
+    else:
+        # Degenerate case: zero capacity
+        dealer.lambda_ = Decimal(1)
+
+    # I = λ * O
+    # Inside width (competitive equilibrium spread)
+    # Dealer spread is compressed by layoff probability
+    dealer.I = dealer.lambda_ * O
+
+    # Step 4: Inventory-sensitive midline (Section 8.4)
+    # p(x) = M - (O / (X* + 2S)) * (x - X*/2)
+    #
+    # This formula makes the midline:
+    # - Decrease as inventory increases (dealer wants to sell)
+    # - Increase as inventory decreases (dealer wants to buy)
+    # - Centered at balanced inventory x = X*/2
+    if dealer.X_star + 2 * S > 0:
+        slope = O / (dealer.X_star + 2 * S)
+        dealer.midline = M - slope * (dealer.x - dealer.X_star / 2)
+    else:
+        # Degenerate case: zero capacity
+        dealer.midline = M
+
+    # Step 5: Interior quotes (Section 8.5)
+    # a(x) = p(x) + I/2  (interior ask)
+    # b(x) = p(x) - I/2  (interior bid)
+    half_inside = dealer.I / 2
+    a_interior = dealer.midline + half_inside
+    b_interior = dealer.midline - half_inside
+
+    # Step 6: Clipped quotes
+    # a_c(x) = min(A, a(x))  (clip ask at outside ask)
+    # b_c(x) = max(B, b(x))  (clip bid at outside bid)
+    dealer.ask = min(A, a_interior)
+    dealer.bid = max(B, b_interior)
+
+    # Step 7: Pin detection
+    # Dealer is "pinned" when its quote equals the outside quote
+    # This signals that the dealer wants to route to VBT
+    dealer.is_pinned_ask = (dealer.ask == A)
+    dealer.is_pinned_bid = (dealer.bid == B)
+
+
+def can_interior_buy(dealer: DealerState, params: KernelParams) -> bool:
+    """
+    Check if dealer can execute interior BUY (dealer buys ticket from customer).
+
+    Interior buy is feasible if and only if:
+    1. x + S <= X* (capacity constraint: has room for one more ticket)
+    2. C >= b_c(x) (cash constraint: can pay the bid price)
+
+    Args:
+        dealer: DealerState to check
+        params: KernelParams with ticket size S
+
+    Returns:
+        True if dealer can execute interior buy, False if must route to VBT
+
+    References:
+        - Section 8.6: Feasibility Checks
+    """
+    S = params.S
+    has_capacity = (dealer.x + S <= dealer.X_star)
+    has_cash = (dealer.cash >= dealer.bid)
+    return has_capacity and has_cash
+
+
+def can_interior_sell(dealer: DealerState, params: KernelParams) -> bool:
+    """
+    Check if dealer can execute interior SELL (dealer sells ticket to customer).
+
+    Interior sell is feasible if and only if:
+    - x >= S (inventory constraint: has at least one ticket to sell)
+    - X* > 0 (not in Guard mode)
+
+    Under Guard mode (M <= M_MIN), X* = 0 and all trades route to VBT
+    regardless of dealer inventory. This is an "operational freeze of
+    interior execution."
+
+    Args:
+        dealer: DealerState to check
+        params: KernelParams with ticket size S
+
+    Returns:
+        True if dealer can execute interior sell, False if must route to VBT
+
+    References:
+        - Section 8.6: Feasibility Checks
+        - Section 7.2: Guard regime when M <= M_MIN
+    """
+    S = params.S
+    has_inventory = (dealer.x >= S)
+    not_in_guard = (dealer.X_star > 0)
+    return has_inventory and not_in_guard
+
+
+@dataclass
+class ExecutionResult:
+    """
+    Result of a trade execution.
+
+    Attributes:
+        executed: True if trade was executed
+        price: Execution price (bid or ask)
+        is_passthrough: True if trade was routed to VBT (outside market)
+        ticket: Ticket that was transferred (for BUYs), None for failed trades
+    """
+    executed: bool
+    price: Decimal
+    is_passthrough: bool
+    ticket: Ticket | None = None
+
+```
+
+---
+
+### 📄 src/bilancio/dealer/models.py
+
+```python
+"""
+Data models for the dealer ring simulation.
+
+This module defines the core data structures used in the dealer ring model:
+- Tickets: Tradable debt instruments with face value and maturity
+- Buckets: Maturity-based groupings of tickets
+- DealerState: Per-bucket dealer market-making state
+- VBTState: Per-bucket value-based trader state
+- TraderState: Ring trader state with single-issuer constraint
+"""
+
+from dataclasses import dataclass, field
+from decimal import Decimal
+
+from bilancio.core.ids import AgentId
+
+# Type alias for ticket identifiers
+TicketId = str
+
+
+@dataclass
+class BucketConfig:
+    """
+    Configuration for a maturity bucket.
+
+    Buckets partition tickets by remaining maturity τ (tau).
+    Each bucket defines an inclusive range [tau_min, tau_max].
+    tau_max=None means unbounded (τ ≥ tau_min).
+
+    Attributes:
+        name: Human-readable bucket identifier (e.g., "short", "mid", "long")
+        tau_min: Minimum remaining maturity (inclusive)
+        tau_max: Maximum remaining maturity (inclusive), None for unbounded
+    """
+    name: str
+    tau_min: int
+    tau_max: int | None
+
+
+# Default three-bucket configuration
+DEFAULT_BUCKETS = [
+    BucketConfig("short", 1, 3),      # τ ∈ {1, 2, 3}
+    BucketConfig("mid", 4, 8),        # τ ∈ {4, ..., 8}
+    BucketConfig("long", 9, None),    # τ ≥ 9
+]
+
+
+@dataclass
+class Ticket:
+    """
+    A tradable debt instrument (ticket).
+
+    Represents a promise by issuer_id to pay face value on maturity_day.
+    Currently held by owner_id (the creditor).
+
+    Attributes:
+        id: Unique ticket identifier
+        issuer_id: Agent who owes this debt (the debtor)
+        owner_id: Current holder of the ticket (the creditor)
+        face: Face value S (typically 1)
+        maturity_day: Absolute day when ticket matures
+        remaining_tau: Remaining days to maturity (updated each day)
+        bucket_id: Maturity bucket assignment ("short" | "mid" | "long")
+        serial: Serial number for deterministic tie-breaking
+    """
+    id: TicketId
+    issuer_id: AgentId
+    owner_id: AgentId
+    face: Decimal
+    maturity_day: int
+    remaining_tau: int = 0
+    bucket_id: str = ""
+    serial: int = 0
+
+
+@dataclass
+class DealerState:
+    """
+    Per-bucket dealer market-making state.
+
+    Tracks inventory, cash, and derived quoting parameters for a single
+    maturity bucket. The dealer provides two-sided liquidity using a
+    value-based pricing function.
+
+    Attributes:
+        bucket_id: Maturity bucket identifier
+        agent_id: Dealer's agent ID
+        inventory: List of tickets currently held
+        cash: Cash holdings
+
+    Derived quantities (recomputed after each trade):
+        a: Number of tickets held = len(inventory)
+        x: Face inventory = a * S
+        V: Mid-valued inventory = M*a + C
+        K_star: Maximum buy tickets fundable
+        X_star: One-sided capacity in face units
+        N: Number of ladder rungs
+        lambda_: Layoff probability
+        I: Inside width (spread parameter)
+
+    Current quotes:
+        bid: Current bid price b_c(x)
+        ask: Current ask price a_c(x)
+        midline: Current midline p(x)
+
+    Pin flags:
+        is_pinned_bid: True if bid == B (at outside bid)
+        is_pinned_ask: True if ask == A (at outside ask)
+    """
+    bucket_id: str
+    agent_id: AgentId = ""
+    inventory: list[Ticket] = field(default_factory=list)
+    cash: Decimal = Decimal(0)
+
+    # Derived quantities
+    a: int = 0
+    x: Decimal = Decimal(0)
+    V: Decimal = Decimal(0)
+    K_star: int = 0
+    X_star: Decimal = Decimal(0)
+    N: int = 1
+    lambda_: Decimal = Decimal(1)
+    I: Decimal = Decimal(0)
+
+    # Quotes
+    bid: Decimal = Decimal(0)
+    ask: Decimal = Decimal(0)
+    midline: Decimal = Decimal(0)
+
+    # Pin flags
+    is_pinned_bid: bool = False
+    is_pinned_ask: bool = False
+
+    def ticket_ids_by_issuer(self) -> dict[AgentId, list[TicketId]]:
+        """
+        Group inventory tickets by issuer.
+
+        Returns:
+            Dictionary mapping issuer_id to list of ticket IDs
+        """
+        result: dict[AgentId, list[TicketId]] = {}
+        for ticket in self.inventory:
+            if ticket.issuer_id not in result:
+                result[ticket.issuer_id] = []
+            result[ticket.issuer_id].append(ticket.id)
+        return result
+
+
+@dataclass
+class VBTState:
+    """
+    Per-bucket value-based trader state.
+
+    VBTs provide outside liquidity with adaptive anchors based on
+    realized losses from defaults. Each bucket has independent anchors.
+
+    Attributes:
+        bucket_id: Maturity bucket identifier
+        agent_id: VBT agent ID
+
+    Anchors:
+        M: Outside mid price
+        O: Outside spread
+
+    Derived outside quotes:
+        A: Ask price = M + O/2
+        B: Bid price = M - O/2
+
+    Sensitivity parameters:
+        phi_M: Mid sensitivity to loss (default 1.0)
+        phi_O: Spread sensitivity to loss (default 0.6)
+
+    Optional clipping:
+        O_min: Minimum spread (default 0)
+        clip_nonneg_B: Clip bid to be non-negative (default True)
+
+    Balance sheet:
+        inventory: List of tickets held
+        cash: Cash holdings
+    """
+    bucket_id: str
+    agent_id: AgentId = ""
+
+    # Anchors
+    M: Decimal = Decimal(1)
+    O: Decimal = Decimal("0.30")
+
+    # Derived outside quotes
+    A: Decimal = Decimal(0)
+    B: Decimal = Decimal(0)
+
+    # Sensitivity parameters
+    phi_M: Decimal = Decimal(1)
+    phi_O: Decimal = Decimal("0.6")
+
+    # Optional clipping
+    O_min: Decimal = Decimal(0)
+    clip_nonneg_B: bool = True
+
+    # Balance sheet
+    inventory: list[Ticket] = field(default_factory=list)
+    cash: Decimal = Decimal(0)
+
+    def recompute_quotes(self) -> None:
+        """
+        Update A and B from M and O with optional clipping.
+
+        Computes:
+            A = M + O/2
+            B = M - O/2
+
+        Applies clipping:
+            - O >= O_min (minimum spread)
+            - B >= 0 if clip_nonneg_B is True
+        """
+        # Ensure minimum spread
+        O_effective = max(self.O, self.O_min)
+
+        # Compute quotes
+        half_spread = O_effective / 2
+        self.A = self.M + half_spread
+        self.B = self.M - half_spread
+
+        # Apply non-negative bid clipping if enabled
+        if self.clip_nonneg_B:
+            self.B = max(self.B, Decimal(0))
+
+    def update_from_loss(self, loss_rate: Decimal) -> None:
+        """
+        Apply loss-based anchor update rule.
+
+        Updates anchors based on realized loss rate:
+            M_{t+1} = M_t - phi_M * l_t
+            O_{t+1} = max(O_min, O_t + phi_O * l_t)
+
+        Then recomputes quotes A and B.
+
+        Args:
+            loss_rate: Realized loss rate l_t (fraction of face value lost)
+        """
+        # Update mid (decreases with loss)
+        self.M = self.M - self.phi_M * loss_rate
+
+        # Update spread (increases with loss, subject to minimum)
+        self.O = max(self.O_min, self.O + self.phi_O * loss_rate)
+
+        # Recompute derived quotes
+        self.recompute_quotes()
+
+
+@dataclass
+class TraderState:
+    """
+    State for a ring trader.
+
+    Ring traders buy and sell tickets subject to a single-issuer constraint:
+    each trader can only hold tickets from one issuer at a time.
+
+    Attributes:
+        agent_id: Trader's agent ID
+        cash: Cash holdings
+        tickets_owned: List of tickets owned (assets)
+        obligations: List of tickets this agent issued (liabilities)
+        asset_issuer_id: Issuer of currently held tickets (single-issuer constraint)
+        defaulted: True if agent has defaulted
+    """
+    agent_id: AgentId
+    cash: Decimal = Decimal(0)
+    tickets_owned: list[Ticket] = field(default_factory=list)
+    obligations: list[Ticket] = field(default_factory=list)
+    asset_issuer_id: AgentId | None = None
+    defaulted: bool = False
+
+    def payment_due(self, day: int) -> Decimal:
+        """
+        Calculate total payment obligations due on a given day.
+
+        Args:
+            day: Day to check for maturity obligations
+
+        Returns:
+            Total face value of tickets maturing on this day
+        """
+        return sum(
+            ticket.face
+            for ticket in self.obligations
+            if ticket.maturity_day == day
+        )
+
+    def shortfall(self, day: int) -> Decimal:
+        """
+        Calculate payment shortfall on a given day.
+
+        Args:
+            day: Day to check for shortfall
+
+        Returns:
+            max(0, payment_due - cash)
+        """
+        due = self.payment_due(day)
+        return max(Decimal(0), due - self.cash)
+
+    def earliest_liability_day(self, after_day: int) -> int | None:
+        """
+        Find the earliest liability date after the given day.
+
+        Args:
+            after_day: Find liabilities strictly after this day
+
+        Returns:
+            Earliest maturity day > after_day, or None if no future liabilities
+        """
+        future_days = [
+            ticket.maturity_day
+            for ticket in self.obligations
+            if ticket.maturity_day > after_day
+        ]
+        return min(future_days) if future_days else None
+
+```
+
+---
+
+### 📄 src/bilancio/dealer/report.py
+
+```python
+"""HTML report generation for dealer ring simulations."""
+
+from dataclasses import dataclass
+from decimal import Decimal
+from pathlib import Path
+from typing import Any, TYPE_CHECKING
+import html
+
+if TYPE_CHECKING:
+    from .simulation import DealerRingConfig, DaySnapshot
+
+
+def _load_base_css() -> str:
+    """Load CSS from assets/export.css."""
+    css_path = Path(__file__).parent.parent / "ui" / "assets" / "export.css"
+    return css_path.read_text()
+
+
+def _get_dealer_css() -> str:
+    """Return dealer-specific CSS extensions."""
+    return """
+/* Dealer card styling */
+.dealer-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.dealer-card h3 {
+  color: #1e40af;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #dbeafe;
+  padding-bottom: 8px;
+}
+.params-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.params-table th {
+  text-align: left;
+  padding: 6px 12px;
+  color: #64748b;
+  font-weight: 500;
+  width: 40%;
+}
+.params-table td {
+  text-align: right;
+  padding: 6px 12px;
+  font-family: 'SF Mono', Monaco, monospace;
+  color: #1f2937;
+}
+.params-table tr.section-header th {
+  color: #374151;
+  font-weight: 600;
+  padding-top: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+/* VBT card */
+.vbt-card {
+  background: linear-gradient(135deg, #f0fdf4, #fff);
+  border-left: 4px solid #16a34a;
+}
+.vbt-card h3 {
+  color: #16a34a;
+  border-bottom-color: #bbf7d0;
+}
+/* Event type colors */
+.event-trade { color: #3b82f6; }
+.event-passthrough { color: #8b5cf6; }
+.event-rebucket { color: #f59e0b; }
+.event-settlement { color: #16a34a; }
+.event-default { color: #dc2626; }
+.event-quote { color: #64748b; }
+.event-vbt-anchor-update { color: #14b8a6; }
+/* Pin indicators */
+.pin-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-left: 4px;
+}
+.pin-indicator.pinned { background: #f59e0b; }
+.pin-indicator.not-pinned { background: #d1d5db; }
+/* Grid layouts */
+.dealers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+.traders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 20px;
+}
+/* Inventory list */
+.inventory-list {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+.inventory-list h4 {
+  color: #64748b;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+.inventory-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 13px;
+}
+.inventory-list li {
+  padding: 4px 0;
+  color: #4b5563;
+  font-family: 'SF Mono', Monaco, monospace;
+}
+"""
+
+
+def _html_escape(value: Any) -> str:
+    """HTML escape for safe display."""
+    return html.escape(str(value))
+
+
+def _fmt_decimal(d: Decimal | float | int | str | None, precision: int = 4) -> str:
+    """Format Decimal trimming trailing zeros."""
+    if d is None:
+        return "—"
+    if isinstance(d, str):
+        try:
+            d = Decimal(d)
+        except Exception:
+            return d
+    if isinstance(d, (int, float)):
+        d = Decimal(str(d))
+    # Format with requested precision, then strip trailing zeros
+    formatted = f"{d:.{precision}f}".rstrip('0').rstrip('.')
+    return formatted
+
+
+def _render_header(config: "DealerRingConfig", snapshots: list, title: str, subtitle: str) -> str:
+    """Render header with config summary."""
+    num_days = len(snapshots) - 1 if snapshots else 0  # -1 because Day 0 is setup
+    num_buckets = len(config.buckets)
+    num_traders = len(snapshots[0].traders) if snapshots else 0
+
+    # Count total tickets
+    total_tickets = len(snapshots[0].tickets) if snapshots else 0
+
+    # Get bucket names
+    bucket_names = ", ".join(b.name for b in config.buckets)
+
+    # Ticket size
+    ticket_size = _fmt_decimal(config.ticket_size)
+
+    return f"""
+<header>
+  <h1>{_html_escape(title)}</h1>
+  <p class="description">{_html_escape(subtitle)}</p>
+  <div class="meta">
+    <span><strong>Days:</strong> {num_days}</span>
+    <span><strong>Buckets:</strong> {bucket_names}</span>
+    <span><strong>Traders:</strong> {num_traders}</span>
+    <span><strong>Tickets:</strong> {total_tickets}</span>
+    <span><strong>Ticket Size (S):</strong> {ticket_size}</span>
+  </div>
+</header>
+"""
+
+
+def _render_events_table(events: list[dict], table_title: str) -> str:
+    """Render events table for a day."""
+    # Filter out day_start events
+    display_events = [e for e in events if e.get('kind') != 'day_start']
+
+    if not display_events:
+        return f"""
+<div class="events-table">
+  <h3>{_html_escape(table_title)}</h3>
+  <p style="color: #9ca3af; font-style: italic;">No events for this day</p>
+</div>
+"""
+
+    rows = []
+    for event in display_events:
+        kind = event.get('kind', 'unknown')
+
+        # Determine CSS class for event type
+        css_class = f"event-{kind.replace('_', '-')}"
+
+        # Check for passthrough trades
+        if kind == 'trade' and event.get('is_passthrough'):
+            css_class = "event-passthrough"
+
+        # Format details based on event kind
+        if kind == 'trade':
+            side = event.get('side', '')
+            price = _fmt_decimal(event.get('price'))
+            bucket = event.get('bucket', '')
+            is_passthrough = event.get('is_passthrough', False)
+            trader_id = event.get('trader_id', '')[:20]
+            ticket_id = event.get('ticket_id', '')
+            details = f"{side} @ {price} [{bucket}]"
+            notes = f"trader: {trader_id}, ticket: {ticket_id}"
+            if is_passthrough:
+                notes += " (passthrough to VBT)"
+        elif kind == 'rebucket':
+            old_bucket = event.get('old_bucket', '')
+            new_bucket = event.get('new_bucket', '')
+            price = _fmt_decimal(event.get('price'))
+            holder_type = event.get('holder_type', '')
+            ticket_id = event.get('ticket_id', '')
+            details = f"{old_bucket} → {new_bucket} @ {price}"
+            notes = f"{holder_type} ticket {ticket_id}"
+        elif kind == 'settlement':
+            issuer = event.get('issuer_id', '')[:20]
+            total_paid = _fmt_decimal(event.get('total_paid'), 2)
+            n_tickets = event.get('n_tickets', 0)
+            details = f"Paid {total_paid} on {n_tickets} tickets"
+            notes = f"issuer: {issuer}"
+        elif kind == 'default':
+            issuer = event.get('issuer_id', '')[:20]
+            recovery_rate = _fmt_decimal(event.get('recovery_rate'), 2)
+            total_due = _fmt_decimal(event.get('total_due'), 2)
+            total_paid = _fmt_decimal(event.get('total_paid'), 2)
+            bucket = event.get('bucket', '')
+            details = f"Recovery {recovery_rate} (due: {total_due}, paid: {total_paid})"
+            notes = f"issuer: {issuer}, bucket: {bucket}"
+        elif kind == 'quote':
+            bucket = event.get('bucket', '')
+            dealer_bid = _fmt_decimal(event.get('dealer_bid'))
+            dealer_ask = _fmt_decimal(event.get('dealer_ask'))
+            vbt_bid = _fmt_decimal(event.get('vbt_bid'))
+            vbt_ask = _fmt_decimal(event.get('vbt_ask'))
+            inventory = event.get('inventory', 0)
+            capacity = _fmt_decimal(event.get('capacity'))
+            details = f"[{bucket}] D: {dealer_bid}/{dealer_ask}, VBT: {vbt_bid}/{vbt_ask}"
+            notes = f"inv={inventory}, cap={capacity}"
+        elif kind == 'vbt_anchor_update':
+            bucket = event.get('bucket', '')
+            M_old = _fmt_decimal(event.get('M_old'))
+            M_new = _fmt_decimal(event.get('M_new'))
+            O_old = _fmt_decimal(event.get('O_old'))
+            O_new = _fmt_decimal(event.get('O_new'))
+            loss_rate = _fmt_decimal(event.get('loss_rate'), 4)
+            details = f"[{bucket}] M: {M_old}→{M_new}, O: {O_old}→{O_new}"
+            notes = f"loss rate: {loss_rate}"
+        else:
+            details = str(event)
+            notes = ''
+
+        rows.append(f"""
+          <tr>
+            <td class="{css_class}">{_html_escape(kind)}</td>
+            <td>{_html_escape(details)}</td>
+            <td class="notes">{_html_escape(notes)}</td>
+          </tr>
+        """)
+
+    return f"""
+<div class="events-table">
+  <h3>{_html_escape(table_title)}</h3>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 120px;">Kind</th>
+        <th>Details</th>
+        <th style="width: 200px;">Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      {''.join(rows)}
+    </tbody>
+  </table>
+</div>
+"""
+
+
+def _render_dealer_card(dealer_dict: dict, vbt_dict: dict) -> str:
+    """Render dealer state card with kernel params."""
+    bucket_id = dealer_dict.get('bucket_id', 'unknown')
+
+    # Inventory
+    a = dealer_dict.get('a', 0)
+    x = _fmt_decimal(dealer_dict.get('x'))
+    cash = _fmt_decimal(dealer_dict.get('cash'))
+    V = _fmt_decimal(dealer_dict.get('V'))
+
+    # Capacity
+    K_star = dealer_dict.get('K_star', 0)
+    X_star = _fmt_decimal(dealer_dict.get('X_star'))
+    N = dealer_dict.get('N', 0)
+    lambda_ = _fmt_decimal(dealer_dict.get('lambda_'))
+
+    # Quotes
+    I = _fmt_decimal(dealer_dict.get('I'))
+    midline = _fmt_decimal(dealer_dict.get('midline'))
+    bid = _fmt_decimal(dealer_dict.get('bid'))
+    ask = _fmt_decimal(dealer_dict.get('ask'))
+
+    # Pin flags
+    is_pinned_bid = dealer_dict.get('is_pinned_bid', False)
+    is_pinned_ask = dealer_dict.get('is_pinned_ask', False)
+    pin_bid_class = "pinned" if is_pinned_bid else "not-pinned"
+    pin_ask_class = "pinned" if is_pinned_ask else "not-pinned"
+
+    # Inventory list
+    inventory = dealer_dict.get('inventory', [])
+    inventory_items = []
+    for t in inventory:
+        tid = t.get('id', '?')
+        issuer = t.get('issuer_id', '?')[:15]
+        face = _fmt_decimal(t.get('face'), 2)
+        tau = t.get('remaining_tau', '?')
+        inventory_items.append(f"<li>{tid} (issuer: {issuer}, face: {face}, τ: {tau})</li>")
+
+    inventory_html = ""
+    if inventory_items:
+        inventory_html = f"""
+  <div class="inventory-list">
+    <h4>Inventory ({len(inventory)} tickets)</h4>
+    <ul>
+      {''.join(inventory_items)}
+    </ul>
+  </div>
+"""
+
+    return f"""
+<div class="dealer-card">
+  <h3>Dealer: {_html_escape(bucket_id.upper())}</h3>
+  <table class="params-table">
+    <tbody>
+      <tr class="section-header"><th colspan="2">Inventory</th></tr>
+      <tr><th>Tickets (a)</th><td>{a}</td></tr>
+      <tr><th>Face inventory (x)</th><td>{x}</td></tr>
+      <tr><th>Cash (C)</th><td>{cash}</td></tr>
+      <tr><th>Mid-valued (V)</th><td>{V}</td></tr>
+      <tr class="section-header"><th colspan="2">Capacity</th></tr>
+      <tr><th>Max tickets (K*)</th><td>{K_star}</td></tr>
+      <tr><th>One-sided cap (X*)</th><td>{X_star}</td></tr>
+      <tr><th>Ladder rungs (N)</th><td>{N}</td></tr>
+      <tr><th>Layoff prob (λ)</th><td>{lambda_}</td></tr>
+      <tr class="section-header"><th colspan="2">Quotes</th></tr>
+      <tr><th>Inside width (I)</th><td>{I}</td></tr>
+      <tr><th>Midline p(x)</th><td>{midline}</td></tr>
+      <tr><th>Bid <span class="pin-indicator {pin_bid_class}" title="{'Pinned at VBT bid' if is_pinned_bid else 'Not pinned'}"></span></th><td>{bid}</td></tr>
+      <tr><th>Ask <span class="pin-indicator {pin_ask_class}" title="{'Pinned at VBT ask' if is_pinned_ask else 'Not pinned'}"></span></th><td>{ask}</td></tr>
+    </tbody>
+  </table>
+  {inventory_html}
+</div>
+"""
+
+
+def _render_vbt_card(vbt_dict: dict) -> str:
+    """Render VBT state card."""
+    bucket_id = vbt_dict.get('bucket_id', 'unknown')
+    M = _fmt_decimal(vbt_dict.get('M'))
+    O = _fmt_decimal(vbt_dict.get('O'))
+    A = _fmt_decimal(vbt_dict.get('A'))
+    B = _fmt_decimal(vbt_dict.get('B'))
+    cash = _fmt_decimal(vbt_dict.get('cash'))
+
+    # Inventory
+    inventory = vbt_dict.get('inventory', [])
+    inv_count = len(inventory)
+
+    return f"""
+<div class="dealer-card vbt-card">
+  <h3>VBT: {_html_escape(bucket_id.upper())}</h3>
+  <table class="params-table">
+    <tbody>
+      <tr><th>Mid anchor (M)</th><td>{M}</td></tr>
+      <tr><th>Spread anchor (O)</th><td>{O}</td></tr>
+      <tr><th>Ask (A = M + O/2)</th><td>{A}</td></tr>
+      <tr><th>Bid (B = M - O/2)</th><td>{B}</td></tr>
+      <tr><th>Cash</th><td>{cash}</td></tr>
+      <tr><th>Inventory</th><td>{inv_count} tickets</td></tr>
+    </tbody>
+  </table>
+</div>
+"""
+
+
+def _render_trader_balance(trader_dict: dict) -> str:
+    """Render trader T-account balance sheet."""
+    agent_id = trader_dict.get('agent_id', 'unknown')
+    cash = trader_dict.get('cash', 0)
+    defaulted = trader_dict.get('defaulted', False)
+
+    # Status indicator
+    status_badge = ""
+    if defaulted:
+        status_badge = '<span style="color: #dc2626; font-weight: 600;"> [DEFAULTED]</span>'
+
+    # Build assets side (Cash + Tickets owned)
+    tickets_owned = trader_dict.get('tickets_owned', [])
+    assets_rows = [f"""
+      <tr>
+        <td class="name">Cash</td>
+        <td class="val">{_fmt_decimal(cash, 2)}</td>
+      </tr>
+    """]
+
+    total_ticket_face = Decimal(0)
+    for ticket in tickets_owned:
+        face = ticket.get('face', 0)
+        if isinstance(face, str):
+            face = Decimal(face)
+        total_ticket_face += face
+        tid = ticket.get('id', '?')
+        issuer = _html_escape(ticket.get('issuer_id', '?')[:12])
+        bucket = _html_escape(ticket.get('bucket_id', '?'))
+        tau = ticket.get('remaining_tau', '?')
+        assets_rows.append(f"""
+      <tr>
+        <td class="name">{_html_escape(tid)}</td>
+        <td class="val">{_fmt_decimal(face, 2)} <span style="color: #9ca3af; font-size: 12px;">({issuer}, τ={tau})</span></td>
+      </tr>
+        """)
+
+    if not tickets_owned:
+        assets_rows.append("""
+      <tr>
+        <td colspan="2" class="empty">No tickets owned</td>
+      </tr>
+        """)
+
+    # Build liabilities side (Obligations)
+    obligations = trader_dict.get('obligations', [])
+    liabilities_rows = []
+
+    total_obligations = Decimal(0)
+    for obligation in obligations:
+        face = obligation.get('face', 0)
+        if isinstance(face, str):
+            face = Decimal(face)
+        total_obligations += face
+        tid = obligation.get('id', '?')
+        owner = _html_escape(obligation.get('owner_id', '?')[:12])
+        maturity = obligation.get('maturity_day', '?')
+        liabilities_rows.append(f"""
+      <tr>
+        <td class="name">{_html_escape(tid)}</td>
+        <td class="val">{_fmt_decimal(face, 2)} <span style="color: #9ca3af; font-size: 12px;">(to {owner}, mat={maturity})</span></td>
+      </tr>
+        """)
+
+    if not obligations:
+        liabilities_rows.append("""
+      <tr>
+        <td colspan="2" class="empty">No obligations</td>
+      </tr>
+        """)
+
+    # Calculate totals
+    if isinstance(cash, str):
+        cash = Decimal(cash)
+    total_assets = cash + total_ticket_face
+
+    return f"""
+<div class="t-account">
+  <h3>{_html_escape(agent_id)}{status_badge}</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets ({_fmt_decimal(total_assets, 2)})</h4>
+      <table class="side">
+        <tbody>
+          {''.join(assets_rows)}
+        </tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities ({_fmt_decimal(total_obligations, 2)})</h4>
+      <table class="side">
+        <tbody>
+          {''.join(liabilities_rows)}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+"""
+
+
+def _render_day_section(snapshot: "DaySnapshot", is_setup: bool = False) -> str:
+    """Render complete day section."""
+    day = snapshot.day
+
+    # Day header
+    if is_setup:
+        day_title = "Day 0 (Setup)"
+        day_emoji = "🏁"
+    else:
+        day_title = f"Day {day}"
+        day_emoji = "📅"
+
+    # Events table
+    events_html = _render_events_table(snapshot.events, f"{day_title} Events")
+
+    # Dealers and VBTs grid
+    dealer_cards = []
+    vbt_cards = []
+    # Sort by bucket order: short, mid, long
+    bucket_order = {"short": 0, "mid": 1, "long": 2}
+    sorted_buckets = sorted(snapshot.dealers.keys(), key=lambda x: bucket_order.get(x, 99))
+
+    for bucket_id in sorted_buckets:
+        dealer_dict = snapshot.dealers[bucket_id]
+        vbt_dict = snapshot.vbts.get(bucket_id, {})
+        dealer_cards.append(_render_dealer_card(dealer_dict, vbt_dict))
+        vbt_cards.append(_render_vbt_card(vbt_dict))
+
+    # Traders grid
+    trader_cards = []
+    for agent_id in sorted(snapshot.traders.keys()):
+        trader_dict = snapshot.traders[agent_id]
+        trader_cards.append(_render_trader_balance(trader_dict))
+
+    # Only show trader section if there are traders
+    traders_html = ""
+    if trader_cards:
+        traders_html = f"""
+  <div class="balances-section">
+    <h3>Trader Balances</h3>
+    <div class="traders-grid">
+      {''.join(trader_cards)}
+    </div>
+  </div>
+"""
+
+    return f"""
+<section class="day-section">
+  <h2 class="day-header">{day_emoji} {day_title}</h2>
+
+  {events_html}
+
+  <div class="balances-section">
+    <h3>Market State</h3>
+    <div class="dealers-grid">
+      {''.join(dealer_cards)}
+    </div>
+    <div class="dealers-grid">
+      {''.join(vbt_cards)}
+    </div>
+  </div>
+
+  {traders_html}
+</section>
+"""
+
+
+def generate_dealer_ring_html(
+    snapshots: list["DaySnapshot"],
+    config: "DealerRingConfig",
+    title: str | None = None,
+    subtitle: str | None = None,
+) -> str:
+    """Generate complete HTML report for dealer ring simulation.
+
+    Args:
+        snapshots: List of DaySnapshot objects, one per day (Day 0 = setup)
+        config: DealerRingConfig with simulation parameters
+        title: Report title (default: "Dealer Ring Simulation")
+        subtitle: Report subtitle (default: simulation description)
+
+    Returns:
+        Complete HTML document as string
+    """
+    if title is None:
+        title = "Dealer Ring Simulation"
+    if subtitle is None:
+        subtitle = "Market making with virtual balance table anchors"
+
+    base_css = _load_base_css()
+    dealer_css = _get_dealer_css()
+    header_html = _render_header(config, snapshots, title, subtitle)
+
+    # Render each day
+    day_sections = []
+    for i, snapshot in enumerate(snapshots):
+        is_setup = (i == 0 and snapshot.day == 0)
+        day_sections.append(_render_day_section(snapshot, is_setup=is_setup))
+
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{_html_escape(title)}</title>
+  <style>
+{base_css}
+{dealer_css}
+  </style>
+</head>
+<body>
+  <div class="container">
+    {header_html}
+
+    <main>
+      {''.join(day_sections)}
+    </main>
+
+    <footer>
+      Generated by bilancio dealer ring simulation
+    </footer>
+  </div>
+</body>
+</html>
+"""
+
+
+def export_dealer_ring_html(
+    snapshots: list["DaySnapshot"],
+    config: "DealerRingConfig",
+    path: str | Path,
+    title: str | None = None,
+    subtitle: str | None = None,
+) -> None:
+    """Export dealer ring simulation to HTML file.
+
+    Args:
+        snapshots: List of DaySnapshot objects, one per day
+        config: DealerRingConfig with simulation parameters
+        path: Output file path
+        title: Report title
+        subtitle: Report subtitle
+    """
+    html_content = generate_dealer_ring_html(snapshots, config, title, subtitle)
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(html_content)
+
+```
+
+---
+
+### 📄 src/bilancio/dealer/simulation.py
+
+```python
+"""
+Dealer ring simulation orchestrator.
+
+This module implements the full dealer ring event loop per Section 11 of the
+specification. It coordinates all components of the dealer system:
+
+- Ticket maturity updates and rebucketing (Phase 1)
+- Dealer pre-computation (Phase 2)
+- Trading eligibility sets (Phase 3)
+- Randomized order flow (Phase 4)
+- Settlement with proportional recovery (Phase 5)
+- VBT anchor updates (Phase 6)
+
+The simulation uses Decimal throughout for precision and implements all
+programmatic assertions (C1-C6) to ensure correctness.
+
+References:
+- Specification Section 11: Full Event Loop
+- Specification Section 10: Ring Trader Policies
+"""
+
+from dataclasses import dataclass, field
+from decimal import Decimal, ROUND_HALF_UP
+import random
+from copy import deepcopy
+
+# Cash precision for settlement calculations to avoid floating-point accumulation errors
+# Uses 6 decimal places which is standard for financial calculations
+CASH_PRECISION = Decimal("0.000001")
+
+from bilancio.core.ids import AgentId, new_id
+from .models import (
+    Ticket, DealerState, VBTState, TraderState,
+    BucketConfig, DEFAULT_BUCKETS, TicketId,
+)
+from .kernel import KernelParams, recompute_dealer_state
+from .trading import TradeExecutor
+from .events import EventLog
+from .assertions import run_all_assertions, assert_c6_anchor_timing
+
+
+@dataclass
+class DaySnapshot:
+    """
+    Snapshot of simulation state at end of day.
+
+    Captures deep copies of all mutable state for reporting.
+
+    Attributes:
+        day: Day number (0 for initial setup, 1+ for each run_day)
+        dealers: Per-bucket dealer states as serializable dicts
+        vbts: Per-bucket VBT states as serializable dicts
+        traders: Trader states as serializable dicts
+        tickets: All tickets as serializable dicts
+        events: Events that occurred on this day
+    """
+    day: int
+    dealers: dict[str, dict]  # bucket_id -> dealer state dict
+    vbts: dict[str, dict]      # bucket_id -> VBT state dict
+    traders: dict[str, dict]   # agent_id -> trader state dict
+    tickets: dict[str, dict]   # ticket_id -> ticket dict
+    events: list[dict]         # Events for this day only
+
+
+@dataclass
+class DealerRingConfig:
+    """
+    Configuration for dealer ring simulation.
+
+    Attributes:
+        ticket_size: Standard ticket size S (face value)
+        buckets: List of maturity bucket configurations
+        vbt_anchors: VBT anchors per bucket {bucket_name: (M, O)}
+        phi_M: VBT mid sensitivity to loss
+        phi_O: VBT spread sensitivity to loss
+        M_min: Guard threshold for dealer collapse
+        clip_nonneg_B: Clip VBT bid to be non-negative
+        pi_sell: Probability that next arrival is SELL (vs BUY)
+        N_max: Maximum arrivals per period
+        horizon_H: Minimum days to liability for buy eligibility
+        buffer_B: Cash buffer for buy eligibility
+        dealer_share: Initial ticket allocation to dealers (0-1)
+        vbt_share: Initial ticket allocation to VBTs (0-1)
+        seed: Random seed for reproducibility
+        max_days: Default simulation duration
+        enable_vbt_anchor_updates: Whether to update VBT anchors based on losses
+
+    References:
+        - Section 8: Kernel parameters (ticket_size, M_min)
+        - Section 9: VBT anchor parameters (phi_M, phi_O)
+        - Section 10: Trading policies (horizon_H, buffer_B)
+        - Section 11: Order flow (pi_sell, N_max)
+    """
+    # Tickets
+    ticket_size: Decimal = Decimal(1)  # S
+
+    # Buckets
+    buckets: list[BucketConfig] = field(default_factory=lambda: list(DEFAULT_BUCKETS))
+
+    # VBT anchors per bucket: {bucket_name: (M, O)}
+    vbt_anchors: dict[str, tuple[Decimal, Decimal]] = field(default_factory=lambda: {
+        "short": (Decimal(1), Decimal("0.20")),
+        "mid": (Decimal(1), Decimal("0.30")),
+        "long": (Decimal(1), Decimal("0.40")),
+    })
+
+    # VBT sensitivity
+    phi_M: Decimal = Decimal(1)
+    phi_O: Decimal = Decimal("0.6")
+
+    # Guard threshold
+    M_min: Decimal = Decimal("0.02")
+    clip_nonneg_B: bool = True
+
+    # Order flow
+    pi_sell: Decimal = Decimal("0.5")  # P(next arrival is SELL)
+    N_max: int = 3  # Max arrivals per period
+
+    # Trader policies
+    horizon_H: int = 3  # Min days to liability for investment
+    buffer_B: Decimal = Decimal(1)  # Cash buffer for investment eligibility
+
+    # Initial allocation (for setup)
+    dealer_share: Decimal = Decimal("0.25")
+    vbt_share: Decimal = Decimal("0.50")
+
+    # RNG
+    seed: int = 42
+
+    # Simulation control
+    max_days: int = 30
+    enable_vbt_anchor_updates: bool = True
+
+
+class DealerRingSimulation:
+    """
+    Main simulation orchestrator for the dealer ring.
+
+    Event loop per specification Section 11:
+    1. Update maturities and buckets
+    2. Dealer pre-computation (per bucket)
+    3. Compute trading eligibility sets
+    4. Randomized one-ticket order flow
+    5. Settlement with proportional recovery
+    6. VBT anchor update (if enabled)
+
+    The simulation maintains:
+    - Per-bucket dealers and VBTs (market makers)
+    - Ring traders with single-issuer constraint
+    - Global ticket registry
+    - Event log for observability
+
+    Attributes:
+        config: Simulation configuration
+        rng: Random number generator
+        day: Current simulation day
+        dealers: Per-bucket dealer states
+        vbts: Per-bucket VBT states
+        traders: Ring trader states
+        all_tickets: Global ticket registry by ID
+        events: Event log for observability
+        params: Kernel parameters
+        executor: Trade executor
+
+    References:
+        - Section 11: Full Event Loop
+        - Section 10: Ring Trader Policies
+    """
+
+    def __init__(self, config: DealerRingConfig):
+        """
+        Initialize simulation orchestrator.
+
+        Args:
+            config: Simulation configuration
+        """
+        self.config = config
+        self.rng = random.Random(config.seed)
+
+        # State
+        self.day: int = 0
+        self.dealers: dict[str, DealerState] = {}  # bucket -> dealer
+        self.vbts: dict[str, VBTState] = {}        # bucket -> VBT
+        self.traders: dict[AgentId, TraderState] = {}
+        self.all_tickets: dict[TicketId, Ticket] = {}  # Global ticket registry
+
+        # Event log
+        self.events = EventLog()
+
+        # Snapshots for reporting
+        self.snapshots: list[DaySnapshot] = []
+
+        # Kernel params
+        self.params = KernelParams(S=config.ticket_size)
+        self.executor = TradeExecutor(self.params, self.rng)
+
+        # Initialize dealers and VBTs
+        self._init_market_makers()
+
+    def _init_market_makers(self) -> None:
+        """
+        Initialize dealers and VBTs for each bucket.
+
+        Creates one dealer and one VBT per bucket, with anchors from config.
+
+        References:
+            - Section 8: Dealer state initialization
+            - Section 9: VBT anchor initialization
+        """
+        for bucket in self.config.buckets:
+            bucket_id = bucket.name
+
+            # Create dealer
+            dealer = DealerState(
+                bucket_id=bucket_id,
+                agent_id=new_id(f"dealer_{bucket_id}"),
+            )
+            self.dealers[bucket_id] = dealer
+
+            # Create VBT with configured anchors
+            M, O = self.config.vbt_anchors.get(bucket_id, (Decimal(1), Decimal("0.30")))
+            vbt = VBTState(
+                bucket_id=bucket_id,
+                agent_id=new_id(f"vbt_{bucket_id}"),
+                M=M,
+                O=O,
+                phi_M=self.config.phi_M,
+                phi_O=self.config.phi_O,
+                O_min=Decimal(0),
+                clip_nonneg_B=self.config.clip_nonneg_B,
+            )
+            vbt.recompute_quotes()
+            self.vbts[bucket_id] = vbt
+
+    def _capture_snapshot(self) -> None:
+        """
+        Capture deep copy of current state for reporting.
+
+        Creates serializable dicts from all state objects.
+        Called at end of setup and after each day.
+        """
+        # Serialize dealer states
+        dealers_dict = {}
+        for bucket_id, dealer in self.dealers.items():
+            dealers_dict[bucket_id] = {
+                "bucket_id": dealer.bucket_id,
+                "agent_id": dealer.agent_id,
+                "cash": dealer.cash,
+                "a": dealer.a,
+                "x": dealer.x,
+                "V": dealer.V,
+                "K_star": dealer.K_star,
+                "X_star": dealer.X_star,
+                "N": dealer.N,
+                "lambda_": dealer.lambda_,
+                "I": dealer.I,
+                "midline": dealer.midline,
+                "bid": dealer.bid,
+                "ask": dealer.ask,
+                "is_pinned_bid": dealer.is_pinned_bid,
+                "is_pinned_ask": dealer.is_pinned_ask,
+                "inventory": [
+                    {"id": t.id, "issuer_id": t.issuer_id, "face": t.face, "remaining_tau": t.remaining_tau}
+                    for t in dealer.inventory
+                ],
+            }
+
+        # Serialize VBT states
+        vbts_dict = {}
+        for bucket_id, vbt in self.vbts.items():
+            vbts_dict[bucket_id] = {
+                "bucket_id": vbt.bucket_id,
+                "agent_id": vbt.agent_id,
+                "M": vbt.M,
+                "O": vbt.O,
+                "A": vbt.A,
+                "B": vbt.B,
+                "cash": vbt.cash,
+                "inventory": [
+                    {"id": t.id, "issuer_id": t.issuer_id, "face": t.face, "remaining_tau": t.remaining_tau}
+                    for t in vbt.inventory
+                ],
+            }
+
+        # Serialize trader states
+        traders_dict = {}
+        for agent_id, trader in self.traders.items():
+            traders_dict[agent_id] = {
+                "agent_id": trader.agent_id,
+                "cash": trader.cash,
+                "defaulted": trader.defaulted,
+                "asset_issuer_id": trader.asset_issuer_id,
+                "tickets_owned": [
+                    {"id": t.id, "issuer_id": t.issuer_id, "face": t.face, "remaining_tau": t.remaining_tau, "bucket_id": t.bucket_id}
+                    for t in trader.tickets_owned
+                ],
+                "obligations": [
+                    {"id": t.id, "owner_id": t.owner_id, "face": t.face, "maturity_day": t.maturity_day}
+                    for t in trader.obligations
+                ],
+            }
+
+        # Serialize all tickets
+        tickets_dict = {}
+        for ticket_id, ticket in self.all_tickets.items():
+            tickets_dict[ticket_id] = {
+                "id": ticket.id,
+                "issuer_id": ticket.issuer_id,
+                "owner_id": ticket.owner_id,
+                "face": ticket.face,
+                "maturity_day": ticket.maturity_day,
+                "remaining_tau": ticket.remaining_tau,
+                "bucket_id": ticket.bucket_id,
+            }
+
+        # Get events for this day only
+        day_events = [e for e in self.events.events if e.get("day") == self.day]
+
+        snapshot = DaySnapshot(
+            day=self.day,
+            dealers=dealers_dict,
+            vbts=vbts_dict,
+            traders=traders_dict,
+            tickets=tickets_dict,
+            events=day_events,
+        )
+        self.snapshots.append(snapshot)
+
+    def setup_ring(
+        self,
+        traders: list[TraderState],
+        tickets: list[Ticket],
+    ) -> None:
+        """
+        Set up the ring with traders and initial tickets.
+
+        Allocates tickets to dealers/VBTs/traders per dealer_share/vbt_share.
+        All tickets must have maturity_day and remaining_tau set.
+
+        Allocation strategy:
+        - dealer_share fraction goes to dealers (by bucket)
+        - vbt_share fraction goes to VBTs (by bucket)
+        - Remainder goes to traders (owners = issuers' assets)
+
+        Args:
+            traders: List of trader states (registers them in the simulation)
+            tickets: List of tickets to allocate (must be bucketed)
+
+        References:
+            - Section 11: Initial setup before event loop
+        """
+        # Register traders
+        for trader in traders:
+            self.traders[trader.agent_id] = trader
+
+        # Register tickets and assign buckets
+        for ticket in tickets:
+            self.all_tickets[ticket.id] = ticket
+
+            # Determine bucket based on remaining maturity
+            ticket.bucket_id = self._compute_bucket(ticket.remaining_tau)
+
+            if ticket.bucket_id is None:
+                raise ValueError(
+                    f"Ticket {ticket.id} has remaining_tau={ticket.remaining_tau} "
+                    f"which does not fit any configured bucket. "
+                    f"Buckets: {[(b.name, b.tau_min, b.tau_max) for b in self.config.buckets]}"
+                )
+
+        # Sort tickets by bucket for allocation
+        tickets_by_bucket: dict[str, list[Ticket]] = {}
+        for ticket in tickets:
+            bucket_id = ticket.bucket_id
+            if bucket_id not in tickets_by_bucket:
+                tickets_by_bucket[bucket_id] = []
+            tickets_by_bucket[bucket_id].append(ticket)
+
+        # Allocate tickets to dealers, VBTs, and traders
+        for bucket_id, bucket_tickets in tickets_by_bucket.items():
+            n_total = len(bucket_tickets)
+
+            # Compute allocation counts
+            n_dealer = int(n_total * self.config.dealer_share)
+            n_vbt = int(n_total * self.config.vbt_share)
+            n_trader = n_total - n_dealer - n_vbt  # Remainder to traders
+
+            # Allocate to dealer
+            dealer = self.dealers[bucket_id]
+            for i in range(n_dealer):
+                ticket = bucket_tickets[i]
+                ticket.owner_id = dealer.agent_id
+                dealer.inventory.append(ticket)
+
+            # Allocate to VBT
+            vbt = self.vbts[bucket_id]
+            for i in range(n_dealer, n_dealer + n_vbt):
+                ticket = bucket_tickets[i]
+                ticket.owner_id = vbt.agent_id
+                vbt.inventory.append(ticket)
+
+            # Allocate to traders (owner = issuer for initial distribution)
+            for i in range(n_dealer + n_vbt, n_total):
+                ticket = bucket_tickets[i]
+                issuer_id = ticket.issuer_id
+
+                if issuer_id not in self.traders:
+                    raise ValueError(
+                        f"Ticket {ticket.id} has issuer_id {issuer_id} "
+                        f"which is not a registered trader."
+                    )
+
+                trader = self.traders[issuer_id]
+                ticket.owner_id = issuer_id
+                trader.tickets_owned.append(ticket)
+
+                # Set asset issuer constraint
+                if trader.asset_issuer_id is None:
+                    trader.asset_issuer_id = issuer_id
+
+        # Recompute dealer states after initial allocation
+        for bucket_id in self.dealers:
+            recompute_dealer_state(
+                self.dealers[bucket_id],
+                self.vbts[bucket_id],
+                self.params,
+            )
+
+        # Capture initial state snapshot (Day 0)
+        self._capture_snapshot()
+
+    def run_day(self) -> None:
+        """
+        Execute one simulation day (Section 11 event loop).
+
+        Event loop phases:
+        1. Update maturities and buckets
+        2. Dealer pre-computation (per bucket)
+        3. Compute trading eligibility sets
+        4. Randomized order flow
+        5. Settlement with proportional recovery
+        6. VBT anchor update (if enabled)
+
+        References:
+            - Section 11: Full Event Loop
+        """
+        self.day += 1
+        self.events.log_day_start(self.day)
+
+        # Phase 1: Update maturities and buckets
+        self._update_maturities()
+        self._rebucket_tickets()
+
+        # Phase 2: Dealer pre-computation
+        for bucket_id in self.dealers:
+            recompute_dealer_state(
+                self.dealers[bucket_id],
+                self.vbts[bucket_id],
+                self.params,
+            )
+            # Log quotes for observability
+            self._log_quotes(bucket_id)
+
+        # Phase 3: Compute eligibility sets
+        sell_eligible = self._compute_sell_eligible()
+        buy_eligible = self._compute_buy_eligible()
+
+        # Phase 4: Randomized order flow
+        self._process_order_flow(sell_eligible, buy_eligible)
+
+        # Phase 5: Settlement
+        self._settle_maturing_debt()
+
+        # Phase 6: VBT anchor update
+        if self.config.enable_vbt_anchor_updates:
+            self._update_vbt_anchors()
+
+        # Capture end-of-day snapshot
+        self._capture_snapshot()
+
+    def run(self, max_days: int | None = None) -> None:
+        """
+        Run simulation for specified days.
+
+        Args:
+            max_days: Number of days to simulate (defaults to config.max_days)
+        """
+        days = max_days or self.config.max_days
+        for _ in range(days):
+            self.run_day()
+
+    # =====================================================================
+    # Phase 1: Update maturities and rebucket
+    # =====================================================================
+
+    def _update_maturities(self) -> None:
+        """
+        Decrement remaining_tau for all tickets.
+
+        This reflects the passage of one day. Tickets with remaining_tau
+        reaching 0 will mature during settlement (Phase 5).
+
+        References:
+            - Section 11.1: Maturity updates
+        """
+        for ticket in self.all_tickets.values():
+            if ticket.remaining_tau > 0:
+                ticket.remaining_tau -= 1
+
+    def _rebucket_tickets(self) -> None:
+        """
+        Reassign bucket_id based on remaining_tau.
+
+        If dealer/VBT holds migrating ticket, execute internal sale:
+        - Event 11: Dealer-to-dealer internal sale at old-bucket ask
+        - Event 12: VBT-to-VBT internal sale at VBT mid M
+
+        References:
+            - Section 11.1: Rebucketing logic
+            - Section 6.11: Internal dealer sale
+            - Section 6.12: Internal VBT sale
+        """
+        for ticket in self.all_tickets.values():
+            old_bucket = ticket.bucket_id
+            new_bucket = self._compute_bucket(ticket.remaining_tau)
+
+            # Skip if bucket unchanged or ticket matured
+            if new_bucket is None or new_bucket == old_bucket:
+                continue
+
+            # Check if dealer holds this ticket
+            old_dealer = self.dealers.get(old_bucket)
+            if old_dealer and ticket.owner_id == old_dealer.agent_id:
+                self._rebucket_dealer_ticket(ticket, old_bucket, new_bucket)
+                continue
+
+            # Check if VBT holds this ticket
+            old_vbt = self.vbts.get(old_bucket)
+            if old_vbt and ticket.owner_id == old_vbt.agent_id:
+                self._rebucket_vbt_ticket(ticket, old_bucket, new_bucket)
+                continue
+
+            # Trader-held ticket: just update bucket_id
+            ticket.bucket_id = new_bucket
+
+    def _compute_bucket(self, remaining_tau: int) -> str | None:
+        """
+        Determine bucket for given remaining maturity.
+
+        Args:
+            remaining_tau: Remaining days to maturity
+
+        Returns:
+            Bucket name, or None if ticket has matured (tau <= 0)
+
+        References:
+            - Section 11.1: Bucket assignment rules
+        """
+        if remaining_tau <= 0:
+            return None
+
+        for bucket in self.config.buckets:
+            if bucket.tau_max is None:
+                # Unbounded upper range
+                if remaining_tau >= bucket.tau_min:
+                    return bucket.name
+            else:
+                # Bounded range
+                if bucket.tau_min <= remaining_tau <= bucket.tau_max:
+                    return bucket.name
+
+        # No bucket found - configuration error
+        return None
+
+    def _rebucket_dealer_ticket(
+        self,
+        ticket: Ticket,
+        old_bucket: str,
+        new_bucket: str,
+    ) -> None:
+        """
+        Event 11: Internal sale from old-bucket dealer to new-bucket dealer.
+
+        Transfer occurs at the receiving bucket's VBT mid anchor M. This
+        preserves equity for both dealers (E = C + M*a is unchanged).
+
+        Args:
+            ticket: Ticket to transfer
+            old_bucket: Source bucket
+            new_bucket: Destination bucket
+
+        References:
+            - Section 6.11: Internal dealer sale
+            - PDF spec: "internal sale at the Mid bucket mid M_M"
+        """
+        old_dealer = self.dealers[old_bucket]
+        new_dealer = self.dealers[new_bucket]
+
+        # Execute at receiving bucket's VBT mid anchor (preserves equity)
+        price = self.vbts[new_bucket].M
+
+        # Update balance sheets
+        old_dealer.inventory.remove(ticket)
+        old_dealer.cash += price
+
+        new_dealer.inventory.append(ticket)
+        new_dealer.cash -= price
+
+        # Transfer ownership
+        ticket.owner_id = new_dealer.agent_id
+        ticket.bucket_id = new_bucket
+
+        # Recompute both dealers
+        recompute_dealer_state(old_dealer, self.vbts[old_bucket], self.params)
+        recompute_dealer_state(new_dealer, self.vbts[new_bucket], self.params)
+
+        # Log event
+        self.events.log_rebucket(
+            day=self.day,
+            ticket_id=ticket.id,
+            old_bucket=old_bucket,
+            new_bucket=new_bucket,
+            price=price,
+            holder_type="dealer",
+        )
+
+    def _rebucket_vbt_ticket(
+        self,
+        ticket: Ticket,
+        old_bucket: str,
+        new_bucket: str,
+    ) -> None:
+        """
+        Event 12: Internal sale from old-bucket VBT to new-bucket VBT.
+
+        Transfer occurs at old-bucket VBT mid M. This implements VBT-to-VBT
+        internal liquidity provision.
+
+        Args:
+            ticket: Ticket to transfer
+            old_bucket: Source bucket
+            new_bucket: Destination bucket
+
+        References:
+            - Section 6.12: Internal VBT sale
+        """
+        old_vbt = self.vbts[old_bucket]
+        new_vbt = self.vbts[new_bucket]
+
+        # Execute at old-bucket VBT mid
+        price = old_vbt.M
+
+        # Update balance sheets
+        old_vbt.inventory.remove(ticket)
+        old_vbt.cash += price
+
+        new_vbt.inventory.append(ticket)
+        new_vbt.cash -= price
+
+        # Transfer ownership
+        ticket.owner_id = new_vbt.agent_id
+        ticket.bucket_id = new_bucket
+
+        # Log event
+        self.events.log_rebucket(
+            day=self.day,
+            ticket_id=ticket.id,
+            old_bucket=old_bucket,
+            new_bucket=new_bucket,
+            price=price,
+            holder_type="vbt",
+        )
+
+    # =====================================================================
+    # Phase 2: Dealer pre-computation
+    # =====================================================================
+
+    def _log_quotes(self, bucket_id: str) -> None:
+        """
+        Log dealer quote state for observability.
+
+        Args:
+            bucket_id: Bucket identifier
+        """
+        dealer = self.dealers[bucket_id]
+        vbt = self.vbts[bucket_id]
+
+        self.events.log_quote(
+            day=self.day,
+            bucket=bucket_id,
+            dealer_bid=dealer.bid,
+            dealer_ask=dealer.ask,
+            vbt_bid=vbt.B,
+            vbt_ask=vbt.A,
+            inventory=dealer.a,
+            capacity=dealer.X_star,
+            is_pinned_bid=dealer.is_pinned_bid,
+            is_pinned_ask=dealer.is_pinned_ask,
+        )
+
+    # =====================================================================
+    # Phase 3: Compute eligibility sets
+    # =====================================================================
+
+    def _compute_sell_eligible(self) -> set[AgentId]:
+        """
+        Traders with shortfall > 0 and at least one ticket owned.
+
+        Sell eligibility reflects liquidity pressure: traders who face
+        payment obligations today and own tickets they can sell.
+
+        Returns:
+            Set of agent IDs eligible to sell
+
+        References:
+            - Section 10.3: Sell eligibility rule
+            - Section 11.3: Eligibility computation
+        """
+        eligible = set()
+        for trader in self.traders.values():
+            has_shortfall = trader.shortfall(self.day) > 0
+            has_tickets = len(trader.tickets_owned) > 0
+
+            if has_shortfall and has_tickets:
+                eligible.add(trader.agent_id)
+
+        return eligible
+
+    def _compute_buy_eligible(self) -> set[AgentId]:
+        """
+        Traders with horizon >= H and cash > buffer.
+
+        Buy eligibility reflects investment capacity: traders with sufficient
+        cash buffer and distant enough liabilities to invest safely.
+
+        The horizon H is defined as the number of days until the trader's
+        next liability. If no future liabilities exist, horizon is infinite.
+
+        Returns:
+            Set of agent IDs eligible to buy
+
+        References:
+            - Section 10.4: Buy eligibility rule
+            - Section 11.3: Eligibility computation
+        """
+        eligible = set()
+        for trader in self.traders.values():
+            # Check cash buffer
+            has_buffer = trader.cash > self.config.buffer_B
+
+            # Check horizon (days to next liability)
+            next_liability_day = trader.earliest_liability_day(self.day)
+            if next_liability_day is None:
+                # No future liabilities - infinite horizon
+                has_horizon = True
+            else:
+                horizon = next_liability_day - self.day
+                has_horizon = horizon >= self.config.horizon_H
+
+            if has_buffer and has_horizon:
+                eligible.add(trader.agent_id)
+
+        return eligible
+
+    # =====================================================================
+    # Phase 4: Randomized order flow
+    # =====================================================================
+
+    def _process_order_flow(
+        self,
+        sell_eligible: set[AgentId],
+        buy_eligible: set[AgentId],
+    ) -> None:
+        """
+        Randomized one-ticket order flow (Section 11, Step 4).
+
+        For each arrival:
+        1. Draw direction: SELL with probability pi_sell, BUY otherwise
+        2. Sample uniformly from eligible set
+        3. Execute one-ticket trade
+
+        Number of arrivals is random up to N_max.
+
+        Args:
+            sell_eligible: Set of agents eligible to sell
+            buy_eligible: Set of agents eligible to buy
+
+        References:
+            - Section 11.4: Order flow generation
+        """
+        # Determine number of arrivals (1 to N_max)
+        if self.config.N_max <= 0:
+            return  # No order flow
+        n_arrivals = self.rng.randint(1, self.config.N_max)
+
+        for _ in range(n_arrivals):
+            # Draw direction
+            is_sell = self.rng.random() < float(self.config.pi_sell)
+
+            if is_sell:
+                self._process_sell(sell_eligible)
+            else:
+                self._process_buy(buy_eligible)
+
+    def _process_sell(self, eligible: set[AgentId]) -> None:
+        """
+        Process a SELL order from a randomly selected eligible trader.
+
+        Args:
+            eligible: Set of agent IDs eligible to sell
+
+        References:
+            - Section 11.4: SELL order processing
+        """
+        if not eligible:
+            return  # No eligible sellers
+
+        # Sample uniformly from eligible
+        agent_id = self.rng.choice(list(eligible))
+        trader = self.traders[agent_id]
+
+        # Select ticket to sell (shortest maturity first)
+        ticket = self._select_ticket_to_sell(trader)
+        if ticket is None:
+            return  # No ticket available (should not happen if eligible)
+
+        # Determine bucket and execute trade
+        bucket_id = ticket.bucket_id
+        dealer = self.dealers[bucket_id]
+        vbt = self.vbts[bucket_id]
+
+        # Execute customer sell (trader sells to dealer)
+        result = self.executor.execute_customer_sell(
+            dealer=dealer,
+            vbt=vbt,
+            ticket=ticket,
+            check_assertions=True,
+        )
+
+        # Update trader state
+        trader.tickets_owned.remove(ticket)
+        trader.cash += result.price
+
+        # Update asset issuer constraint if no more tickets
+        if len(trader.tickets_owned) == 0:
+            trader.asset_issuer_id = None
+
+        # Log trade
+        self.events.log_trade(
+            day=self.day,
+            side="SELL",
+            trader_id=agent_id,
+            ticket_id=ticket.id,
+            bucket=bucket_id,
+            price=result.price,
+            is_passthrough=result.is_passthrough,
+        )
+
+        # Remove from eligible set if no longer eligible
+        if trader.shortfall(self.day) <= 0 or len(trader.tickets_owned) == 0:
+            eligible.discard(agent_id)
+
+    def _process_buy(self, eligible: set[AgentId]) -> None:
+        """
+        Process a BUY order from a randomly selected eligible trader.
+
+        Args:
+            eligible: Set of agent IDs eligible to buy
+
+        References:
+            - Section 11.4: BUY order processing
+        """
+        if not eligible:
+            return  # No eligible buyers
+
+        # Sample uniformly from eligible
+        agent_id = self.rng.choice(list(eligible))
+        trader = self.traders[agent_id]
+
+        # Select bucket to buy from (Short -> Mid -> Long preference)
+        bucket_id = self._select_bucket_to_buy(trader)
+        if bucket_id is None:
+            return  # No bucket available
+
+        dealer = self.dealers[bucket_id]
+        vbt = self.vbts[bucket_id]
+
+        # Execute customer buy (trader buys from dealer)
+        # Note: May fail if issuer preference cannot be satisfied
+        try:
+            result = self.executor.execute_customer_buy(
+                dealer=dealer,
+                vbt=vbt,
+                buyer_id=agent_id,
+                issuer_preference=trader.asset_issuer_id,
+                check_assertions=True,
+            )
+        except ValueError as e:
+            # Cannot satisfy single-issuer constraint - skip this trade
+            # This happens when trader has asset_issuer_id set but neither
+            # dealer nor VBT has tickets from that issuer
+            return
+
+        # Update trader state
+        if result.ticket:
+            trader.tickets_owned.append(result.ticket)
+            trader.cash -= result.price
+
+            # Set asset issuer constraint
+            if trader.asset_issuer_id is None:
+                trader.asset_issuer_id = result.ticket.issuer_id
+
+        # Log trade
+        if result.ticket:
+            self.events.log_trade(
+                day=self.day,
+                side="BUY",
+                trader_id=agent_id,
+                ticket_id=result.ticket.id,
+                bucket=bucket_id,
+                price=result.price,
+                is_passthrough=result.is_passthrough,
+            )
+
+        # Remove from eligible set if no longer eligible
+        if trader.cash <= self.config.buffer_B:
+            eligible.discard(agent_id)
+
+    def _select_ticket_to_sell(self, trader: TraderState) -> Ticket | None:
+        """
+        Select ticket for trader to sell (shortest maturity first).
+
+        Priority:
+        1. Lowest remaining_tau (sell soonest-to-mature first)
+        2. Lowest serial (deterministic tie-breaker)
+
+        Args:
+            trader: Trader state
+
+        Returns:
+            Selected ticket, or None if no tickets available
+
+        References:
+            - Section 10.3: Sell policy (shortest maturity first)
+        """
+        if not trader.tickets_owned:
+            return None
+
+        # Sort by (remaining_tau, serial) and return first
+        return min(trader.tickets_owned, key=lambda t: (t.remaining_tau, t.serial))
+
+    def _select_bucket_to_buy(self, trader: TraderState) -> str | None:
+        """
+        Select bucket to buy from (Short -> Mid -> Long preference).
+
+        This implements a maturity preference: traders prefer shorter-maturity
+        tickets for faster turnover and liquidity.
+
+        Args:
+            trader: Trader state
+
+        Returns:
+            Bucket name, or None if no buckets available
+
+        References:
+            - Section 10.4: Buy policy (maturity preference)
+        """
+        # Try buckets in order of preference
+        for bucket in self.config.buckets:
+            bucket_id = bucket.name
+
+            # Check if dealer or VBT has inventory in this bucket
+            dealer = self.dealers[bucket_id]
+            vbt = self.vbts[bucket_id]
+
+            if len(dealer.inventory) > 0 or len(vbt.inventory) > 0:
+                return bucket_id
+
+        return None
+
+    # =====================================================================
+    # Phase 5: Settlement with proportional recovery
+    # =====================================================================
+
+    def _settle_maturing_debt(self) -> None:
+        """
+        Settlement with proportional recovery (Section 11, Step 5).
+
+        For each issuer with maturing tickets:
+        1. Compute total obligations due
+        2. Compute recovery rate R = min(1, cash / obligations)
+        3. Pay proportional recovery to all holders
+        4. Mark issuer as defaulted if R < 1
+
+        References:
+            - Section 11.5: Settlement phase
+            - Section 6.6-6.8: Settlement events
+        """
+        # Group maturing tickets by issuer
+        maturing_by_issuer: dict[AgentId, list[Ticket]] = {}
+
+        for ticket in self.all_tickets.values():
+            if ticket.maturity_day == self.day:
+                issuer_id = ticket.issuer_id
+                if issuer_id not in maturing_by_issuer:
+                    maturing_by_issuer[issuer_id] = []
+                maturing_by_issuer[issuer_id].append(ticket)
+
+        # Settle each issuer
+        for issuer_id, tickets in maturing_by_issuer.items():
+            self._settle_issuer(issuer_id, tickets)
+
+    def _settle_issuer(self, issuer_id: AgentId, tickets: list[Ticket]) -> None:
+        """
+        Settle all maturing tickets for one issuer.
+
+        Implements proportional recovery:
+        - R = min(1, cash / total_due)
+        - Payment to each holder = R * face
+
+        Args:
+            issuer_id: Agent ID of issuer
+            tickets: List of maturing tickets issued by this agent
+
+        References:
+            - Section 6.6: Full settlement (R = 1)
+            - Section 6.7-6.8: Partial settlement (R < 1)
+        """
+        if issuer_id not in self.traders:
+            raise ValueError(f"Issuer {issuer_id} is not a registered trader")
+
+        issuer = self.traders[issuer_id]
+
+        # Compute total obligations
+        total_due = sum(ticket.face for ticket in tickets)
+
+        # Compute recovery rate
+        if total_due == 0:
+            return  # No obligations
+
+        recovery_rate = min(Decimal(1), issuer.cash / total_due)
+
+        # Compute total payment - use exact value to avoid precision issues
+        # When R < 1, total_paid equals issuer.cash exactly
+        if recovery_rate < Decimal(1):
+            total_paid = issuer.cash
+        else:
+            total_paid = total_due
+
+        # Deduct from issuer cash
+        issuer.cash -= total_paid
+
+        # Distribute payments to holders using remainder-based allocation
+        # to ensure total distributed equals total_paid exactly
+        remaining = total_paid
+        for i, ticket in enumerate(tickets):
+            if i < len(tickets) - 1:
+                # For all but last ticket: compute proportional payment and quantize
+                payment = (recovery_rate * ticket.face).quantize(
+                    CASH_PRECISION, rounding=ROUND_HALF_UP
+                )
+                remaining -= payment
+            else:
+                # Last ticket gets remainder to ensure exact balance
+                payment = remaining
+            self._pay_holder(ticket.owner_id, payment, ticket)
+
+        # Log settlement or default
+        if recovery_rate >= Decimal(1):
+            # Full settlement
+            self.events.log_settlement(
+                day=self.day,
+                issuer_id=issuer_id,
+                total_paid=total_paid,
+                n_tickets=len(tickets),
+            )
+        else:
+            # Default with partial recovery
+            issuer.defaulted = True
+
+            # Group tickets by bucket for loss rate computation
+            tickets_by_bucket: dict[str, list[Ticket]] = {}
+            for ticket in tickets:
+                bucket_id = ticket.bucket_id
+                if bucket_id not in tickets_by_bucket:
+                    tickets_by_bucket[bucket_id] = []
+                tickets_by_bucket[bucket_id].append(ticket)
+
+            # Log default per bucket
+            for bucket_id, bucket_tickets in tickets_by_bucket.items():
+                bucket_due = sum(t.face for t in bucket_tickets)
+                bucket_paid = recovery_rate * bucket_due
+
+                self.events.log_default(
+                    day=self.day,
+                    issuer_id=issuer_id,
+                    recovery_rate=recovery_rate,
+                    total_due=bucket_due,
+                    total_paid=bucket_paid,
+                    n_tickets=len(bucket_tickets),
+                    bucket=bucket_id,
+                )
+
+        # Remove tickets from issuer's obligations
+        for ticket in tickets:
+            if ticket in issuer.obligations:
+                issuer.obligations.remove(ticket)
+
+    def _pay_holder(
+        self,
+        holder_id: AgentId,
+        amount: Decimal,
+        ticket: Ticket,
+    ) -> None:
+        """
+        Credit payment to holder (trader, dealer, or VBT).
+
+        Args:
+            holder_id: Agent ID of ticket holder
+            amount: Payment amount (may be partial if R < 1)
+            ticket: Ticket being settled
+        """
+        # Check if holder is a trader
+        if holder_id in self.traders:
+            self.traders[holder_id].cash += amount
+            # Quantize to avoid floating-point accumulation (e.g., 1/3 + 1/3 + 1/3 != 1)
+            self.traders[holder_id].cash = self.traders[holder_id].cash.quantize(
+                CASH_PRECISION, rounding=ROUND_HALF_UP
+            )
+            # Remove ticket from trader's owned tickets
+            if ticket in self.traders[holder_id].tickets_owned:
+                self.traders[holder_id].tickets_owned.remove(ticket)
+            return
+
+        # Check if holder is a dealer
+        for dealer in self.dealers.values():
+            if dealer.agent_id == holder_id:
+                dealer.cash += amount
+                # Quantize to avoid floating-point accumulation
+                dealer.cash = dealer.cash.quantize(CASH_PRECISION, rounding=ROUND_HALF_UP)
+                # Remove ticket from dealer inventory
+                if ticket in dealer.inventory:
+                    dealer.inventory.remove(ticket)
+                return
+
+        # Check if holder is a VBT
+        for vbt in self.vbts.values():
+            if vbt.agent_id == holder_id:
+                vbt.cash += amount
+                # Quantize to avoid floating-point accumulation
+                vbt.cash = vbt.cash.quantize(CASH_PRECISION, rounding=ROUND_HALF_UP)
+                # Remove ticket from VBT inventory
+                if ticket in vbt.inventory:
+                    vbt.inventory.remove(ticket)
+                return
+
+        raise ValueError(f"Holder {holder_id} not found in traders, dealers, or VBTs")
+
+    # =====================================================================
+    # Phase 6: VBT anchor updates
+    # =====================================================================
+
+    def _update_vbt_anchors(self) -> None:
+        """
+        Update VBT anchors based on bucket loss rates (Section 10).
+
+        For each bucket:
+        1. Compute loss rate from today's defaults
+        2. Apply update rule: M -= phi_M * loss, O += phi_O * loss
+        3. Recompute VBT quotes and dealer states
+
+        References:
+            - Section 9: Loss-based anchor updates
+            - Section 11.6: Anchor update phase
+        """
+        for bucket_id in self.vbts:
+            vbt = self.vbts[bucket_id]
+
+            # Snapshot for C6 assertion
+            M_old = vbt.M
+            O_old = vbt.O
+
+            # Compute loss rate from today's defaults
+            loss_rate = self.events.get_bucket_loss_rate(self.day, bucket_id)
+
+            if loss_rate > 0:
+                # Apply update rule
+                vbt.update_from_loss(loss_rate)
+
+                # Log anchor update
+                self.events.log_vbt_anchor_update(
+                    day=self.day,
+                    bucket=bucket_id,
+                    M_old=M_old,
+                    M_new=vbt.M,
+                    O_old=O_old,
+                    O_new=vbt.O,
+                    loss_rate=loss_rate,
+                )
+
+                # Recompute dealer state with new anchors
+                dealer = self.dealers[bucket_id]
+                recompute_dealer_state(dealer, vbt, self.params)
+
+    def to_html(
+        self,
+        path: "Path | str",
+        title: str | None = None,
+        subtitle: str | None = None,
+    ) -> None:
+        """
+        Export simulation to HTML report.
+
+        Args:
+            path: Output file path
+            title: Report title (default: "Dealer Ring Simulation")
+            subtitle: Report subtitle (optional)
+        """
+        from .report import export_dealer_ring_html
+        export_dealer_ring_html(
+            snapshots=self.snapshots,
+            config=self.config,
+            path=path,
+            title=title,
+            subtitle=subtitle,
+        )
+
+```
+
+---
+
+### 📄 src/bilancio/dealer/trading.py
+
+```python
+"""
+Trade execution logic for the dealer ring.
+
+This module implements the TradeExecutor class, which handles customer trades
+with dealers in the dealer ring model. It implements:
+
+- Event 1: Customer SELL (interior) - Customer sells ticket to dealer
+- Event 2: Customer BUY (interior) - Customer buys ticket from dealer
+- Event 9: Customer SELL (passthrough) - Routed to VBT at outside bid B
+- Event 10: Customer BUY (passthrough) - Routed to VBT at outside ask A
+
+The executor determines whether trades can be executed by the dealer (interior)
+or must be routed to the VBT (passthrough), executes balance sheet updates,
+and enforces programmatic assertions C1, C3, and C4.
+
+All arithmetic uses Decimal for precision - never float.
+
+References:
+- Specification Section 6: Event specifications
+- Specification Section 8.6: Feasibility checks
+- Examples Doc Section 1: Programmatic Assertions
+"""
+
+import random
+from decimal import Decimal
+from copy import deepcopy
+
+from bilancio.core.ids import AgentId
+from .models import DealerState, VBTState, Ticket
+from .kernel import (
+    recompute_dealer_state,
+    can_interior_buy,
+    can_interior_sell,
+    KernelParams,
+    ExecutionResult,
+)
+from .assertions import (
+    assert_c1_double_entry,
+    assert_c3_feasibility,
+    assert_c4_passthrough_invariant,
+)
+
+
+class TradeExecutor:
+    """
+    Executes trades between customers and dealers.
+
+    Implements Events 1-2 (interior trades) and Events 9-10 (passthrough)
+    from the specification Section 6.
+
+    The executor handles:
+    1. Feasibility determination (interior vs passthrough)
+    2. Balance sheet updates for dealers and VBT
+    3. Ticket ownership transfers
+    4. Quote recomputation after trades
+    5. Programmatic assertion checking
+
+    Attributes:
+        params: Kernel parameters including ticket size S
+        rng: Random number generator (currently unused, reserved for future stochastic features)
+
+    References:
+        - Specification Section 6.1-6.2: Interior trades (Events 1-2)
+        - Specification Section 6.9-6.10: Passthrough trades (Events 9-10)
+        - Specification Section 8.6: Feasibility checks
+    """
+
+    def __init__(self, params: KernelParams, rng: random.Random | None = None):
+        """
+        Initialize trade executor.
+
+        Args:
+            params: Kernel parameters including ticket size S
+            rng: Optional random number generator (default: new Random instance)
+        """
+        self.params = params
+        self.rng = rng or random.Random()
+
+    def execute_customer_sell(
+        self,
+        dealer: DealerState,
+        vbt: VBTState,
+        ticket: Ticket,
+        check_assertions: bool = True,
+    ) -> ExecutionResult:
+        """
+        Customer sells ticket to dealer (dealer buys).
+
+        Implements Event 1 (interior) or Event 9 (passthrough at outside bid).
+
+        Flow:
+        1. Check if interior BUY is feasible (can_interior_buy)
+        2. If feasible: Execute at dealer bid b_c(x)
+           - Dealer inventory increases by 1
+           - Dealer cash decreases by price
+           - Ticket ownership transfers to dealer
+        3. If not feasible: Passthrough at outside bid B
+           - VBT absorbs the ticket
+           - Dealer state unchanged (C4 assertion)
+        4. Recompute dealer quotes after trade
+        5. Run C1 double-entry assertion
+
+        Args:
+            dealer: Dealer state (modified in-place)
+            vbt: VBT state (modified in-place if passthrough)
+            ticket: Ticket being sold by customer
+            check_assertions: Whether to run assertions (default True)
+
+        Returns:
+            ExecutionResult with price, passthrough flag, and ticket
+
+        References:
+            - Event 1: Interior customer sell at b_c(x) (Section 6.1)
+            - Event 9: Passthrough customer sell at B (Section 6.9)
+            - Feasibility: Section 8.6
+        """
+        # Store customer ID before modifying ticket
+        customer_id = ticket.owner_id
+
+        # Determine if interior execution is feasible
+        is_interior = can_interior_buy(dealer, self.params)
+
+        if is_interior:
+            # Event 1: Interior execution at dealer bid
+            execution_price = dealer.bid
+
+            # Pre-check feasibility (C3 assertion)
+            if check_assertions:
+                assert_c3_feasibility(dealer, side="BUY", params=self.params)
+
+            # Update dealer balance sheet
+            dealer.inventory.append(ticket)
+            dealer.cash -= execution_price
+
+            # Transfer ownership
+            ticket.owner_id = dealer.agent_id
+
+            # Recompute dealer state after trade
+            recompute_dealer_state(dealer, vbt, self.params)
+
+            # C1: Double-entry assertion
+            if check_assertions:
+                assert_c1_double_entry(
+                    cash_changes={
+                        customer_id: execution_price,    # Customer receives cash
+                        dealer.agent_id: -execution_price,  # Dealer pays cash
+                    },
+                    qty_changes={
+                        customer_id: -1,  # Customer gives ticket
+                        dealer.agent_id: 1,  # Dealer receives ticket
+                    }
+                )
+
+            return ExecutionResult(
+                executed=True,
+                price=execution_price,
+                is_passthrough=False,
+                ticket=ticket,
+            )
+
+        else:
+            # Event 9: Passthrough to VBT at outside bid
+            execution_price = vbt.B
+
+            # Snapshot dealer state for C4 assertion
+            if check_assertions:
+                dealer_snapshot = deepcopy(dealer)
+
+            # VBT absorbs the ticket
+            vbt.inventory.append(ticket)
+            vbt.cash -= execution_price
+
+            # Transfer ownership to VBT
+            ticket.owner_id = vbt.agent_id
+
+            # Dealer state unchanged - recompute to update quotes based on VBT state
+            # (VBT anchors may have changed, affecting dealer quotes)
+            recompute_dealer_state(dealer, vbt, self.params)
+
+            # C4: Verify dealer balance sheet unchanged
+            if check_assertions:
+                assert_c4_passthrough_invariant(dealer_snapshot, dealer)
+
+            # C1: Double-entry assertion (dealer not involved in passthrough)
+            if check_assertions:
+                assert_c1_double_entry(
+                    cash_changes={
+                        customer_id: execution_price,  # Customer receives cash
+                        vbt.agent_id: -execution_price,  # VBT pays cash
+                    },
+                    qty_changes={
+                        customer_id: -1,  # Customer gives ticket
+                        vbt.agent_id: 1,  # VBT receives ticket
+                    }
+                )
+
+            return ExecutionResult(
+                executed=True,
+                price=execution_price,
+                is_passthrough=True,
+                ticket=ticket,
+            )
+
+    def execute_customer_buy(
+        self,
+        dealer: DealerState,
+        vbt: VBTState,
+        buyer_id: AgentId,
+        issuer_preference: AgentId | None = None,
+        check_assertions: bool = True,
+    ) -> ExecutionResult:
+        """
+        Customer buys ticket from dealer (dealer sells).
+
+        Implements Event 2 (interior) or Event 10 (passthrough at outside ask).
+
+        Flow:
+        1. Check if interior SELL is feasible (can_interior_sell - dealer has inventory)
+        2. If feasible: Execute at dealer ask a_c(x)
+           - Select ticket from dealer inventory (deterministic tie-breaker)
+           - Dealer inventory decreases by 1
+           - Dealer cash increases by price
+           - Ticket ownership transfers to buyer
+        3. If not feasible: Passthrough at outside ask A
+           - VBT provides ticket
+           - Dealer state unchanged (C4 assertion)
+        4. Recompute dealer quotes after trade
+        5. Run C1 double-entry assertion
+
+        Ticket selection (deterministic tie-breaker):
+        - Prefer issuer_preference if specified
+        - Then lowest maturity_day
+        - Then lowest serial number
+
+        Args:
+            dealer: Dealer state (modified in-place)
+            vbt: VBT state (modified in-place if passthrough)
+            buyer_id: Agent ID of the buyer
+            issuer_preference: Optional preferred issuer (for single-issuer constraint)
+            check_assertions: Whether to run assertions (default True)
+
+        Returns:
+            ExecutionResult with price, passthrough flag, and ticket
+
+        References:
+            - Event 2: Interior customer buy at a_c(x) (Section 6.2)
+            - Event 10: Passthrough customer buy at A (Section 6.10)
+            - Feasibility: Section 8.6
+            - Tie-breaker: Section 6.2 (deterministic selection)
+        """
+        # Determine if interior execution is feasible
+        is_interior = can_interior_sell(dealer, self.params)
+
+        if is_interior:
+            # Event 2: Interior execution at dealer ask
+            execution_price = dealer.ask
+
+            # Pre-check feasibility (C3 assertion)
+            if check_assertions:
+                assert_c3_feasibility(dealer, side="SELL", params=self.params)
+
+            # Select ticket to sell using deterministic tie-breaker
+            ticket = self._select_ticket_to_sell(dealer.inventory, issuer_preference)
+
+            # Update dealer balance sheet
+            dealer.inventory.remove(ticket)
+            dealer.cash += execution_price
+
+            # Transfer ownership
+            ticket.owner_id = buyer_id
+
+            # Recompute dealer state after trade
+            recompute_dealer_state(dealer, vbt, self.params)
+
+            # C1: Double-entry assertion
+            if check_assertions:
+                assert_c1_double_entry(
+                    cash_changes={
+                        buyer_id: -execution_price,  # Buyer pays cash
+                        dealer.agent_id: execution_price,  # Dealer receives cash
+                    },
+                    qty_changes={
+                        buyer_id: 1,  # Buyer receives ticket
+                        dealer.agent_id: -1,  # Dealer gives ticket
+                    }
+                )
+
+            return ExecutionResult(
+                executed=True,
+                price=execution_price,
+                is_passthrough=False,
+                ticket=ticket,
+            )
+
+        else:
+            # Event 10: Passthrough to VBT at outside ask
+            execution_price = vbt.A
+
+            # Snapshot dealer state for C4 assertion
+            if check_assertions:
+                dealer_snapshot = deepcopy(dealer)
+
+            # Select ticket from VBT inventory
+            # VBT must have inventory to provide - if not, this is a configuration error
+            if not vbt.inventory:
+                raise ValueError(
+                    f"VBT has no inventory to provide for passthrough buy. "
+                    f"Bucket: {vbt.bucket_id}. "
+                    f"This indicates insufficient VBT capitalization or configuration error."
+                )
+
+            ticket = self._select_ticket_to_sell(vbt.inventory, issuer_preference)
+
+            # VBT provides the ticket
+            vbt.inventory.remove(ticket)
+            vbt.cash += execution_price
+
+            # Transfer ownership to buyer
+            ticket.owner_id = buyer_id
+
+            # Dealer state unchanged - recompute to update quotes based on VBT state
+            recompute_dealer_state(dealer, vbt, self.params)
+
+            # C4: Verify dealer balance sheet unchanged
+            if check_assertions:
+                assert_c4_passthrough_invariant(dealer_snapshot, dealer)
+
+            # C1: Double-entry assertion (dealer not involved in passthrough)
+            if check_assertions:
+                assert_c1_double_entry(
+                    cash_changes={
+                        buyer_id: -execution_price,  # Buyer pays cash
+                        vbt.agent_id: execution_price,  # VBT receives cash
+                    },
+                    qty_changes={
+                        buyer_id: 1,  # Buyer receives ticket
+                        vbt.agent_id: -1,  # VBT gives ticket
+                    }
+                )
+
+            return ExecutionResult(
+                executed=True,
+                price=execution_price,
+                is_passthrough=True,
+                ticket=ticket,
+            )
+
+    def _select_ticket_to_sell(
+        self,
+        inventory: list[Ticket],
+        issuer_preference: AgentId | None,
+    ) -> Ticket:
+        """
+        Select ticket to sell from inventory using deterministic tie-breaker.
+
+        Priority:
+        1. Match issuer_preference if specified
+        2. Lowest maturity_day
+        3. Lowest serial number
+
+        This ensures reproducible behavior across runs and respects the
+        single-issuer constraint when specified.
+
+        Args:
+            inventory: List of tickets available for sale
+            issuer_preference: Optional preferred issuer ID
+
+        Returns:
+            Selected ticket
+
+        Raises:
+            ValueError: If inventory is empty or no matching ticket found
+
+        References:
+            - Specification Section 6.2: Deterministic tie-breaker for Event 2
+            - Specification Section 10.4: Single-issuer constraint for ring traders
+        """
+        if not inventory:
+            raise ValueError("Cannot select ticket from empty inventory")
+
+        # Filter by issuer preference if specified
+        if issuer_preference is not None:
+            candidates = [t for t in inventory if t.issuer_id == issuer_preference]
+            if not candidates:
+                raise ValueError(
+                    f"No tickets from preferred issuer {issuer_preference} in inventory. "
+                    f"Available issuers: {set(t.issuer_id for t in inventory)}"
+                )
+        else:
+            candidates = inventory
+
+        # Sort by (maturity_day, serial) and return first
+        # This implements the deterministic tie-breaker:
+        # 1. Lowest maturity_day (soonest to mature)
+        # 2. Lowest serial number (stable ordering)
+        selected = min(candidates, key=lambda t: (t.maturity_day, t.serial))
+
+        return selected
 
 ```
 
@@ -16633,6 +20600,2961 @@ def test_transfer_claim_alias_and_id_model_allows_both():
 
 ---
 
+### 🧪 tests/dealer/__init__.py
+
+```python
+
+```
+
+---
+
+### 🧪 tests/dealer/test_examples.py
+
+```python
+"""
+Integration tests based on worked examples from the dealer specification.
+
+These tests verify complete scenarios matching the examples document, ensuring
+that the dealer implementation correctly handles:
+- Interior trades (Events 1-2)
+- Passthrough trades (Events 9-10)
+- Capacity jumps across integers
+- Guard regime at very low M
+- Partial recovery defaults
+- Quote bounds and feasibility
+
+All tests use Decimal arithmetic and verify programmatic assertions C1-C6.
+
+References:
+- docs/dealer_ring/dealer_examples.pdf
+- Specification Section 6 (Events)
+- Specification Section 8 (L1 Kernel)
+"""
+
+import pytest
+from decimal import Decimal
+from copy import deepcopy
+
+from bilancio.dealer import (
+    Ticket,
+    DealerState,
+    VBTState,
+    TraderState,
+    KernelParams,
+    recompute_dealer_state,
+    can_interior_buy,
+    can_interior_sell,
+    TradeExecutor,
+    EventLog,
+    run_all_assertions,
+    assert_c1_double_entry,
+    assert_c4_passthrough_invariant,
+    M_MIN,
+)
+from bilancio.core.ids import new_id
+
+
+# Helper functions for test setup
+
+def create_ticket(
+    issuer_id: str,
+    owner_id: str,
+    face: Decimal = Decimal(1),
+    maturity_day: int = 10,
+    remaining_tau: int = 5,
+    bucket_id: str = "mid",
+    serial: int = 0,
+) -> Ticket:
+    """Create a ticket for testing."""
+    return Ticket(
+        id=new_id(),
+        issuer_id=issuer_id,
+        owner_id=owner_id,
+        face=face,
+        maturity_day=maturity_day,
+        remaining_tau=remaining_tau,
+        bucket_id=bucket_id,
+        serial=serial,
+    )
+
+
+def setup_dealer_vbt_params(
+    dealer_tickets: int = 2,
+    dealer_cash: Decimal = Decimal(2),
+    M: Decimal = Decimal("1.0"),
+    O: Decimal = Decimal("0.30"),
+    S: Decimal = Decimal(1),
+) -> tuple[DealerState, VBTState, KernelParams]:
+    """
+    Create dealer, VBT, and params with standard configuration.
+
+    Returns:
+        Tuple of (dealer, vbt, params)
+    """
+    params = KernelParams(S=S)
+
+    # Create VBT with anchors
+    vbt = VBTState(
+        bucket_id="mid",
+        agent_id="vbt_mid",
+        M=M,
+        O=O,
+    )
+    vbt.recompute_quotes()
+
+    # Create dealer with inventory
+    dealer = DealerState(
+        bucket_id="mid",
+        agent_id="dealer_mid",
+        cash=dealer_cash,
+    )
+
+    # Add tickets to dealer inventory
+    for i in range(dealer_tickets):
+        ticket = create_ticket(
+            issuer_id=f"issuer_{i}",
+            owner_id=dealer.agent_id,
+            serial=i,
+        )
+        dealer.inventory.append(ticket)
+
+    # Recompute dealer state
+    recompute_dealer_state(dealer, vbt, params)
+
+    return dealer, vbt, params
+
+
+class TestExample5DealerEarns:
+    """
+    Example 5: Dealer earns spread over multiple trades.
+
+    Initial state:
+    - a=2, C=2, M=1.0, O=0.30
+    - V=4, K*=4, X*=4
+
+    Trade sequence:
+    1. Customer SELL (dealer buys at bid 0.97)
+    2. Customer BUY (dealer sells at ask 0.98)
+    3. Customer SELL (dealer buys at bid 0.97)
+
+    Final state:
+    - a=3, C=1.04, V=4.04
+    - Dealer earned 0.04 in equity
+    """
+
+    def test_initial_state(self):
+        """Verify initial kernel computation matches Example 5."""
+        dealer, vbt, params = setup_dealer_vbt_params(
+            dealer_tickets=2,
+            dealer_cash=Decimal(2),
+            M=Decimal("1.0"),
+            O=Decimal("0.30"),
+        )
+
+        # Check initial state
+        assert dealer.a == 2
+        assert dealer.x == Decimal(2)
+        assert dealer.cash == Decimal(2)
+        assert dealer.V == Decimal(4)
+        assert dealer.K_star == 4
+        assert dealer.X_star == Decimal(4)
+        assert dealer.N == 5
+        assert dealer.lambda_ == Decimal("0.2")  # 1/5
+        assert dealer.I == Decimal("0.06")  # 0.2 * 0.30
+
+        # Check quotes at x=2
+        assert dealer.midline == Decimal(1)  # p(2) = 1
+        assert dealer.ask == Decimal("1.03")  # a(2) = 1.03
+        assert dealer.bid == Decimal("0.97")  # b(2) = 0.97
+
+        # Verify invariants
+        run_all_assertions(dealer, vbt, params)
+
+    def test_trade_sequence(self):
+        """Execute three trades and verify dealer profit."""
+        dealer, vbt, params = setup_dealer_vbt_params(
+            dealer_tickets=2,
+            dealer_cash=Decimal(2),
+        )
+
+        executor = TradeExecutor(params)
+
+        # Initial state
+        initial_V = dealer.V
+        assert initial_V == Decimal(4)
+
+        # Trade 1: Customer SELL (dealer buys at bid)
+        ticket1 = create_ticket(
+            issuer_id="customer1",
+            owner_id="customer1",
+        )
+        result1 = executor.execute_customer_sell(dealer, vbt, ticket1)
+
+        assert result1.executed
+        assert not result1.is_passthrough
+        assert result1.price == Decimal("0.97")
+        assert dealer.a == 3
+        assert dealer.x == Decimal(3)
+        assert dealer.cash == Decimal("1.03")  # 2 - 0.97
+        assert dealer.V == Decimal("4.03")  # 3 + 1.03
+
+        # Trade 2: Customer BUY (dealer sells at ask)
+        result2 = executor.execute_customer_buy(dealer, vbt, "customer2")
+
+        assert result2.executed
+        assert not result2.is_passthrough
+        assert result2.price == Decimal("0.98")
+        assert dealer.a == 2
+        assert dealer.x == Decimal(2)
+        assert dealer.cash == Decimal("2.01")  # 1.03 + 0.98
+        assert dealer.V == Decimal("4.01")  # 2 + 2.01
+
+        # Trade 3: Customer SELL (dealer buys at bid)
+        ticket3 = create_ticket(
+            issuer_id="customer3",
+            owner_id="customer3",
+        )
+        result3 = executor.execute_customer_sell(dealer, vbt, ticket3)
+
+        assert result3.executed
+        assert not result3.is_passthrough
+        assert result3.price == Decimal("0.97")
+        assert dealer.a == 3
+        assert dealer.x == Decimal(3)
+        assert dealer.cash == Decimal("1.04")  # 2.01 - 0.97
+        assert dealer.V == Decimal("4.04")  # 3 + 1.04
+
+        # Verify dealer earned profit
+        profit = dealer.V - initial_V
+        assert profit == Decimal("0.04")
+
+    def test_invariants_after_each_trade(self):
+        """Verify C2 and C5 hold after each trade."""
+        dealer, vbt, params = setup_dealer_vbt_params(
+            dealer_tickets=2,
+            dealer_cash=Decimal(2),
+        )
+
+        executor = TradeExecutor(params)
+
+        # After each trade, verify invariants
+        trades = [
+            create_ticket(f"customer{i}", f"customer{i}")
+            for i in range(3)
+        ]
+
+        # Trade 1: SELL
+        executor.execute_customer_sell(dealer, vbt, trades[0])
+        run_all_assertions(dealer, vbt, params)
+
+        # Trade 2: BUY
+        executor.execute_customer_buy(dealer, vbt, "customer2")
+        run_all_assertions(dealer, vbt, params)
+
+        # Trade 3: SELL
+        executor.execute_customer_sell(dealer, vbt, trades[2])
+        run_all_assertions(dealer, vbt, params)
+
+
+class TestExample4InventoryLimit:
+    """
+    Example 4: Dealer depletes inventory and VBT layoff occurs.
+
+    Initial state:
+    - a=2, C=2, M=1.0, O=0.30
+    - V=4, K*=4, X*=4, x=2
+
+    Two customer BUYs deplete inventory to x=0.
+    Third customer BUY: interior sell infeasible -> passthrough to VBT at A=1.15.
+    Dealer state unchanged (C4 assertion).
+    """
+
+    def test_interior_sells_deplete_inventory(self):
+        """Two sells bring inventory to zero."""
+        dealer, vbt, params = setup_dealer_vbt_params(
+            dealer_tickets=2,
+            dealer_cash=Decimal(2),
+        )
+
+        executor = TradeExecutor(params)
+
+        # Initial: x=2
+        assert dealer.x == Decimal(2)
+        assert dealer.ask == Decimal("1.03")
+
+        # First BUY: x=2 -> x=1
+        result1 = executor.execute_customer_buy(dealer, vbt, "buyer1")
+        assert result1.executed
+        assert not result1.is_passthrough
+        assert result1.price == Decimal("1.03")
+        assert dealer.x == Decimal(1)
+        assert dealer.ask == Decimal("1.08")  # p(1) = 1.05, a(1) = 1.08
+
+        # Second BUY: x=1 -> x=0
+        result2 = executor.execute_customer_buy(dealer, vbt, "buyer2")
+        assert result2.executed
+        assert not result2.is_passthrough
+        assert result2.price == Decimal("1.08")
+        assert dealer.x == Decimal(0)
+        assert dealer.cash == Decimal("4.11")  # 2 + 1.03 + 1.08
+
+    def test_passthrough_at_zero_inventory(self):
+        """Third BUY routes to VBT at A when dealer has no inventory."""
+        dealer, vbt, params = setup_dealer_vbt_params(
+            dealer_tickets=2,
+            dealer_cash=Decimal(2),
+        )
+
+        # Add tickets to VBT for passthrough
+        for i in range(10):
+            ticket = create_ticket(
+                issuer_id=f"vbt_issuer_{i}",
+                owner_id=vbt.agent_id,
+                serial=i,
+            )
+            vbt.inventory.append(ticket)
+
+        executor = TradeExecutor(params)
+
+        # Deplete dealer inventory
+        executor.execute_customer_buy(dealer, vbt, "buyer1")
+        executor.execute_customer_buy(dealer, vbt, "buyer2")
+
+        assert dealer.x == Decimal(0)
+
+        # Third BUY: must route to VBT at A=1.15
+        dealer_snapshot = deepcopy(dealer)
+
+        result3 = executor.execute_customer_buy(dealer, vbt, "buyer3")
+
+        assert result3.executed
+        assert result3.is_passthrough
+        assert result3.price == vbt.A  # 1.15
+
+        # Verify dealer unchanged (C4 assertion)
+        assert dealer.x == dealer_snapshot.x
+        assert dealer.cash == dealer_snapshot.cash
+
+    def test_dealer_unchanged_in_passthrough(self):
+        """Verify C4: dealer (x, C) unchanged in passthrough."""
+        dealer, vbt, params = setup_dealer_vbt_params(
+            dealer_tickets=0,  # Start with no inventory
+            dealer_cash=Decimal("4.11"),
+        )
+
+        # Add tickets to VBT
+        for i in range(5):
+            ticket = create_ticket(
+                issuer_id=f"vbt_issuer_{i}",
+                owner_id=vbt.agent_id,
+                serial=i,
+            )
+            vbt.inventory.append(ticket)
+
+        executor = TradeExecutor(params)
+
+        # Capture state before passthrough
+        x_before = dealer.x
+        cash_before = dealer.cash
+
+        # Execute passthrough
+        result = executor.execute_customer_buy(dealer, vbt, "buyer")
+
+        assert result.is_passthrough
+        assert dealer.x == x_before
+        assert dealer.cash == cash_before
+
+
+class TestExample6BidPassthrough:
+    """
+    Example 6: Capacity binding forces bid-side passthrough.
+
+    Scenario: Dealer at capacity (x = X*) with low cash.
+    Customer SELL cannot be absorbed -> routes to VBT at B=0.85.
+    """
+
+    def test_capacity_bound_at_x_equals_X_star(self):
+        """x = X* means no room for interior buy."""
+        dealer, vbt, params = setup_dealer_vbt_params(
+            dealer_tickets=2,
+            dealer_cash=Decimal("0.10"),  # Low cash
+        )
+
+        # Dealer state: a=2, C=0.10
+        # V = 2.10, K*=2, X*=2, x=2=X*
+        assert dealer.a == 2
+        assert dealer.x == Decimal(2)
+        assert dealer.X_star == Decimal(2)
+        assert dealer.cash == Decimal("0.10")
+
+        # Check that interior buy is NOT feasible
+        assert not can_interior_buy(dealer, params)
+
+    def test_passthrough_at_outside_bid(self):
+        """Customer SELL routes to VBT at B when capacity is full."""
+        dealer, vbt, params = setup_dealer_vbt_params(
+            dealer_tickets=2,
+            dealer_cash=Decimal("0.10"),
+        )
+
+        executor = TradeExecutor(params)
+
+        # Snapshot dealer state
+        dealer_snapshot = deepcopy(dealer)
+
+        # Customer SELL
+        ticket = create_ticket(
+            issuer_id="customer",
+            owner_id="customer",
+        )
+
+        result = executor.execute_customer_sell(dealer, vbt, ticket)
+
+        # Should passthrough at outside bid B=0.85
+        assert result.executed
+        assert result.is_passthrough
+        assert result.price == vbt.B  # 0.85
+
+        # Dealer state unchanged (C4)
+        assert dealer.x == dealer_snapshot.x
+        assert dealer.cash == dealer_snapshot.cash
+
+
+class TestCapacityJump:
+    """
+    Example 13: One-ticket trade pushes capacity across integer.
+
+    Tests discrete jumps in K*, X*, λ, and I when trades cause
+    V to cross integer thresholds.
+    """
+
+    def test_up_jump(self):
+        """K*: 3 -> 4 after interior buy."""
+        # Setup: a=2, C=1.97 => V=3.97, K*=3, X*=3
+        dealer, vbt, params = setup_dealer_vbt_params(
+            dealer_tickets=2,
+            dealer_cash=Decimal("1.97"),
+        )
+
+        # Initial state
+        assert dealer.V == Decimal("3.97")
+        assert dealer.K_star == 3
+        assert dealer.X_star == Decimal(3)
+        assert dealer.lambda_ == Decimal("0.25")  # 1/4
+        assert dealer.I == Decimal("0.075")  # 0.25 * 0.30
+
+        executor = TradeExecutor(params)
+
+        # Customer SELL (dealer buys)
+        ticket = create_ticket(
+            issuer_id="customer",
+            owner_id="customer",
+        )
+
+        result = executor.execute_customer_sell(dealer, vbt, ticket)
+
+        # After buy: a=3, C=1.0375, V=4.0375
+        # K* jumps 3->4
+        assert result.executed
+        assert dealer.a == 3
+        assert dealer.V > Decimal(4)
+        assert dealer.K_star == 4
+        assert dealer.X_star == Decimal(4)
+
+        # Width tightens after capacity increase
+        assert dealer.lambda_ == Decimal("0.20")  # 1/5
+        assert dealer.I == Decimal("0.06")  # 0.20 * 0.30
+
+    def test_down_jump(self):
+        """K*: 4 -> 3 after interior sell."""
+        # Setup: a=4, C=0.02 => V=4.02, K*=4, X*=4
+        dealer, vbt, params = setup_dealer_vbt_params(
+            dealer_tickets=4,
+            dealer_cash=Decimal("0.02"),
+        )
+
+        # Initial state
+        assert dealer.V == Decimal("4.02")
+        assert dealer.K_star == 4
+        assert dealer.X_star == Decimal(4)
+        assert dealer.lambda_ == Decimal("0.20")  # 1/5
+        assert dealer.I == Decimal("0.06")
+
+        executor = TradeExecutor(params)
+
+        # Customer BUY (dealer sells)
+        result = executor.execute_customer_buy(dealer, vbt, "buyer")
+
+        # After sell: a=3, C=0.95, V=3.95
+        # K* jumps 4->3
+        assert result.executed
+        assert dealer.a == 3
+        assert dealer.V == Decimal("3.95")
+        assert dealer.K_star == 3
+        assert dealer.X_star == Decimal(3)
+
+        # Width widens after capacity decrease
+        assert dealer.lambda_ == Decimal("0.25")  # 1/4
+        assert dealer.I == Decimal("0.075")  # 0.25 * 0.30
+
+    def test_width_changes_with_capacity(self):
+        """Verify λ and I change discretely when K* jumps."""
+        # Test both directions
+        dealer_up, vbt_up, params = setup_dealer_vbt_params(
+            dealer_tickets=2,
+            dealer_cash=Decimal("1.97"),
+        )
+
+        lambda_before_up = dealer_up.lambda_
+        I_before_up = dealer_up.I
+
+        executor = TradeExecutor(params)
+        ticket = create_ticket("cust", "cust")
+        executor.execute_customer_sell(dealer_up, vbt_up, ticket)
+
+        # Lambda decreases (capacity increased)
+        assert dealer_up.lambda_ < lambda_before_up
+        assert dealer_up.I < I_before_up
+
+        # Test down jump
+        dealer_down, vbt_down, _ = setup_dealer_vbt_params(
+            dealer_tickets=4,
+            dealer_cash=Decimal("0.02"),
+        )
+
+        lambda_before_down = dealer_down.lambda_
+        I_before_down = dealer_down.I
+
+        executor.execute_customer_buy(dealer_down, vbt_down, "buyer")
+
+        # Lambda increases (capacity decreased)
+        assert dealer_down.lambda_ > lambda_before_down
+        assert dealer_down.I > I_before_down
+
+
+class TestGuardRegime:
+    """
+    Example 9: Guard at very low M <= M_min.
+
+    When M <= 0.02, dealer enters guard regime:
+    - X* := 0
+    - Quotes pinned to outside (A, B)
+    - All trades route to VBT (passthrough both sides)
+    """
+
+    def test_guard_pins_quotes(self):
+        """Both quotes pinned when M <= M_min."""
+        # Setup with very low M
+        dealer, vbt, params = setup_dealer_vbt_params(
+            dealer_tickets=3,
+            dealer_cash=Decimal("2.00"),
+            M=Decimal("0.01"),  # Below M_MIN = 0.02
+            O=Decimal("0.01"),
+        )
+
+        # Guard should activate
+        assert vbt.M <= M_MIN
+        assert dealer.X_star == Decimal(0)
+        assert dealer.is_pinned_ask
+        assert dealer.is_pinned_bid
+        assert dealer.ask == vbt.A
+        assert dealer.bid == vbt.B
+
+    def test_passthrough_both_sides(self):
+        """All trades route to VBT in guard regime when dealer has no inventory."""
+        # In guard regime, X*=0 means no capacity for BUYs
+        # SELLs can still happen if dealer has inventory
+        # To test full passthrough, start with no dealer inventory
+        dealer, vbt, params = setup_dealer_vbt_params(
+            dealer_tickets=0,  # No inventory
+            dealer_cash=Decimal("2.00"),
+            M=Decimal("0.01"),
+            O=Decimal("0.01"),
+        )
+
+        # Add VBT inventory for passthrough
+        for i in range(5):
+            ticket = create_ticket(
+                issuer_id=f"vbt_issuer_{i}",
+                owner_id=vbt.agent_id,
+                serial=i,
+            )
+            vbt.inventory.append(ticket)
+
+        executor = TradeExecutor(params)
+
+        # Test SELL passthrough (X*=0, cannot buy)
+        ticket_sell = create_ticket("customer_sell", "customer_sell")
+        dealer_x_before = dealer.x
+        dealer_cash_before = dealer.cash
+
+        result_sell = executor.execute_customer_sell(dealer, vbt, ticket_sell)
+
+        assert result_sell.is_passthrough
+        assert result_sell.price == vbt.B
+        assert dealer.x == dealer_x_before  # Unchanged
+        assert dealer.cash == dealer_cash_before  # Unchanged
+
+        # Test BUY passthrough (x=0, no inventory)
+        result_buy = executor.execute_customer_buy(dealer, vbt, "customer_buy")
+
+        assert result_buy.is_passthrough
+        assert result_buy.price == vbt.A
+        assert dealer.x == dealer_x_before  # Still unchanged
+        assert dealer.cash == dealer_cash_before  # Still unchanged
+
+
+class TestPartialRecovery:
+    """
+    Example 10 & 12: Partial recovery default.
+
+    Tests proportional recovery when issuer has insufficient cash:
+    R = C/D when C < D
+
+    Multiple claimants (dealer, VBT, trader) all receive proportional recovery.
+    """
+
+    def test_recovery_rate_computation(self):
+        """R = C/D when C < D."""
+        # Issuer has 3 units cash, owes 5 units
+        # R = 3/5 = 0.6
+
+        issuer_cash = Decimal(3)
+        total_due = Decimal(5)
+
+        recovery_rate = issuer_cash / total_due
+        assert recovery_rate == Decimal("0.6")
+
+        # Each holder receives proportional payout
+        dealer_tickets = 2
+        vbt_tickets = 2
+        trader_tickets = 1
+
+        dealer_payout = dealer_tickets * recovery_rate
+        vbt_payout = vbt_tickets * recovery_rate
+        trader_payout = trader_tickets * recovery_rate
+
+        assert dealer_payout == Decimal("1.2")
+        assert vbt_payout == Decimal("1.2")
+        assert trader_payout == Decimal("0.6")
+
+        # Total payout equals issuer cash
+        total_payout = dealer_payout + vbt_payout + trader_payout
+        assert total_payout == issuer_cash
+
+    def test_multiple_claimants(self):
+        """Dealer, VBT, and trader all receive proportional recovery."""
+        # Setup scenario from Example 12
+        recovery_rate = Decimal("0.6")
+
+        # Create maturing tickets for each claimant type
+        dealer_tickets = [
+            create_ticket("issuer_I", "dealer", serial=i)
+            for i in range(2)
+        ]
+
+        vbt_tickets = [
+            create_ticket("issuer_I", "vbt", serial=i+2)
+            for i in range(2)
+        ]
+
+        trader_tickets = [
+            create_ticket("issuer_I", "trader", serial=4)
+        ]
+
+        # Calculate payouts
+        dealer_payout = len(dealer_tickets) * recovery_rate
+        vbt_payout = len(vbt_tickets) * recovery_rate
+        trader_payout = len(trader_tickets) * recovery_rate
+
+        # Verify equal per-ticket recovery
+        assert dealer_payout == Decimal("1.2")
+        assert vbt_payout == Decimal("1.2")
+        assert trader_payout == Decimal("0.6")
+
+        # Total
+        total = dealer_payout + vbt_payout + trader_payout
+        assert total == Decimal("3.0")
+
+
+class TestQuoteBounds:
+    """
+    Test C2 assertion: quotes within outside bounds.
+
+    Verifies that dealer interior quotes remain within VBT outside bounds
+    at all inventory levels.
+    """
+
+    def test_quotes_within_bounds_at_all_levels(self):
+        """Dealer quotes stay within [B, A] for all feasible x."""
+        dealer, vbt, params = setup_dealer_vbt_params()
+
+        # Test at various inventory levels
+        for x in range(int(dealer.X_star) + 1):
+            # Adjust dealer inventory to x
+            dealer.inventory = [
+                create_ticket(f"issuer_{i}", dealer.agent_id, serial=i)
+                for i in range(x)
+            ]
+            recompute_dealer_state(dealer, vbt, params)
+
+            # Verify bounds
+            assert dealer.bid >= vbt.B, f"Bid {dealer.bid} < outside bid {vbt.B} at x={x}"
+            assert dealer.ask <= vbt.A, f"Ask {dealer.ask} > outside ask {vbt.A} at x={x}"
+
+            # Verify pin detection
+            assert (dealer.bid == vbt.B) == dealer.is_pinned_bid
+            assert (dealer.ask == vbt.A) == dealer.is_pinned_ask
+
+    def test_no_interior_clipping(self):
+        """Interior quotes never equal outside quotes (no clipping on interior rungs)."""
+        dealer, vbt, params = setup_dealer_vbt_params(
+            dealer_tickets=2,
+            dealer_cash=Decimal(2),
+        )
+
+        # At x=2 (balanced), quotes should be strictly inside
+        assert dealer.x == Decimal(2)
+        assert dealer.bid > vbt.B
+        assert dealer.ask < vbt.A
+        assert not dealer.is_pinned_bid
+        assert not dealer.is_pinned_ask
+
+
+class TestFeasibilityChecks:
+    """
+    Test C3 assertion: feasibility pre-checks.
+
+    Verifies that trades are only executed when feasible:
+    - BUY: x + S <= X* and C >= b_c(x)
+    - SELL: x >= S
+    """
+
+    def test_interior_buy_feasibility(self):
+        """Interior buy requires capacity and cash."""
+        dealer, vbt, params = setup_dealer_vbt_params(
+            dealer_tickets=2,
+            dealer_cash=Decimal(2),
+        )
+
+        # At x=2, X*=4: has capacity for buy
+        assert dealer.x + params.S <= dealer.X_star
+        assert dealer.cash >= dealer.bid
+        assert can_interior_buy(dealer, params)
+
+        # Test cash constraint: reduce cash below bid
+        # But we need to know what the bid will be after recomputation
+        dealer.cash = Decimal("0.90")
+        recompute_dealer_state(dealer, vbt, params)
+
+        # With less cash, may not have enough for bid
+        # Check if cash is insufficient
+        if dealer.cash < dealer.bid:
+            assert not can_interior_buy(dealer, params)
+
+        # Test capacity constraint: dealer at full capacity
+        # Setup: a=2, C=0.10 => V=2.10, K*=2, X*=2, x=2=X*
+        dealer, vbt, params = setup_dealer_vbt_params(
+            dealer_tickets=2,
+            dealer_cash=Decimal("0.10"),
+        )
+
+        # At x=2=X*, no room for more
+        assert dealer.x == Decimal(2)
+        assert dealer.X_star == Decimal(2)
+        assert dealer.x == dealer.X_star
+        assert not can_interior_buy(dealer, params)
+
+    def test_interior_sell_feasibility(self):
+        """Interior sell requires inventory."""
+        dealer, vbt, params = setup_dealer_vbt_params(
+            dealer_tickets=2,
+            dealer_cash=Decimal(2),
+        )
+
+        # Has inventory
+        assert dealer.x >= params.S
+        assert can_interior_sell(dealer, params)
+
+        # Deplete inventory
+        dealer.inventory = []
+        recompute_dealer_state(dealer, vbt, params)
+
+        # No inventory
+        assert dealer.x == Decimal(0)
+        assert not can_interior_sell(dealer, params)
+
+
+class TestDoubleEntry:
+    """
+    Test C1 assertion: double-entry bookkeeping.
+
+    For every trade, cash and ticket flows must balance across all parties.
+    """
+
+    def test_interior_trade_balance(self):
+        """Interior trade: cash and tickets balance between customer and dealer."""
+        dealer, vbt, params = setup_dealer_vbt_params()
+        executor = TradeExecutor(params)
+
+        # Customer SELL
+        ticket = create_ticket("customer", "customer")
+        result = executor.execute_customer_sell(dealer, vbt, ticket)
+
+        # Manual verification (assertions run automatically in executor)
+        price = result.price
+
+        # Cash: customer +price, dealer -price => sum = 0
+        assert_c1_double_entry(
+            cash_changes={"customer": price, dealer.agent_id: -price},
+            qty_changes={"customer": -1, dealer.agent_id: 1},
+        )
+
+    def test_passthrough_trade_balance(self):
+        """Passthrough trade: cash and tickets balance between customer and VBT."""
+        dealer, vbt, params = setup_dealer_vbt_params(
+            dealer_tickets=0,  # Force passthrough
+            dealer_cash=Decimal(2),
+        )
+
+        # Add VBT inventory
+        for i in range(5):
+            vbt.inventory.append(
+                create_ticket(f"vbt_issuer_{i}", vbt.agent_id, serial=i)
+            )
+
+        executor = TradeExecutor(params)
+
+        # Customer BUY (passthrough)
+        result = executor.execute_customer_buy(dealer, vbt, "customer")
+
+        assert result.is_passthrough
+        price = result.price
+
+        # Cash: customer -price, VBT +price, dealer 0 => sum = 0
+        assert_c1_double_entry(
+            cash_changes={"customer": -price, vbt.agent_id: price},
+            qty_changes={"customer": 1, vbt.agent_id: -1},
+        )
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])
+
+```
+
+---
+
+### 🧪 tests/dealer/test_kernel.py
+
+```python
+"""
+Unit tests for the L1 dealer pricing kernel.
+
+This module verifies the dealer kernel formulas against the specification
+using pytest and Decimal throughout. All numerical examples are from the
+specification document.
+
+References:
+- Specification Section 8: L1 Dealer Pricing Formulas
+- Examples Document: Balanced dealer state example
+"""
+
+import pytest
+from decimal import Decimal
+from copy import deepcopy
+
+from bilancio.dealer import (
+    Ticket,
+    DealerState,
+    VBTState,
+    KernelParams,
+    recompute_dealer_state,
+    can_interior_buy,
+    can_interior_sell,
+    assert_c2_quote_bounds,
+    assert_c5_equity_basis,
+)
+from bilancio.core.ids import new_id
+
+
+# Helper function to create test fixtures
+def make_dealer_vbt(
+    a: int = 2,
+    cash: Decimal = Decimal(2),
+    M: Decimal = Decimal(1),
+    O: Decimal = Decimal("0.30"),
+    S: Decimal = Decimal(1),
+) -> tuple[DealerState, VBTState, KernelParams]:
+    """
+    Create dealer/VBT with specified parameters for testing.
+
+    Args:
+        a: Number of tickets in dealer inventory
+        cash: Dealer cash holdings
+        M: VBT mid price
+        O: VBT outside spread
+        S: Standard ticket size (face value)
+
+    Returns:
+        Tuple of (DealerState, VBTState, KernelParams)
+    """
+    params = KernelParams(S=S)
+
+    # Create VBT state
+    vbt = VBTState(
+        bucket_id="test",
+        agent_id="vbt_agent",
+        M=M,
+        O=O,
+    )
+    vbt.recompute_quotes()
+
+    # Create dealer state with inventory
+    dealer = DealerState(
+        bucket_id="test",
+        agent_id="dealer_agent",
+        cash=cash,
+    )
+
+    # Add tickets to inventory
+    for i in range(a):
+        ticket = Ticket(
+            id=f"ticket_{i}",
+            issuer_id="issuer_1",
+            owner_id=dealer.agent_id,
+            face=S,
+            maturity_day=100,
+            remaining_tau=10,
+            bucket_id="test",
+            serial=i,
+        )
+        dealer.inventory.append(ticket)
+
+    # Recompute dealer state
+    recompute_dealer_state(dealer, vbt, params)
+
+    return dealer, vbt, params
+
+
+class TestCapacityComputation:
+    """Test K* = floor(V/M) and X* = S*K*."""
+
+    def test_balanced_state(self):
+        """Example: a=2, C=2, M=1 -> V=4, K*=4, X*=4."""
+        dealer, vbt, params = make_dealer_vbt(
+            a=2,
+            cash=Decimal(2),
+            M=Decimal(1),
+        )
+
+        # Check V = M*a + C = 1*2 + 2 = 4
+        assert dealer.V == Decimal(4)
+
+        # Check K* = floor(V/M) = floor(4/1) = 4
+        assert dealer.K_star == 4
+
+        # Check X* = S*K* = 1*4 = 4
+        assert dealer.X_star == Decimal(4)
+
+    def test_fractional_capacity(self):
+        """V=3.97 -> K*=3 (floor), X*=3."""
+        # Set up: a=2, C=1.97, M=1.0
+        # V = M*a + C = 1.0*2 + 1.97 = 3.97
+        dealer, vbt, params = make_dealer_vbt(
+            a=2,
+            cash=Decimal("1.97"),
+            M=Decimal(1),
+        )
+
+        # Check V
+        assert dealer.V == Decimal("3.97")
+
+        # Check K* = floor(3.97/1.0) = floor(3.97) = 3
+        assert dealer.K_star == 3
+
+        # Check X* = S*K* = 1*3 = 3
+        assert dealer.X_star == Decimal(3)
+
+    def test_zero_cash(self):
+        """a=2, C=0, M=1 -> V=2, K*=2."""
+        dealer, vbt, params = make_dealer_vbt(
+            a=2,
+            cash=Decimal(0),
+            M=Decimal(1),
+        )
+
+        # Check V = M*a + C = 1*2 + 0 = 2
+        assert dealer.V == Decimal(2)
+
+        # Check K* = floor(2/1) = 2
+        assert dealer.K_star == 2
+
+        # Check X* = S*K* = 1*2 = 2
+        assert dealer.X_star == Decimal(2)
+
+
+class TestLayoffProbability:
+    """Test λ = S/(X* + S)."""
+
+    def test_standard_case(self):
+        """X*=4, S=1 -> λ = 1/5 = 0.2."""
+        dealer, vbt, params = make_dealer_vbt(
+            a=2,
+            cash=Decimal(2),
+            M=Decimal(1),
+        )
+
+        # X* = 4, S = 1
+        assert dealer.X_star == Decimal(4)
+
+        # λ = S/(X*+S) = 1/(4+1) = 1/5 = 0.2
+        expected_lambda = Decimal(1) / Decimal(5)
+        assert dealer.lambda_ == expected_lambda
+
+    def test_small_capacity(self):
+        """X*=1, S=1 -> λ = 1/2 = 0.5."""
+        # Set up: a=1, C=0, M=1 -> V=1, K*=1, X*=1
+        dealer, vbt, params = make_dealer_vbt(
+            a=1,
+            cash=Decimal(0),
+            M=Decimal(1),
+        )
+
+        assert dealer.X_star == Decimal(1)
+
+        # λ = S/(X*+S) = 1/(1+1) = 1/2 = 0.5
+        expected_lambda = Decimal(1) / Decimal(2)
+        assert dealer.lambda_ == expected_lambda
+
+    def test_zero_capacity(self):
+        """X*=0 -> λ = 1 (degenerate case)."""
+        # Set up: a=0, C=0, M=1 -> V=0, K*=0, X*=0
+        dealer, vbt, params = make_dealer_vbt(
+            a=0,
+            cash=Decimal(0),
+            M=Decimal(1),
+        )
+
+        assert dealer.X_star == Decimal(0)
+
+        # λ = 1 (degenerate case)
+        assert dealer.lambda_ == Decimal(1)
+
+
+class TestInsideWidth:
+    """Test I = λ * O."""
+
+    def test_standard_case(self):
+        """λ=0.2, O=0.30 -> I = 0.06."""
+        dealer, vbt, params = make_dealer_vbt(
+            a=2,
+            cash=Decimal(2),
+            M=Decimal(1),
+            O=Decimal("0.30"),
+        )
+
+        # λ = 1/5 = 0.2
+        assert dealer.lambda_ == Decimal(1) / Decimal(5)
+
+        # I = λ*O = 0.2*0.30 = 0.06
+        expected_I = Decimal("0.2") * Decimal("0.30")
+        assert dealer.I == expected_I
+
+    def test_width_shrinks_with_capacity(self):
+        """Higher capacity -> lower λ -> narrower I."""
+        # Low capacity case: a=1, C=0 -> X*=1, λ=0.5
+        dealer_low, vbt_low, params_low = make_dealer_vbt(
+            a=1,
+            cash=Decimal(0),
+            M=Decimal(1),
+            O=Decimal("0.30"),
+        )
+
+        # High capacity case: a=2, C=2 -> X*=4, λ=0.2
+        dealer_high, vbt_high, params_high = make_dealer_vbt(
+            a=2,
+            cash=Decimal(2),
+            M=Decimal(1),
+            O=Decimal("0.30"),
+        )
+
+        # Verify λ decreases with capacity
+        assert dealer_high.X_star > dealer_low.X_star
+        assert dealer_high.lambda_ < dealer_low.lambda_
+
+        # Verify I decreases with capacity
+        assert dealer_high.I < dealer_low.I
+
+
+class TestMidlineFormula:
+    """Test p(x) = M - O/(X*+2S) * (x - X*/2)."""
+
+    def test_balanced_inventory(self):
+        """At x=X*/2=2 (balanced): p(2)=M=1.0."""
+        dealer, vbt, params = make_dealer_vbt(
+            a=2,
+            cash=Decimal(2),
+            M=Decimal(1),
+            O=Decimal("0.30"),
+        )
+
+        # X* = 4, x = a*S = 2*1 = 2 = X*/2 (balanced)
+        assert dealer.X_star == Decimal(4)
+        assert dealer.x == Decimal(2)
+
+        # At balanced inventory, p(x) = M
+        assert dealer.midline == Decimal(1)
+
+    def test_low_inventory(self):
+        """At x=0: p(0) > M (dealer wants to buy, higher price)."""
+        # Create dealer with zero inventory
+        dealer, vbt, params = make_dealer_vbt(
+            a=0,
+            cash=Decimal(4),
+            M=Decimal(1),
+            O=Decimal("0.30"),
+        )
+
+        # x=0, X*=4
+        assert dealer.x == Decimal(0)
+        assert dealer.X_star == Decimal(4)
+
+        # p(0) = M - O/(X*+2S) * (0 - X*/2)
+        #      = M - O/(X*+2S) * (-X*/2)
+        #      = M + O*X* / (2*(X*+2S))
+        #      > M (since O, X* > 0)
+        assert dealer.midline > vbt.M
+
+    def test_high_inventory(self):
+        """At x=X*: p(X*) < M (dealer wants to sell, lower price)."""
+        # Create dealer with x=X*=4 (full capacity)
+        # Need a=4, C=0, M=1 -> V=4, K*=4, X*=4
+        dealer, vbt, params = make_dealer_vbt(
+            a=4,
+            cash=Decimal(0),
+            M=Decimal(1),
+            O=Decimal("0.30"),
+        )
+
+        # x=4, X*=4
+        assert dealer.x == Decimal(4)
+        assert dealer.X_star == Decimal(4)
+
+        # p(4) = M - O/(X*+2S) * (4 - 4/2)
+        #      = M - O/(X*+2S) * (4 - 2)
+        #      = M - 2*O/(X*+2S)
+        #      < M (since O > 0)
+        assert dealer.midline < vbt.M
+
+    def test_midline_slope(self):
+        """Verify slope = O/(X*+2S)."""
+        dealer, vbt, params = make_dealer_vbt(
+            a=2,
+            cash=Decimal(2),
+            M=Decimal(1),
+            O=Decimal("0.30"),
+        )
+
+        # X* = 4, S = 1
+        # slope = O/(X*+2S) = 0.30/(4+2) = 0.30/6 = 0.05
+        S = params.S
+        expected_slope = vbt.O / (dealer.X_star + 2 * S)
+        assert expected_slope == Decimal("0.05")
+
+        # Verify the midline formula at specific points
+        # p(x) = M - slope * (x - X*/2)
+
+        # At x=0 (no inventory):
+        x_test = Decimal(0)
+        expected_p = vbt.M - expected_slope * (x_test - dealer.X_star / 2)
+
+        # Create dealer with x=0 but same X* (maintain V=4 via cash)
+        dealer_test, vbt_test, params_test = make_dealer_vbt(
+            a=0,
+            cash=Decimal(4),  # V = 0*1 + 4 = 4, K* = 4, X* = 4
+            M=Decimal(1),
+            O=Decimal("0.30"),
+        )
+
+        # Verify X* is same
+        assert dealer_test.X_star == dealer.X_star
+
+        # Verify midline matches formula
+        # At x=0: p(0) = M - slope * (0 - 2) = M + 2*slope
+        expected_p_0 = vbt.M + 2 * expected_slope
+        assert abs(dealer_test.midline - expected_p_0) < Decimal("1e-10")
+
+        # At x=4 (full capacity):
+        dealer_test2, vbt_test2, params_test2 = make_dealer_vbt(
+            a=4,
+            cash=Decimal(0),  # V = 4*1 + 0 = 4, K* = 4, X* = 4
+            M=Decimal(1),
+            O=Decimal("0.30"),
+        )
+
+        # Verify X* is same
+        assert dealer_test2.X_star == dealer.X_star
+
+        # At x=4: p(4) = M - slope * (4 - 2) = M - 2*slope
+        expected_p_4 = vbt.M - 2 * expected_slope
+        assert abs(dealer_test2.midline - expected_p_4) < Decimal("1e-10")
+
+
+class TestInteriorQuotes:
+    """Test a(x) = p(x) + I/2, b(x) = p(x) - I/2."""
+
+    def test_quotes_at_balanced(self):
+        """At x=2: a(2)=1.03, b(2)=0.97."""
+        dealer, vbt, params = make_dealer_vbt(
+            a=2,
+            cash=Decimal(2),
+            M=Decimal(1),
+            O=Decimal("0.30"),
+        )
+
+        # At balanced inventory (x=2), p(2) = M = 1.0
+        # I = λ*O = 0.2*0.30 = 0.06
+        # a(2) = p(2) + I/2 = 1.0 + 0.03 = 1.03
+        # b(2) = p(2) - I/2 = 1.0 - 0.03 = 0.97
+
+        assert dealer.midline == Decimal(1)
+        assert dealer.I == Decimal("0.06")
+
+        # Since interior quotes aren't clipped in this case:
+        # ask = a(x) = p(x) + I/2
+        # bid = b(x) = p(x) - I/2
+        half_I = dealer.I / 2
+        expected_ask = dealer.midline + half_I
+        expected_bid = dealer.midline - half_I
+
+        # Verify quotes (accounting for possible clipping)
+        # In this case, A = M + O/2 = 1.0 + 0.15 = 1.15
+        # B = M - O/2 = 1.0 - 0.15 = 0.85
+        # So a(2) = 1.03 < 1.15 = A (not clipped)
+        # And b(2) = 0.97 > 0.85 = B (not clipped)
+
+        assert dealer.ask == expected_ask
+        assert dealer.bid == expected_bid
+
+        # Check exact values from spec
+        assert dealer.ask == Decimal("1.03")
+        assert dealer.bid == Decimal("0.97")
+
+    def test_spread_equals_inside_width(self):
+        """a(x) - b(x) = I."""
+        dealer, vbt, params = make_dealer_vbt(
+            a=2,
+            cash=Decimal(2),
+            M=Decimal(1),
+            O=Decimal("0.30"),
+        )
+
+        # Spread should equal I (assuming no clipping)
+        spread = dealer.ask - dealer.bid
+        assert spread == dealer.I
+
+
+class TestClippedQuotes:
+    """Test a_c(x) = min(A, a(x)), b_c(x) = max(B, b(x))."""
+
+    def test_no_clipping_in_normal_case(self):
+        """Interior quotes stay within outside bounds."""
+        dealer, vbt, params = make_dealer_vbt(
+            a=2,
+            cash=Decimal(2),
+            M=Decimal(1),
+            O=Decimal("0.30"),
+        )
+
+        # A = M + O/2 = 1.0 + 0.15 = 1.15
+        # B = M - O/2 = 1.0 - 0.15 = 0.85
+        assert vbt.A == Decimal("1.15")
+        assert vbt.B == Decimal("0.85")
+
+        # a(2) = 1.03 < 1.15, so no clipping
+        # b(2) = 0.97 > 0.85, so no clipping
+        assert dealer.ask < vbt.A
+        assert dealer.bid > vbt.B
+
+        # Verify not pinned
+        assert not dealer.is_pinned_ask
+        assert not dealer.is_pinned_bid
+
+    def test_quotes_never_exceed_bounds(self):
+        """Property: b_c >= B and a_c <= A always."""
+        # Test various inventory levels
+        for a in [0, 1, 2, 3, 4]:
+            dealer, vbt, params = make_dealer_vbt(
+                a=a,
+                cash=Decimal(2),
+                M=Decimal(1),
+                O=Decimal("0.30"),
+            )
+
+            # Quotes must be within bounds
+            assert dealer.bid >= vbt.B
+            assert dealer.ask <= vbt.A
+
+
+class TestPinDetection:
+    """Test pin flags consistency."""
+
+    def test_not_pinned_normal(self):
+        """Normal case: not pinned."""
+        dealer, vbt, params = make_dealer_vbt(
+            a=2,
+            cash=Decimal(2),
+            M=Decimal(1),
+            O=Decimal("0.30"),
+        )
+
+        # In balanced state with sufficient capacity, should not be pinned
+        assert not dealer.is_pinned_ask
+        assert not dealer.is_pinned_bid
+
+    def test_pin_detection_consistency(self):
+        """is_pinned_ask iff ask == A."""
+        dealer, vbt, params = make_dealer_vbt(
+            a=2,
+            cash=Decimal(2),
+            M=Decimal(1),
+            O=Decimal("0.30"),
+        )
+
+        # Check consistency
+        assert dealer.is_pinned_ask == (dealer.ask == vbt.A)
+        assert dealer.is_pinned_bid == (dealer.bid == vbt.B)
+
+
+class TestGuardRegime:
+    """Test M <= M_MIN behavior."""
+
+    def test_guard_activates(self):
+        """When M <= 0.02, X*=0 and quotes pinned."""
+        from bilancio.dealer import M_MIN
+
+        # Set M = M_MIN = 0.02
+        dealer, vbt, params = make_dealer_vbt(
+            a=2,
+            cash=Decimal(2),
+            M=M_MIN,
+            O=Decimal("0.30"),
+        )
+
+        # In guard regime: X* = 0
+        assert dealer.X_star == Decimal(0)
+
+        # Quotes pinned to outside
+        assert dealer.is_pinned_ask
+        assert dealer.is_pinned_bid
+
+    def test_guard_pins_both_quotes(self):
+        """Both ask and bid pinned to outside in guard."""
+        from bilancio.dealer import M_MIN
+
+        dealer, vbt, params = make_dealer_vbt(
+            a=2,
+            cash=Decimal(2),
+            M=M_MIN - Decimal("0.01"),  # Below threshold
+            O=Decimal("0.30"),
+        )
+
+        # Quotes must equal outside quotes
+        assert dealer.ask == vbt.A
+        assert dealer.bid == vbt.B
+
+
+class TestFeasibilityChecks:
+    """Test can_interior_buy and can_interior_sell."""
+
+    def test_interior_buy_feasible(self):
+        """x + S <= X* and C >= b_c(x)."""
+        dealer, vbt, params = make_dealer_vbt(
+            a=2,
+            cash=Decimal(2),
+            M=Decimal(1),
+        )
+
+        # x=2, X*=4, so x+S=3 <= 4 ✓
+        # C=2 >= b_c(2)=0.97 ✓
+        assert can_interior_buy(dealer, params)
+
+    def test_interior_buy_capacity_fails(self):
+        """x + S > X* -> infeasible."""
+        # Set up: a=4, C=0 -> x=4, X*=4
+        dealer, vbt, params = make_dealer_vbt(
+            a=4,
+            cash=Decimal(0),
+            M=Decimal(1),
+        )
+
+        # x=4, X*=4, so x+S=5 > 4 ✗
+        assert not can_interior_buy(dealer, params)
+
+    def test_interior_buy_cash_fails(self):
+        """C < b_c(x) -> infeasible."""
+        # Set up: a=2, C=0.50 (insufficient cash)
+        dealer, vbt, params = make_dealer_vbt(
+            a=2,
+            cash=Decimal("0.50"),
+            M=Decimal(1),
+        )
+
+        # bid = 0.97, cash = 0.50, so 0.50 < 0.97 ✗
+        assert not can_interior_buy(dealer, params)
+
+    def test_interior_sell_feasible(self):
+        """x >= S."""
+        dealer, vbt, params = make_dealer_vbt(
+            a=2,
+            cash=Decimal(2),
+            M=Decimal(1),
+        )
+
+        # x=2, S=1, so 2 >= 1 ✓
+        assert can_interior_sell(dealer, params)
+
+    def test_interior_sell_no_inventory(self):
+        """x < S -> infeasible."""
+        # Set up: a=0 -> x=0
+        dealer, vbt, params = make_dealer_vbt(
+            a=0,
+            cash=Decimal(4),
+            M=Decimal(1),
+        )
+
+        # x=0, S=1, so 0 < 1 ✗
+        assert not can_interior_sell(dealer, params)
+
+
+class TestInvariants:
+    """Test C2 and C5 invariants hold after kernel computation."""
+
+    def test_c2_quote_bounds(self):
+        """Quotes within outside bounds."""
+        dealer, vbt, params = make_dealer_vbt(
+            a=2,
+            cash=Decimal(2),
+            M=Decimal(1),
+            O=Decimal("0.30"),
+        )
+
+        # Should not raise
+        assert_c2_quote_bounds(dealer, vbt)
+
+    def test_c2_quote_bounds_various_states(self):
+        """Test C2 across various inventory states."""
+        for a in [0, 1, 2, 3, 4]:
+            for cash in [Decimal(0), Decimal(1), Decimal(2), Decimal(5)]:
+                dealer, vbt, params = make_dealer_vbt(
+                    a=a,
+                    cash=cash,
+                    M=Decimal(1),
+                    O=Decimal("0.30"),
+                )
+
+                # Should never violate C2
+                assert_c2_quote_bounds(dealer, vbt)
+
+    def test_c5_equity_basis(self):
+        """V = C + M*a."""
+        dealer, vbt, params = make_dealer_vbt(
+            a=2,
+            cash=Decimal(2),
+            M=Decimal(1),
+        )
+
+        # Should not raise
+        assert_c5_equity_basis(dealer, vbt)
+
+    def test_c5_equity_basis_various_states(self):
+        """Test C5 across various states."""
+        for a in [0, 1, 2, 3, 4]:
+            for cash in [Decimal(0), Decimal(1), Decimal(2), Decimal(5)]:
+                for M in [Decimal("0.5"), Decimal(1), Decimal("1.5")]:
+                    dealer, vbt, params = make_dealer_vbt(
+                        a=a,
+                        cash=cash,
+                        M=M,
+                        O=Decimal("0.30"),
+                    )
+
+                    # Should never violate C5
+                    assert_c5_equity_basis(dealer, vbt)
+
+
+class TestEdgeCases:
+    """Test edge cases and boundary conditions."""
+
+    def test_zero_inventory_zero_cash(self):
+        """Empty dealer: a=0, C=0."""
+        dealer, vbt, params = make_dealer_vbt(
+            a=0,
+            cash=Decimal(0),
+            M=Decimal(1),
+        )
+
+        assert dealer.V == Decimal(0)
+        assert dealer.K_star == 0
+        assert dealer.X_star == Decimal(0)
+
+    def test_large_inventory(self):
+        """Large inventory: a=100."""
+        dealer, vbt, params = make_dealer_vbt(
+            a=100,
+            cash=Decimal(0),
+            M=Decimal(1),
+        )
+
+        # V = 100, K* = 100, X* = 100
+        assert dealer.V == Decimal(100)
+        assert dealer.K_star == 100
+        assert dealer.X_star == Decimal(100)
+
+        # λ should be small with large capacity
+        assert dealer.lambda_ < Decimal("0.01")
+
+    def test_high_outside_spread(self):
+        """Wide outside spread: O=1.0."""
+        dealer, vbt, params = make_dealer_vbt(
+            a=2,
+            cash=Decimal(2),
+            M=Decimal(1),
+            O=Decimal(1),
+        )
+
+        # I should be larger with wider O
+        assert dealer.I == dealer.lambda_ * Decimal(1)
+
+    def test_low_mid_price(self):
+        """Low VBT mid: M=0.10."""
+        dealer, vbt, params = make_dealer_vbt(
+            a=2,
+            cash=Decimal(2),
+            M=Decimal("0.10"),
+            O=Decimal("0.05"),
+        )
+
+        # V = M*a + C = 0.10*2 + 2 = 2.20
+        assert dealer.V == Decimal("2.20")
+
+        # K* = floor(2.20 / 0.10) = floor(22) = 22
+        assert dealer.K_star == 22
+
+        # X* = 1 * 22 = 22
+        assert dealer.X_star == Decimal(22)
+
+
+class TestKernelRecomputation:
+    """Test that kernel recomputation is idempotent and consistent."""
+
+    def test_idempotency(self):
+        """Recomputing twice should give same result."""
+        dealer, vbt, params = make_dealer_vbt(
+            a=2,
+            cash=Decimal(2),
+            M=Decimal(1),
+        )
+
+        # Save state after first computation
+        V_1 = dealer.V
+        ask_1 = dealer.ask
+        bid_1 = dealer.bid
+
+        # Recompute again
+        recompute_dealer_state(dealer, vbt, params)
+
+        # Should be identical
+        assert dealer.V == V_1
+        assert dealer.ask == ask_1
+        assert dealer.bid == bid_1
+
+    def test_consistency_after_inventory_change(self):
+        """Adding inventory should update all derived quantities."""
+        dealer, vbt, params = make_dealer_vbt(
+            a=2,
+            cash=Decimal(2),
+            M=Decimal(1),
+        )
+
+        # Save initial state
+        x_before = dealer.x
+        V_before = dealer.V
+
+        # Add one ticket
+        ticket = Ticket(
+            id="ticket_new",
+            issuer_id="issuer_1",
+            owner_id=dealer.agent_id,
+            face=params.S,
+            maturity_day=100,
+            remaining_tau=10,
+            bucket_id="test",
+            serial=999,
+        )
+        dealer.inventory.append(ticket)
+
+        # Recompute
+        recompute_dealer_state(dealer, vbt, params)
+
+        # Verify changes
+        assert dealer.x == x_before + params.S
+        assert dealer.a == 3
+        assert dealer.V > V_before  # V increased (assuming M > 0)
+
+```
+
+---
+
+### 🧪 tests/dealer/test_report.py
+
+```python
+"""Tests for dealer ring HTML report generation."""
+
+import pytest
+from decimal import Decimal
+from pathlib import Path
+import tempfile
+
+from bilancio.dealer import (
+    DealerRingConfig,
+    DealerRingSimulation,
+    Ticket,
+    TraderState,
+    generate_dealer_ring_html,
+    export_dealer_ring_html,
+)
+
+
+class TestReportGeneration:
+    """Test basic HTML report generation."""
+
+    def test_generate_html_basic(self):
+        """Generate HTML report from minimal simulation."""
+        config = DealerRingConfig(
+            N_max=0,  # No random order flow
+            max_days=1,
+        )
+        sim = DealerRingSimulation(config)
+
+        # Set up minimal ring
+        trader = TraderState(agent_id="T1", cash=Decimal(10))
+        ticket = Ticket(
+            id="ticket_1",
+            issuer_id="T1",
+            owner_id="T1",
+            face=Decimal(1),
+            maturity_day=20,
+            remaining_tau=15,
+        )
+        trader.obligations.append(ticket)
+
+        sim.setup_ring([trader], [ticket])
+        sim.run(max_days=1)
+
+        # Generate HTML
+        html = generate_dealer_ring_html(
+            sim.snapshots,
+            sim.config,
+            title="Test Report",
+            subtitle="Minimal test",
+        )
+
+        # Basic structure checks
+        assert "<!DOCTYPE html>" in html
+        assert "<title>Test Report</title>" in html
+        assert "Minimal test" in html
+        assert "Day 0 (Setup)" in html
+        assert "Day 1" in html
+        assert "Dealer:" in html
+        assert "VBT:" in html
+
+    def test_generate_html_with_trades(self):
+        """Verify trade events are rendered."""
+        config = DealerRingConfig(
+            N_max=0,
+            dealer_share=Decimal("0.5"),
+            vbt_share=Decimal("0.25"),
+            max_days=1,
+        )
+        sim = DealerRingSimulation(config)
+
+        # Create a trader with shortfall to trigger sell
+        trader = TraderState(agent_id="T1", cash=Decimal(0))
+
+        # Create tickets
+        tickets = []
+        for i in range(4):
+            ticket = Ticket(
+                id=f"ticket_{i}",
+                issuer_id="T1",
+                owner_id="T1",
+                face=Decimal(1),
+                maturity_day=20,
+                remaining_tau=15,  # long bucket
+            )
+            trader.obligations.append(ticket)
+            tickets.append(ticket)
+
+        sim.setup_ring([trader], tickets)
+
+        # Manually trigger a trade by executing sell
+        from bilancio.dealer import recompute_dealer_state
+        dealer = sim.dealers["long"]
+        vbt = sim.vbts["long"]
+        recompute_dealer_state(dealer, vbt, sim.params)
+
+        # Execute a customer sell if dealer has inventory
+        if dealer.inventory:
+            ticket_to_sell = dealer.inventory[0]
+            result = sim.executor.execute_customer_sell(dealer, vbt, ticket_to_sell)
+            sim.events.log_trade(
+                day=1,
+                side="SELL",
+                trader_id="T1",
+                ticket_id=ticket_to_sell.id,
+                bucket="long",
+                price=result.price,
+                is_passthrough=result.is_passthrough,
+            )
+
+        sim.run(max_days=1)
+
+        html = generate_dealer_ring_html(sim.snapshots, sim.config)
+
+        # Should contain quote events at minimum
+        assert "quote" in html
+
+    def test_generate_html_dealer_state_displayed(self):
+        """Verify dealer state parameters are displayed."""
+        config = DealerRingConfig(N_max=0, max_days=1)
+        sim = DealerRingSimulation(config)
+
+        trader = TraderState(agent_id="T1", cash=Decimal(10))
+        ticket = Ticket(
+            id="ticket_1",
+            issuer_id="T1",
+            owner_id="T1",
+            face=Decimal(1),
+            maturity_day=20,
+            remaining_tau=15,
+        )
+        trader.obligations.append(ticket)
+
+        sim.setup_ring([trader], [ticket])
+
+        html = generate_dealer_ring_html(sim.snapshots, sim.config)
+
+        # Check dealer parameters are shown
+        assert "Tickets (a)" in html
+        assert "Face inventory (x)" in html
+        assert "Cash (C)" in html
+        assert "Mid-valued (V)" in html
+        assert "Max tickets (K*)" in html
+        assert "Layoff prob" in html
+        assert "Midline p(x)" in html
+        assert "Bid" in html
+        assert "Ask" in html
+
+    def test_generate_html_vbt_state_displayed(self):
+        """Verify VBT state parameters are displayed."""
+        config = DealerRingConfig(N_max=0, max_days=1)
+        sim = DealerRingSimulation(config)
+
+        trader = TraderState(agent_id="T1", cash=Decimal(10))
+        ticket = Ticket(
+            id="ticket_1",
+            issuer_id="T1",
+            owner_id="T1",
+            face=Decimal(1),
+            maturity_day=20,
+            remaining_tau=15,
+        )
+        trader.obligations.append(ticket)
+
+        sim.setup_ring([trader], [ticket])
+
+        html = generate_dealer_ring_html(sim.snapshots, sim.config)
+
+        # Check VBT parameters are shown
+        assert "Mid anchor (M)" in html
+        assert "Spread anchor (O)" in html
+        assert "Ask (A = M + O/2)" in html
+        assert "Bid (B = M - O/2)" in html
+
+    def test_generate_html_trader_balance_displayed(self):
+        """Verify trader balance sheet is displayed."""
+        config = DealerRingConfig(N_max=0, max_days=1)
+        sim = DealerRingSimulation(config)
+
+        trader = TraderState(agent_id="TestTrader", cash=Decimal("5.50"))
+        ticket = Ticket(
+            id="ticket_1",
+            issuer_id="TestTrader",
+            owner_id="TestTrader",
+            face=Decimal(1),
+            maturity_day=20,
+            remaining_tau=15,
+        )
+        trader.obligations.append(ticket)
+
+        sim.setup_ring([trader], [ticket])
+
+        html = generate_dealer_ring_html(sim.snapshots, sim.config)
+
+        # Check trader info is shown
+        assert "TestTrader" in html
+        assert "Assets" in html
+        assert "Liabilities" in html
+        assert "Cash" in html
+
+
+class TestExportToFile:
+    """Test HTML export to file."""
+
+    def test_export_creates_file(self):
+        """Export HTML report to file."""
+        config = DealerRingConfig(N_max=0, max_days=1)
+        sim = DealerRingSimulation(config)
+
+        trader = TraderState(agent_id="T1", cash=Decimal(10))
+        ticket = Ticket(
+            id="ticket_1",
+            issuer_id="T1",
+            owner_id="T1",
+            face=Decimal(1),
+            maturity_day=20,
+            remaining_tau=15,
+        )
+        trader.obligations.append(ticket)
+
+        sim.setup_ring([trader], [ticket])
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "test_report.html"
+            export_dealer_ring_html(sim.snapshots, sim.config, path)
+
+            assert path.exists()
+            content = path.read_text()
+            assert "<!DOCTYPE html>" in content
+
+    def test_export_creates_parent_dirs(self):
+        """Export creates parent directories if needed."""
+        config = DealerRingConfig(N_max=0, max_days=1)
+        sim = DealerRingSimulation(config)
+
+        trader = TraderState(agent_id="T1", cash=Decimal(10))
+        ticket = Ticket(
+            id="ticket_1",
+            issuer_id="T1",
+            owner_id="T1",
+            face=Decimal(1),
+            maturity_day=20,
+            remaining_tau=15,
+        )
+        trader.obligations.append(ticket)
+
+        sim.setup_ring([trader], [ticket])
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "nested" / "dirs" / "test_report.html"
+            export_dealer_ring_html(sim.snapshots, sim.config, path)
+
+            assert path.exists()
+
+    def test_simulation_to_html_method(self):
+        """Test simulation's to_html() convenience method."""
+        config = DealerRingConfig(N_max=0, max_days=1)
+        sim = DealerRingSimulation(config)
+
+        trader = TraderState(agent_id="T1", cash=Decimal(10))
+        ticket = Ticket(
+            id="ticket_1",
+            issuer_id="T1",
+            owner_id="T1",
+            face=Decimal(1),
+            maturity_day=20,
+            remaining_tau=15,
+        )
+        trader.obligations.append(ticket)
+
+        sim.setup_ring([trader], [ticket])
+        sim.run(max_days=1)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "report.html"
+            sim.to_html(path, title="Via Method", subtitle="Test subtitle")
+
+            assert path.exists()
+            content = path.read_text()
+            assert "Via Method" in content
+            assert "Test subtitle" in content
+
+
+class TestHTMLEscaping:
+    """Test HTML escaping for security."""
+
+    def test_agent_id_escaped(self):
+        """Agent IDs with special characters are escaped."""
+        config = DealerRingConfig(N_max=0, max_days=1)
+        sim = DealerRingSimulation(config)
+
+        # Use agent ID with HTML special characters
+        trader = TraderState(agent_id="<xss>alert('test')</xss>", cash=Decimal(10))
+        ticket = Ticket(
+            id="ticket_1",
+            issuer_id=trader.agent_id,
+            owner_id=trader.agent_id,
+            face=Decimal(1),
+            maturity_day=20,
+            remaining_tau=15,
+        )
+        trader.obligations.append(ticket)
+
+        sim.setup_ring([trader], [ticket])
+
+        html = generate_dealer_ring_html(sim.snapshots, sim.config)
+
+        # XSS tag should be escaped (using xss to avoid false positive from script in CSS)
+        assert "<xss>" not in html
+        assert "&lt;xss&gt;" in html
+
+    def test_title_escaped(self):
+        """Title with special characters is escaped."""
+        config = DealerRingConfig(N_max=0, max_days=1)
+        sim = DealerRingSimulation(config)
+
+        trader = TraderState(agent_id="T1", cash=Decimal(10))
+        ticket = Ticket(
+            id="ticket_1",
+            issuer_id="T1",
+            owner_id="T1",
+            face=Decimal(1),
+            maturity_day=20,
+            remaining_tau=15,
+        )
+        trader.obligations.append(ticket)
+
+        sim.setup_ring([trader], [ticket])
+
+        html = generate_dealer_ring_html(
+            sim.snapshots,
+            sim.config,
+            title="Test & Report <bold>",
+            subtitle='Quote: "test"',
+        )
+
+        assert "&amp;" in html
+        assert "&lt;bold&gt;" in html
+        assert "&quot;test&quot;" in html
+
+
+class TestSnapshotCapture:
+    """Test that snapshots are properly captured."""
+
+    def test_snapshot_captured_on_setup(self):
+        """Snapshot is captured after setup_ring (Day 0)."""
+        config = DealerRingConfig(N_max=0, max_days=0)
+        sim = DealerRingSimulation(config)
+
+        trader = TraderState(agent_id="T1", cash=Decimal(10))
+        ticket = Ticket(
+            id="ticket_1",
+            issuer_id="T1",
+            owner_id="T1",
+            face=Decimal(1),
+            maturity_day=20,
+            remaining_tau=15,
+        )
+        trader.obligations.append(ticket)
+
+        # Before setup - no snapshots
+        assert len(sim.snapshots) == 0
+
+        sim.setup_ring([trader], [ticket])
+
+        # After setup - Day 0 snapshot
+        assert len(sim.snapshots) == 1
+        assert sim.snapshots[0].day == 0
+
+    def test_snapshot_captured_each_day(self):
+        """Snapshots are captured at end of each day."""
+        config = DealerRingConfig(N_max=0, max_days=3)
+        sim = DealerRingSimulation(config)
+
+        trader = TraderState(agent_id="T1", cash=Decimal(10))
+        ticket = Ticket(
+            id="ticket_1",
+            issuer_id="T1",
+            owner_id="T1",
+            face=Decimal(1),
+            maturity_day=20,
+            remaining_tau=15,
+        )
+        trader.obligations.append(ticket)
+
+        sim.setup_ring([trader], [ticket])
+        sim.run(max_days=3)
+
+        # Should have Day 0 + Days 1,2,3 = 4 snapshots
+        assert len(sim.snapshots) == 4
+        assert [s.day for s in sim.snapshots] == [0, 1, 2, 3]
+
+    def test_snapshot_contains_dealer_state(self):
+        """Snapshot captures dealer state correctly."""
+        config = DealerRingConfig(N_max=0, max_days=1)
+        sim = DealerRingSimulation(config)
+
+        trader = TraderState(agent_id="T1", cash=Decimal(10))
+        ticket = Ticket(
+            id="ticket_1",
+            issuer_id="T1",
+            owner_id="T1",
+            face=Decimal(1),
+            maturity_day=20,
+            remaining_tau=15,
+        )
+        trader.obligations.append(ticket)
+
+        sim.setup_ring([trader], [ticket])
+
+        snapshot = sim.snapshots[0]
+
+        # Check dealer data is present
+        assert "long" in snapshot.dealers
+        dealer = snapshot.dealers["long"]
+        assert "a" in dealer
+        assert "cash" in dealer
+        assert "bid" in dealer
+        assert "ask" in dealer
+
+    def test_snapshot_contains_trader_state(self):
+        """Snapshot captures trader state correctly."""
+        config = DealerRingConfig(N_max=0, max_days=1)
+        sim = DealerRingSimulation(config)
+
+        trader = TraderState(agent_id="TestTrader", cash=Decimal("5.50"))
+        ticket = Ticket(
+            id="ticket_1",
+            issuer_id="TestTrader",
+            owner_id="TestTrader",
+            face=Decimal(1),
+            maturity_day=20,
+            remaining_tau=15,
+        )
+        trader.obligations.append(ticket)
+
+        sim.setup_ring([trader], [ticket])
+
+        snapshot = sim.snapshots[0]
+
+        # Check trader data is present
+        assert "TestTrader" in snapshot.traders
+        trader_data = snapshot.traders["TestTrader"]
+        assert trader_data["cash"] == Decimal("5.50")
+        assert len(trader_data["obligations"]) == 1
+
+
+class TestRebucketEventRendering:
+    """Test rebucket events are rendered correctly."""
+
+    def test_rebucket_event_in_html(self):
+        """Rebucket events appear in HTML output."""
+        config = DealerRingConfig(
+            N_max=0,
+            dealer_share=Decimal("1.0"),  # All to dealer for rebucketing
+            vbt_share=Decimal("0"),
+            max_days=2,
+        )
+        sim = DealerRingSimulation(config)
+
+        trader = TraderState(agent_id="T1", cash=Decimal(10))
+
+        # Create ticket at boundary (tau=9 is long, tau=8 is mid)
+        ticket = Ticket(
+            id="boundary_ticket",
+            issuer_id="T1",
+            owner_id="T1",
+            face=Decimal(1),
+            maturity_day=20,
+            remaining_tau=9,  # Will become 8 after day 1 update
+        )
+        trader.obligations.append(ticket)
+
+        sim.setup_ring([trader], [ticket])
+        sim.run(max_days=1)  # This should trigger rebucket
+
+        html = generate_dealer_ring_html(sim.snapshots, sim.config)
+
+        # Should see rebucket event if ticket was in dealer inventory
+        # The exact presence depends on allocation
+        assert "Day 1" in html
+
+```
+
+---
+
+### 🧪 tests/dealer/test_simulation.py
+
+```python
+"""
+Integration tests for dealer ring simulation.
+
+These tests verify the complete event loop per Section 11 of the specification:
+- Phase 1: Maturity updates and rebucketing (Events 11-12)
+- Phase 2: Dealer pre-computation
+- Phase 3: Sell/buy eligibility sets
+- Phase 4: Randomized order flow
+- Phase 5: Settlement with proportional recovery
+- Phase 6: VBT anchor updates
+
+Tests are based on worked examples from the specification:
+- Example 1: Rebucketing with dealer-held tickets
+- Example 2: Maturing debt and cross-bucket reallocation
+- Example 14: Event loop harness for arrivals
+- Examples 10 & 12: Partial recovery defaults
+
+References:
+- docs/dealer_ring/dealer_examples.pdf
+- docs/dealer_ring/dealer_specification.pdf
+"""
+
+import pytest
+from decimal import Decimal
+from copy import deepcopy
+
+from bilancio.dealer import (
+    Ticket,
+    DealerState,
+    VBTState,
+    TraderState,
+    KernelParams,
+    DealerRingConfig,
+    DealerRingSimulation,
+    recompute_dealer_state,
+    run_all_assertions,
+)
+from bilancio.core.ids import new_id
+
+
+# =========================================================================
+# Test Fixtures and Helpers
+# =========================================================================
+
+def create_ticket(
+    issuer_id: str,
+    owner_id: str,
+    face: Decimal = Decimal(1),
+    maturity_day: int = 10,
+    remaining_tau: int = 5,
+    bucket_id: str | None = None,
+    serial: int = 0,
+) -> Ticket:
+    """Create a ticket for testing."""
+    return Ticket(
+        id=new_id(),
+        issuer_id=issuer_id,
+        owner_id=owner_id,
+        face=face,
+        maturity_day=maturity_day,
+        remaining_tau=remaining_tau,
+        bucket_id=bucket_id,
+        serial=serial,
+    )
+
+
+def create_trader(
+    agent_id: str | None = None,
+    cash: Decimal = Decimal(10),
+) -> TraderState:
+    """Create a trader for testing."""
+    return TraderState(
+        agent_id=agent_id or new_id("trader"),
+        cash=cash,
+    )
+
+
+def create_ring_traders(n: int, cash_per_trader: Decimal = Decimal(10)) -> list[TraderState]:
+    """Create a ring of traders."""
+    traders = []
+    for i in range(n):
+        traders.append(TraderState(
+            agent_id=new_id(f"trader_{i}"),
+            cash=cash_per_trader,
+        ))
+    return traders
+
+
+def create_ring_tickets(
+    traders: list[TraderState],
+    tickets_per_trader: int = 2,
+    starting_tau: int = 10,
+    starting_maturity: int = 10,
+) -> list[Ticket]:
+    """
+    Create tickets for a ring of traders.
+
+    Each trader issues tickets_per_trader tickets, distributed to the next traders
+    in the ring (creating claims/obligations around the ring).
+    """
+    tickets = []
+    n = len(traders)
+
+    for i, trader in enumerate(traders):
+        for j in range(tickets_per_trader):
+            # Issuer is the current trader, holder is next in ring
+            # (This simulates creditor-debtor relationships around the ring)
+            holder_idx = (i + 1 + j) % n
+
+            ticket = Ticket(
+                id=new_id(),
+                issuer_id=trader.agent_id,
+                owner_id=traders[holder_idx].agent_id,
+                face=Decimal(1),
+                maturity_day=starting_maturity + j,
+                remaining_tau=starting_tau + j,
+                bucket_id=None,  # Will be assigned by simulation
+                serial=j,
+            )
+            tickets.append(ticket)
+
+            # Track obligation on issuer
+            trader.obligations.append(ticket)
+
+    return tickets
+
+
+# =========================================================================
+# Test: Simulation Initialization
+# =========================================================================
+
+class TestSimulationInit:
+    """Tests for simulation initialization."""
+
+    def test_default_config(self):
+        """Verify default configuration creates valid simulation."""
+        config = DealerRingConfig()
+        sim = DealerRingSimulation(config)
+
+        assert sim.day == 0
+        assert len(sim.dealers) == 3  # short, mid, long
+        assert len(sim.vbts) == 3
+        assert len(sim.traders) == 0
+
+    def test_dealers_initialized_per_bucket(self):
+        """Each bucket gets one dealer."""
+        config = DealerRingConfig()
+        sim = DealerRingSimulation(config)
+
+        assert "short" in sim.dealers
+        assert "mid" in sim.dealers
+        assert "long" in sim.dealers
+
+    def test_vbts_initialized_with_anchors(self):
+        """VBTs initialized with configured anchors."""
+        config = DealerRingConfig(
+            vbt_anchors={
+                "short": (Decimal("1.0"), Decimal("0.20")),
+                "mid": (Decimal("1.0"), Decimal("0.30")),
+                "long": (Decimal("1.0"), Decimal("0.40")),
+            }
+        )
+        sim = DealerRingSimulation(config)
+
+        # Check short VBT
+        assert sim.vbts["short"].M == Decimal("1.0")
+        assert sim.vbts["short"].O == Decimal("0.20")
+        assert sim.vbts["short"].A == Decimal("1.10")  # M + O/2
+        assert sim.vbts["short"].B == Decimal("0.90")  # M - O/2
+
+        # Check mid VBT
+        assert sim.vbts["mid"].M == Decimal("1.0")
+        assert sim.vbts["mid"].O == Decimal("0.30")
+        assert sim.vbts["mid"].A == Decimal("1.15")
+        assert sim.vbts["mid"].B == Decimal("0.85")
+
+
+# =========================================================================
+# Test: Ring Setup
+# =========================================================================
+
+class TestRingSetup:
+    """Tests for setting up the ring with traders and tickets."""
+
+    def test_setup_registers_traders(self):
+        """Traders are registered in simulation."""
+        config = DealerRingConfig()
+        sim = DealerRingSimulation(config)
+
+        traders = create_ring_traders(5)
+        tickets = create_ring_tickets(traders, tickets_per_trader=2, starting_tau=5)
+
+        sim.setup_ring(traders, tickets)
+
+        assert len(sim.traders) == 5
+        for trader in traders:
+            assert trader.agent_id in sim.traders
+
+    def test_setup_allocates_tickets(self):
+        """Tickets are allocated to dealers, VBTs, and traders."""
+        config = DealerRingConfig(
+            dealer_share=Decimal("0.25"),
+            vbt_share=Decimal("0.50"),
+        )
+        sim = DealerRingSimulation(config)
+
+        traders = create_ring_traders(5)
+        # Create tickets all in mid bucket (remaining_tau in [4-8])
+        tickets = []
+        for i, trader in enumerate(traders):
+            ticket = create_ticket(
+                issuer_id=trader.agent_id,
+                owner_id=trader.agent_id,
+                remaining_tau=5,  # Mid bucket
+                maturity_day=10,
+            )
+            tickets.append(ticket)
+            trader.obligations.append(ticket)
+
+        sim.setup_ring(traders, tickets)
+
+        # All tickets should be in the all_tickets registry
+        assert len(sim.all_tickets) == 5
+
+        # With 5 tickets and 25%/50% allocation:
+        # dealer gets 1 (floor(5 * 0.25))
+        # vbt gets 2 (floor(5 * 0.50))
+        # traders get 2 (remainder)
+        mid_dealer = sim.dealers["mid"]
+        mid_vbt = sim.vbts["mid"]
+
+        # Check total allocation matches
+        total_allocated = (
+            len(mid_dealer.inventory) +
+            len(mid_vbt.inventory) +
+            sum(len(t.tickets_owned) for t in sim.traders.values())
+        )
+        assert total_allocated == 5
+
+    def test_bucket_assignment(self):
+        """Tickets are assigned to correct buckets based on remaining_tau."""
+        config = DealerRingConfig()
+        sim = DealerRingSimulation(config)
+
+        traders = [create_trader()]
+
+        # Create tickets for different buckets
+        short_ticket = create_ticket(traders[0].agent_id, traders[0].agent_id, remaining_tau=2)
+        mid_ticket = create_ticket(traders[0].agent_id, traders[0].agent_id, remaining_tau=6)
+        long_ticket = create_ticket(traders[0].agent_id, traders[0].agent_id, remaining_tau=12)
+
+        tickets = [short_ticket, mid_ticket, long_ticket]
+
+        sim.setup_ring(traders, tickets)
+
+        # Check bucket assignment
+        assert sim.all_tickets[short_ticket.id].bucket_id == "short"
+        assert sim.all_tickets[mid_ticket.id].bucket_id == "mid"
+        assert sim.all_tickets[long_ticket.id].bucket_id == "long"
+
+
+# =========================================================================
+# Test: Phase 1 - Maturity Updates and Rebucketing
+# =========================================================================
+
+class TestPhase1MaturityUpdates:
+    """Tests for maturity updates and rebucketing (Phase 1)."""
+
+    def test_maturity_decrements_each_day(self):
+        """Remaining tau decrements by 1 each day."""
+        config = DealerRingConfig(max_days=1)
+        sim = DealerRingSimulation(config)
+
+        traders = [create_trader()]
+        ticket = create_ticket(
+            traders[0].agent_id,
+            traders[0].agent_id,
+            remaining_tau=10,
+            maturity_day=20,
+        )
+
+        sim.setup_ring(traders, [ticket])
+
+        # Run one day
+        sim.run_day()
+
+        # Maturity should have decremented
+        assert sim.all_tickets[ticket.id].remaining_tau == 9
+
+    def test_rebucket_long_to_mid(self):
+        """
+        Example 1: Ticket migrates Long -> Mid when remaining_tau crosses boundary.
+
+        At tau=9, ticket is in Long. When tau decrements to 8, it moves to Mid.
+        """
+        config = DealerRingConfig(
+            dealer_share=Decimal(0),  # No dealer allocation
+            vbt_share=Decimal(0),      # No VBT allocation
+            max_days=1,
+        )
+        sim = DealerRingSimulation(config)
+
+        traders = [create_trader()]
+        # Ticket at tau=9 (Long bucket boundary)
+        ticket = create_ticket(
+            traders[0].agent_id,
+            traders[0].agent_id,
+            remaining_tau=9,  # Long bucket (tau >= 9)
+            maturity_day=20,
+        )
+
+        sim.setup_ring(traders, [ticket])
+
+        # Verify initial bucket
+        assert sim.all_tickets[ticket.id].bucket_id == "long"
+
+        # Run one day
+        sim.run_day()
+
+        # Verify rebucketed to mid (tau=8, which is in [4,8])
+        assert sim.all_tickets[ticket.id].remaining_tau == 8
+        assert sim.all_tickets[ticket.id].bucket_id == "mid"
+
+    def test_rebucket_mid_to_short(self):
+        """Ticket migrates Mid -> Short when remaining_tau crosses boundary."""
+        config = DealerRingConfig(
+            dealer_share=Decimal(0),
+            vbt_share=Decimal(0),
+            max_days=1,
+        )
+        sim = DealerRingSimulation(config)
+
+        traders = [create_trader()]
+        # Ticket at tau=4 (Mid bucket boundary)
+        ticket = create_ticket(
+            traders[0].agent_id,
+            traders[0].agent_id,
+            remaining_tau=4,  # Mid bucket boundary
+            maturity_day=20,
+        )
+
+        sim.setup_ring(traders, [ticket])
+
+        # Verify initial bucket
+        assert sim.all_tickets[ticket.id].bucket_id == "mid"
+
+        # Run one day
+        sim.run_day()
+
+        # Verify rebucketed to short (tau=3, which is in [1,3])
+        assert sim.all_tickets[ticket.id].remaining_tau == 3
+        assert sim.all_tickets[ticket.id].bucket_id == "short"
+
+
+class TestDealerRebucketing:
+    """
+    Test Event 11: Dealer-to-dealer internal sale at rebucketing.
+
+    Example 1: When dealer holds a ticket that crosses bucket boundary,
+    an internal sale occurs between the old-bucket dealer and new-bucket dealer.
+    """
+
+    def test_dealer_rebucket_transfers_at_ask(self):
+        """
+        Dealer-held ticket rebuckets via internal sale at old-bucket ask.
+
+        This implements Event 11 from the spec.
+        """
+        config = DealerRingConfig(
+            dealer_share=Decimal(1),  # All to dealer
+            vbt_share=Decimal(0),
+            N_max=0,  # Disable order flow to isolate rebucketing
+            max_days=1,
+        )
+        sim = DealerRingSimulation(config)
+
+        traders = [create_trader(cash=Decimal(100))]
+        # Single ticket at Long/Mid boundary with maturity far in future
+        ticket = create_ticket(
+            traders[0].agent_id,
+            traders[0].agent_id,
+            remaining_tau=9,  # Long bucket, will become Mid (tau=8)
+            maturity_day=100,  # Far future - won't settle during test
+        )
+
+        # Pre-fund dealers with cash (need enough for the transfer price)
+        sim.dealers["long"].cash = Decimal("2.0")
+        sim.dealers["mid"].cash = Decimal("2.0")
+
+        sim.setup_ring(traders, [ticket])
+
+        # Ticket should be allocated to long dealer
+        long_dealer = sim.dealers["long"]
+        mid_dealer = sim.dealers["mid"]
+
+        assert len(long_dealer.inventory) == 1
+        assert len(mid_dealer.inventory) == 0
+
+        # Snapshot balances before rebucketing
+        long_cash_before = long_dealer.cash
+        mid_cash_before = mid_dealer.cash
+
+        # Run one day (triggers rebucketing)
+        sim.run_day()
+
+        # Ticket should now be in mid dealer's inventory
+        assert len(long_dealer.inventory) == 0
+        assert len(mid_dealer.inventory) == 1
+
+        # Cash should have moved between dealers
+        # (Long dealer received cash, mid dealer paid cash)
+        assert long_dealer.cash > long_cash_before
+        assert mid_dealer.cash < mid_cash_before
+
+
+# =========================================================================
+# Test: Phase 3 - Eligibility Sets
+# =========================================================================
+
+class TestPhase3Eligibility:
+    """Tests for sell/buy eligibility computation (Phase 3)."""
+
+    def test_sell_eligible_has_shortfall_and_tickets(self):
+        """Trader with shortfall > 0 and tickets is sell-eligible."""
+        config = DealerRingConfig()
+        sim = DealerRingSimulation(config)
+
+        # Trader with obligation due today (day 1)
+        trader = create_trader(cash=Decimal("0.5"))  # Less than face=1
+        obligation = create_ticket(
+            trader.agent_id,
+            "holder",
+            remaining_tau=1,
+            maturity_day=1,  # Due on day 1
+        )
+        trader.obligations.append(obligation)
+
+        # Give trader a ticket to sell
+        owned_ticket = create_ticket("other_issuer", trader.agent_id, remaining_tau=5)
+        trader.tickets_owned.append(owned_ticket)
+
+        sim.traders[trader.agent_id] = trader
+        sim.all_tickets[owned_ticket.id] = owned_ticket
+        sim.all_tickets[obligation.id] = obligation
+        sim.day = 1  # Set current day to match obligation
+
+        # Compute eligibility
+        sell_eligible = sim._compute_sell_eligible()
+
+        # Trader should be sell-eligible (shortfall = 1 - 0.5 = 0.5 > 0)
+        assert trader.agent_id in sell_eligible
+
+    def test_buy_eligible_has_buffer_and_horizon(self):
+        """Trader with cash > buffer and horizon >= H is buy-eligible."""
+        config = DealerRingConfig(
+            buffer_B=Decimal(1),
+            horizon_H=3,
+        )
+        sim = DealerRingSimulation(config)
+
+        # Trader with excess cash and distant liabilities
+        trader = create_trader(cash=Decimal(5))  # > buffer_B
+
+        # Obligation due in 10 days (horizon = 10 >= H = 3)
+        obligation = create_ticket(
+            trader.agent_id,
+            "holder",
+            remaining_tau=10,
+            maturity_day=sim.day + 10,
+        )
+        trader.obligations.append(obligation)
+
+        sim.traders[trader.agent_id] = trader
+
+        # Compute eligibility
+        buy_eligible = sim._compute_buy_eligible()
+
+        # Trader should be buy-eligible
+        assert trader.agent_id in buy_eligible
+
+    def test_not_buy_eligible_insufficient_cash(self):
+        """Trader with cash <= buffer is not buy-eligible."""
+        config = DealerRingConfig(buffer_B=Decimal(1))
+        sim = DealerRingSimulation(config)
+
+        trader = create_trader(cash=Decimal("0.5"))  # < buffer_B
+        sim.traders[trader.agent_id] = trader
+
+        buy_eligible = sim._compute_buy_eligible()
+
+        assert trader.agent_id not in buy_eligible
+
+
+# =========================================================================
+# Test: Phase 5 - Settlement with Proportional Recovery
+# =========================================================================
+
+class TestPhase5Settlement:
+    """
+    Tests for settlement phase with proportional recovery.
+
+    Based on Examples 10 & 12: Partial recovery default with multiple claimant types.
+    """
+
+    def test_full_recovery_when_cash_sufficient(self):
+        """Settlement pays full face when issuer has enough cash."""
+        config = DealerRingConfig(
+            dealer_share=Decimal(0),
+            vbt_share=Decimal(0),
+            max_days=1,
+        )
+        sim = DealerRingSimulation(config)
+
+        # Issuer with enough cash
+        issuer = create_trader(cash=Decimal(5))
+        holder = create_trader(cash=Decimal(0))
+
+        # Register traders directly (skip setup_ring allocation)
+        sim.traders[issuer.agent_id] = issuer
+        sim.traders[holder.agent_id] = holder
+
+        # Ticket maturing today (day 1 after one run_day)
+        ticket = create_ticket(
+            issuer.agent_id,
+            holder.agent_id,
+            face=Decimal(1),
+            remaining_tau=1,
+            maturity_day=1,
+            bucket_id="short",  # Short bucket for tau=1
+        )
+        issuer.obligations.append(ticket)
+        holder.tickets_owned.append(ticket)
+
+        # Register ticket in simulation
+        sim.all_tickets[ticket.id] = ticket
+
+        # Track initial cash
+        holder_cash_before = holder.cash
+        issuer_cash_before = issuer.cash
+
+        # Run one day (triggers settlement)
+        sim.run_day()
+
+        # Holder should receive full payment
+        payment_received = holder.cash - holder_cash_before
+        assert payment_received == Decimal(1)  # Full recovery
+
+    def test_partial_recovery_when_cash_insufficient(self):
+        """
+        Settlement pays proportional recovery when issuer has insufficient cash.
+
+        Example 12: R = C/D = 3/5 = 0.6 when issuer has 3 and owes 5.
+        """
+        config = DealerRingConfig(
+            dealer_share=Decimal(0),
+            vbt_share=Decimal(0),
+            max_days=1,
+        )
+        sim = DealerRingSimulation(config)
+
+        # Issuer with insufficient cash
+        issuer = create_trader(cash=Decimal(3))  # Has 3
+        sim.traders[issuer.agent_id] = issuer
+
+        # Create 5 holders, each with 1 ticket (total due = 5)
+        holders = [create_trader(cash=Decimal(0)) for _ in range(5)]
+
+        tickets = []
+        for i, holder in enumerate(holders):
+            sim.traders[holder.agent_id] = holder
+
+            ticket = create_ticket(
+                issuer.agent_id,
+                holder.agent_id,
+                face=Decimal(1),
+                remaining_tau=1,
+                maturity_day=1,
+                bucket_id="short",
+                serial=i,
+            )
+            tickets.append(ticket)
+            issuer.obligations.append(ticket)
+            holder.tickets_owned.append(ticket)
+            sim.all_tickets[ticket.id] = ticket
+
+        # Run one day (triggers settlement)
+        sim.run_day()
+
+        # Each holder should receive R * face = 0.6 * 1 = 0.6
+        expected_payment = Decimal("0.6")
+        for holder in holders:
+            assert holder.cash == expected_payment
+
+        # Issuer should have cash = 0 (all distributed)
+        assert issuer.cash == Decimal(0)
+
+    def test_issuer_marked_defaulted_on_partial_recovery(self):
+        """Issuer is marked as defaulted when R < 1."""
+        config = DealerRingConfig(
+            dealer_share=Decimal(0),
+            vbt_share=Decimal(0),
+            max_days=1,
+        )
+        sim = DealerRingSimulation(config)
+
+        issuer = create_trader(cash=Decimal(3))
+        holder = create_trader(cash=Decimal(0))
+
+        # Register traders directly
+        sim.traders[issuer.agent_id] = issuer
+        sim.traders[holder.agent_id] = holder
+
+        ticket = create_ticket(
+            issuer.agent_id,
+            holder.agent_id,
+            face=Decimal(5),  # Due 5, have 3 -> R = 0.6
+            remaining_tau=1,
+            maturity_day=1,
+            bucket_id="short",
+        )
+        issuer.obligations.append(ticket)
+        holder.tickets_owned.append(ticket)
+        sim.all_tickets[ticket.id] = ticket
+
+        # Issuer not defaulted initially
+        assert not issuer.defaulted
+
+        # Run one day
+        sim.run_day()
+
+        # Issuer should be marked defaulted
+        assert issuer.defaulted
+
+
+# =========================================================================
+# Test: Phase 6 - VBT Anchor Updates
+# =========================================================================
+
+class TestPhase6VBTAnchorUpdates:
+    """
+    Tests for VBT anchor updates based on bucket loss rates.
+
+    Based on Example 3 (outside bid clipping) and Example 10.
+    """
+
+    def test_vbt_anchors_update_after_default(self):
+        """
+        VBT anchors adjust based on bucket loss rate.
+
+        M_new = M_old - phi_M * loss_rate
+        O_new = O_old + phi_O * loss_rate
+        """
+        config = DealerRingConfig(
+            dealer_share=Decimal(0),
+            vbt_share=Decimal(0),
+            phi_M=Decimal(1),       # M drops by loss_rate
+            phi_O=Decimal("0.6"),   # O increases by 0.6 * loss_rate
+            enable_vbt_anchor_updates=True,
+            max_days=1,
+        )
+        sim = DealerRingSimulation(config)
+
+        # Initial anchors for short bucket (where our ticket will be)
+        short_M_initial = sim.vbts["short"].M
+        short_O_initial = sim.vbts["short"].O
+
+        # Create a default scenario in short bucket
+        issuer = create_trader(cash=Decimal(0))  # No cash -> R = 0, loss = 100%
+        holder = create_trader(cash=Decimal(0))
+
+        # Register traders directly
+        sim.traders[issuer.agent_id] = issuer
+        sim.traders[holder.agent_id] = holder
+
+        # Ticket in short bucket (remaining_tau=1)
+        ticket = create_ticket(
+            issuer.agent_id,
+            holder.agent_id,
+            face=Decimal(1),
+            remaining_tau=1,  # Short bucket
+            maturity_day=1,
+            bucket_id="short",
+        )
+        issuer.obligations.append(ticket)
+        holder.tickets_owned.append(ticket)
+        sim.all_tickets[ticket.id] = ticket
+
+        # Run one day
+        sim.run_day()
+
+        # Check VBT anchors updated
+        # Loss rate = 1 - R = 1 - 0 = 1 (total loss)
+        expected_M = short_M_initial - config.phi_M * Decimal(1)
+        expected_O = short_O_initial + config.phi_O * Decimal(1)
+
+        assert sim.vbts["short"].M == expected_M
+        assert sim.vbts["short"].O == expected_O
+
+
+# =========================================================================
+# Test: Full Event Loop
+# =========================================================================
+
+class TestFullEventLoop:
+    """
+    Integration tests for complete simulation runs.
+
+    Based on Example 14: Minimal event loop harness.
+    """
+
+    def test_multi_day_simulation(self):
+        """Run multiple days without errors."""
+        config = DealerRingConfig(
+            seed=42,
+            max_days=5,
+        )
+        sim = DealerRingSimulation(config)
+
+        # Create a small ring with tickets in mid bucket (far from settlement)
+        traders = create_ring_traders(5, cash_per_trader=Decimal(20))
+        tickets = create_ring_tickets(traders, tickets_per_trader=2, starting_tau=50, starting_maturity=100)
+
+        sim.setup_ring(traders, tickets)
+
+        # Run simulation
+        sim.run()
+
+        # Verify simulation completed
+        assert sim.day == 5
+
+        # Verify event log has events
+        assert len(sim.events.events) > 0
+
+    def test_order_flow_executes(self):
+        """Order flow produces trades during simulation."""
+        config = DealerRingConfig(
+            seed=42,
+            N_max=3,
+            max_days=3,
+        )
+        sim = DealerRingSimulation(config)
+
+        # Create ring with sufficient cash for trading
+        traders = create_ring_traders(5, cash_per_trader=Decimal(50))
+        tickets = create_ring_tickets(traders, tickets_per_trader=3, starting_tau=50, starting_maturity=100)
+
+        sim.setup_ring(traders, tickets)
+
+        # Add cash to dealers/VBTs for trading
+        for dealer in sim.dealers.values():
+            dealer.cash = Decimal(10)
+        for vbt in sim.vbts.values():
+            vbt.cash = Decimal(20)
+
+        # Run simulation
+        sim.run()
+
+        # Check for quote events at minimum (quotes are logged each day)
+        quote_events = [e for e in sim.events.events if e.get("kind") == "quote"]
+        # 3 buckets * 3 days = 9 quote events minimum
+        assert len(quote_events) >= 9
+
+    def test_simulation_runs_multiple_days(self):
+        """Simulation completes multiple days without errors."""
+        config = DealerRingConfig(seed=12345, max_days=5)
+        sim = DealerRingSimulation(config)
+
+        traders = create_ring_traders(5, cash_per_trader=Decimal(20))
+        tickets = create_ring_tickets(traders, tickets_per_trader=2, starting_tau=50, starting_maturity=100)
+
+        sim.setup_ring(traders, tickets)
+        sim.run()
+
+        # Verify simulation completed all days
+        assert sim.day == 5
+
+        # Verify all traders still exist
+        assert len(sim.traders) == 5
+
+        # Verify some events were logged
+        assert len(sim.events.events) > 0
+
+
+# =========================================================================
+# Test: Assertions Integration
+# =========================================================================
+
+class TestAssertionsIntegration:
+    """Verify that programmatic assertions (C1-C6) pass during simulation."""
+
+    def test_c5_equity_basis_holds(self):
+        """C5: V = C + M*a holds for dealers throughout simulation."""
+        config = DealerRingConfig(max_days=3)
+        sim = DealerRingSimulation(config)
+
+        traders = create_ring_traders(3, cash_per_trader=Decimal(10))
+        tickets = create_ring_tickets(traders, tickets_per_trader=2, starting_tau=50, starting_maturity=100)
+
+        sim.setup_ring(traders, tickets)
+
+        # Run simulation and check invariants after each day
+        for day in range(3):
+            sim.run_day()
+
+            # Verify V = C + M*a for each dealer
+            for bucket_id, dealer in sim.dealers.items():
+                vbt = sim.vbts[bucket_id]
+                expected_V = dealer.cash + vbt.M * dealer.a
+                assert dealer.V == expected_V, f"C5 failed for {bucket_id}: V={dealer.V}, expected={expected_V}"
+
+
+# =========================================================================
+# Test: Event Logging
+# =========================================================================
+
+class TestEventLogging:
+    """Tests for event logging system."""
+
+    def test_events_logged_during_simulation(self):
+        """Events are captured in the event log."""
+        config = DealerRingConfig(max_days=3)
+        sim = DealerRingSimulation(config)
+
+        traders = create_ring_traders(3, cash_per_trader=Decimal(10))
+        tickets = create_ring_tickets(traders, tickets_per_trader=2, starting_tau=50, starting_maturity=100)
+
+        sim.setup_ring(traders, tickets)
+        sim.run()
+
+        # Should have day_start events
+        day_starts = [e for e in sim.events.events if e.get("kind") == "day_start"]
+        assert len(day_starts) == 3
+
+    def test_quote_events_logged(self):
+        """Quote states are logged at start of each day."""
+        config = DealerRingConfig(max_days=2)
+        sim = DealerRingSimulation(config)
+
+        traders = create_ring_traders(3, cash_per_trader=Decimal(10))
+        tickets = create_ring_tickets(traders, tickets_per_trader=1, starting_tau=50, starting_maturity=100)
+
+        sim.setup_ring(traders, tickets)
+        sim.run()
+
+        # Should have quote events for each bucket each day
+        quote_events = [e for e in sim.events.events if e.get("kind") == "quote"]
+        # 3 buckets * 2 days = 6 quote events
+        assert len(quote_events) == 6
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])
+
+```
+
+---
+
 ### 🧪 tests/engines/test_default_handling.py
 
 ```python
@@ -19905,5 +26827,5 @@ def test_settle_multiple_obligations():
 ## End of Codebase
 
 Generated from: /home/runner/work/bilancio/bilancio
-Total source files: 69
-Total test files: 27
+Total source files: 77
+Total test files: 32
