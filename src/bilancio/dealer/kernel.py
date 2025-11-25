@@ -194,6 +194,11 @@ def can_interior_sell(dealer: DealerState, params: KernelParams) -> bool:
 
     Interior sell is feasible if and only if:
     - x >= S (inventory constraint: has at least one ticket to sell)
+    - X* > 0 (not in Guard mode)
+
+    Under Guard mode (M <= M_MIN), X* = 0 and all trades route to VBT
+    regardless of dealer inventory. This is an "operational freeze of
+    interior execution."
 
     Args:
         dealer: DealerState to check
@@ -204,10 +209,12 @@ def can_interior_sell(dealer: DealerState, params: KernelParams) -> bool:
 
     References:
         - Section 8.6: Feasibility Checks
+        - Section 7.2: Guard regime when M <= M_MIN
     """
     S = params.S
     has_inventory = (dealer.x >= S)
-    return has_inventory
+    not_in_guard = (dealer.X_star > 0)
+    return has_inventory and not_in_guard
 
 
 @dataclass

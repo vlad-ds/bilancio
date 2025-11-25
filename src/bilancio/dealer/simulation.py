@@ -20,9 +20,13 @@ References:
 """
 
 from dataclasses import dataclass, field
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 import random
 from copy import deepcopy
+
+# Cash precision for settlement calculations to avoid floating-point accumulation errors
+# Uses 6 decimal places which is standard for financial calculations
+CASH_PRECISION = Decimal("0.000001")
 
 from bilancio.core.ids import AgentId, new_id
 from .models import (
@@ -1035,15 +1039,29 @@ class DealerRingSimulation:
 
         recovery_rate = min(Decimal(1), issuer.cash / total_due)
 
-        # Compute total payment
-        total_paid = recovery_rate * total_due
+        # Compute total payment - use exact value to avoid precision issues
+        # When R < 1, total_paid equals issuer.cash exactly
+        if recovery_rate < Decimal(1):
+            total_paid = issuer.cash
+        else:
+            total_paid = total_due
 
-        # Deduct from issuer cash (proportionally)
+        # Deduct from issuer cash
         issuer.cash -= total_paid
 
-        # Distribute payments to holders
-        for ticket in tickets:
-            payment = recovery_rate * ticket.face
+        # Distribute payments to holders using remainder-based allocation
+        # to ensure total distributed equals total_paid exactly
+        remaining = total_paid
+        for i, ticket in enumerate(tickets):
+            if i < len(tickets) - 1:
+                # For all but last ticket: compute proportional payment and quantize
+                payment = (recovery_rate * ticket.face).quantize(
+                    CASH_PRECISION, rounding=ROUND_HALF_UP
+                )
+                remaining -= payment
+            else:
+                # Last ticket gets remainder to ensure exact balance
+                payment = remaining
             self._pay_holder(ticket.owner_id, payment, ticket)
 
         # Log settlement or default
@@ -1104,12 +1122,21 @@ class DealerRingSimulation:
         # Check if holder is a trader
         if holder_id in self.traders:
             self.traders[holder_id].cash += amount
+            # Quantize to avoid floating-point accumulation (e.g., 1/3 + 1/3 + 1/3 != 1)
+            self.traders[holder_id].cash = self.traders[holder_id].cash.quantize(
+                CASH_PRECISION, rounding=ROUND_HALF_UP
+            )
+            # Remove ticket from trader's owned tickets
+            if ticket in self.traders[holder_id].tickets_owned:
+                self.traders[holder_id].tickets_owned.remove(ticket)
             return
 
         # Check if holder is a dealer
         for dealer in self.dealers.values():
             if dealer.agent_id == holder_id:
                 dealer.cash += amount
+                # Quantize to avoid floating-point accumulation
+                dealer.cash = dealer.cash.quantize(CASH_PRECISION, rounding=ROUND_HALF_UP)
                 # Remove ticket from dealer inventory
                 if ticket in dealer.inventory:
                     dealer.inventory.remove(ticket)
@@ -1119,6 +1146,8 @@ class DealerRingSimulation:
         for vbt in self.vbts.values():
             if vbt.agent_id == holder_id:
                 vbt.cash += amount
+                # Quantize to avoid floating-point accumulation
+                vbt.cash = vbt.cash.quantize(CASH_PRECISION, rounding=ROUND_HALF_UP)
                 # Remove ticket from VBT inventory
                 if ticket in vbt.inventory:
                     vbt.inventory.remove(ticket)
