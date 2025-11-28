@@ -1,6 +1,6 @@
 # Plan 018: Dealer Comparison Experiments
 
-**Status**: PLANNED
+**Status**: IN PROGRESS
 **Date**: 2025-11-28
 **Goal**: Run comparative experiments measuring the effect of dealer-mediated secondary markets on default rates in Kalecki ring simulations.
 
@@ -390,6 +390,26 @@ cat out/experiments/dealer_comparison/aggregate/summary.json
 3. **Complete**: Comparison metrics computed for all 125 grid points
 4. **Structured**: Clean CSV/JSON outputs with consistent metric names
 5. **Reproducible**: Same seed produces identical results
+
+---
+
+## Known Limitations
+
+### Dealer Trading Not Yet Active
+
+The dealer subsystem is now connected to scenario loading and simulation:
+- Dealer subsystem initializes when `dealer.enabled: true` in scenario YAML
+- `SubphaseB_Dealer` events are generated each day
+- However, **actual trades do not occur** because:
+  - Trader cash is initialized to 0 in `initialize_dealer_subsystem`
+  - Cash is never synced from main system agent balance sheets
+  - Trading eligibility checks fail due to 0 cash
+
+**Fix needed in `dealer_integration.py`:**
+- In `initialize_dealer_subsystem`: Set `trader.cash` from agent's actual cash holdings
+- In `run_dealer_trading_phase`: Sync trader cash before checking eligibility
+
+Until this is fixed, control and treatment runs will produce identical results.
 
 ---
 
