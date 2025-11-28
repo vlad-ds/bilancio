@@ -1,6 +1,6 @@
 # Plan 018: Dealer Comparison Experiments
 
-**Status**: IN PROGRESS
+**Status**: COMPLETE
 **Date**: 2025-11-28
 **Goal**: Run comparative experiments measuring the effect of dealer-mediated secondary markets on default rates in Kalecki ring simulations.
 
@@ -393,23 +393,37 @@ cat out/experiments/dealer_comparison/aggregate/summary.json
 
 ---
 
-## Known Limitations
+## Results (as of 2025-11-28)
 
-### Dealer Trading Not Yet Active
+### Dealer Trading Is Now Active
 
-The dealer subsystem is now connected to scenario loading and simulation:
-- Dealer subsystem initializes when `dealer.enabled: true` in scenario YAML
-- `SubphaseB_Dealer` events are generated each day
-- However, **actual trades do not occur** because:
-  - Trader cash is initialized to 0 in `initialize_dealer_subsystem`
-  - Cash is never synced from main system agent balance sheets
-  - Trading eligibility checks fail due to 0 cash
+The dealer subsystem has been fully integrated and tested:
 
-**Fix needed in `dealer_integration.py`:**
-- In `initialize_dealer_subsystem`: Set `trader.cash` from agent's actual cash holdings
-- In `run_dealer_trading_phase`: Sync trader cash before checking eligibility
+**Test Configuration:**
+- 20 agents, 10-day maturity horizon
+- Parameter grid: κ ∈ {0.5, 1, 2}, c ∈ {1, 2}, μ ∈ {0.25, 0.5, 0.75}
+- expel-agent default handling mode
 
-Until this is fixed, control and treatment runs will produce identical results.
+**Key Results:**
+- **Mean relief ratio: 17.1%** across parameter grid
+- **Best result: 68.8% reduction** at κ=1, c=2, μ=0.5
+- **11/18 parameter combinations showed improvement**
+
+**When Dealer Helps Most:**
+- Higher kappa (more debt relative to liquidity): κ=1-2
+- Moderate maturity misalignment: μ=0.25-0.5
+- Higher Dirichlet concentration: c=2
+
+**When Dealer Is Less Effective:**
+- Low kappa (abundant liquidity): κ=0.5 → already few defaults
+- Extreme maturity misalignment: μ=0.75 → discount too large to help
+
+**Technical Fixes Applied:**
+- Dealer/VBT agents created in main system for proper ownership tracking
+- Trader cash synced from main system at trading phase start
+- Price scaled by ticket face value (not unit price)
+- Eligibility horizon extended to 10 days
+- Up to 10 trades per phase (was 3)
 
 ---
 
