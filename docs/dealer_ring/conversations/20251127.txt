@@ -1,0 +1,372 @@
+Jamie
+01:01
+How is your task going?
+Jamie
+01:07
+It's a lot.
+Jamie
+01:10
+My bad.
+Jamie
+01:12
+But it's fun.
+Riley
+01:14
+Yeah, so it's basically like build an entire AI application to ingest legal contracts and analyze them.
+Riley
+01:27
+Chat about them and alert when they're about to expire and upload new ones. It's just a ton of stuff.
+Jamie
+01:36
+Okay, but it sounds like day one.
+Riley
+01:41
+I'm the only one in the pipeline.
+Jamie
+01:44
+So it's like if you do it well, it should be possible, right?
+Riley
+01:49
+Yeah, it should be, right? Obviously, I'm doing it very well.
+Jamie
+01:55
+When are you going to give them the things?
+Riley
+01:59
+Yeah, they gave me two weeks.
+Riley
+02:01
+The problem is that the second week I am in Istanbul for the trip.
+Riley
+02:09
+So I'm gonna try to do as much as I can before I leave for the trip.
+Riley
+02:14
+But it's good.
+Jamie
+02:18
+Right, it's also the two weeks when I need you most.
+Riley
+02:21
+Exactly, but I knew it would all come at once, so it's alright.
+Jamie
+02:27
+Okay, let's do our thing.
+Riley
+02:31
+Yes, how are you?
+Jamie
+02:33
+Good. I'm trying to finish up the second piece for them, simulation, and then I need to put it together for the presentation on the night and I'm just hoping we can get it to work by then.
+Riley
+02:50
+Okay.
+Riley
+02:56
+So I'm recording.
+Jamie
+02:58
+Yeah.
+Riley
+03:07
+The examples are good.
+Riley
+03:10
+All that we—
+Jamie
+03:11
+I think the model should be fine. So it's just about implementing it, right? And if the dealer works and the agent decision making on when to buy the security versus when not to and when to sell works, then we are in a good place.
+Jamie
+03:36
+And we can just test it. All we want to know is exactly the same thing we used to know, right? So just if we have the dealer and this is a possibility, whether the amount of default compared to the previous case is less or more, right? I think this is for the moment the main consideration that we want.
+Riley
+04:01
+So first of all, we said that we want a hundred.
+Riley
+04:06
+Like agents.
+Jamie
+04:12
+Yes, we want the system to work exactly the way we described the value-based trader dealer traders in terms of the size, in terms of shape. There's a little document, right? Nothing different.
+Riley
+04:26
+So the control is that you have 100 agents without dealer or VBT, without anything.
+Jamie
+04:37
+Yes.
+Riley
+04:38
+That's the control and then you observe fire.
+Riley
+04:43
+But you still explore that grid.
+Jamie
+04:52
+We have the dealer and the trade, like we do each with and without, right? I think we still do all the variables, right?
+Riley
+05:01
+And that is the same exact thing, but with the dealer.
+Riley
+05:08
+With the dealer at the same grid, the same people, but with the dealer.
+Riley
+05:13
+And you look at the delta in the file.
+Riley
+05:21
+Okay, sounds quite simple.
+Riley
+05:26
+But with the dealer, like what we had before.
+Jamie
+05:32
+Mm-hmm.
+Riley
+05:35
+There's a natural termination because when the maturity ends, the debts end.
+Jamie
+05:48
+Yeah, and we still keep that the same way. Yeah, because the debts are still going to all be having a fixed maturity, right? And they're either going to—you know, nothing changes in that regard.
+Riley
+05:51
+There will be a natural termination here?
+Jamie
+06:04
+That's basically the way it is.
+Riley
+06:07
+And is there any other verification we could add?
+Riley
+06:16
+To the dealer simulation, I mean, no, we already have those checks you put in the PDF, the c1 to c6.
+Riley
+06:26
+And I think those checks run continuously.
+Jamie
+06:30
+Mm-hmm.
+Riley
+06:31
+So that will ensure that it doesn't.
+Jamie
+06:35
+Yeah, just keep doing the same thing, right? That's all we need.
+Riley
+06:41
+It also wrote like 200 tests.
+Jamie
+06:45
+Mm-hmm.
+Riley
+06:47
+Okay, then I can do that like today, tomorrow.
+Jamie
+06:53
+That'd be great if you can get that one done. I'll try to prepare by hopefully Monday or Tuesday the second piece fully the same way I did for this one and then we can try that as well.
+Riley
+07:09
+Okay, cool.
+Jamie
+07:11
+If you need me, you let me know and I'll be available.
+Jamie
+07:15
+If anything doesn't work as planned, just let me know.
+Riley
+07:22
+Okay, cool.
+Riley
+07:24
+Yeah, I think that was it.
+Jamie
+07:26
+Okay.
+Jamie
+07:29
+You let me know I'm here. I'll be here for a few more hours. If you're working on it, you let me know and I'll help.
+Riley
+07:36
+All right, I'll probably do it tonight.
+Jamie
+07:40
+No problem.
+Riley
+07:41
+Which will be your early—
+Jamie
+07:41
+Be here at 2 o'clock.
+Riley
+07:42
+Morning.
+Jamie
+07:46
+Good, okay, talk.
+Riley
+07:47
+All right.
+Jamie
+07:48
+If you need anything, talk to you. If not, we talk maybe Monday.
+Riley
+07:54
+Yeah, Monday I'm free. Monday is the last day I am here and the next day I go away. So Monday is good.
+Jamie
+08:03
+Okay, hopefully I can make this easy enough so that we get something out of it.
+Jamie
+08:11
+The government, illegally.
+Riley
+08:13
+The PDFs for the dealer.
+Riley
+08:16
+Altogether they were very good because it basically did everything on its own.
+Jamie
+08:22
+Yes.
+Jamie
+08:26
+I'm hoping to have the same kind of thing for the bank as well, and to be as clear. I have GPT to give me all the questions I need to answer to properly introduce it into the simulation.
+Jamie
+08:38
+I've gone to part of it, I still need to go through more and I also have some more questions with regards to the model of the bank. It's a bit more complicated, the model of the bank. But I think the model is not right for the simulator. It's just that it's more complicated in terms of conceptually more complicated and more abstract.
+Jamie
+09:07
+But I'll do my best to have it.
+Jamie
+09:11
+So we can do it the same way.
+Riley
+09:12
+And then the examples are great, right? Because it's—
+Jamie
+09:16
+Yeah, we are working, that's how we figure out there is a problem because we saw that the example kind of had a problem in the way it was solved by GPT, so we can rework the example a bit and make sure that it polarizes.
+Jamie
+09:39
+Yeah, hopefully it will be as good, the material I give you for the second.
+Riley
+09:44
+Did you manage to use Cloud in Excel?
+Jamie
+09:47
+I didn't use Chrome because I have to pay for it, right?
+Riley
+09:51
+Ah, yes.
+Jamie
+09:56
+Yeah, I have GPT. I'm okay. I didn't, you know, it's also fine that I write my Excel on my own by coloring things on my own a little bit and not just rely on AI.
+Riley
+10:05
+Why?
+Jamie
+10:05
+For everything.
+Riley
+10:05
+It's 2025. We don't learn. It's out of style to learn things.
+Jamie
+10:10
+All right.
+Riley
+10:12
+We're in Wally mode.
+Jamie
+10:14
+Yeah.
+Riley
+10:18
+And the other thing is, last question, do you think you expect to combine dealer and banks?
+Jamie
+10:26
+Yeah, that's the hope. I mean, we can do separate first and then the way I was developing the bank is being kind of separate, having the dealer already in, right? Because the problem with the banks is that the real kind of banking story needs more than a single bank, but we don't want that. It's going to be more complicated.
+Jamie
+10:53
+So for the moment you want one bank and to make one bank work, bank is basically a dealer of its own kind that depends on the reserve level that it has, right? And in order for the reserve level to be meaningful, we need to have the dealer still be paid in cash, meaning in reserve, right? Versus the traders holding deposits.
+Jamie
+11:25
+Tied by the fact that it has so much reserve and its depositors will cash in their deposits to buy securities from the dealer.
+Riley
+11:36
+Okay.
+Jamie
+11:37
+And so there is that question for the deposit for the traders whether they want to hold a deposit or they want to hold the security. If they want to hold the security, the bank is going to cash in their deposit in reserve to pay the dealer so that they can buy the security, right? And this is the—this is what makes the bank tight on reserve.
+Jamie
+12:03
+Rather than just being a single bank that never has a problem with reserves.
+Jamie
+12:09
+So that was the—because normally the bank has a problem with reserve because it needs to settle the payments to other banks.
+Jamie
+12:19
+Between clients with the banks, you remember we worked on this.
+Riley
+12:22
+Yeah.
+Jamie
+12:22
+But that would mean we have to have more than one bank and the clients can move deposits between banks or any of the versions of that story.
+Jamie
+12:36
+But that's, I feel, too complicated for the moment. One bank and then the dealer being the one paid in the reserve so that the bank doesn't simply have no need to ever give reserve to anyone. He's going to put the bank in a place where the reserve will be a constraint so it can work, the model can work.
+Jamie
+12:57
+So yeah, it's gonna just be one bank, but the bank will be tied to the existence of the dealer.
+Riley
+13:05
+Okay.
+Riley
+13:08
+Okay, yeah, sounds—
+Riley
+13:10
+Doable.
+Jamie
+13:11
+Yeah, I mean there's just a few things there, right? There's like the way that the bank is modeled, which is basically like a number of formulas like for the dealer. And then there is basically the question of when does the bank lend and at what rate, which is kind of set by its formula, so that's easy, that's what we already have.
+Jamie
+13:37
+And then we have the trader side of things, right? And the trader is going to have like an option to borrow and the option to hold a deposit versus holding a security. That's what changes. Currently, trader simply has needs to repay in the dealer model. It can also hold the security, buy it, hold it, sell it. And in this story, it can also hold a deposit rather than a security, which pays less interest but is more liquid and has less risk to it.
+Jamie
+14:16
+In terms of how much value it's going to have at the end of the day when you need the money to pay, and it's also able to buy security, which is more risky. You don't know what's going to be its value and so on.
+Jamie
+14:33
+And this is something we need to set a little bit in terms of how far can it go. They will be borrowing from the bank.
+Riley
+14:42
+Hmm.
+Jamie
+14:43
+And so, you know, probably we can give one borrowing chance to each trader or something like that, like simplified, not like having infinite amount of borrowing because then everybody can simply always borrow and you don't need to refine forever, right? But we don't want that, so we can probably constrain it to like one borrowing or something like that.
+Jamie
+15:09
+And that's it, then it's fine.
+Riley
+15:12
+Okay, cool.
+Jamie
+15:15
+So shouldn't be too much more. There will be more like the model of the bank is more complex, but otherwise everything else should be pretty straightforward.
+Riley
+15:29
+All right.
+Riley
+15:31
+Then keep—
+Jamie
+15:32
+Okay.
+Riley
+15:32
+In touch.
+Jamie
+15:34
+Yes. Tell me when. Ciao.
+Riley
+15:37
+Ciao a tutti.
