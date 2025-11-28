@@ -714,7 +714,7 @@ def sync_dealer_to_system(
         if delta > 0:
             # Trader gained cash from selling tickets - mint cash to them
             # This represents money coming from outside the system (dealer/VBT)
-            system.mint_cash(to_agent_id=trader_id, amount=int(delta))
+            system.mint_cash(to_agent_id=trader_id, amount=round(delta))
         elif delta < 0:
             # Trader spent cash buying tickets - need to reduce their cash
             # Find and reduce their cash contracts
@@ -733,7 +733,7 @@ def sync_dealer_to_system(
                             del system.state.contracts[contract_id]
                         else:
                             # Reduce contract amount
-                            contract.amount -= int(remaining_to_burn)
+                            contract.amount -= round(remaining_to_burn)
                             remaining_to_burn = 0
 
 
