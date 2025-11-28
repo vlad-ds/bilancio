@@ -91,7 +91,10 @@ class System:
             assert_no_duplicate_stock_refs,
         )
         for cid, c in self.state.contracts.items():
-            assert cid in self.state.agents[c.asset_holder_id].asset_ids, f"{cid} missing on asset holder"
+            # For secondary market transfers (e.g., payables sold to dealers),
+            # check the effective holder, not the original asset_holder_id
+            effective_holder_id = getattr(c, 'effective_creditor', None) or c.asset_holder_id
+            assert cid in self.state.agents[effective_holder_id].asset_ids, f"{cid} missing on asset holder {effective_holder_id}"
             assert cid in self.state.agents[c.liability_issuer_id].liability_ids, f"{cid} missing on issuer"
         assert_no_duplicate_refs(self)
         assert_cb_cash_matches_outstanding(self)

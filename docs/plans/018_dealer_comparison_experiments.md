@@ -397,7 +397,38 @@ cat out/experiments/dealer_comparison/aggregate/summary.json
 
 ### Dealer Trading Is Now Active
 
-The dealer subsystem has been fully integrated and tested:
+The dealer subsystem has been fully integrated and tested.
+
+### Latest Results: 100-Agent Scale Test
+
+**Test Configuration:**
+- 100 agents, 10-day maturity horizon
+- Parameter grid: κ ∈ {0.5, 1, 2}, c = 1, μ = 0.5
+- expel-agent default handling mode
+- **Correct capital model**: Dealer/VBT bring NEW outside cash (not reallocated from traders)
+
+**Final Results:**
+
+| κ (kappa) | Control δ | Treatment δ | Reduction | Relief Ratio |
+|-----------|-----------|-------------|-----------|--------------|
+| 0.5       | 37.2%     | 32.4%       | -4.8pp    | **+12.8%**   |
+| 1.0       | 54.6%     | 51.4%       | -3.2pp    | **+5.9%**    |
+| 2.0       | 82.2%     | 71.2%       | -11.0pp   | **+13.3%**   |
+
+All parameter combinations show **positive relief ratios**, confirming the dealer subsystem successfully reduces default rates.
+
+**When Dealer Helps Most:**
+- Higher kappa (more debt relative to liquidity): κ=2 shows 13.3% relief
+- The dealer provides most benefit when the system is under stress
+
+### Critical Fix: Capital Injection Model
+
+The key insight was that dealer and VBT must bring NEW outside capital:
+- **Wrong model**: Dealer/VBT take tickets from traders (this made defaults WORSE)
+- **Correct model**: Traders keep 100% of receivables; Dealer gets 25% of system cash as NEW money; VBT gets 50% as NEW money
+- Both start with EMPTY inventory and build it by purchasing from traders
+
+### Earlier Results: 20-Agent Test
 
 **Test Configuration:**
 - 20 agents, 10-day maturity horizon
@@ -409,21 +440,14 @@ The dealer subsystem has been fully integrated and tested:
 - **Best result: 68.8% reduction** at κ=1, c=2, μ=0.5
 - **11/18 parameter combinations showed improvement**
 
-**When Dealer Helps Most:**
-- Higher kappa (more debt relative to liquidity): κ=1-2
-- Moderate maturity misalignment: μ=0.25-0.5
-- Higher Dirichlet concentration: c=2
-
-**When Dealer Is Less Effective:**
-- Low kappa (abundant liquidity): κ=0.5 → already few defaults
-- Extreme maturity misalignment: μ=0.75 → discount too large to help
-
 **Technical Fixes Applied:**
 - Dealer/VBT agents created in main system for proper ownership tracking
 - Trader cash synced from main system at trading phase start
 - Price scaled by ticket face value (not unit price)
 - Eligibility horizon extended to 10 days
 - Up to 10 trades per phase (was 3)
+- Invariant check updated to use `effective_creditor` for secondary market transfers
+- `_remove_contract` updated to clean up both original and secondary market holders
 
 ---
 

@@ -131,10 +131,12 @@ def initialize_dealer_subsystem(
        - Run kernel computation for each dealer
        - Generate initial bid/ask spreads
 
-    Capital Allocation:
-        dealer_share: Fraction of tickets initially held by dealers (e.g., 0.25)
-        vbt_share: Fraction of tickets initially held by VBTs (e.g., 0.50)
-        remainder: Held by original creditors as traders
+    Capital Allocation (NEW OUTSIDE MONEY):
+        dealer_share: Fraction of system cash injected as dealer capital (e.g., 0.25)
+        vbt_share: Fraction of system cash injected as VBT capital (e.g., 0.50)
+        NOTE: Traders keep 100% of their tickets. Dealer/VBT start with EMPTY
+              inventory and build it by BUYING from traders who want to sell.
+              This is NEW MONEY from outside the system, not taken from traders.
 
     Args:
         system: Main System instance with agents and contracts
@@ -224,7 +226,22 @@ def initialize_dealer_subsystem(
         subsystem.ticket_to_payable[ticket_id] = contract_id
         subsystem.payable_to_ticket[contract_id] = ticket_id
 
-    # Step 2: Initialize market makers
+    # Step 2: Calculate total system cash for capital allocation
+    # Dealer and VBT get NEW CASH from outside the system (not taken from traders)
+    total_system_cash = Decimal(0)
+    for agent_id, agent in system.state.agents.items():
+        # Skip dealer/VBT agents we just created
+        if agent.kind in ("dealer", "vbt"):
+            continue
+        total_system_cash += _get_agent_cash(system, agent_id)
+
+    # Calculate dealer and VBT capital (NEW outside money)
+    # Split evenly across buckets
+    num_buckets = len(subsystem.bucket_configs)
+    dealer_capital_per_bucket = (total_system_cash * dealer_config.dealer_share) / num_buckets
+    vbt_capital_per_bucket = (total_system_cash * dealer_config.vbt_share) / num_buckets
+
+    # Step 3: Initialize market makers
     for bucket_config in subsystem.bucket_configs:
         bucket_id = bucket_config.name
 
@@ -234,16 +251,16 @@ def initialize_dealer_subsystem(
             (Decimal(1), Decimal("0.30"))
         )
 
-        # Create dealer state
+        # Create dealer state with NEW capital (no inventory yet)
         dealer = DealerState(
             bucket_id=bucket_id,
             agent_id=f"dealer_{bucket_id}",
-            inventory=[],
-            cash=Decimal(0),
+            inventory=[],  # Empty! Dealers build inventory by buying from traders
+            cash=dealer_capital_per_bucket,  # NEW outside money
         )
         subsystem.dealers[bucket_id] = dealer
 
-        # Create VBT state
+        # Create VBT state with NEW capital (no inventory yet)
         vbt = VBTState(
             bucket_id=bucket_id,
             agent_id=f"vbt_{bucket_id}",
@@ -252,31 +269,14 @@ def initialize_dealer_subsystem(
             phi_M=dealer_config.phi_M,
             phi_O=dealer_config.phi_O,
             clip_nonneg_B=dealer_config.clip_nonneg_B,
-            inventory=[],
-            cash=Decimal(0),
+            inventory=[],  # Empty! VBTs build inventory by buying from traders
+            cash=vbt_capital_per_bucket,  # NEW outside money
         )
         vbt.recompute_quotes()
         subsystem.vbts[bucket_id] = vbt
 
-        # Allocate initial inventory (simplified: split tickets proportionally)
-        bucket_tickets = [t for t in subsystem.tickets.values() if t.bucket_id == bucket_id]
-
-        # Dealer gets first dealer_share fraction
-        dealer_count = int(len(bucket_tickets) * dealer_config.dealer_share)
-        dealer.inventory.extend(bucket_tickets[:dealer_count])
-        for ticket in dealer.inventory:
-            ticket.owner_id = dealer.agent_id
-
-        # VBT gets next vbt_share fraction
-        vbt_count = int(len(bucket_tickets) * dealer_config.vbt_share)
-        vbt.inventory.extend(bucket_tickets[dealer_count:dealer_count + vbt_count])
-        for ticket in vbt.inventory:
-            ticket.owner_id = vbt.agent_id
-
-        # Compute initial dealer capital (enough to operate)
-        # Simple heuristic: M * number of tickets * 2 (room to buy)
-        dealer.cash = M * len(dealer.inventory) * 2
-        vbt.cash = M * len(vbt.inventory) * 2
+        # NOTE: Traders keep 100% of their tickets (no allocation to dealer/VBT)
+        # Dealer/VBT will acquire inventory by buying from traders during trading
 
         # Run kernel to compute initial quotes
         recompute_dealer_state(dealer, vbt, subsystem.params)
@@ -552,6 +552,7 @@ def run_dealer_trading_phase(
             events.append({
                 "kind": "dealer_trade",
                 "day": current_day,
+                "phase": "simulation",
                 "trader": trader_id,
                 "side": "sell",
                 "ticket_id": ticket.id,
@@ -595,6 +596,7 @@ def run_dealer_trading_phase(
                 events.append({
                     "kind": "dealer_trade",
                     "day": current_day,
+                    "phase": "simulation",
                     "trader": trader_id,
                     "side": "buy",
                     "ticket_id": result.ticket.id,

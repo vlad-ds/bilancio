@@ -275,7 +275,22 @@ def run_step_mode(
             if check_invariants == "daily":
                 system.assert_invariants()
             
-            # Skip day 0 - it's already shown as "Day 0 (After Setup)"
+            # Skip day 0 display - it's already shown as "Day 0 (After Setup)"
+            # But still capture Day 0 simulation events for HTML export
+            if day_before == 0:
+                # Only capture Day 0 simulation events for HTML
+                day0_events = [e for e in system.state.events
+                              if e.get("day") == 0 and e.get("phase") == "simulation"]
+                if day0_events:
+                    days_data.append({
+                        'day': 0,
+                        'events': day0_events,
+                        'quiet': False,
+                        'stable': False,
+                        'balances': {},
+                        'rows': {},
+                        'agent_ids': [],
+                    })
             if day_before >= 1:
                 # Show day summary
                 console.print(f"\n[bold cyan]📅 Day {day_before}[/bold cyan]")
@@ -422,7 +437,22 @@ def run_until_stable_mode(
             report = DayReport(day=day_before, impacted=impacted)
             reports.append(report)
             
-            # Skip day 0 - it's already shown as "Day 0 (After Setup)"
+            # Skip day 0 display - it's already shown as "Day 0 (After Setup)"
+            # But still capture Day 0 simulation events for HTML export
+            if day_before == 0:
+                # Only capture Day 0 simulation events for HTML
+                day0_events = [e for e in system.state.events
+                              if e.get("day") == 0 and e.get("phase") == "simulation"]
+                if day0_events:
+                    days_data.append({
+                        'day': 0,
+                        'events': day0_events,
+                        'quiet': False,
+                        'stable': False,
+                        'balances': {},
+                        'rows': {},
+                        'agent_ids': [],
+                    })
             if day_before >= 1:
                 # Display this day's results immediately (with correct balance state)
                 console.print(f"[bold cyan]📅 Day {day_before}[/bold cyan]")

@@ -275,6 +275,13 @@ def _map_event_fields(e: Dict[str, Any]) -> Dict[str, str]:
         frm = e.get("debtor_bank"); to = e.get("creditor_bank")
     elif kind == "StockCreated":
         frm = e.get("owner"); to = None
+    elif kind == "dealer_trade":
+        # Dealer trade: trader sells/buys ticket through dealer
+        frm = e.get("trader")
+        to = "VBT" if e.get("is_passthrough") else "Dealer"
+    elif kind == "ClaimTransferredDealer":
+        frm = e.get("from_holder")
+        to = e.get("to_holder")
     else:
         frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer") or e.get("agent")
         to  = e.get("to") or e.get("creditor") or e.get("payee")
@@ -288,13 +295,15 @@ def _map_event_fields(e: Dict[str, Any]) -> Dict[str, str]:
         or e.get("id")
         or e.get("instr_id")
         or e.get("stock_id")
+        or e.get("ticket_id")  # For dealer_trade events
         or "—"
     )
     # SKU/Instr column should show SKU (for stock/delivery events) when available
     # Otherwise leave blank/dash
     sku = e.get("sku") or "—"
     qty = e.get("qty") or e.get("quantity") or "—"
-    amt = e.get("amount") or "—"
+    # Amount: use 'price' for dealer_trade, 'face' for showing original face value
+    amt = e.get("amount") or e.get("price") or "—"
     notes = ""
     if kind == "ClientPayment":
         notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
@@ -311,6 +320,18 @@ def _map_event_fields(e: Dict[str, Any]) -> Dict[str, str]:
         if trigger:
             bits.append(f"trigger {trigger}")
         notes = ", ".join(bits) if bits else "default"
+    elif kind == "dealer_trade":
+        side = e.get("side", "?")
+        unit_price = e.get("unit_price")
+        bucket = e.get("bucket", "?")
+        passthrough = "passthrough" if e.get("is_passthrough") else "interior"
+        if unit_price is not None:
+            notes = f"{side} @ {unit_price:.2f} ({bucket}, {passthrough})"
+        else:
+            notes = f"{side} ({bucket}, {passthrough})"
+    elif kind == "ClaimTransferredDealer":
+        due_day = e.get("due_day")
+        notes = f"due day {due_day}" if due_day is not None else ""
     return {
         "kind": kind,
         "from": _html_escape(frm or "—"),
@@ -325,7 +346,7 @@ def _map_event_fields(e: Dict[str, Any]) -> Dict[str, str]:
 
 def _render_events_table(title: str, events: List[Dict[str, Any]]) -> str:
     # Exclude marker rows
-    events = [e for e in events if e.get("kind") not in ("PhaseA","PhaseB","PhaseC","SubphaseB1","SubphaseB2")]
+    events = [e for e in events if e.get("kind") not in ("PhaseA","PhaseB","PhaseC","SubphaseB1","SubphaseB2","SubphaseB_Dealer")]
     rows_html = []
     for e in events:
         m = _map_event_fields(e)
@@ -369,29 +390,36 @@ def _split_by_phases(day_events: List[Dict[str, Any]]) -> Dict[str, List[Dict[st
         buckets[current].append(e)
     return buckets
 
-def _split_phase_b_into_subphases(events_b: List[Dict[str, Any]]) -> (List[Dict[str, Any]], List[Dict[str, Any]]):
-    """Split Phase B events into B1 (scheduled) and B2 (settlements) using subphase markers.
+def _split_phase_b_into_subphases(events_b: List[Dict[str, Any]]) -> tuple:
+    """Split Phase B events into B1 (scheduled), B_Dealer, and B2 (settlements) using subphase markers.
 
-    Excludes Subphase markers from returned lists.
+    Returns:
+        Tuple of (b1_events, b_dealer_events, b2_events)
+        Excludes Subphase markers from returned lists.
     """
     b1: List[Dict[str, Any]] = []
+    b_dealer: List[Dict[str, Any]] = []
     b2: List[Dict[str, Any]] = []
-    in_b2 = False
+    # 0=B1, 1=Dealer, 2=B2
+    current_phase = 0
     for e in events_b:
         k = e.get("kind")
         if k == "SubphaseB1":
-            # begin B1 (marker only)
-            in_b2 = False
+            current_phase = 0
+            continue
+        if k == "SubphaseB_Dealer":
+            current_phase = 1
             continue
         if k == "SubphaseB2":
-            # switch to B2 (marker only)
-            in_b2 = True
+            current_phase = 2
             continue
-        if in_b2:
-            b2.append(e)
-        else:
+        if current_phase == 0:
             b1.append(e)
-    return b1, b2
+        elif current_phase == 1:
+            b_dealer.append(e)
+        else:
+            b2.append(e)
+    return b1, b_dealer, b2
 
 
 def export_pretty_html(
@@ -500,8 +528,10 @@ def export_pretty_html(
         ev = d.get('events', [])
         buckets = _split_by_phases(ev)
         html_parts.append("<div class=\"events-section\">")
-        b1, b2 = _split_phase_b_into_subphases(buckets.get("B", []))
+        b1, b_dealer, b2 = _split_phase_b_into_subphases(buckets.get("B", []))
         html_parts.append(_render_events_table("Phase B1 — Scheduled Actions", b1))
+        if b_dealer:
+            html_parts.append(_render_events_table("Phase B — Dealer Trading", b_dealer))
         html_parts.append(_render_events_table("Phase B2 — Settlement", b2))
         html_parts.append(_render_events_table("Phase C — Clearing", buckets.get("C", [])))
         html_parts.append("</div>")

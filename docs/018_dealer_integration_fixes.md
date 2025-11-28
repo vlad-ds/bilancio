@@ -242,9 +242,117 @@ When `delta_weighted=0`, the condition is False, returning None instead of 0.
 delta_total = (delta_weighted / S_total) if S_total else None
 ```
 
+## Additional Fixes (2025-11-28 Session 3)
+
+### Issue 12: Wrong Capital Model - Dealer/VBT Taking Tickets From Traders
+
+**Symptom:** Negative relief ratio (-51.8%) - dealer making defaults worse.
+
+**Root Cause:** The original `initialize_dealer_subsystem` was reallocating tickets from traders to dealer/VBT based on `dealer_share` and `vbt_share`. This removed 75% of traders' receivables and gave them to market makers, leaving traders with fewer assets to settle their own debts.
+
+**Correct Model:** Per specification, dealer and VBT should bring NEW outside capital, not take assets from traders:
+- Traders keep 100% of their receivables
+- Dealer gets 25% of system cash as NEW money injected from outside
+- VBT gets 50% of system cash as NEW money injected from outside
+- Dealers and VBTs start with EMPTY inventory, building it by purchasing from traders
+
+**Fix:** Rewrote `initialize_dealer_subsystem` in `src/bilancio/engines/dealer_integration.py`:
+```python
+# OLD (wrong): allocated tickets from traders to dealer/VBT
+# dealer_tickets = tickets[:int(len(tickets) * dealer_share)]
+
+# NEW (correct): Calculate NEW capital from outside the system
+total_system_cash = Decimal(0)
+for agent_id, agent in system.state.agents.items():
+    if agent.kind in ("dealer", "vbt"):
+        continue  # Skip dealer/VBT
+    total_system_cash += _get_agent_cash(system, agent_id)
+
+dealer_capital_per_bucket = (total_system_cash * dealer_config.dealer_share) / num_buckets
+vbt_capital_per_bucket = (total_system_cash * dealer_config.vbt_share) / num_buckets
+
+# Dealers start with empty inventory and NEW cash
+dealer = DealerState(
+    inventory=[],  # Empty! Build by buying from traders
+    cash=dealer_capital_per_bucket,  # NEW outside money
+)
+```
+
+Also updated CLI and comparison.py parameter descriptions:
+```python
+@click.option('--dealer-share', help='Dealer capital as fraction of system cash (NEW outside money)')
+@click.option('--vbt-share', help='VBT capital as fraction of system cash (NEW outside money)')
+```
+
+### Issue 13: Invariant Check Failure for Secondary Market Transfers
+
+**Symptom:** AssertionError: `"PAY_xxx missing on asset holder dealer_short"`
+
+**Root Cause:** The invariant check in `system.py` line 94 used `asset_holder_id` (original creditor), but when a payable is transferred to a dealer, `holder_id` changes while `asset_holder_id` remains the original. The check was looking for the payable in the original creditor's assets, not the current holder's.
+
+**Fix:** Updated invariant check in `src/bilancio/engines/system.py`:
+```python
+for cid, c in self.state.contracts.items():
+    # For secondary market transfers (e.g., payables sold to dealers),
+    # check the effective holder, not the original asset_holder_id
+    effective_holder_id = getattr(c, 'effective_creditor', None) or c.asset_holder_id
+    assert cid in self.state.agents[effective_holder_id].asset_ids, \
+        f"{cid} missing on asset holder {effective_holder_id}"
+    assert cid in self.state.agents[c.liability_issuer_id].liability_ids, \
+        f"{cid} missing on issuer"
+```
+
+### Issue 14: _remove_contract Not Cleaning Up Secondary Market Holders
+
+**Symptom:** KeyError when processing second payable on day 3 - dealer's `asset_ids` still contained removed contract.
+
+**Root Cause:** `_remove_contract` in `settlement.py` was removing the contract ID from `asset_holder_id`'s asset list, but when a payable had been transferred to a dealer, it wasn't removing from the dealer's asset list.
+
+**Fix:** Updated `_remove_contract` in `src/bilancio/engines/settlement.py`:
+```python
+def _remove_contract(system, contract_id):
+    """Remove contract from system and update agent registries."""
+    contract = system.state.contracts[contract_id]
+
+    # For secondary market transfers (e.g., payables sold to dealers),
+    # remove from the effective holder, not the original asset_holder_id
+    effective_holder_id = getattr(contract, 'effective_creditor', None) or contract.asset_holder_id
+    effective_holder = system.state.agents.get(effective_holder_id)
+    if effective_holder and contract_id in effective_holder.asset_ids:
+        effective_holder.asset_ids.remove(contract_id)
+
+    # Also check original asset_holder in case it wasn't transferred properly
+    if effective_holder_id != contract.asset_holder_id:
+        original_holder = system.state.agents.get(contract.asset_holder_id)
+        if original_holder and contract_id in original_holder.asset_ids:
+            original_holder.asset_ids.remove(contract_id)
+
+    liability_issuer = system.state.agents[contract.liability_issuer_id]
+    if contract_id in liability_issuer.liability_ids:
+        liability_issuer.liability_ids.remove(contract_id)
+
+    del system.state.contracts[contract_id]
+    # ... rest of function
+```
+
+## Final Test Results (100 Agents)
+
+After all fixes including the correct capital model:
+
+| κ (kappa) | Control δ | Treatment δ | Reduction | Relief Ratio |
+|-----------|-----------|-------------|-----------|--------------|
+| 0.5       | 37.2%     | 32.4%       | -4.8pp    | **+12.8%**   |
+| 1.0       | 54.6%     | 51.4%       | -3.2pp    | **+5.9%**    |
+| 2.0       | 82.2%     | 71.2%       | -11.0pp   | **+13.3%**   |
+
+All parameter combinations now show **positive relief ratios**, confirming the dealer subsystem successfully reduces default rates when properly configured with new outside capital.
+
+Results stored in `temp/comparison_100_v2/aggregate/comparison.csv`.
+
 ## Commits
 
 ```
 1f61ae2 fix(dealer): Complete dealer integration with proper trading mechanics
 c814677 docs: Update Plan 018 with test results and mark COMPLETE
+60d56ce feat: Implement dealer-Kalecki integration (Plan 016)
 ```
