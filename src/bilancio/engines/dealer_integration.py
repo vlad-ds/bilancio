@@ -107,23 +107,27 @@ def initialize_dealer_subsystem(
 
     This function performs the initial setup of the dealer subsystem:
 
-    1. Convert existing Payables to Tickets:
+    1. Create dealer/VBT agents in main system:
+       - Add actual Household agents for each dealer and VBT
+       - This allows proper ownership tracking in the main system
+
+    2. Convert existing Payables to Tickets:
        - Extract all payables from system contracts
        - Create corresponding Ticket objects with maturity info
        - Assign tickets to maturity buckets
        - Build bidirectional mappings
 
-    2. Initialize market makers:
+    3. Initialize market makers:
        - Create DealerState for each bucket with initial capital
        - Create VBTState for each bucket with anchors
        - Allocate initial ticket inventory based on dealer_share/vbt_share
 
-    3. Initialize traders:
+    4. Initialize traders:
        - Create TraderState for each household agent
        - Set initial cash from agent balance sheets
        - Link tickets to trader ownership
 
-    4. Compute initial quotes:
+    5. Compute initial quotes:
        - Run kernel computation for each dealer
        - Generate initial bid/ask spreads
 
@@ -154,11 +158,38 @@ def initialize_dealer_subsystem(
         >>> subsystem = initialize_dealer_subsystem(system, config)
         >>> # Now ready for run_dealer_trading_phase()
     """
+    from bilancio.domain.agents import Household
+
     subsystem = DealerSubsystem(
         bucket_configs=dealer_config.buckets,
         params=KernelParams(S=dealer_config.ticket_size),
         rng=random.Random(dealer_config.seed),
     )
+
+    # Step 0: Create dealer/VBT agents in main system
+    # These agents allow proper ownership tracking when claims transfer to dealers
+    for bucket_config in dealer_config.buckets:
+        bucket_id = bucket_config.name
+        dealer_agent_id = f"dealer_{bucket_id}"
+        vbt_agent_id = f"vbt_{bucket_id}"
+
+        # Create dealer agent if not exists
+        if dealer_agent_id not in system.state.agents:
+            dealer_agent = Household(
+                id=dealer_agent_id,
+                name=f"Dealer ({bucket_id})",
+                kind="household"
+            )
+            system.state.agents[dealer_agent_id] = dealer_agent
+
+        # Create VBT agent if not exists
+        if vbt_agent_id not in system.state.agents:
+            vbt_agent = Household(
+                id=vbt_agent_id,
+                name=f"VBT ({bucket_id})",
+                kind="household"
+            )
+            system.state.agents[vbt_agent_id] = vbt_agent
 
     # Initialize trade executor
     subsystem.executor = TradeExecutor(subsystem.params, subsystem.rng)
@@ -257,9 +288,12 @@ def initialize_dealer_subsystem(
         if agent.kind != "household":
             continue
 
+        # Calculate trader's cash from their cash holdings in main system
+        trader_cash = _get_agent_cash(system, agent_id)
+
         trader = TraderState(
             agent_id=agent_id,
-            cash=Decimal(0),  # Will be set based on actual cash holdings
+            cash=trader_cash,
             tickets_owned=[],
             obligations=[],
             asset_issuer_id=None,
@@ -279,6 +313,32 @@ def initialize_dealer_subsystem(
         subsystem.traders[agent_id] = trader
 
     return subsystem
+
+
+def _get_agent_cash(system, agent_id: str) -> Decimal:
+    """
+    Get total cash balance for an agent from the main system.
+
+    Sums all cash contracts where the agent is the asset holder.
+
+    Args:
+        system: Main System instance
+        agent_id: Agent ID to get cash for
+
+    Returns:
+        Total cash balance as Decimal
+    """
+    agent = system.state.agents.get(agent_id)
+    if not agent:
+        return Decimal(0)
+
+    total_cash = Decimal(0)
+    for contract_id in agent.asset_ids:
+        contract = system.state.contracts.get(contract_id)
+        if contract and contract.kind == "cash":
+            total_cash += Decimal(contract.amount)
+
+    return total_cash
 
 
 def run_dealer_trading_phase(
@@ -337,6 +397,11 @@ def run_dealer_trading_phase(
         return []
 
     events = []
+
+    # Phase 0: Sync trader cash from main system
+    # This ensures traders have up-to-date cash balances for eligibility checks
+    for trader_id, trader in subsystem.traders.items():
+        trader.cash = _get_agent_cash(system, trader_id)
 
     # Phase 1: Update ticket maturities and buckets
     # Collect matured tickets to remove after iteration
@@ -400,24 +465,34 @@ def run_dealer_trading_phase(
         recompute_dealer_state(dealer, vbt, subsystem.params)
 
     # Phase 3: Build eligibility sets (simplified)
-    # Traders who need cash (have shortfall)
+    # Traders who need cash (have shortfall coming in next few days)
     eligible_sellers = []
+    horizon = 10  # Look ahead this many days for upcoming obligations
     for trader_id, trader in subsystem.traders.items():
-        shortfall = trader.shortfall(current_day)
-        if shortfall > 0 and trader.tickets_owned:
+        # Check for shortfall on any of the next 'horizon' days
+        upcoming_shortfall = Decimal(0)
+        for day_offset in range(horizon + 1):
+            upcoming_shortfall = max(upcoming_shortfall, trader.shortfall(current_day + day_offset))
+        if upcoming_shortfall > 0 and trader.tickets_owned:
             eligible_sellers.append(trader_id)
 
-    # Traders who can buy (have surplus cash and future liability)
+    # Traders who can buy (have surplus cash beyond needs)
+    # DISABLED for now: Buying can hurt by reducing liquidity of potential payers.
+    # The primary purpose of the dealer is to provide liquidity to sellers.
     eligible_buyers = []
-    for trader_id, trader in subsystem.traders.items():
-        # Simplified: traders with cash and obligations can potentially buy
-        if trader.cash > Decimal(100) and trader.obligations:
-            eligible_buyers.append(trader_id)
+    # Only allow buying if trader has significant surplus above obligations
+    # for trader_id, trader in subsystem.traders.items():
+    #     max_upcoming_dues = Decimal(0)
+    #     for day_offset in range(horizon + 1):
+    #         max_upcoming_dues = max(max_upcoming_dues, trader.dues_on_day(current_day + day_offset))
+    #     surplus = trader.cash - max_upcoming_dues
+    #     if surplus > Decimal(500):  # Only if significant surplus
+    #         eligible_buyers.append(trader_id)
 
     # Phase 4: Randomized order flow (simplified)
     # Process sellers first (they have urgent needs)
     subsystem.rng.shuffle(eligible_sellers)
-    for trader_id in eligible_sellers[:3]:  # Limit to 3 trades per phase
+    for trader_id in eligible_sellers[:10]:  # Process up to 10 sellers per phase
         trader = subsystem.traders[trader_id]
         if not trader.tickets_owned:
             continue
@@ -434,9 +509,13 @@ def run_dealer_trading_phase(
         )
 
         if result.executed:
+            # Scale price by ticket face value
+            # The dealer module returns unit price (per S=1), but our tickets have actual face values
+            scaled_price = result.price * ticket.face
+
             # Update trader state
             trader.tickets_owned.remove(ticket)
-            trader.cash += result.price
+            trader.cash += scaled_price
 
             events.append({
                 "kind": "dealer_trade",
@@ -445,7 +524,9 @@ def run_dealer_trading_phase(
                 "side": "sell",
                 "ticket_id": ticket.id,
                 "bucket": bucket_id,
-                "price": float(result.price),
+                "price": float(scaled_price),
+                "unit_price": float(result.price),
+                "face": float(ticket.face),
                 "is_passthrough": result.is_passthrough,
             })
 
@@ -468,9 +549,12 @@ def run_dealer_trading_phase(
             )
 
             if result.executed and result.ticket:
+                # Scale price by ticket face value
+                scaled_price = result.price * result.ticket.face
+
                 # Update trader state
                 trader.tickets_owned.append(result.ticket)
-                trader.cash -= result.price
+                trader.cash -= scaled_price
 
                 # Update asset issuer if first ticket
                 if trader.asset_issuer_id is None:
@@ -483,7 +567,9 @@ def run_dealer_trading_phase(
                     "side": "buy",
                     "ticket_id": result.ticket.id,
                     "bucket": bucket_id,
-                    "price": float(result.price),
+                    "price": float(scaled_price),
+                    "unit_price": float(result.price),
+                    "face": float(result.ticket.face),
                     "is_passthrough": result.is_passthrough,
                 })
                 break  # One buy per trader per phase
@@ -501,21 +587,22 @@ def sync_dealer_to_system(
     This function bridges the dealer subsystem state back to the main
     simulation system, updating:
 
-    1. Agent cash balances:
+    1. Payable ownership:
+       - Update Payable.asset_holder_id for transferred claims
+       - Update agent.asset_ids lists (remove from old holder, add to new)
+       - Maintain double-entry consistency
+
+    2. Agent cash balances:
        - Apply cash changes from trader.cash to agent balance sheets
        - Update Cash contract amounts in system.state.contracts
 
-    2. Payable ownership:
-       - Update Payable.holder_id for transferred claims
-       - Maintain double-entry consistency
-
     3. Consistency checks:
-       - Verify ticket ownership matches payable holder_id
+       - Verify ticket ownership matches payable asset_holder_id
        - Ensure cash changes sum to zero (closed system)
 
     Implementation approach:
         - Use ticket_to_payable mapping to find contracts
-        - Update holder_id based on ticket.owner_id
+        - Update asset_holder_id based on ticket.owner_id
         - Calculate cash deltas by comparing trader.cash to agent balance
 
     Note: This is a simplified implementation. A full version would:
@@ -540,7 +627,7 @@ def sync_dealer_to_system(
     """
     from bilancio.domain.instruments.credit import Payable
 
-    # Step 1: Update Payable holder_id for transferred claims
+    # Step 1: Update Payable ownership for transferred claims
     for ticket_id, ticket in subsystem.tickets.items():
         # Get corresponding payable
         payable_id = subsystem.ticket_to_payable.get(ticket_id)
@@ -551,25 +638,66 @@ def sync_dealer_to_system(
         if not isinstance(payable, Payable):
             continue
 
-        # Update holder if ownership changed in dealer system
-        # Skip dealer/VBT ownership (they're not in main system)
-        if ticket.owner_id.startswith("dealer_") or ticket.owner_id.startswith("vbt_"):
-            # Keep holder_id as dealer subsystem placeholder
-            # In full implementation, would need dealer agents in main system
-            pass
-        else:
-            # Update to actual agent owner
-            payable.holder_id = ticket.owner_id
+        # Check if ownership changed
+        current_holder = payable.asset_holder_id
+        new_holder = ticket.owner_id
 
-    # Step 2: Sync trader cash balances (simplified)
-    # In full implementation, would apply exact cash deltas from trades
-    # For now, we note that cash changes are tracked in trader.cash
-    # but not automatically synced to avoid double-counting with
-    # the main system's settlement logic
+        if current_holder != new_holder:
+            # Update agent asset_ids lists
+            old_holder_agent = system.state.agents.get(current_holder)
+            new_holder_agent = system.state.agents.get(new_holder)
 
-    # Future: Implement proper cash synchronization when dealer subsystem
-    # is fully integrated with the main settlement engine
-    pass
+            if old_holder_agent and payable_id in old_holder_agent.asset_ids:
+                old_holder_agent.asset_ids.remove(payable_id)
+
+            if new_holder_agent and payable_id not in new_holder_agent.asset_ids:
+                new_holder_agent.asset_ids.append(payable_id)
+
+            # Update payable's asset_holder_id
+            payable.asset_holder_id = new_holder
+
+            # Log the transfer
+            system.log(
+                "ClaimTransferredDealer",
+                payable_id=payable_id,
+                from_holder=current_holder,
+                to_holder=new_holder,
+                amount=payable.amount,
+                due_day=payable.due_day
+            )
+
+    # Step 2: Sync trader cash balances
+    # Compare trader.cash in dealer subsystem to actual cash in main system
+    # and apply the delta as minting (if trader gained) or burning (if trader paid)
+    for trader_id, trader in subsystem.traders.items():
+        main_system_cash = _get_agent_cash(system, trader_id)
+        dealer_cash = trader.cash
+        delta = dealer_cash - main_system_cash
+
+        if delta > 0:
+            # Trader gained cash from selling tickets - mint cash to them
+            # This represents money coming from outside the system (dealer/VBT)
+            system.mint_cash(to_agent_id=trader_id, amount=int(delta))
+        elif delta < 0:
+            # Trader spent cash buying tickets - need to reduce their cash
+            # Find and reduce their cash contracts
+            agent = system.state.agents.get(trader_id)
+            if agent:
+                remaining_to_burn = abs(delta)
+                for contract_id in list(agent.asset_ids):
+                    if remaining_to_burn <= 0:
+                        break
+                    contract = system.state.contracts.get(contract_id)
+                    if contract and contract.kind == "cash":
+                        if contract.amount <= remaining_to_burn:
+                            # Remove entire contract
+                            remaining_to_burn -= contract.amount
+                            agent.asset_ids.remove(contract_id)
+                            del system.state.contracts[contract_id]
+                        else:
+                            # Reduce contract amount
+                            contract.amount -= int(remaining_to_burn)
+                            remaining_to_burn = 0
 
 
 def _assign_bucket(remaining_tau: int, bucket_configs: List[BucketConfig]) -> str:

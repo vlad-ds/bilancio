@@ -85,9 +85,12 @@ class ComparisonSweepConfig(BaseModel):
     monotonicities: List[Decimal] = Field(default_factory=lambda: [Decimal("0")])
 
     # Dealer configuration for treatment runs
+    # NOTE: dealer_share and vbt_share should be 0 for fair comparison.
+    # Agents should own 100% of their claims initially in both conditions.
+    # The dealer only provides a secondary market for dynamic trading.
     dealer_ticket_size: Decimal = Field(default=Decimal("1"), description="Ticket size for dealer")
-    dealer_share: Decimal = Field(default=Decimal("0.25"), description="Dealer inventory share")
-    vbt_share: Decimal = Field(default=Decimal("0.50"), description="VBT inventory share")
+    dealer_share: Decimal = Field(default=Decimal("0"), description="Dealer initial inventory share (0 = agents own all claims)")
+    vbt_share: Decimal = Field(default=Decimal("0"), description="VBT initial inventory share (0 = agents own all claims)")
 
 
 class ComparisonSweepRunner:
