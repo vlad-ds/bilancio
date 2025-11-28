@@ -158,7 +158,7 @@ def initialize_dealer_subsystem(
         >>> subsystem = initialize_dealer_subsystem(system, config)
         >>> # Now ready for run_dealer_trading_phase()
     """
-    from bilancio.domain.agents import Household
+    from bilancio.domain.agents import Dealer, VBT
 
     subsystem = DealerSubsystem(
         bucket_configs=dealer_config.buckets,
@@ -175,19 +175,17 @@ def initialize_dealer_subsystem(
 
         # Create dealer agent if not exists
         if dealer_agent_id not in system.state.agents:
-            dealer_agent = Household(
+            dealer_agent = Dealer(
                 id=dealer_agent_id,
                 name=f"Dealer ({bucket_id})",
-                kind="household"
             )
             system.state.agents[dealer_agent_id] = dealer_agent
 
         # Create VBT agent if not exists
         if vbt_agent_id not in system.state.agents:
-            vbt_agent = Household(
+            vbt_agent = VBT(
                 id=vbt_agent_id,
                 name=f"VBT ({bucket_id})",
-                kind="household"
             )
             system.state.agents[vbt_agent_id] = vbt_agent
 
@@ -402,6 +400,40 @@ def run_dealer_trading_phase(
     # This ensures traders have up-to-date cash balances for eligibility checks
     for trader_id, trader in subsystem.traders.items():
         trader.cash = _get_agent_cash(system, trader_id)
+
+    # Phase 0.5: Clean up tickets whose payables were removed
+    # This can happen when agents default and get expelled (expel-agent mode)
+    from bilancio.domain.instruments.credit import Payable
+    orphaned_ticket_ids = []
+    for ticket_id, payable_id in subsystem.ticket_to_payable.items():
+        payable = system.state.contracts.get(payable_id)
+        if payable is None or not isinstance(payable, Payable):
+            orphaned_ticket_ids.append(ticket_id)
+
+    for ticket_id in orphaned_ticket_ids:
+        ticket = subsystem.tickets.get(ticket_id)
+        if ticket:
+            # Remove from inventories
+            bucket = ticket.bucket_id
+            dealer = subsystem.dealers.get(bucket)
+            vbt = subsystem.vbts.get(bucket)
+            if dealer and ticket in dealer.inventory:
+                dealer.inventory.remove(ticket)
+            if vbt and ticket in vbt.inventory:
+                vbt.inventory.remove(ticket)
+            # Remove from trader holdings
+            for trader in subsystem.traders.values():
+                if ticket in trader.tickets_owned:
+                    trader.tickets_owned.remove(ticket)
+                if ticket in trader.obligations:
+                    trader.obligations.remove(ticket)
+            # Remove ticket
+            del subsystem.tickets[ticket_id]
+
+        # Clean up mappings
+        payable_id = subsystem.ticket_to_payable.pop(ticket_id, None)
+        if payable_id:
+            subsystem.payable_to_ticket.pop(payable_id, None)
 
     # Phase 1: Update ticket maturities and buckets
     # Collect matured tickets to remove after iteration
@@ -628,6 +660,10 @@ def sync_dealer_to_system(
     from bilancio.domain.instruments.credit import Payable
 
     # Step 1: Update Payable ownership for transferred claims
+    # Note: Payable has two holder fields:
+    # - asset_holder_id: original creditor (from base Instrument class)
+    # - holder_id: secondary market holder (specific to Payable)
+    # Settlement uses effective_creditor which returns holder_id if set, else asset_holder_id
     for ticket_id, ticket in subsystem.tickets.items():
         # Get corresponding payable
         payable_id = subsystem.ticket_to_payable.get(ticket_id)
@@ -638,8 +674,8 @@ def sync_dealer_to_system(
         if not isinstance(payable, Payable):
             continue
 
-        # Check if ownership changed
-        current_holder = payable.asset_holder_id
+        # Check if ownership changed (compare with effective_creditor)
+        current_holder = payable.effective_creditor
         new_holder = ticket.owner_id
 
         if current_holder != new_holder:
@@ -653,8 +689,9 @@ def sync_dealer_to_system(
             if new_holder_agent and payable_id not in new_holder_agent.asset_ids:
                 new_holder_agent.asset_ids.append(payable_id)
 
-            # Update payable's asset_holder_id
-            payable.asset_holder_id = new_holder
+            # Update payable's holder_id (secondary market holder)
+            # Keep asset_holder_id as the original creditor
+            payable.holder_id = new_holder
 
             # Log the transfer
             system.log(

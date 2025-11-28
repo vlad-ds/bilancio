@@ -74,9 +74,12 @@ def agent_balance(system: System, agent_id: str) -> AgentBalance:
     
     # Sum up assets
     for contract_id in agent.asset_ids:
-        contract = system.state.contracts[contract_id]
+        contract = system.state.contracts.get(contract_id)
+        if contract is None:
+            # Contract was settled/removed but ID wasn't cleaned from asset_ids
+            continue
         assets_by_kind[contract.kind] += contract.amount
-        
+
         # Check if it's financial (use getattr with default lambda)
         is_financial_func = getattr(contract, 'is_financial', lambda: True)
         if is_financial_func():
@@ -85,17 +88,20 @@ def agent_balance(system: System, agent_id: str) -> AgentBalance:
             # Track non-financial assets with quantity and value
             sku = getattr(contract, 'sku', contract.kind)
             nonfinancial_assets_by_kind[sku]['quantity'] += contract.amount
-            
+
             # Calculate value (always available now)
             valued_amount = getattr(contract, 'valued_amount', Decimal('0'))
             nonfinancial_assets_by_kind[sku]['value'] += valued_amount
             total_nonfinancial_value += valued_amount
-    
+
     # Sum up liabilities
     for contract_id in agent.liability_ids:
-        contract = system.state.contracts[contract_id]
+        contract = system.state.contracts.get(contract_id)
+        if contract is None:
+            # Contract was settled/removed but ID wasn't cleaned from liability_ids
+            continue
         liabilities_by_kind[contract.kind] += contract.amount
-        
+
         # Check if it's financial (use getattr with default lambda)
         is_financial_func = getattr(contract, 'is_financial', lambda: True)
         if is_financial_func():

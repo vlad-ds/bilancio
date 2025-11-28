@@ -41,17 +41,20 @@ for trader_id, trader in subsystem.traders.items():
 
 **Symptom:** Ownership transfers not reflected in main system.
 
-**Root Cause:** `sync_dealer_to_system` used `payable.holder_id` but the Payable class uses `asset_holder_id`:
-```python
-# Wrong:
-payable.holder_id = ticket.owner_id
-# Correct:
-payable.asset_holder_id = new_holder
-```
+**Root Cause:** `sync_dealer_to_system` was updating `payable.asset_holder_id` (original creditor) instead of `payable.holder_id` (secondary market holder). The `Payable` class has two holder fields:
+- `asset_holder_id`: Original creditor (from base Instrument class)
+- `holder_id`: Secondary market holder (specific to Payable)
 
-**Fix:** Use correct attribute name and also update agent `asset_ids` lists:
+Settlement uses `effective_creditor` which returns `holder_id` if set, else `asset_holder_id`.
+
+**Fix:** Update `holder_id` (secondary market holder) instead of `asset_holder_id`:
 ```python
+# Compare with effective_creditor (current holder)
+current_holder = payable.effective_creditor
+new_holder = ticket.owner_id
+
 if current_holder != new_holder:
+    # Update agent asset_ids lists
     old_holder_agent = system.state.agents.get(current_holder)
     new_holder_agent = system.state.agents.get(new_holder)
 
@@ -60,20 +63,31 @@ if current_holder != new_holder:
     if new_holder_agent and payable_id not in new_holder_agent.asset_ids:
         new_holder_agent.asset_ids.append(payable_id)
 
-    payable.asset_holder_id = new_holder
+    # Update holder_id (secondary market), keep asset_holder_id as original creditor
+    payable.holder_id = new_holder
 ```
 
 ### Issue 3: Dealer/VBT Agents Not in Main System
 
 **Symptom:** KeyError when settlement tries to look up `dealer_short` in `system.state.agents`.
 
-**Root Cause:** When a claim transfers to dealer/VBT, the `asset_holder_id` becomes `"dealer_short"` etc., but settlement code does:
+**Root Cause:** When a claim transfers to dealer/VBT, the `holder_id` becomes `"dealer_short"` etc., but settlement code does:
 ```python
-asset_holder = system.state.agents[contract.asset_holder_id]  # KeyError!
+asset_holder = system.state.agents[contract.effective_creditor]  # KeyError!
 ```
 
-**Fix:** Create placeholder Household agents for dealer/VBT in main system:
+**Fix:** Create proper `Dealer` and `VBT` agent types in the domain model:
+
+1. Added `DEALER` and `VBT` to `AgentKind` enum in `src/bilancio/domain/agent.py`
+
+2. Created new agent classes:
+   - `src/bilancio/domain/agents/dealer.py` - Market maker agent for a maturity bucket
+   - `src/bilancio/domain/agents/vbt.py` - Value-Based Trader providing outside liquidity
+
+3. Updated `initialize_dealer_subsystem` to use proper agent types:
 ```python
+from bilancio.domain.agents import Dealer, VBT
+
 # In initialize_dealer_subsystem:
 for bucket_config in dealer_config.buckets:
     bucket_id = bucket_config.name
@@ -81,11 +95,11 @@ for bucket_config in dealer_config.buckets:
     vbt_agent_id = f"vbt_{bucket_id}"
 
     if dealer_agent_id not in system.state.agents:
-        dealer_agent = Household(id=dealer_agent_id, name=f"Dealer ({bucket_id})", kind="household")
+        dealer_agent = Dealer(id=dealer_agent_id, name=f"Dealer ({bucket_id})")
         system.state.agents[dealer_agent_id] = dealer_agent
 
     if vbt_agent_id not in system.state.agents:
-        vbt_agent = Household(id=vbt_agent_id, name=f"VBT ({bucket_id})", kind="household")
+        vbt_agent = VBT(id=vbt_agent_id, name=f"VBT ({bucket_id})")
         system.state.agents[vbt_agent_id] = vbt_agent
 ```
 
@@ -155,10 +169,78 @@ After all fixes, comprehensive test with 20 agents, 10-day maturity:
 
 ## Files Modified
 
-- `src/bilancio/engines/dealer_integration.py` - Main fixes
+- `src/bilancio/engines/dealer_integration.py` - Main fixes, proper agent types
 - `src/bilancio/experiments/comparison.py` - Default config values
 - `src/bilancio/ui/cli.py` - CLI default values
 - `docs/plans/018_dealer_comparison_experiments.md` - Updated with results
+
+## Files Created
+
+- `src/bilancio/domain/agents/dealer.py` - New `Dealer` agent class
+- `src/bilancio/domain/agents/vbt.py` - New `VBT` agent class
+- `src/bilancio/domain/agent.py` - Added `DEALER` and `VBT` to `AgentKind` enum
+- `src/bilancio/domain/agents/__init__.py` - Export new agent types
+
+## Additional Fixes (2025-11-28 Session 2)
+
+### Issue 8: `holder_id` vs `asset_holder_id` in Sync
+
+**Symptom:** Tests failing - `payable.holder_id` not being updated.
+
+**Root Cause:** The `Payable` class has two holder fields:
+- `asset_holder_id`: Original creditor (from base Instrument)
+- `holder_id`: Secondary market holder (specific to Payable)
+
+The sync code was comparing and updating `asset_holder_id` when it should use `holder_id`.
+
+**Fix:** Updated `sync_dealer_to_system` to:
+1. Compare against `payable.effective_creditor`
+2. Update `payable.holder_id` instead of `asset_holder_id`
+
+### Issue 9: Orphaned Tickets After Agent Expulsion
+
+**Symptom:** KeyError in expel-agent mode when dealer subsystem references removed payables.
+
+**Root Cause:** When agents default and get expelled, their contracts are removed, but dealer subsystem tickets still reference them.
+
+**Fix:** Added Phase 0.5 cleanup in `run_dealer_trading_phase`:
+```python
+# Clean up tickets whose payables were removed
+orphaned_ticket_ids = []
+for ticket_id, payable_id in subsystem.ticket_to_payable.items():
+    payable = system.state.contracts.get(payable_id)
+    if payable is None or not isinstance(payable, Payable):
+        orphaned_ticket_ids.append(ticket_id)
+# ... cleanup orphaned tickets
+```
+
+### Issue 10: Missing Contracts in Balance Export
+
+**Symptom:** KeyError when exporting balances - settled payables removed from contracts but IDs remain in agent's `asset_ids`.
+
+**Root Cause:** `agent_balance` used direct dict access: `system.state.contracts[contract_id]`
+
+**Fix:** Changed to `.get()` with None check:
+```python
+contract = system.state.contracts.get(contract_id)
+if contract is None:
+    continue  # Skip settled/removed contracts
+```
+
+### Issue 11: Zero Default Rate Returns None
+
+**Symptom:** `delta_total` empty in registry when no defaults occurred.
+
+**Root Cause:** In `summarize_day_metrics`:
+```python
+delta_total = (delta_weighted / S_total) if S_total and delta_weighted else None
+```
+When `delta_weighted=0`, the condition is False, returning None instead of 0.
+
+**Fix:** Remove the `delta_weighted` check:
+```python
+delta_total = (delta_weighted / S_total) if S_total else None
+```
 
 ## Commits
 
