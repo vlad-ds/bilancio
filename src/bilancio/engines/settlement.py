@@ -453,7 +453,10 @@ def settle_due(system, day: int):
         if getattr(debtor, "defaulted", False):
             continue
 
-        creditor = system.state.agents[payable.asset_holder_id]
+        # Use effective_creditor to handle secondary market transfers
+        # (holder_id if transferred, otherwise original asset_holder_id)
+        creditor_id = payable.effective_creditor
+        creditor = system.state.agents[creditor_id]
         order = system.policy.settlement_order(debtor)
 
         remaining = payable.amount

@@ -130,6 +130,8 @@ def sweep_ring(
     if sweep_config is not None and sweep_config.out_dir and _using_default("out_dir"):
         out_dir = Path(sweep_config.out_dir)
 
+    dealer_enabled = False
+    dealer_config = None
     if sweep_config is not None and sweep_config.runner is not None:
         runner_cfg = sweep_config.runner
         if runner_cfg.n_agents is not None and _using_default("n_agents"):
@@ -148,6 +150,8 @@ def sweep_ring(
             name_prefix = runner_cfg.name_prefix
         if runner_cfg.default_handling is not None and _using_default("default_handling"):
             default_handling = runner_cfg.default_handling
+        dealer_enabled = runner_cfg.dealer_enabled
+        dealer_config = runner_cfg.dealer_config
 
     if sweep_config is not None and sweep_config.grid is not None:
         grid_cfg = sweep_config.grid
@@ -221,6 +225,8 @@ def sweep_ring(
         liquidity_agent=liquidity_agent,
         base_seed=base_seed,
         default_handling=default_handling,
+        dealer_enabled=dealer_enabled,
+        dealer_config=dealer_config,
     )
 
     console.print(f"[dim]Output directory: {out_dir}[/dim]")

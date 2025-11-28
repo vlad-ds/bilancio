@@ -1,6 +1,6 @@
 # Plan 016: Integrate Dealer Module with Kalecki Ring Simulation
 
-**Status**: PROPOSED
+**Status**: IN_PROGRESS
 **Date**: 2025-11-25
 **Goal**: Unify the standalone dealer ring implementation with the main Bilancio simulation engine to enable full Kalecki simulations with dealer-mediated secondary markets.
 

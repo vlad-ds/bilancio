@@ -123,18 +123,19 @@ class MonteCarloEngine:
         self.num_simulations = num_simulations
 
 
-def run_day(system):
+def run_day(system, enable_dealer: bool = False):
     """
     Run a single day's simulation with three phases.
-    
+
     Phase A: Log PhaseA event (noop for now)
     Phase B: Settle obligations due on the current day using settle_due
     Phase C: Clear intraday nets for the current day using settle_intraday_nets
-    
+
     Finally, increment the system day counter.
-    
+
     Args:
         system: System instance to run the day for
+        enable_dealer: If True, run dealer trading phase between scheduled actions and settlements
     """
     current_day = system.state.day
 
@@ -158,6 +159,19 @@ def run_day(system):
         # but keep guard to ensure the simulation loop stability
         raise
 
+    # SubphaseB_Dealer: Run dealer trading phase (optional)
+    if enable_dealer and hasattr(system.state, 'dealer_subsystem') and system.state.dealer_subsystem is not None:
+        system.log("SubphaseB_Dealer")
+        # Lazy import to avoid circular dependencies
+        from bilancio.engines.dealer_integration import run_dealer_trading_phase, sync_dealer_to_system
+
+        # Run dealer trading and collect events
+        dealer_events = run_dealer_trading_phase(system.state.dealer_subsystem, system, current_day)
+        system.state.events.extend(dealer_events)
+
+        # Sync dealer state back to main system
+        sync_dealer_to_system(system.state.dealer_subsystem, system)
+
     # B2: Automated settlements due today
     system.log("SubphaseB2")
     settle_due(system, current_day)
@@ -170,11 +184,17 @@ def run_day(system):
     system.state.day += 1
 
 
-def run_until_stable(system, max_days: int = 365, quiet_days: int = 2) -> list[DayReport]:
+def run_until_stable(system, max_days: int = 365, quiet_days: int = 2, enable_dealer: bool = False) -> list[DayReport]:
     """
     Advance day by day until the system is stable:
     - No impactful events happen for `quiet_days` consecutive days, AND
     - No outstanding payables or delivery obligations remain.
+
+    Args:
+        system: System instance to run
+        max_days: Maximum number of days to run
+        quiet_days: Number of consecutive quiet days needed for stability
+        enable_dealer: If True, run dealer trading phase each day
     """
     reports = []
     consecutive_quiet = 0
@@ -182,7 +202,7 @@ def run_until_stable(system, max_days: int = 365, quiet_days: int = 2) -> list[D
 
     for _ in range(max_days):
         day_before = system.state.day
-        run_day(system)
+        run_day(system, enable_dealer=enable_dealer)
         impacted = _impacted_today(system, day_before)
         reports.append(DayReport(day=day_before, impacted=impacted))
 

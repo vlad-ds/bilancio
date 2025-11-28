@@ -344,6 +344,140 @@ class RunConfig(BaseModel):
         return v
 
 
+class DealerBucketConfig(BaseModel):
+    """Configuration for a dealer ring bucket."""
+    tau_min: int = Field(..., description="Minimum remaining maturity (inclusive)")
+    tau_max: int = Field(..., description="Maximum remaining maturity (inclusive), use 999 for unbounded")
+    M: Decimal = Field(Decimal("1.0"), description="Mid anchor price")
+    O: Decimal = Field(Decimal("0.30"), description="Spread")
+
+    @field_validator("tau_min", "tau_max")
+    @classmethod
+    def maturity_positive(cls, v):
+        if v < 1:
+            raise ValueError("Maturity bounds must be positive")
+        return v
+
+    @field_validator("M")
+    @classmethod
+    def mid_price_positive(cls, v):
+        if v <= 0:
+            raise ValueError("Mid price M must be positive")
+        return v
+
+    @field_validator("O")
+    @classmethod
+    def spread_positive(cls, v):
+        if v <= 0:
+            raise ValueError("Spread O must be positive")
+        return v
+
+    @model_validator(mode="after")
+    def validate_maturity_range(self):
+        if self.tau_min > self.tau_max:
+            raise ValueError("tau_min must be <= tau_max")
+        return self
+
+
+class DealerOrderFlowConfig(BaseModel):
+    """Configuration for dealer order flow arrival process."""
+    pi_sell: Decimal = Field(Decimal("0.5"), description="Probability of SELL vs BUY (0-1)")
+    N_max: int = Field(3, description="Max trades per arrival")
+
+    @field_validator("pi_sell")
+    @classmethod
+    def pi_sell_valid(cls, v):
+        if not (0 <= v <= 1):
+            raise ValueError("pi_sell must be between 0 and 1")
+        return v
+
+    @field_validator("N_max")
+    @classmethod
+    def n_max_positive(cls, v):
+        if v < 1:
+            raise ValueError("N_max must be positive")
+        return v
+
+
+class DealerTraderPolicyConfig(BaseModel):
+    """Configuration for dealer trader policy parameters."""
+    horizon_H: int = Field(3, description="Trading horizon (days ahead to consider shortfall)")
+    buffer_B: Decimal = Field(Decimal("1.0"), description="Liquidity buffer multiplier")
+
+    @field_validator("horizon_H")
+    @classmethod
+    def horizon_positive(cls, v):
+        if v < 1:
+            raise ValueError("horizon_H must be positive")
+        return v
+
+    @field_validator("buffer_B")
+    @classmethod
+    def buffer_positive(cls, v):
+        if v < 0:
+            raise ValueError("buffer_B cannot be negative")
+        return v
+
+
+class DealerConfig(BaseModel):
+    """Configuration for dealer subsystem."""
+    enabled: bool = Field(False, description="Whether dealer subsystem is active")
+    ticket_size: Decimal = Field(Decimal("1"), description="Face value of tickets")
+    buckets: Optional[Dict[str, DealerBucketConfig]] = Field(
+        None,
+        description="Bucket configurations by name (short, mid, long)"
+    )
+    dealer_share: Decimal = Field(Decimal("0.25"), description="Fraction of system value for dealer capital")
+    vbt_share: Decimal = Field(Decimal("0.50"), description="Fraction for VBT capital")
+    order_flow: DealerOrderFlowConfig = Field(
+        default_factory=DealerOrderFlowConfig,
+        description="Order flow arrival configuration"
+    )
+    trader_policy: DealerTraderPolicyConfig = Field(
+        default_factory=DealerTraderPolicyConfig,
+        description="Trader policy configuration"
+    )
+
+    @field_validator("ticket_size")
+    @classmethod
+    def ticket_size_positive(cls, v):
+        if v <= 0:
+            raise ValueError("ticket_size must be positive")
+        return v
+
+    @field_validator("dealer_share", "vbt_share")
+    @classmethod
+    def share_valid(cls, v):
+        if not (0 <= v <= 1):
+            raise ValueError("Share values must be between 0 and 1")
+        return v
+
+    @model_validator(mode="after")
+    def set_default_buckets(self):
+        if self.buckets is None:
+            self.buckets = {
+                "short": DealerBucketConfig(
+                    tau_min=1,
+                    tau_max=3,
+                    M=Decimal("1.0"),
+                    O=Decimal("0.20")
+                ),
+                "mid": DealerBucketConfig(
+                    tau_min=4,
+                    tau_max=8,
+                    M=Decimal("1.0"),
+                    O=Decimal("0.30")
+                ),
+                "long": DealerBucketConfig(
+                    tau_min=9,
+                    tau_max=999,
+                    M=Decimal("1.0"),
+                    O=Decimal("0.40")
+                ),
+            }
+        return self
+
+
 class ScenarioConfig(BaseModel):
     """Complete scenario configuration."""
     version: int = Field(1, description="Configuration version")
@@ -352,6 +486,10 @@ class ScenarioConfig(BaseModel):
     policy_overrides: Optional[PolicyOverrides] = Field(
         None,
         description="Policy engine overrides"
+    )
+    dealer: Optional[DealerConfig] = Field(
+        None,
+        description="Dealer subsystem configuration"
     )
     agents: List[AgentSpec] = Field(..., description="Agents in the scenario")
     initial_actions: List[Dict[str, Any]] = Field(
