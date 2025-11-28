@@ -220,6 +220,8 @@ def apply_trade_results_to_payables(
         if payable_id not in payables:
             raise KeyError(f"Payable {payable_id} not found in payables dict")
 
-        # Update the payable holder
+        # Update the payable's secondary market holder (not asset_holder_id)
+        # holder_id tracks the current owner after secondary market transfers
+        # asset_holder_id should remain the original creditor
         payable = payables[payable_id]
-        payable.asset_holder_id = new_owner
+        payable.holder_id = new_owner

@@ -339,10 +339,32 @@ def run_dealer_trading_phase(
     events = []
 
     # Phase 1: Update ticket maturities and buckets
+    # Collect matured tickets to remove after iteration
+    matured_ticket_ids = []
+
     for ticket in subsystem.tickets.values():
         # Update remaining maturity
         old_bucket = ticket.bucket_id
         ticket.remaining_tau = max(0, ticket.maturity_day - current_day)
+
+        # Mark matured tickets for cleanup (remaining_tau = 0 means due today or past)
+        if ticket.remaining_tau == 0:
+            matured_ticket_ids.append(ticket.id)
+            # Remove from inventories before deletion
+            old_dealer = subsystem.dealers.get(old_bucket)
+            old_vbt = subsystem.vbts.get(old_bucket)
+            if old_dealer and ticket in old_dealer.inventory:
+                old_dealer.inventory.remove(ticket)
+            if old_vbt and ticket in old_vbt.inventory:
+                old_vbt.inventory.remove(ticket)
+            # Remove from trader holdings
+            for trader in subsystem.traders.values():
+                if ticket in trader.tickets_owned:
+                    trader.tickets_owned.remove(ticket)
+                if ticket in trader.obligations:
+                    trader.obligations.remove(ticket)
+            continue
+
         new_bucket = _assign_bucket(ticket.remaining_tau, subsystem.bucket_configs)
 
         # If bucket changed, move ticket to new dealer/VBT inventory
@@ -367,6 +389,10 @@ def run_dealer_trading_phase(
             elif new_vbt and ticket.owner_id == f"vbt_{old_bucket}":
                 ticket.owner_id = f"vbt_{new_bucket}"
                 new_vbt.inventory.append(ticket)
+
+    # Clean up matured tickets to prevent unbounded memory growth
+    for ticket_id in matured_ticket_ids:
+        del subsystem.tickets[ticket_id]
 
     # Phase 2: Recompute dealer quotes for all buckets
     for bucket_id, dealer in subsystem.dealers.items():

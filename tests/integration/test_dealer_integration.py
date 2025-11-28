@@ -262,14 +262,8 @@ def test_run_day_without_dealer():
     assert len(phase_a_events) >= 1, "PhaseA should still run"
 
 
-@pytest.mark.skip(reason="holder_id sync not yet fully implemented in settlement logic")
 def test_payable_holder_id_updated_after_trade():
     """Test that payable.holder_id is updated after dealer trades.
-
-    This test is skipped because the settlement logic (line 456 in settlement.py)
-    still uses payable.asset_holder_id instead of payable.effective_creditor.
-
-    Once settlement is updated to use effective_creditor, this test should pass.
 
     Verifies:
     - After sync_dealer_to_system, payable.holder_id reflects ticket ownership
@@ -299,18 +293,8 @@ def test_payable_holder_id_updated_after_trade():
     assert payable.asset_holder_id == original_owner, "Original creditor should remain unchanged"
 
 
-@pytest.mark.skip(reason="Settlement needs to use effective_creditor instead of asset_holder_id")
 def test_settlement_pays_effective_creditor():
     """Test that settlement pays the current holder, not original creditor.
-
-    This test is skipped because the settlement logic (line 456 in settlement.py)
-    needs to be updated to use payable.effective_creditor instead of
-    payable.asset_holder_id when determining who receives payment.
-
-    Required changes to settlement.py:
-    1. Line 456: Change from `creditor = system.state.agents[payable.asset_holder_id]`
-                 to `creditor = system.state.agents[payable.effective_creditor]`
-    2. Ensure all settlement logic uses effective_creditor for payments
 
     Verifies:
     - When payable has holder_id set (transferred in secondary market)
