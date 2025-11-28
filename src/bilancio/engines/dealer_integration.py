@@ -509,17 +509,16 @@ def run_dealer_trading_phase(
             eligible_sellers.append(trader_id)
 
     # Traders who can buy (have surplus cash beyond needs)
-    # DISABLED for now: Buying can hurt by reducing liquidity of potential payers.
-    # The primary purpose of the dealer is to provide liquidity to sellers.
+    # Re-enabled per spec Section 11.2: Investment policy (buying tickets)
     eligible_buyers = []
     # Only allow buying if trader has significant surplus above obligations
-    # for trader_id, trader in subsystem.traders.items():
-    #     max_upcoming_dues = Decimal(0)
-    #     for day_offset in range(horizon + 1):
-    #         max_upcoming_dues = max(max_upcoming_dues, trader.dues_on_day(current_day + day_offset))
-    #     surplus = trader.cash - max_upcoming_dues
-    #     if surplus > Decimal(500):  # Only if significant surplus
-    #         eligible_buyers.append(trader_id)
+    for trader_id, trader in subsystem.traders.items():
+        max_upcoming_dues = Decimal(0)
+        for day_offset in range(horizon + 1):
+            max_upcoming_dues = max(max_upcoming_dues, trader.payment_due(current_day + day_offset))
+        surplus = trader.cash - max_upcoming_dues
+        if surplus > Decimal(500):  # Only if significant surplus
+            eligible_buyers.append(trader_id)
 
     # Phase 4: Randomized order flow (simplified)
     # Process sellers first (they have urgent needs)
