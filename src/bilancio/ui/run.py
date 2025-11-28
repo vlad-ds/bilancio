@@ -172,7 +172,10 @@ def run_scenario(
     
     # Track day data for PDF export
     days_data = []
-    
+
+    # Check if dealer subsystem is enabled
+    enable_dealer = hasattr(system.state, 'dealer_subsystem') and system.state.dealer_subsystem is not None
+
     if mode == "step":
         days_data = run_step_mode(
             system=system,
@@ -181,7 +184,8 @@ def run_scenario(
             agent_ids=agent_ids,
             check_invariants=check_invariants,
             scenario_name=config.name,
-            t_account=t_account
+            t_account=t_account,
+            enable_dealer=enable_dealer
         )
     else:
         days_data = run_until_stable_mode(
@@ -192,7 +196,8 @@ def run_scenario(
             agent_ids=agent_ids,
             check_invariants=check_invariants,
             scenario_name=config.name,
-            t_account=t_account
+            t_account=t_account,
+            enable_dealer=enable_dealer
         )
     
     # Export results if requested
@@ -233,10 +238,11 @@ def run_step_mode(
     agent_ids: Optional[List[str]],
     check_invariants: str,
     scenario_name: str,
-    t_account: bool = False
+    t_account: bool = False,
+    enable_dealer: bool = False
 ) -> List[Dict[str, Any]]:
     """Run simulation in step-by-step mode.
-    
+
     Args:
         system: Configured system
         max_days: Maximum days to simulate
@@ -244,25 +250,26 @@ def run_step_mode(
         agent_ids: Agent IDs to show balances for
         check_invariants: Invariant checking mode
         scenario_name: Name of the scenario for error context
-    
+        enable_dealer: If True, run dealer trading phase each day
+
     Returns:
         List of day data dictionaries
     """
     days_data = []
-    
+
     for _ in range(max_days):
-        # Get the current day before running 
+        # Get the current day before running
         day_before = system.state.day
-        
+
         # Prompt to continue (ask about the next day which is day_before + 1)
         console.print()
         if not Confirm.ask(f"[cyan]Run day {day_before + 1}?[/cyan]", default=True):
             console.print("[yellow]Simulation stopped by user[/yellow]")
             break
-        
+
         try:
             # Run the next day
-            day_report = run_day(system)
+            day_report = run_day(system, enable_dealer=enable_dealer)
             
             # Check invariants if requested
             if check_invariants == "daily":
@@ -375,10 +382,11 @@ def run_until_stable_mode(
     agent_ids: Optional[List[str]],
     check_invariants: str,
     scenario_name: str,
-    t_account: bool = False
+    t_account: bool = False,
+    enable_dealer: bool = False
 ) -> List[Dict[str, Any]]:
     """Run simulation until stable state is reached.
-    
+
     Args:
         system: Configured system
         max_days: Maximum days to simulate
@@ -387,25 +395,26 @@ def run_until_stable_mode(
         agent_ids: Agent IDs to show balances for
         check_invariants: Invariant checking mode
         scenario_name: Name of the scenario for error context
-    
+        enable_dealer: If True, run dealer trading phase each day
+
     Returns:
         List of day data dictionaries
     """
     console.print(f"\n[dim]Running simulation until stable (max {max_days} days)...[/dim]\n")
-    
+
     try:
         # Run simulation day by day to capture correct balance snapshots
         from bilancio.engines.simulation import run_day, _impacted_today, _has_open_obligations
         from bilancio.analysis.balances import agent_balance
-        
+
         reports = []
         consecutive_quiet = 0
         days_data = []
-        
+
         for _ in range(max_days):
             # Run the next day
             day_before = system.state.day
-            run_day(system)
+            run_day(system, enable_dealer=enable_dealer)
             impacted = _impacted_today(system, day_before)
             
             # Create report
