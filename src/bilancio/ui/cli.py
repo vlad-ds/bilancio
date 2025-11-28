@@ -32,6 +32,8 @@ from bilancio.experiments.ring import (
     load_ring_sweep_config,
     _decimal_list,
 )
+# Comparison imports deferred to avoid circular import
+# from bilancio.experiments.comparison import ComparisonSweepRunner, ComparisonSweepConfig
 
 
 console = Console()
@@ -273,6 +275,108 @@ def sweep_ring(
     console.print(f"[green]Sweep complete.[/green] Registry: {registry_csv}")
     console.print(f"[green]Aggregated results: {results_csv}")
     console.print(f"[green]Dashboard: {dashboard_html}")
+
+
+@sweep.command("comparison")
+@click.option('--out-dir', type=click.Path(path_type=Path), required=True, help='Output directory for results')
+@click.option('--n-agents', type=int, default=100, help='Ring size (default: 100)')
+@click.option('--maturity-days', type=int, default=10, help='Maturity horizon in days (default: 10)')
+@click.option('--q-total', type=float, default=10000.0, help='Total debt amount (default: 10000)')
+@click.option('--kappas', type=str, default="0.25,0.5,1,2,4", help='Comma list for kappa values')
+@click.option('--concentrations', type=str, default="0.2,0.5,1,2,5", help='Comma list for Dirichlet concentrations')
+@click.option('--mus', type=str, default="0,0.25,0.5,0.75,1", help='Comma list for mu values')
+@click.option('--monotonicities', type=str, default="0", help='Comma list for monotonicity values')
+@click.option('--base-seed', type=int, default=42, help='Base PRNG seed')
+@click.option('--default-handling', type=click.Choice(['fail-fast', 'expel-agent']), default='fail-fast', help='Default handling mode')
+@click.option('--dealer-ticket-size', type=float, default=1.0, help='Ticket size for dealer')
+@click.option('--dealer-share', type=float, default=0.25, help='Dealer inventory share')
+@click.option('--vbt-share', type=float, default=0.50, help='VBT inventory share')
+@click.option('--liquidity-mode', type=click.Choice(['single_at', 'uniform']), default='uniform', help='Liquidity allocation mode')
+@click.option('--liquidity-agent', type=str, default=None, help='Target agent for single_at mode')
+@click.option('--name-prefix', type=str, default='Dealer Comparison', help='Scenario name prefix')
+def sweep_comparison(
+    out_dir: Path,
+    n_agents: int,
+    maturity_days: int,
+    q_total: float,
+    kappas: str,
+    concentrations: str,
+    mus: str,
+    monotonicities: str,
+    base_seed: int,
+    default_handling: str,
+    dealer_ticket_size: float,
+    dealer_share: float,
+    vbt_share: float,
+    liquidity_mode: str,
+    liquidity_agent: Optional[str],
+    name_prefix: str,
+):
+    """
+    Run dealer comparison experiments.
+
+    For each parameter combination (κ, c, μ), runs:
+    1. Control: No dealer (baseline)
+    2. Treatment: With dealer
+
+    Outputs comparison metrics showing the delta in defaults between conditions.
+    """
+    import logging
+    logging.basicConfig(level=logging.INFO, format='%(message)s')
+
+    # Deferred import to avoid circular import
+    from bilancio.experiments.comparison import ComparisonSweepRunner, ComparisonSweepConfig
+
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    grid_kappas = _as_decimal_list(kappas)
+    grid_concentrations = _as_decimal_list(concentrations)
+    grid_mus = _as_decimal_list(mus)
+    grid_monotonicities = _as_decimal_list(monotonicities)
+
+    total_pairs = len(grid_kappas) * len(grid_concentrations) * len(grid_mus) * len(grid_monotonicities)
+    console.print(f"[dim]Output directory: {out_dir}[/dim]")
+    console.print(f"[dim]Running comparison sweep: {total_pairs} parameter combinations × 2 conditions = {total_pairs * 2} runs[/dim]")
+
+    config = ComparisonSweepConfig(
+        n_agents=n_agents,
+        maturity_days=maturity_days,
+        Q_total=Decimal(str(q_total)),
+        kappas=grid_kappas,
+        concentrations=grid_concentrations,
+        mus=grid_mus,
+        monotonicities=grid_monotonicities,
+        base_seed=base_seed,
+        default_handling=default_handling,
+        dealer_ticket_size=Decimal(str(dealer_ticket_size)),
+        dealer_share=Decimal(str(dealer_share)),
+        vbt_share=Decimal(str(vbt_share)),
+        liquidity_mode=liquidity_mode,
+        liquidity_agent=liquidity_agent,
+        name_prefix=name_prefix,
+    )
+
+    runner = ComparisonSweepRunner(config, out_dir)
+    results = runner.run_all()
+
+    # Summary
+    completed = [r for r in results if r.delta_reduction is not None]
+    if completed:
+        mean_relief = sum(float(r.relief_ratio or 0) for r in completed) / len(completed)
+        improved = sum(1 for r in completed if r.delta_reduction and r.delta_reduction > 0)
+        console.print(f"\n[green]Comparison sweep complete.[/green]")
+        console.print(f"  Pairs completed: {len(completed)}/{len(results)}")
+        console.print(f"  Mean relief ratio: {mean_relief:.1%}")
+        console.print(f"  Pairs with improvement: {improved}")
+    else:
+        console.print(f"\n[yellow]Comparison sweep complete but no pairs completed successfully.[/yellow]")
+
+    console.print(f"\n[green]Results:[/green]")
+    console.print(f"  Comparison CSV: {runner.comparison_path}")
+    console.print(f"  Summary JSON: {runner.summary_path}")
+    console.print(f"  Control registry: {runner.control_dir / 'registry' / 'experiments.csv'}")
+    console.print(f"  Treatment registry: {runner.treatment_dir / 'registry' / 'experiments.csv'}")
 
 
 @cli.command()
