@@ -1,0 +1,1426 @@
+version: 1
+name: Dealer Comparison (Treatment) (n=100, kappa=2, c=0.2, mu=0.25)
+description: Ring of 100 agents with total dues S1=10000; initial liquidity L0=5000
+  (kappa=2); Dirichlet concentration c=0.2; maturity mu=0.25 over 10 day horizon
+agents:
+- id: CB
+  kind: central_bank
+  name: Central Bank
+- id: H1
+  kind: household
+  name: Agent 1
+- id: H2
+  kind: household
+  name: Agent 2
+- id: H3
+  kind: household
+  name: Agent 3
+- id: H4
+  kind: household
+  name: Agent 4
+- id: H5
+  kind: household
+  name: Agent 5
+- id: H6
+  kind: household
+  name: Agent 6
+- id: H7
+  kind: household
+  name: Agent 7
+- id: H8
+  kind: household
+  name: Agent 8
+- id: H9
+  kind: household
+  name: Agent 9
+- id: H10
+  kind: household
+  name: Agent 10
+- id: H11
+  kind: household
+  name: Agent 11
+- id: H12
+  kind: household
+  name: Agent 12
+- id: H13
+  kind: household
+  name: Agent 13
+- id: H14
+  kind: household
+  name: Agent 14
+- id: H15
+  kind: household
+  name: Agent 15
+- id: H16
+  kind: household
+  name: Agent 16
+- id: H17
+  kind: household
+  name: Agent 17
+- id: H18
+  kind: household
+  name: Agent 18
+- id: H19
+  kind: household
+  name: Agent 19
+- id: H20
+  kind: household
+  name: Agent 20
+- id: H21
+  kind: household
+  name: Agent 21
+- id: H22
+  kind: household
+  name: Agent 22
+- id: H23
+  kind: household
+  name: Agent 23
+- id: H24
+  kind: household
+  name: Agent 24
+- id: H25
+  kind: household
+  name: Agent 25
+- id: H26
+  kind: household
+  name: Agent 26
+- id: H27
+  kind: household
+  name: Agent 27
+- id: H28
+  kind: household
+  name: Agent 28
+- id: H29
+  kind: household
+  name: Agent 29
+- id: H30
+  kind: household
+  name: Agent 30
+- id: H31
+  kind: household
+  name: Agent 31
+- id: H32
+  kind: household
+  name: Agent 32
+- id: H33
+  kind: household
+  name: Agent 33
+- id: H34
+  kind: household
+  name: Agent 34
+- id: H35
+  kind: household
+  name: Agent 35
+- id: H36
+  kind: household
+  name: Agent 36
+- id: H37
+  kind: household
+  name: Agent 37
+- id: H38
+  kind: household
+  name: Agent 38
+- id: H39
+  kind: household
+  name: Agent 39
+- id: H40
+  kind: household
+  name: Agent 40
+- id: H41
+  kind: household
+  name: Agent 41
+- id: H42
+  kind: household
+  name: Agent 42
+- id: H43
+  kind: household
+  name: Agent 43
+- id: H44
+  kind: household
+  name: Agent 44
+- id: H45
+  kind: household
+  name: Agent 45
+- id: H46
+  kind: household
+  name: Agent 46
+- id: H47
+  kind: household
+  name: Agent 47
+- id: H48
+  kind: household
+  name: Agent 48
+- id: H49
+  kind: household
+  name: Agent 49
+- id: H50
+  kind: household
+  name: Agent 50
+- id: H51
+  kind: household
+  name: Agent 51
+- id: H52
+  kind: household
+  name: Agent 52
+- id: H53
+  kind: household
+  name: Agent 53
+- id: H54
+  kind: household
+  name: Agent 54
+- id: H55
+  kind: household
+  name: Agent 55
+- id: H56
+  kind: household
+  name: Agent 56
+- id: H57
+  kind: household
+  name: Agent 57
+- id: H58
+  kind: household
+  name: Agent 58
+- id: H59
+  kind: household
+  name: Agent 59
+- id: H60
+  kind: household
+  name: Agent 60
+- id: H61
+  kind: household
+  name: Agent 61
+- id: H62
+  kind: household
+  name: Agent 62
+- id: H63
+  kind: household
+  name: Agent 63
+- id: H64
+  kind: household
+  name: Agent 64
+- id: H65
+  kind: household
+  name: Agent 65
+- id: H66
+  kind: household
+  name: Agent 66
+- id: H67
+  kind: household
+  name: Agent 67
+- id: H68
+  kind: household
+  name: Agent 68
+- id: H69
+  kind: household
+  name: Agent 69
+- id: H70
+  kind: household
+  name: Agent 70
+- id: H71
+  kind: household
+  name: Agent 71
+- id: H72
+  kind: household
+  name: Agent 72
+- id: H73
+  kind: household
+  name: Agent 73
+- id: H74
+  kind: household
+  name: Agent 74
+- id: H75
+  kind: household
+  name: Agent 75
+- id: H76
+  kind: household
+  name: Agent 76
+- id: H77
+  kind: household
+  name: Agent 77
+- id: H78
+  kind: household
+  name: Agent 78
+- id: H79
+  kind: household
+  name: Agent 79
+- id: H80
+  kind: household
+  name: Agent 80
+- id: H81
+  kind: household
+  name: Agent 81
+- id: H82
+  kind: household
+  name: Agent 82
+- id: H83
+  kind: household
+  name: Agent 83
+- id: H84
+  kind: household
+  name: Agent 84
+- id: H85
+  kind: household
+  name: Agent 85
+- id: H86
+  kind: household
+  name: Agent 86
+- id: H87
+  kind: household
+  name: Agent 87
+- id: H88
+  kind: household
+  name: Agent 88
+- id: H89
+  kind: household
+  name: Agent 89
+- id: H90
+  kind: household
+  name: Agent 90
+- id: H91
+  kind: household
+  name: Agent 91
+- id: H92
+  kind: household
+  name: Agent 92
+- id: H93
+  kind: household
+  name: Agent 93
+- id: H94
+  kind: household
+  name: Agent 94
+- id: H95
+  kind: household
+  name: Agent 95
+- id: H96
+  kind: household
+  name: Agent 96
+- id: H97
+  kind: household
+  name: Agent 97
+- id: H98
+  kind: household
+  name: Agent 98
+- id: H99
+  kind: household
+  name: Agent 99
+- id: H100
+  kind: household
+  name: Agent 100
+initial_actions:
+- mint_cash:
+    to: H1
+    amount: 50
+    alias: LIQ_H1
+- mint_cash:
+    to: H2
+    amount: 50
+    alias: LIQ_H2
+- mint_cash:
+    to: H3
+    amount: 50
+    alias: LIQ_H3
+- mint_cash:
+    to: H4
+    amount: 50
+    alias: LIQ_H4
+- mint_cash:
+    to: H5
+    amount: 50
+    alias: LIQ_H5
+- mint_cash:
+    to: H6
+    amount: 50
+    alias: LIQ_H6
+- mint_cash:
+    to: H7
+    amount: 50
+    alias: LIQ_H7
+- mint_cash:
+    to: H8
+    amount: 50
+    alias: LIQ_H8
+- mint_cash:
+    to: H9
+    amount: 50
+    alias: LIQ_H9
+- mint_cash:
+    to: H10
+    amount: 50
+    alias: LIQ_H10
+- mint_cash:
+    to: H11
+    amount: 50
+    alias: LIQ_H11
+- mint_cash:
+    to: H12
+    amount: 50
+    alias: LIQ_H12
+- mint_cash:
+    to: H13
+    amount: 50
+    alias: LIQ_H13
+- mint_cash:
+    to: H14
+    amount: 50
+    alias: LIQ_H14
+- mint_cash:
+    to: H15
+    amount: 50
+    alias: LIQ_H15
+- mint_cash:
+    to: H16
+    amount: 50
+    alias: LIQ_H16
+- mint_cash:
+    to: H17
+    amount: 50
+    alias: LIQ_H17
+- mint_cash:
+    to: H18
+    amount: 50
+    alias: LIQ_H18
+- mint_cash:
+    to: H19
+    amount: 50
+    alias: LIQ_H19
+- mint_cash:
+    to: H20
+    amount: 50
+    alias: LIQ_H20
+- mint_cash:
+    to: H21
+    amount: 50
+    alias: LIQ_H21
+- mint_cash:
+    to: H22
+    amount: 50
+    alias: LIQ_H22
+- mint_cash:
+    to: H23
+    amount: 50
+    alias: LIQ_H23
+- mint_cash:
+    to: H24
+    amount: 50
+    alias: LIQ_H24
+- mint_cash:
+    to: H25
+    amount: 50
+    alias: LIQ_H25
+- mint_cash:
+    to: H26
+    amount: 50
+    alias: LIQ_H26
+- mint_cash:
+    to: H27
+    amount: 50
+    alias: LIQ_H27
+- mint_cash:
+    to: H28
+    amount: 50
+    alias: LIQ_H28
+- mint_cash:
+    to: H29
+    amount: 50
+    alias: LIQ_H29
+- mint_cash:
+    to: H30
+    amount: 50
+    alias: LIQ_H30
+- mint_cash:
+    to: H31
+    amount: 50
+    alias: LIQ_H31
+- mint_cash:
+    to: H32
+    amount: 50
+    alias: LIQ_H32
+- mint_cash:
+    to: H33
+    amount: 50
+    alias: LIQ_H33
+- mint_cash:
+    to: H34
+    amount: 50
+    alias: LIQ_H34
+- mint_cash:
+    to: H35
+    amount: 50
+    alias: LIQ_H35
+- mint_cash:
+    to: H36
+    amount: 50
+    alias: LIQ_H36
+- mint_cash:
+    to: H37
+    amount: 50
+    alias: LIQ_H37
+- mint_cash:
+    to: H38
+    amount: 50
+    alias: LIQ_H38
+- mint_cash:
+    to: H39
+    amount: 50
+    alias: LIQ_H39
+- mint_cash:
+    to: H40
+    amount: 50
+    alias: LIQ_H40
+- mint_cash:
+    to: H41
+    amount: 50
+    alias: LIQ_H41
+- mint_cash:
+    to: H42
+    amount: 50
+    alias: LIQ_H42
+- mint_cash:
+    to: H43
+    amount: 50
+    alias: LIQ_H43
+- mint_cash:
+    to: H44
+    amount: 50
+    alias: LIQ_H44
+- mint_cash:
+    to: H45
+    amount: 50
+    alias: LIQ_H45
+- mint_cash:
+    to: H46
+    amount: 50
+    alias: LIQ_H46
+- mint_cash:
+    to: H47
+    amount: 50
+    alias: LIQ_H47
+- mint_cash:
+    to: H48
+    amount: 50
+    alias: LIQ_H48
+- mint_cash:
+    to: H49
+    amount: 50
+    alias: LIQ_H49
+- mint_cash:
+    to: H50
+    amount: 50
+    alias: LIQ_H50
+- mint_cash:
+    to: H51
+    amount: 50
+    alias: LIQ_H51
+- mint_cash:
+    to: H52
+    amount: 50
+    alias: LIQ_H52
+- mint_cash:
+    to: H53
+    amount: 50
+    alias: LIQ_H53
+- mint_cash:
+    to: H54
+    amount: 50
+    alias: LIQ_H54
+- mint_cash:
+    to: H55
+    amount: 50
+    alias: LIQ_H55
+- mint_cash:
+    to: H56
+    amount: 50
+    alias: LIQ_H56
+- mint_cash:
+    to: H57
+    amount: 50
+    alias: LIQ_H57
+- mint_cash:
+    to: H58
+    amount: 50
+    alias: LIQ_H58
+- mint_cash:
+    to: H59
+    amount: 50
+    alias: LIQ_H59
+- mint_cash:
+    to: H60
+    amount: 50
+    alias: LIQ_H60
+- mint_cash:
+    to: H61
+    amount: 50
+    alias: LIQ_H61
+- mint_cash:
+    to: H62
+    amount: 50
+    alias: LIQ_H62
+- mint_cash:
+    to: H63
+    amount: 50
+    alias: LIQ_H63
+- mint_cash:
+    to: H64
+    amount: 50
+    alias: LIQ_H64
+- mint_cash:
+    to: H65
+    amount: 50
+    alias: LIQ_H65
+- mint_cash:
+    to: H66
+    amount: 50
+    alias: LIQ_H66
+- mint_cash:
+    to: H67
+    amount: 50
+    alias: LIQ_H67
+- mint_cash:
+    to: H68
+    amount: 50
+    alias: LIQ_H68
+- mint_cash:
+    to: H69
+    amount: 50
+    alias: LIQ_H69
+- mint_cash:
+    to: H70
+    amount: 50
+    alias: LIQ_H70
+- mint_cash:
+    to: H71
+    amount: 50
+    alias: LIQ_H71
+- mint_cash:
+    to: H72
+    amount: 50
+    alias: LIQ_H72
+- mint_cash:
+    to: H73
+    amount: 50
+    alias: LIQ_H73
+- mint_cash:
+    to: H74
+    amount: 50
+    alias: LIQ_H74
+- mint_cash:
+    to: H75
+    amount: 50
+    alias: LIQ_H75
+- mint_cash:
+    to: H76
+    amount: 50
+    alias: LIQ_H76
+- mint_cash:
+    to: H77
+    amount: 50
+    alias: LIQ_H77
+- mint_cash:
+    to: H78
+    amount: 50
+    alias: LIQ_H78
+- mint_cash:
+    to: H79
+    amount: 50
+    alias: LIQ_H79
+- mint_cash:
+    to: H80
+    amount: 50
+    alias: LIQ_H80
+- mint_cash:
+    to: H81
+    amount: 50
+    alias: LIQ_H81
+- mint_cash:
+    to: H82
+    amount: 50
+    alias: LIQ_H82
+- mint_cash:
+    to: H83
+    amount: 50
+    alias: LIQ_H83
+- mint_cash:
+    to: H84
+    amount: 50
+    alias: LIQ_H84
+- mint_cash:
+    to: H85
+    amount: 50
+    alias: LIQ_H85
+- mint_cash:
+    to: H86
+    amount: 50
+    alias: LIQ_H86
+- mint_cash:
+    to: H87
+    amount: 50
+    alias: LIQ_H87
+- mint_cash:
+    to: H88
+    amount: 50
+    alias: LIQ_H88
+- mint_cash:
+    to: H89
+    amount: 50
+    alias: LIQ_H89
+- mint_cash:
+    to: H90
+    amount: 50
+    alias: LIQ_H90
+- mint_cash:
+    to: H91
+    amount: 50
+    alias: LIQ_H91
+- mint_cash:
+    to: H92
+    amount: 50
+    alias: LIQ_H92
+- mint_cash:
+    to: H93
+    amount: 50
+    alias: LIQ_H93
+- mint_cash:
+    to: H94
+    amount: 50
+    alias: LIQ_H94
+- mint_cash:
+    to: H95
+    amount: 50
+    alias: LIQ_H95
+- mint_cash:
+    to: H96
+    amount: 50
+    alias: LIQ_H96
+- mint_cash:
+    to: H97
+    amount: 50
+    alias: LIQ_H97
+- mint_cash:
+    to: H98
+    amount: 50
+    alias: LIQ_H98
+- mint_cash:
+    to: H99
+    amount: 50
+    alias: LIQ_H99
+- mint_cash:
+    to: H100
+    amount: 50
+    alias: LIQ_H100
+- create_payable:
+    from: H1
+    to: H2
+    amount: 234.45864759743202
+    due_day: 9
+    alias: P_H1_H2
+- create_payable:
+    from: H2
+    to: H3
+    amount: 0.012282674700372222
+    due_day: 1
+    alias: P_H2_H3
+- create_payable:
+    from: H3
+    to: H4
+    amount: 344.93594668966483
+    due_day: 3
+    alias: P_H3_H4
+- create_payable:
+    from: H4
+    to: H5
+    amount: 43.58537584862832
+    due_day: 5
+    alias: P_H4_H5
+- create_payable:
+    from: H5
+    to: H6
+    amount: 77.17625092478752
+    due_day: 7
+    alias: P_H5_H6
+- create_payable:
+    from: H6
+    to: H7
+    amount: 46.28854300492589
+    due_day: 9
+    alias: P_H6_H7
+- create_payable:
+    from: H7
+    to: H8
+    amount: 0.5172853842790199
+    due_day: 1
+    alias: P_H7_H8
+- create_payable:
+    from: H8
+    to: H9
+    amount: 9.849787967867337
+    due_day: 3
+    alias: P_H8_H9
+- create_payable:
+    from: H9
+    to: H10
+    amount: 0.01
+    due_day: 5
+    alias: P_H9_H10
+- create_payable:
+    from: H10
+    to: H11
+    amount: 0.01
+    due_day: 7
+    alias: P_H10_H11
+- create_payable:
+    from: H11
+    to: H12
+    amount: 337.1449476083561
+    due_day: 9
+    alias: P_H11_H12
+- create_payable:
+    from: H12
+    to: H13
+    amount: 0.01
+    due_day: 1
+    alias: P_H12_H13
+- create_payable:
+    from: H13
+    to: H14
+    amount: 0.01
+    due_day: 3
+    alias: P_H13_H14
+- create_payable:
+    from: H14
+    to: H15
+    amount: 0.01
+    due_day: 5
+    alias: P_H14_H15
+- create_payable:
+    from: H15
+    to: H16
+    amount: 7.908228265931626
+    due_day: 7
+    alias: P_H15_H16
+- create_payable:
+    from: H16
+    to: H17
+    amount: 0.6407383840411216
+    due_day: 9
+    alias: P_H16_H17
+- create_payable:
+    from: H17
+    to: H18
+    amount: 375.4218526425156
+    due_day: 1
+    alias: P_H17_H18
+- create_payable:
+    from: H18
+    to: H19
+    amount: 0.01
+    due_day: 3
+    alias: P_H18_H19
+- create_payable:
+    from: H19
+    to: H20
+    amount: 46.78419857152347
+    due_day: 5
+    alias: P_H19_H20
+- create_payable:
+    from: H20
+    to: H21
+    amount: 0.03412890074797832
+    due_day: 7
+    alias: P_H20_H21
+- create_payable:
+    from: H21
+    to: H22
+    amount: 0.4047884495087067
+    due_day: 9
+    alias: P_H21_H22
+- create_payable:
+    from: H22
+    to: H23
+    amount: 646.1566334095435
+    due_day: 1
+    alias: P_H22_H23
+- create_payable:
+    from: H23
+    to: H24
+    amount: 0.04651808160613239
+    due_day: 3
+    alias: P_H23_H24
+- create_payable:
+    from: H24
+    to: H25
+    amount: 15.66215194746997
+    due_day: 5
+    alias: P_H24_H25
+- create_payable:
+    from: H25
+    to: H26
+    amount: 0.012102897963252852
+    due_day: 7
+    alias: P_H25_H26
+- create_payable:
+    from: H26
+    to: H27
+    amount: 0.6740320909796882
+    due_day: 9
+    alias: P_H26_H27
+- create_payable:
+    from: H27
+    to: H28
+    amount: 501.63532955536516
+    due_day: 1
+    alias: P_H27_H28
+- create_payable:
+    from: H28
+    to: H29
+    amount: 0.021996065499350934
+    due_day: 3
+    alias: P_H28_H29
+- create_payable:
+    from: H29
+    to: H30
+    amount: 0.14851730754645165
+    due_day: 5
+    alias: P_H29_H30
+- create_payable:
+    from: H30
+    to: H31
+    amount: 22.714514655159288
+    due_day: 7
+    alias: P_H30_H31
+- create_payable:
+    from: H31
+    to: H32
+    amount: 123.11398481608282
+    due_day: 9
+    alias: P_H31_H32
+- create_payable:
+    from: H32
+    to: H33
+    amount: 7.0358165123155665
+    due_day: 1
+    alias: P_H32_H33
+- create_payable:
+    from: H33
+    to: H34
+    amount: 0.28245075058614066
+    due_day: 3
+    alias: P_H33_H34
+- create_payable:
+    from: H34
+    to: H35
+    amount: 215.16941331281026
+    due_day: 5
+    alias: P_H34_H35
+- create_payable:
+    from: H35
+    to: H36
+    amount: 0.01
+    due_day: 7
+    alias: P_H35_H36
+- create_payable:
+    from: H36
+    to: H37
+    amount: 27.83116854700735
+    due_day: 9
+    alias: P_H36_H37
+- create_payable:
+    from: H37
+    to: H38
+    amount: 0.01
+    due_day: 1
+    alias: P_H37_H38
+- create_payable:
+    from: H38
+    to: H39
+    amount: 352.4007136801379
+    due_day: 3
+    alias: P_H38_H39
+- create_payable:
+    from: H39
+    to: H40
+    amount: 0.01
+    due_day: 5
+    alias: P_H39_H40
+- create_payable:
+    from: H40
+    to: H41
+    amount: 0.29422629259152727
+    due_day: 7
+    alias: P_H40_H41
+- create_payable:
+    from: H41
+    to: H42
+    amount: 17.180454605995312
+    due_day: 9
+    alias: P_H41_H42
+- create_payable:
+    from: H42
+    to: H43
+    amount: 10.657383579529307
+    due_day: 1
+    alias: P_H42_H43
+- create_payable:
+    from: H43
+    to: H44
+    amount: 84.6635703327157
+    due_day: 3
+    alias: P_H43_H44
+- create_payable:
+    from: H44
+    to: H45
+    amount: 625.5089262433291
+    due_day: 5
+    alias: P_H44_H45
+- create_payable:
+    from: H45
+    to: H46
+    amount: 0.021811074865127643
+    due_day: 7
+    alias: P_H45_H46
+- create_payable:
+    from: H46
+    to: H47
+    amount: 49.429550067583335
+    due_day: 9
+    alias: P_H46_H47
+- create_payable:
+    from: H47
+    to: H48
+    amount: 729.4035040744511
+    due_day: 1
+    alias: P_H47_H48
+- create_payable:
+    from: H48
+    to: H49
+    amount: 190.00668696492858
+    due_day: 3
+    alias: P_H48_H49
+- create_payable:
+    from: H49
+    to: H50
+    amount: 11.555789024539001
+    due_day: 5
+    alias: P_H49_H50
+- create_payable:
+    from: H50
+    to: H51
+    amount: 634.931267835323
+    due_day: 7
+    alias: P_H50_H51
+- create_payable:
+    from: H51
+    to: H52
+    amount: 0.09575892747070651
+    due_day: 9
+    alias: P_H51_H52
+- create_payable:
+    from: H52
+    to: H53
+    amount: 0.01
+    due_day: 1
+    alias: P_H52_H53
+- create_payable:
+    from: H53
+    to: H54
+    amount: 2.654081761267913
+    due_day: 3
+    alias: P_H53_H54
+- create_payable:
+    from: H54
+    to: H55
+    amount: 136.68140802663646
+    due_day: 5
+    alias: P_H54_H55
+- create_payable:
+    from: H55
+    to: H56
+    amount: 0.016361928028571365
+    due_day: 7
+    alias: P_H55_H56
+- create_payable:
+    from: H56
+    to: H57
+    amount: 0.04249744315530713
+    due_day: 9
+    alias: P_H56_H57
+- create_payable:
+    from: H57
+    to: H58
+    amount: 0.08827737325626862
+    due_day: 1
+    alias: P_H57_H58
+- create_payable:
+    from: H58
+    to: H59
+    amount: 109.1142634411083
+    due_day: 3
+    alias: P_H58_H59
+- create_payable:
+    from: H59
+    to: H60
+    amount: 54.93978454426873
+    due_day: 5
+    alias: P_H59_H60
+- create_payable:
+    from: H60
+    to: H61
+    amount: 356.9779262745017
+    due_day: 7
+    alias: P_H60_H61
+- create_payable:
+    from: H61
+    to: H62
+    amount: 2.3274448970711084
+    due_day: 9
+    alias: P_H61_H62
+- create_payable:
+    from: H62
+    to: H63
+    amount: 123.09180341944251
+    due_day: 1
+    alias: P_H62_H63
+- create_payable:
+    from: H63
+    to: H64
+    amount: 138.11158969209671
+    due_day: 3
+    alias: P_H63_H64
+- create_payable:
+    from: H64
+    to: H65
+    amount: 0.20502482946653075
+    due_day: 5
+    alias: P_H64_H65
+- create_payable:
+    from: H65
+    to: H66
+    amount: 59.473592048039905
+    due_day: 7
+    alias: P_H65_H66
+- create_payable:
+    from: H66
+    to: H67
+    amount: 139.12748970315982
+    due_day: 9
+    alias: P_H66_H67
+- create_payable:
+    from: H67
+    to: H68
+    amount: 108.53164918485844
+    due_day: 1
+    alias: P_H67_H68
+- create_payable:
+    from: H68
+    to: H69
+    amount: 0.3944380752776853
+    due_day: 3
+    alias: P_H68_H69
+- create_payable:
+    from: H69
+    to: H70
+    amount: 67.8163811331103
+    due_day: 5
+    alias: P_H69_H70
+- create_payable:
+    from: H70
+    to: H71
+    amount: 0.01
+    due_day: 7
+    alias: P_H70_H71
+- create_payable:
+    from: H71
+    to: H72
+    amount: 0.01
+    due_day: 9
+    alias: P_H71_H72
+- create_payable:
+    from: H72
+    to: H73
+    amount: 61.928201675931355
+    due_day: 1
+    alias: P_H72_H73
+- create_payable:
+    from: H73
+    to: H74
+    amount: 65.62814396708778
+    due_day: 3
+    alias: P_H73_H74
+- create_payable:
+    from: H74
+    to: H75
+    amount: 0.18219985438849742
+    due_day: 5
+    alias: P_H74_H75
+- create_payable:
+    from: H75
+    to: H76
+    amount: 103.68527003654262
+    due_day: 7
+    alias: P_H75_H76
+- create_payable:
+    from: H76
+    to: H77
+    amount: 10.697110058245885
+    due_day: 9
+    alias: P_H76_H77
+- create_payable:
+    from: H77
+    to: H78
+    amount: 208.72104234064707
+    due_day: 1
+    alias: P_H77_H78
+- create_payable:
+    from: H78
+    to: H79
+    amount: 0.015651929115344732
+    due_day: 3
+    alias: P_H78_H79
+- create_payable:
+    from: H79
+    to: H80
+    amount: 8.900775321150542
+    due_day: 5
+    alias: P_H79_H80
+- create_payable:
+    from: H80
+    to: H81
+    amount: 9.31298040056049
+    due_day: 7
+    alias: P_H80_H81
+- create_payable:
+    from: H81
+    to: H82
+    amount: 41.23813346709217
+    due_day: 9
+    alias: P_H81_H82
+- create_payable:
+    from: H82
+    to: H83
+    amount: 1.3355380523941052
+    due_day: 1
+    alias: P_H82_H83
+- create_payable:
+    from: H83
+    to: H84
+    amount: 991.5553024478958
+    due_day: 3
+    alias: P_H83_H84
+- create_payable:
+    from: H84
+    to: H85
+    amount: 1.3792573520413636
+    due_day: 5
+    alias: P_H84_H85
+- create_payable:
+    from: H85
+    to: H86
+    amount: 5.638291777336068
+    due_day: 7
+    alias: P_H85_H86
+- create_payable:
+    from: H86
+    to: H87
+    amount: 4.422693647297676
+    due_day: 9
+    alias: P_H86_H87
+- create_payable:
+    from: H87
+    to: H88
+    amount: 256.06282701137724
+    due_day: 1
+    alias: P_H87_H88
+- create_payable:
+    from: H88
+    to: H89
+    amount: 1.0326236904188717
+    due_day: 3
+    alias: P_H88_H89
+- create_payable:
+    from: H89
+    to: H90
+    amount: 780.1635721686939
+    due_day: 5
+    alias: P_H89_H90
+- create_payable:
+    from: H90
+    to: H91
+    amount: 5.900322031038756
+    due_day: 7
+    alias: P_H90_H91
+- create_payable:
+    from: H91
+    to: H92
+    amount: 0.03257493724495986
+    due_day: 9
+    alias: P_H91_H92
+- create_payable:
+    from: H92
+    to: H93
+    amount: 18.34915532108762
+    due_day: 1
+    alias: P_H92_H93
+- create_payable:
+    from: H93
+    to: H94
+    amount: 0.01
+    due_day: 3
+    alias: P_H93_H94
+- create_payable:
+    from: H94
+    to: H95
+    amount: 18.22289867763913
+    due_day: 5
+    alias: P_H94_H95
+- create_payable:
+    from: H95
+    to: H96
+    amount: 7.4316943886121
+    due_day: 7
+    alias: P_H95_H96
+- create_payable:
+    from: H96
+    to: H97
+    amount: 2.368567838271668
+    due_day: 9
+    alias: P_H96_H97
+- create_payable:
+    from: H97
+    to: H98
+    amount: 131.3106569534005
+    due_day: 1
+    alias: P_H97_H98
+- create_payable:
+    from: H98
+    to: H99
+    amount: 1.5145711558449475
+    due_day: 3
+    alias: P_H98_H99
+- create_payable:
+    from: H99
+    to: H100
+    amount: 155.25937553547928
+    due_day: 5
+    alias: P_H99_H100
+- create_payable:
+    from: H100
+    to: H1
+    amount: 16.169278620113264
+    due_day: 7
+    alias: P_H100_H1
+scheduled_actions: []
+run:
+  mode: until_stable
+  max_days: 30
+  quiet_days: 2
+  show:
+    balances:
+    - H1
+    - H2
+    - H3
+    - H4
+    - H5
+    - H6
+    - H7
+    - H8
+    - H9
+    - H10
+    - H11
+    - H12
+    - H13
+    - H14
+    - H15
+    - H16
+    - H17
+    - H18
+    - H19
+    - H20
+    - H21
+    - H22
+    - H23
+    - H24
+    - H25
+    - H26
+    - H27
+    - H28
+    - H29
+    - H30
+    - H31
+    - H32
+    - H33
+    - H34
+    - H35
+    - H36
+    - H37
+    - H38
+    - H39
+    - H40
+    - H41
+    - H42
+    - H43
+    - H44
+    - H45
+    - H46
+    - H47
+    - H48
+    - H49
+    - H50
+    - H51
+    - H52
+    - H53
+    - H54
+    - H55
+    - H56
+    - H57
+    - H58
+    - H59
+    - H60
+    - H61
+    - H62
+    - H63
+    - H64
+    - H65
+    - H66
+    - H67
+    - H68
+    - H69
+    - H70
+    - H71
+    - H72
+    - H73
+    - H74
+    - H75
+    - H76
+    - H77
+    - H78
+    - H79
+    - H80
+    - H81
+    - H82
+    - H83
+    - H84
+    - H85
+    - H86
+    - H87
+    - H88
+    - H89
+    - H90
+    - H91
+    - H92
+    - H93
+    - H94
+    - H95
+    - H96
+    - H97
+    - H98
+    - H99
+    - H100
+    events: detailed
+  export:
+    balances_csv: out/balances.csv
+    events_jsonl: out/events.jsonl
+  default_handling: expel-agent
+dealer:
+  enabled: true
+  ticket_size: 1
+  dealer_share: '0.25'
+  vbt_share: '0.5'
