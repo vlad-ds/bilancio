@@ -345,23 +345,24 @@ def validate_scheduled_aliases(config: ScenarioConfig) -> None:
 
 def apply_to_system(config: ScenarioConfig, system: System) -> None:
     """Apply a scenario configuration to a system.
-    
+
     This function:
     1. Creates and adds all agents
     2. Applies policy overrides
     3. Executes all initial actions within System.setup()
-    4. Optionally validates invariants
-    
+    4. Initializes dealer subsystem if configured
+    5. Optionally validates invariants
+
     Args:
         config: Scenario configuration
         system: System instance to configure
-        
+
     Raises:
         ValueError: If configuration cannot be applied
         ValidationError: If system invariants are violated
     """
     agents = {}
-    
+
     # Use setup context for all initialization
     with system.setup():
         # Create and add agents
@@ -369,17 +370,50 @@ def apply_to_system(config: ScenarioConfig, system: System) -> None:
             agent = create_agent(agent_spec)
             system.add_agent(agent)
             agents[agent.id] = agent
-        
+
         # Apply policy overrides
         if config.policy_overrides:
             apply_policy_overrides(system, config.policy_overrides.model_dump())
-        
+
         # Execute initial actions
         for action_dict in config.initial_actions:
             apply_action(system, action_dict, agents)
-            
+
             # Optional: check invariants after each action for debugging
             # system.assert_invariants()
-    
+
     # Final invariant check outside of setup
     system.assert_invariants()
+
+    # Initialize dealer subsystem if configured
+    if config.dealer and config.dealer.enabled:
+        from bilancio.engines.dealer_integration import initialize_dealer_subsystem
+        from bilancio.dealer.simulation import DealerRingConfig
+        from bilancio.dealer.models import BucketConfig
+
+        # Convert DealerConfig (YAML model) to DealerRingConfig (internal model)
+        bucket_configs = []
+        for name, bc in config.dealer.buckets.items():
+            bucket_configs.append(BucketConfig(
+                name=name,
+                tau_min=bc.tau_min,
+                tau_max=bc.tau_max if bc.tau_max is not None else 999,
+            ))
+        # Sort by tau_min to ensure proper ordering
+        bucket_configs.sort(key=lambda b: b.tau_min)
+
+        # Build VBT anchors from bucket configs
+        vbt_anchors = {}
+        for name, bc in config.dealer.buckets.items():
+            vbt_anchors[name] = (bc.M, bc.O)
+
+        dealer_ring_config = DealerRingConfig(
+            ticket_size=config.dealer.ticket_size,
+            buckets=bucket_configs,
+            vbt_anchors=vbt_anchors,
+            dealer_share=config.dealer.dealer_share,
+            vbt_share=config.dealer.vbt_share,
+            seed=42,  # Default seed - can be made configurable later
+        )
+
+        system.state.dealer_subsystem = initialize_dealer_subsystem(system, dealer_ring_config)

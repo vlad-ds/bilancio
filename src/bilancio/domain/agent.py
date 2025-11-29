@@ -15,6 +15,8 @@ class AgentKind(Enum):
     FIRM = "firm"
     INVESTMENT_FUND = "investment_fund"
     INSURANCE_COMPANY = "insurance_company"
+    DEALER = "dealer"
+    VBT = "vbt"
     
     def __str__(self) -> str:
         return self.value

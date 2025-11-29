@@ -279,8 +279,8 @@ def summarize_day_metrics(day_metrics: Sequence[Dict[str, Any]]) -> Dict[str, Op
             v_1 = v_1 or v_val
             HHIplus_1 = HHIplus_1 or HHI_val
 
-    phi_total = (phi_weighted / S_total) if S_total and phi_weighted else None
-    delta_total = (delta_weighted / S_total) if S_total and delta_weighted else None
+    phi_total = (phi_weighted / S_total) if S_total else None
+    delta_total = (delta_weighted / S_total) if S_total else None
 
     return {
         "phi_total": phi_total,

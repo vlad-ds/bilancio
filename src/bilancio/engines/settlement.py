@@ -188,9 +188,18 @@ def _remove_contract(system, contract_id):
     contract_kind = contract.kind
     contract_amount = getattr(contract, "amount", 0)
 
-    asset_holder = system.state.agents[contract.asset_holder_id]
-    if contract_id in asset_holder.asset_ids:
-        asset_holder.asset_ids.remove(contract_id)
+    # For secondary market transfers (e.g., payables sold to dealers),
+    # remove from the effective holder, not the original asset_holder_id
+    effective_holder_id = getattr(contract, 'effective_creditor', None) or contract.asset_holder_id
+    effective_holder = system.state.agents.get(effective_holder_id)
+    if effective_holder and contract_id in effective_holder.asset_ids:
+        effective_holder.asset_ids.remove(contract_id)
+
+    # Also check original asset_holder in case it wasn't transferred properly
+    if effective_holder_id != contract.asset_holder_id:
+        original_holder = system.state.agents.get(contract.asset_holder_id)
+        if original_holder and contract_id in original_holder.asset_ids:
+            original_holder.asset_ids.remove(contract_id)
 
     liability_issuer = system.state.agents[contract.liability_issuer_id]
     if contract_id in liability_issuer.liability_ids:
