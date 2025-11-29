@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2025-11-28 07:54:39 UTC | Branch: main | Commit: 22fa00a
+Generated: 2025-11-29 08:07:53 UTC | Branch: main | Commit: 1cb9799
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -30,18 +30,2286 @@ This document contains the complete codebase structure and content for LLM inges
 │   └── monotonicity_demo
 │       ├── README.md
 │       └── streamlit_app.py
+├── data
+│   └── experiments
+│       └── dealer_comparison_100
+│           ├── aggregate
+│           │   ├── comparison.csv
+│           │   └── summary.json
+│           ├── control
+│           │   ├── registry
+│           │   │   └── experiments.csv
+│           │   └── runs
+│           │       ├── comparison_control_00b2d850311d
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_014e02fedeb9
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_03292067dca1
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_05986b07a124
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_05e783597b85
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_074a1548f2ff
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_08a4e4ea30cf
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_0d19bb16bb8f
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_0d276acabdfb
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_138e331be562
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_1aecc9a82759
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_1beab3011713
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_1d0bc3ae93de
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_2200913e947b
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_2461e109d0f3
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_25f92c567460
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_271c0dfee480
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_2737a75d51c6
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_27539ff7d75a
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_2c74ba56d226
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_2fccd651a294
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_33a34a1f28fb
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_33f2f34c73d6
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_34cac33513d0
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_3a75d45e2233
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_3c4aa0ccab0c
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_3dc6c8f88bc8
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_3e1b32ced3f9
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_3ffdf6fcb3dd
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_41b006f34ae9
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_428c3c8f4646
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_480dddbe92da
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_4a64f1d23ce5
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_4d32322c5c06
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_52f4cb3fd249
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_530c5267a3ce
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_53d3b4f29008
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_5602fdbd90d2
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_5cc7a1671c76
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_5cf001732102
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_5e9b14530545
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_5f5f18ee7fa1
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_613aff3b5b01
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_629b93b2cfc1
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_62b7e19fd45d
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_63047cf76ca3
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_644d0197f4c1
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_6b991b772042
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_6c54ea0a80ee
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_6d0225dcd490
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_6d36721cc611
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_6dcb4dc7767e
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_6e8f867bc083
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_6f42f6b761b3
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_70bd807ba80b
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_712f1ab47251
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_71b414e8f582
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_731d1bdd9c99
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_768f56337fe1
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_77bfa1a09732
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_7a1624351c10
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_7d88c8d04e9f
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_81bca5d020fa
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_83b861ac6859
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_85b7333e7337
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_8763d46f6ae2
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_8a0c7d323f03
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_8d325a9f61c5
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_91d9eb743d90
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_97005d580e18
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_979676994cc4
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_97c93b17d369
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_998e60d262e8
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_9b700748f458
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_9d3769143cd9
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_9f2c9c14422b
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_a299422adf6d
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_a3791eefad79
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_a5d65425dbe7
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_a970ce60f78b
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_af53b296a838
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_b56c32a44ba6
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_b8470b33c023
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_bad7b8ec3774
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_bb648d7a89b5
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_bd3fb044178b
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_be382fecb9d3
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_befe58afaff2
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_c1ec93ac5b36
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_c8a7e2f32d0e
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_cab813e5cafc
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_cce59ac7fb7e
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_cfaff51bb13b
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_d0d83af3a164
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_d357788ce354
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_d624d23824c1
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_d6981c93a0c6
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_dc90008f7397
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_dc96c48c3a57
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_dd55f90d52b4
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_dd74d58793b0
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_e03277375557
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_e0d596eec10a
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_e12996a74514
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_e19b021e5813
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_e2b521456178
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_e35a8c5ff3a2
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_e4ed881046db
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_e685927fc523
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_e8dbeca02963
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_e9667d886731
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_ea51f065338a
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_ebd291890c05
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_eea84c337e64
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_ef0d61c75c23
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_f0ac6007c26a
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_f2160464022c
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_f368d2f82ebd
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_f384e2126685
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_f4d89abf6807
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_f7ce336592a6
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_f840e2e85d17
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_fb445af1f9ec
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       ├── comparison_control_fca405d9f97f
+│           │       │   ├── out
+│           │       │   │   ├── balances.csv
+│           │       │   │   ├── events.jsonl
+│           │       │   │   ├── metrics.csv
+│           │       │   │   ├── metrics.json
+│           │       │   │   ├── metrics_ds.csv
+│           │       │   │   └── metrics_intraday.csv
+│           │       │   └── scenario.yaml
+│           │       └── comparison_control_fcb15c1401ea
+│           │           ├── out
+│           │           │   ├── balances.csv
+│           │           │   ├── events.jsonl
+│           │           │   ├── metrics.csv
+│           │           │   ├── metrics.json
+│           │           │   ├── metrics_ds.csv
+│           │           │   └── metrics_intraday.csv
+│           │           └── scenario.yaml
+│           └── treatment
+│               ├── registry
+│               │   └── experiments.csv
+│               └── runs
+│                   ├── comparison_treatment_0221521f3c84
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_043d2269a900
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_0445e7812d8f
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_04e05f0e5d82
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_09c356b1d3fb
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_0c1bc858a556
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_0c77cc1e97a2
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_0ed70903af75
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_10b750e8f395
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_12093181682a
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_128104b200e6
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_14ee6fed8366
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_18e0a3ead849
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_1bcb63d283c2
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_1e0e55d5c799
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_1ed7c86919e2
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_1f6e7c3a3d09
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_231287e64d19
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_29ad0a15349a
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_2cb9f06d5830
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_2e09431fc427
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_2e9b60a6ccc1
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_2f868b12d320
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_3051ebb4ac4c
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_32d1a84a69db
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_32e539ccfcb4
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_340b6081023e
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_3427ef888708
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_3765bceeb64c
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_39749c8f7d24
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_3dc00c10801c
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_3e206837bfda
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_3ec4bb1d92f3
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_3f79acb940ad
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_40ddc73c2ef7
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_430071c5bb50
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_439c626c5777
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_4420e603e5e3
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_45405ed32473
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_461a06db4228
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_475a95625fbe
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_4823362235c8
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_4a10cef3ba23
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_4cb55f3ac7c0
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_4dbecd20782f
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_4f3f0b58b3c6
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_501a21b46572
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_5046c846f5d9
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_5210553ac1fb
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_56be77b3c572
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_5b89c942e76a
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_5c6b9b737a32
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_609bfc6e3c1b
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_60e7c8d235e8
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_62cfcc1405f1
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_6315f4734668
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_644cb179d77d
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_6bd980725f3d
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_6ca197637ea0
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_6d10bc8ed7ce
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_6eedbba24a7a
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_6f87b0b28299
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_70b2ca38dfbf
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_70fffdc04dfa
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_726d7c2f9a2b
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_7353894f9279
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_775970de9153
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_7b2d999f1611
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_7e283b34d895
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_80e2d1f9a5ef
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_87c290481bab
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_88d890fa7a79
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_892fa8a31f86
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_8bbe69e9d9e8
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_9011e0984c57
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_908b22699236
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_977d7f36893e
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_9b212114639e
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_9c864bf0a6f7
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_9e62db0a14cd
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_a1c7006249d4
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_a206b4295cf7
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_a40948d7d74a
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_a519822abb36
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_a9ddc3ff0627
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_ad0a046fb520
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_ad64b38fd5da
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_b31c95d54218
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_b461591c8d04
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_b552532a5cd6
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_b6162e055ba9
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_b910444c6b83
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_b9502137c023
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_b9cf426ce81d
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_baf3b053542b
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_c1942f1c74a0
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_c2e85f98c5a2
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_c4d4f3dab290
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_c5d327a05dde
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_cf525cf0b4c0
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_d0743471d6f8
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_d4dff37851b4
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_d79e793baaff
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_d82bd4524670
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_db14d85ae27b
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_ddea94061805
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_de64f478efd4
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_df1cb7eac845
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_e25281813aab
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_e4b8b725ba48
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_e67a9856c416
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_eeb5efc91d67
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_f09140e19658
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_f2c315bfb342
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_f391c4c150d0
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_f3d1937c6892
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_f4fdff12f698
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_f502c9a95d96
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_f6276c59f04b
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_fb197ddf6081
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_fbb81d756d68
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_fd267597467f
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_fd6075bfc7c9
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   ├── comparison_treatment_fd7761dbf234
+│                   │   ├── out
+│                   │   │   ├── balances.csv
+│                   │   │   ├── events.jsonl
+│                   │   │   ├── metrics.csv
+│                   │   │   ├── metrics.json
+│                   │   │   ├── metrics_ds.csv
+│                   │   │   └── metrics_intraday.csv
+│                   │   └── scenario.yaml
+│                   └── comparison_treatment_fd8a3c948396
+│                       ├── out
+│                       │   ├── balances.csv
+│                       │   ├── events.jsonl
+│                       │   ├── metrics.csv
+│                       │   ├── metrics.json
+│                       │   ├── metrics_ds.csv
+│                       │   └── metrics_intraday.csv
+│                       └── scenario.yaml
 ├── docs
 │   ├── 015_expel_sweep_agent_report.md
+│   ├── 018_dealer_integration_fixes.md
 │   ├── Kalecki_debt_simulation.pdf
 │   ├── Monetary Theory Chapter 5.pdf
 │   ├── Money modeling software.pdf
 │   ├── SP239 Kalecki on Credit and Debt extended.pdf
+│   ├── analysis
+│   │   └── 016_dealer_comparison_analysis.md
 │   ├── codebase_for_llm.md
 │   ├── dealer_ring
 │   │   ├── conversations
 │   │   │   ├── 20251110.txt
 │   │   │   ├── 20251114.txt
-│   │   │   └── 20251118.txt
+│   │   │   ├── 20251118.txt
+│   │   │   └── 20251127.txt
 │   │   ├── dealer_examples.pdf
 │   │   ├── dealer_implementation_readiness.pdf
 │   │   └── dealer_specification.pdf
@@ -67,6 +2335,7 @@ This document contains the complete codebase structure and content for LLM inges
 │   │   ├── 016_dealer_kalecki_integration.md
 │   │   ├── 016_dealer_ring_implementation.md
 │   │   ├── 017_dealer_ring_html_report.md
+│   │   ├── 018_dealer_comparison_experiments.md
 │   │   └── Kalecki_debt_simulation (1).pdf
 │   ├── prompts
 │   │   ├── 015_expel_sweep_agent_prompt.md
@@ -2463,9 +4732,11 @@ This document contains the complete codebase structure and content for LLM inges
 │       │   │   ├── __init__.py
 │       │   │   ├── bank.py
 │       │   │   ├── central_bank.py
+│       │   │   ├── dealer.py
 │       │   │   ├── firm.py
 │       │   │   ├── household.py
-│       │   │   └── treasury.py
+│       │   │   ├── treasury.py
+│       │   │   └── vbt.py
 │       │   ├── goods.py
 │       │   ├── instruments
 │       │   │   ├── __init__.py
@@ -2486,6 +4757,7 @@ This document contains the complete codebase structure and content for LLM inges
 │       │   └── valuation.py
 │       ├── experiments
 │       │   ├── __init__.py
+│       │   ├── comparison.py
 │       │   └── ring.py
 │       ├── export
 │       │   ├── __init__.py
@@ -2566,7 +4838,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-815 directories, 1741 files
+1326 directories, 3502 files
 
 ```
 
@@ -3702,6 +5974,201 @@ Complete git history from oldest to newest:
   Merge pull request #19 from vlad-ds/feature/016-dealer-kalecki-integration
   feat: Implement dealer-Kalecki integration (Plan 016)
 
+- **c9ad8abd** (2025-11-28) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **5c4bf285** (2025-11-28) by vladgheorghe
+  docs: Add Plan 018 for dealer comparison experiments
+  Add implementation plan for running controlled experiments comparing
+  Kalecki ring simulations with and without dealer-mediated secondary
+  markets. Key features:
+  - Control vs treatment design (100 agents, same parameters)
+  - Grid sweep across κ, c, μ parameters (125 combinations)
+  - Metrics: delta_total, phi_total (consistent with existing code)
+  - 10-day maturity horizon with 15-day max simulation
+  - Structured CSV/JSON outputs
+  Also adds conversation transcript from 20251127 with requirements.
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **9dc0942d** (2025-11-28) by vladgheorghe
+  feat: Add dealer comparison experiment framework
+  Implements paired control/treatment experiments for measuring dealer
+  effect on default rates:
+  - ComparisonSweepRunner runs same parameters with/without dealer
+  - CLI: `bilancio sweep comparison` with full grid support
+  - Outputs: comparison.csv (side-by-side metrics), summary.json
+  - Metrics: delta_control, delta_treatment, delta_reduction, relief_ratio
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **83bfc6e2** (2025-11-28) by vladgheorghe
+  fix: Connect dealer subsystem to scenario loading and simulation
+  - Initialize dealer subsystem when config.dealer.enabled is true
+  - Convert DealerConfig (YAML model) to DealerRingConfig (internal model)
+  - Pass enable_dealer flag to run_day() when dealer_subsystem exists
+  - Add enable_dealer parameter to run_step_mode and run_until_stable_mode
+  The dealer trading phase now runs (SubphaseB_Dealer events generated),
+  but actual trades don't occur yet due to trader cash not being synced
+  from the main system. This is a separate issue in dealer_integration.py.
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **6947b165** (2025-11-28) by vladgheorghe
+  docs: Update plan 018 with known limitations
+  Document that dealer trading doesn't occur yet due to trader cash
+  not being synced from main system. Control and treatment runs produce
+  identical results until this is fixed.
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **1f61ae26** (2025-11-28) by vladgheorghe
+  fix(dealer): Complete dealer integration with proper trading mechanics
+  Major fixes to enable dealer-mediated secondary markets to reduce defaults:
+  1. **Add dealer/VBT agents to main system** (dealer_integration.py)
+     - Create actual Household agents for dealer_xxx and vbt_xxx entities
+     - This allows proper ownership tracking when claims transfer to dealers
+  2. **Fix ownership synchronization** (dealer_integration.py)
+     - Correct attribute name: holder_id → asset_holder_id
+     - Update agent.asset_ids lists when ownership changes
+     - Log ClaimTransferredDealer events for all transfers
+  3. **Fix price scaling for face values** (dealer_integration.py)
+     - Scale unit price (B) by ticket.face to get correct total price
+     - Dealer module returns per-unit prices, integration layer scales
+  4. **Improve trading eligibility** (dealer_integration.py)
+     - Increase lookahead horizon from 3 to 10 days
+     - Process up to 10 sellers per trading phase (was 3)
+     - Disable buying to prevent liquidity drain
+  5. **Fix CLI defaults** (cli.py)
+     - Set dealer_share and vbt_share defaults to 0
+     - Agents now own 100% of claims initially for fair comparison
+  Test results show dealer reduces defaults:
+  - Mean relief ratio: 17.1% across parameter grid
+  - Best result: 68.8% reduction at κ=1, c=2, μ=0.5
+  - 11/18 parameter combinations showed improvement
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **c8146778** (2025-11-28) by vladgheorghe
+  docs: Update Plan 018 with test results and mark COMPLETE
+  - Replace "Known Limitations" section with actual test results
+  - Document mean relief ratio of 17.1% across parameter grid
+  - Note best result: 68.8% reduction at κ=1, c=2, μ=0.5
+  - Document when dealer helps vs when it's less effective
+  - Mark plan status as COMPLETE
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **c0d04f07** (2025-11-28) by vladgheorghe
+  docs: Add dealer integration fixes documentation
+  Records all issues encountered and fixes applied during the
+  debugging session that made dealer trading functional.
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **244d47a9** (2025-11-28) by vladgheorghe
+  fix(dealer): Add proper Dealer/VBT agent types and fix integration bugs
+  - Add DEALER and VBT to AgentKind enum
+  - Create proper Dealer and VBT agent classes (replacing Household hack)
+  - Fix holder_id vs asset_holder_id in sync (use secondary market holder)
+  - Add cleanup for orphaned tickets after agent expulsion
+  - Fix missing contracts in balance export (use .get() with None check)
+  - Fix zero default rate returning None instead of 0
+  All 248 tests pass. Dealer comparison shows 100% relief ratio on test scenario.
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **372a0036** (2025-11-28) by vladgheorghe
+  fix(dealer): Use round() instead of int() for cash sync
+  Fixes truncation bug where fractional cash amounts from dealer trades
+  were silently dropped. E.g., 855 × 0.9 = 769.5 was minted as 769.
+  Changed int(delta) to round(delta) at sync points (lines 717, 736).
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **eac278c7** (2025-11-28) by vladgheorghe
+  fix(dealer): Correct capital model - dealer/VBT bring NEW outside cash
+  The dealer subsystem now correctly implements the specification:
+  - Traders keep 100% of their receivables (not reallocated)
+  - Dealer gets 25% of system cash as NEW money from outside
+  - VBT gets 50% of system cash as NEW money from outside
+  - Both start with empty inventory, building by purchasing from traders
+  Fixes:
+  - Issue 12: Capital model corrected (was negative relief, now positive)
+  - Issue 13: Invariant check uses effective_creditor for secondary market
+  - Issue 14: _remove_contract cleans up secondary market holders
+  100-agent test results:
+  - κ=0.5: 12.8% relief ratio
+  - κ=1.0: 5.9% relief ratio
+  - κ=2.0: 13.3% relief ratio
+  Updated documentation:
+  - Plan 016 marked COMPLETE
+  - Plan 018 updated with final results
+  - Fixes doc extended with Issues 12-14
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **ece9656f** (2025-11-28) by vladgheorghe
+  docs: Add comprehensive dealer comparison analysis
+  Detailed analysis of 125 paired experiments comparing Kalecki rings
+  with and without dealer market-making. Key findings:
+  - 19.3% mean relief ratio, 94/125 pairs improved, 0 worsened
+  - Statistical significance: p = 1.92e-18
+  - Six economic hypotheses tested and supported
+  - c×μ synergy is the dominant interaction effect
+  - Higher dealer capital doesn't uniformly improve outcomes
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **a95ce51f** (2025-11-28) by vladgheorghe
+  feat(dealer): Re-enable buying per spec Section 11.2
+  Re-enables trader buying functionality that was previously disabled.
+  Experimental comparison (125 pairs, 100 agents each) shows:
+  - With buying: 19.0% mean relief ratio
+  - Without buying: 19.3% mean relief ratio
+  Buying is slightly counterproductive (-0.3pp) because it reduces
+  liquidity of traders who may need cash for their own obligations.
+  However, keeping it enabled for spec compliance and further research.
+  Fixed method name: payment_due() instead of dues_on_day().
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **9d5a556e** (2025-11-29) by vladgheorghe
+  data: Add dealer comparison experiment results (125 pairs, 100 agents)
+  Full parameter sweep results:
+  - κ (kappa): 0.25, 0.5, 1, 2, 4
+  - c (concentration): 0.2, 0.5, 1, 2, 5
+  - μ (mu): 0, 0.25, 0.5, 0.75, 1
+  Key findings:
+  - Mean relief ratio: 19.0%
+  - Pairs improved: 94/125 (75%)
+  - Pairs worsened: 0/125 (0%)
+  Contains aggregate CSV/JSON plus individual run data
+  (events.jsonl, balances.csv, metrics.csv, scenario.yaml)
+  for all 250 runs (125 control + 125 treatment).
+  HTML reports excluded to reduce size.
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **7690a61d** (2025-11-29) by vladgheorghe
+  data: Add dealer comparison experiment data (250 runs, no HTML)
+  Full 125-pair comparison experiment with 100 agents:
+  - κ (kappa): 0.25, 0.5, 1, 2, 4
+  - concentration: 0.2, 0.5, 1, 2, 5
+  - μ (mu): 0, 0.25, 0.5, 0.75, 1
+  Results with buying enabled:
+  - Mean relief ratio: 19.0%
+  - 94/125 pairs improved, 31 unchanged, 0 worsened
+  Includes:
+  - Aggregate results (comparison.csv, summary.json)
+  - Individual runs (scenario.yaml, events.jsonl, balances.csv, metrics.*)
+  - Excludes HTML files for size (~35MB total)
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **1cb97994** (2025-11-29) by vladgheorghe
+  Merge branch 'feature/018-dealer-comparison-experiments'
+
 ---
 
 ## Source Code (src/bilancio)
@@ -3829,9 +6296,12 @@ def agent_balance(system: System, agent_id: str) -> AgentBalance:
     
     # Sum up assets
     for contract_id in agent.asset_ids:
-        contract = system.state.contracts[contract_id]
+        contract = system.state.contracts.get(contract_id)
+        if contract is None:
+            # Contract was settled/removed but ID wasn't cleaned from asset_ids
+            continue
         assets_by_kind[contract.kind] += contract.amount
-        
+
         # Check if it's financial (use getattr with default lambda)
         is_financial_func = getattr(contract, 'is_financial', lambda: True)
         if is_financial_func():
@@ -3840,17 +6310,20 @@ def agent_balance(system: System, agent_id: str) -> AgentBalance:
             # Track non-financial assets with quantity and value
             sku = getattr(contract, 'sku', contract.kind)
             nonfinancial_assets_by_kind[sku]['quantity'] += contract.amount
-            
+
             # Calculate value (always available now)
             valued_amount = getattr(contract, 'valued_amount', Decimal('0'))
             nonfinancial_assets_by_kind[sku]['value'] += valued_amount
             total_nonfinancial_value += valued_amount
-    
+
     # Sum up liabilities
     for contract_id in agent.liability_ids:
-        contract = system.state.contracts[contract_id]
+        contract = system.state.contracts.get(contract_id)
+        if contract is None:
+            # Contract was settled/removed but ID wasn't cleaned from liability_ids
+            continue
         liabilities_by_kind[contract.kind] += contract.amount
-        
+
         # Check if it's financial (use getattr with default lambda)
         is_financial_func = getattr(contract, 'is_financial', lambda: True)
         if is_financial_func():
@@ -4684,8 +7157,8 @@ def summarize_day_metrics(day_metrics: Sequence[Dict[str, Any]]) -> Dict[str, Op
             v_1 = v_1 or v_val
             HHIplus_1 = HHIplus_1 or HHI_val
 
-    phi_total = (phi_weighted / S_total) if S_total and phi_weighted else None
-    delta_total = (delta_weighted / S_total) if S_total and delta_weighted else None
+    phi_total = (phi_weighted / S_total) if S_total else None
+    delta_total = (delta_weighted / S_total) if S_total else None
 
     return {
         "phi_total": phi_total,
@@ -7874,23 +10347,24 @@ def validate_scheduled_aliases(config: ScenarioConfig) -> None:
 
 def apply_to_system(config: ScenarioConfig, system: System) -> None:
     """Apply a scenario configuration to a system.
-    
+
     This function:
     1. Creates and adds all agents
     2. Applies policy overrides
     3. Executes all initial actions within System.setup()
-    4. Optionally validates invariants
-    
+    4. Initializes dealer subsystem if configured
+    5. Optionally validates invariants
+
     Args:
         config: Scenario configuration
         system: System instance to configure
-        
+
     Raises:
         ValueError: If configuration cannot be applied
         ValidationError: If system invariants are violated
     """
     agents = {}
-    
+
     # Use setup context for all initialization
     with system.setup():
         # Create and add agents
@@ -7898,20 +10372,53 @@ def apply_to_system(config: ScenarioConfig, system: System) -> None:
             agent = create_agent(agent_spec)
             system.add_agent(agent)
             agents[agent.id] = agent
-        
+
         # Apply policy overrides
         if config.policy_overrides:
             apply_policy_overrides(system, config.policy_overrides.model_dump())
-        
+
         # Execute initial actions
         for action_dict in config.initial_actions:
             apply_action(system, action_dict, agents)
-            
+
             # Optional: check invariants after each action for debugging
             # system.assert_invariants()
-    
+
     # Final invariant check outside of setup
     system.assert_invariants()
+
+    # Initialize dealer subsystem if configured
+    if config.dealer and config.dealer.enabled:
+        from bilancio.engines.dealer_integration import initialize_dealer_subsystem
+        from bilancio.dealer.simulation import DealerRingConfig
+        from bilancio.dealer.models import BucketConfig
+
+        # Convert DealerConfig (YAML model) to DealerRingConfig (internal model)
+        bucket_configs = []
+        for name, bc in config.dealer.buckets.items():
+            bucket_configs.append(BucketConfig(
+                name=name,
+                tau_min=bc.tau_min,
+                tau_max=bc.tau_max if bc.tau_max is not None else 999,
+            ))
+        # Sort by tau_min to ensure proper ordering
+        bucket_configs.sort(key=lambda b: b.tau_min)
+
+        # Build VBT anchors from bucket configs
+        vbt_anchors = {}
+        for name, bc in config.dealer.buckets.items():
+            vbt_anchors[name] = (bc.M, bc.O)
+
+        dealer_ring_config = DealerRingConfig(
+            ticket_size=config.dealer.ticket_size,
+            buckets=bucket_configs,
+            vbt_anchors=vbt_anchors,
+            dealer_share=config.dealer.dealer_share,
+            vbt_share=config.dealer.vbt_share,
+            seed=42,  # Default seed - can be made configurable later
+        )
+
+        system.state.dealer_subsystem = initialize_dealer_subsystem(system, dealer_ring_config)
 
 ```
 
@@ -13053,6 +15560,8 @@ class AgentKind(Enum):
     FIRM = "firm"
     INVESTMENT_FUND = "investment_fund"
     INSURANCE_COMPANY = "insurance_company"
+    DEALER = "dealer"
+    VBT = "vbt"
     
     def __str__(self) -> str:
         return self.value
@@ -13077,16 +15586,20 @@ class Agent:
 ```python
 from .bank import Bank
 from .central_bank import CentralBank
+from .dealer import Dealer
 from .firm import Firm
 from .household import Household
 from .treasury import Treasury
+from .vbt import VBT
 
 __all__ = [
     "Bank",
     "CentralBank",
+    "Dealer",
     "Firm",
     "Household",
     "Treasury",
+    "VBT",
 ]
 
 ```
@@ -13122,6 +15635,53 @@ from bilancio.domain.agent import Agent
 class CentralBank(Agent):
     def __post_init__(self):
         self.kind = "central_bank"
+
+```
+
+---
+
+### 📄 src/bilancio/domain/agents/dealer.py
+
+```python
+"""
+Dealer agent for secondary market trading.
+
+A Dealer is a market maker in the dealer ring subsystem that provides
+liquidity by maintaining bid/ask quotes for claims in a specific
+maturity bucket. Dealers hold inventory and trade with both customers
+(traders) and the VBT (Value-Based Trader).
+"""
+from dataclasses import dataclass, field
+
+from bilancio.domain.agent import Agent
+
+
+@dataclass
+class Dealer(Agent):
+    """
+    Market maker agent for a maturity bucket in the dealer ring.
+
+    Dealers provide two-sided markets (bid/ask) for claims within their
+    assigned maturity bucket. They maintain inventory and cash positions,
+    adjusting quotes based on inventory levels via the kernel formula.
+
+    Attributes inherited from Agent:
+        id: Unique identifier (e.g., "dealer_short", "dealer_mid")
+        name: Display name (e.g., "Dealer (short)")
+        kind: Always "dealer"
+        asset_ids: Claims owned (bought from sellers)
+        liability_ids: Currently unused for dealers
+        stock_ids: Currently unused for dealers
+        defaulted: Whether dealer has failed
+
+    Note:
+        The detailed trading state (inventory list, quotes, cash) is
+        maintained in DealerState within the dealer subsystem. This
+        Agent class provides the main system representation for
+        ownership tracking during claim transfers.
+    """
+
+    kind: str = field(default="dealer", init=False)
 
 ```
 
@@ -13188,6 +15748,54 @@ from bilancio.domain.agent import Agent
 class Treasury(Agent):
     def __post_init__(self):
         self.kind = "treasury"
+
+```
+
+---
+
+### 📄 src/bilancio/domain/agents/vbt.py
+
+```python
+"""
+Value-Based Trader (VBT) agent for outside liquidity.
+
+A VBT is an outside liquidity provider in the dealer ring subsystem that
+trades based on a fundamental value model (M, O anchors). VBTs provide
+liquidity when dealer inventory is exhausted, allowing the market to
+continue functioning even under stress.
+"""
+from dataclasses import dataclass, field
+
+from bilancio.domain.agent import Agent
+
+
+@dataclass
+class VBT(Agent):
+    """
+    Value-Based Trader providing outside liquidity to the dealer ring.
+
+    VBTs represent external market participants who trade based on
+    fundamental value assessments rather than inventory management.
+    They have unlimited capacity to absorb or provide claims at their
+    quoted prices, ensuring market continuity.
+
+    Attributes inherited from Agent:
+        id: Unique identifier (e.g., "vbt_short", "vbt_mid")
+        name: Display name (e.g., "VBT (short)")
+        kind: Always "vbt"
+        asset_ids: Claims owned (bought from dealers or sellers)
+        liability_ids: Currently unused for VBTs
+        stock_ids: Currently unused for VBTs
+        defaulted: Whether VBT has failed (typically never)
+
+    Note:
+        The detailed trading state (inventory list, M/O anchors, quotes)
+        is maintained in VBTState within the dealer subsystem. This
+        Agent class provides the main system representation for
+        ownership tracking during claim transfers.
+    """
+
+    kind: str = field(default="vbt", init=False)
 
 ```
 
@@ -13807,30 +16415,36 @@ def initialize_dealer_subsystem(
 
     This function performs the initial setup of the dealer subsystem:
 
-    1. Convert existing Payables to Tickets:
+    1. Create dealer/VBT agents in main system:
+       - Add actual Household agents for each dealer and VBT
+       - This allows proper ownership tracking in the main system
+
+    2. Convert existing Payables to Tickets:
        - Extract all payables from system contracts
        - Create corresponding Ticket objects with maturity info
        - Assign tickets to maturity buckets
        - Build bidirectional mappings
 
-    2. Initialize market makers:
+    3. Initialize market makers:
        - Create DealerState for each bucket with initial capital
        - Create VBTState for each bucket with anchors
        - Allocate initial ticket inventory based on dealer_share/vbt_share
 
-    3. Initialize traders:
+    4. Initialize traders:
        - Create TraderState for each household agent
        - Set initial cash from agent balance sheets
        - Link tickets to trader ownership
 
-    4. Compute initial quotes:
+    5. Compute initial quotes:
        - Run kernel computation for each dealer
        - Generate initial bid/ask spreads
 
-    Capital Allocation:
-        dealer_share: Fraction of tickets initially held by dealers (e.g., 0.25)
-        vbt_share: Fraction of tickets initially held by VBTs (e.g., 0.50)
-        remainder: Held by original creditors as traders
+    Capital Allocation (NEW OUTSIDE MONEY):
+        dealer_share: Fraction of system cash injected as dealer capital (e.g., 0.25)
+        vbt_share: Fraction of system cash injected as VBT capital (e.g., 0.50)
+        NOTE: Traders keep 100% of their tickets. Dealer/VBT start with EMPTY
+              inventory and build it by BUYING from traders who want to sell.
+              This is NEW MONEY from outside the system, not taken from traders.
 
     Args:
         system: Main System instance with agents and contracts
@@ -13854,11 +16468,36 @@ def initialize_dealer_subsystem(
         >>> subsystem = initialize_dealer_subsystem(system, config)
         >>> # Now ready for run_dealer_trading_phase()
     """
+    from bilancio.domain.agents import Dealer, VBT
+
     subsystem = DealerSubsystem(
         bucket_configs=dealer_config.buckets,
         params=KernelParams(S=dealer_config.ticket_size),
         rng=random.Random(dealer_config.seed),
     )
+
+    # Step 0: Create dealer/VBT agents in main system
+    # These agents allow proper ownership tracking when claims transfer to dealers
+    for bucket_config in dealer_config.buckets:
+        bucket_id = bucket_config.name
+        dealer_agent_id = f"dealer_{bucket_id}"
+        vbt_agent_id = f"vbt_{bucket_id}"
+
+        # Create dealer agent if not exists
+        if dealer_agent_id not in system.state.agents:
+            dealer_agent = Dealer(
+                id=dealer_agent_id,
+                name=f"Dealer ({bucket_id})",
+            )
+            system.state.agents[dealer_agent_id] = dealer_agent
+
+        # Create VBT agent if not exists
+        if vbt_agent_id not in system.state.agents:
+            vbt_agent = VBT(
+                id=vbt_agent_id,
+                name=f"VBT ({bucket_id})",
+            )
+            system.state.agents[vbt_agent_id] = vbt_agent
 
     # Initialize trade executor
     subsystem.executor = TradeExecutor(subsystem.params, subsystem.rng)
@@ -13895,7 +16534,22 @@ def initialize_dealer_subsystem(
         subsystem.ticket_to_payable[ticket_id] = contract_id
         subsystem.payable_to_ticket[contract_id] = ticket_id
 
-    # Step 2: Initialize market makers
+    # Step 2: Calculate total system cash for capital allocation
+    # Dealer and VBT get NEW CASH from outside the system (not taken from traders)
+    total_system_cash = Decimal(0)
+    for agent_id, agent in system.state.agents.items():
+        # Skip dealer/VBT agents we just created
+        if agent.kind in ("dealer", "vbt"):
+            continue
+        total_system_cash += _get_agent_cash(system, agent_id)
+
+    # Calculate dealer and VBT capital (NEW outside money)
+    # Split evenly across buckets
+    num_buckets = len(subsystem.bucket_configs)
+    dealer_capital_per_bucket = (total_system_cash * dealer_config.dealer_share) / num_buckets
+    vbt_capital_per_bucket = (total_system_cash * dealer_config.vbt_share) / num_buckets
+
+    # Step 3: Initialize market makers
     for bucket_config in subsystem.bucket_configs:
         bucket_id = bucket_config.name
 
@@ -13905,16 +16559,16 @@ def initialize_dealer_subsystem(
             (Decimal(1), Decimal("0.30"))
         )
 
-        # Create dealer state
+        # Create dealer state with NEW capital (no inventory yet)
         dealer = DealerState(
             bucket_id=bucket_id,
             agent_id=f"dealer_{bucket_id}",
-            inventory=[],
-            cash=Decimal(0),
+            inventory=[],  # Empty! Dealers build inventory by buying from traders
+            cash=dealer_capital_per_bucket,  # NEW outside money
         )
         subsystem.dealers[bucket_id] = dealer
 
-        # Create VBT state
+        # Create VBT state with NEW capital (no inventory yet)
         vbt = VBTState(
             bucket_id=bucket_id,
             agent_id=f"vbt_{bucket_id}",
@@ -13923,31 +16577,14 @@ def initialize_dealer_subsystem(
             phi_M=dealer_config.phi_M,
             phi_O=dealer_config.phi_O,
             clip_nonneg_B=dealer_config.clip_nonneg_B,
-            inventory=[],
-            cash=Decimal(0),
+            inventory=[],  # Empty! VBTs build inventory by buying from traders
+            cash=vbt_capital_per_bucket,  # NEW outside money
         )
         vbt.recompute_quotes()
         subsystem.vbts[bucket_id] = vbt
 
-        # Allocate initial inventory (simplified: split tickets proportionally)
-        bucket_tickets = [t for t in subsystem.tickets.values() if t.bucket_id == bucket_id]
-
-        # Dealer gets first dealer_share fraction
-        dealer_count = int(len(bucket_tickets) * dealer_config.dealer_share)
-        dealer.inventory.extend(bucket_tickets[:dealer_count])
-        for ticket in dealer.inventory:
-            ticket.owner_id = dealer.agent_id
-
-        # VBT gets next vbt_share fraction
-        vbt_count = int(len(bucket_tickets) * dealer_config.vbt_share)
-        vbt.inventory.extend(bucket_tickets[dealer_count:dealer_count + vbt_count])
-        for ticket in vbt.inventory:
-            ticket.owner_id = vbt.agent_id
-
-        # Compute initial dealer capital (enough to operate)
-        # Simple heuristic: M * number of tickets * 2 (room to buy)
-        dealer.cash = M * len(dealer.inventory) * 2
-        vbt.cash = M * len(vbt.inventory) * 2
+        # NOTE: Traders keep 100% of their tickets (no allocation to dealer/VBT)
+        # Dealer/VBT will acquire inventory by buying from traders during trading
 
         # Run kernel to compute initial quotes
         recompute_dealer_state(dealer, vbt, subsystem.params)
@@ -13957,9 +16594,12 @@ def initialize_dealer_subsystem(
         if agent.kind != "household":
             continue
 
+        # Calculate trader's cash from their cash holdings in main system
+        trader_cash = _get_agent_cash(system, agent_id)
+
         trader = TraderState(
             agent_id=agent_id,
-            cash=Decimal(0),  # Will be set based on actual cash holdings
+            cash=trader_cash,
             tickets_owned=[],
             obligations=[],
             asset_issuer_id=None,
@@ -13979,6 +16619,32 @@ def initialize_dealer_subsystem(
         subsystem.traders[agent_id] = trader
 
     return subsystem
+
+
+def _get_agent_cash(system, agent_id: str) -> Decimal:
+    """
+    Get total cash balance for an agent from the main system.
+
+    Sums all cash contracts where the agent is the asset holder.
+
+    Args:
+        system: Main System instance
+        agent_id: Agent ID to get cash for
+
+    Returns:
+        Total cash balance as Decimal
+    """
+    agent = system.state.agents.get(agent_id)
+    if not agent:
+        return Decimal(0)
+
+    total_cash = Decimal(0)
+    for contract_id in agent.asset_ids:
+        contract = system.state.contracts.get(contract_id)
+        if contract and contract.kind == "cash":
+            total_cash += Decimal(contract.amount)
+
+    return total_cash
 
 
 def run_dealer_trading_phase(
@@ -14037,6 +16703,45 @@ def run_dealer_trading_phase(
         return []
 
     events = []
+
+    # Phase 0: Sync trader cash from main system
+    # This ensures traders have up-to-date cash balances for eligibility checks
+    for trader_id, trader in subsystem.traders.items():
+        trader.cash = _get_agent_cash(system, trader_id)
+
+    # Phase 0.5: Clean up tickets whose payables were removed
+    # This can happen when agents default and get expelled (expel-agent mode)
+    from bilancio.domain.instruments.credit import Payable
+    orphaned_ticket_ids = []
+    for ticket_id, payable_id in subsystem.ticket_to_payable.items():
+        payable = system.state.contracts.get(payable_id)
+        if payable is None or not isinstance(payable, Payable):
+            orphaned_ticket_ids.append(ticket_id)
+
+    for ticket_id in orphaned_ticket_ids:
+        ticket = subsystem.tickets.get(ticket_id)
+        if ticket:
+            # Remove from inventories
+            bucket = ticket.bucket_id
+            dealer = subsystem.dealers.get(bucket)
+            vbt = subsystem.vbts.get(bucket)
+            if dealer and ticket in dealer.inventory:
+                dealer.inventory.remove(ticket)
+            if vbt and ticket in vbt.inventory:
+                vbt.inventory.remove(ticket)
+            # Remove from trader holdings
+            for trader in subsystem.traders.values():
+                if ticket in trader.tickets_owned:
+                    trader.tickets_owned.remove(ticket)
+                if ticket in trader.obligations:
+                    trader.obligations.remove(ticket)
+            # Remove ticket
+            del subsystem.tickets[ticket_id]
+
+        # Clean up mappings
+        payable_id = subsystem.ticket_to_payable.pop(ticket_id, None)
+        if payable_id:
+            subsystem.payable_to_ticket.pop(payable_id, None)
 
     # Phase 1: Update ticket maturities and buckets
     # Collect matured tickets to remove after iteration
@@ -14100,24 +16805,33 @@ def run_dealer_trading_phase(
         recompute_dealer_state(dealer, vbt, subsystem.params)
 
     # Phase 3: Build eligibility sets (simplified)
-    # Traders who need cash (have shortfall)
+    # Traders who need cash (have shortfall coming in next few days)
     eligible_sellers = []
+    horizon = 10  # Look ahead this many days for upcoming obligations
     for trader_id, trader in subsystem.traders.items():
-        shortfall = trader.shortfall(current_day)
-        if shortfall > 0 and trader.tickets_owned:
+        # Check for shortfall on any of the next 'horizon' days
+        upcoming_shortfall = Decimal(0)
+        for day_offset in range(horizon + 1):
+            upcoming_shortfall = max(upcoming_shortfall, trader.shortfall(current_day + day_offset))
+        if upcoming_shortfall > 0 and trader.tickets_owned:
             eligible_sellers.append(trader_id)
 
-    # Traders who can buy (have surplus cash and future liability)
+    # Traders who can buy (have surplus cash beyond needs)
+    # Re-enabled per spec Section 11.2: Investment policy (buying tickets)
     eligible_buyers = []
+    # Only allow buying if trader has significant surplus above obligations
     for trader_id, trader in subsystem.traders.items():
-        # Simplified: traders with cash and obligations can potentially buy
-        if trader.cash > Decimal(100) and trader.obligations:
+        max_upcoming_dues = Decimal(0)
+        for day_offset in range(horizon + 1):
+            max_upcoming_dues = max(max_upcoming_dues, trader.payment_due(current_day + day_offset))
+        surplus = trader.cash - max_upcoming_dues
+        if surplus > Decimal(500):  # Only if significant surplus
             eligible_buyers.append(trader_id)
 
     # Phase 4: Randomized order flow (simplified)
     # Process sellers first (they have urgent needs)
     subsystem.rng.shuffle(eligible_sellers)
-    for trader_id in eligible_sellers[:3]:  # Limit to 3 trades per phase
+    for trader_id in eligible_sellers[:10]:  # Process up to 10 sellers per phase
         trader = subsystem.traders[trader_id]
         if not trader.tickets_owned:
             continue
@@ -14134,18 +16848,25 @@ def run_dealer_trading_phase(
         )
 
         if result.executed:
+            # Scale price by ticket face value
+            # The dealer module returns unit price (per S=1), but our tickets have actual face values
+            scaled_price = result.price * ticket.face
+
             # Update trader state
             trader.tickets_owned.remove(ticket)
-            trader.cash += result.price
+            trader.cash += scaled_price
 
             events.append({
                 "kind": "dealer_trade",
                 "day": current_day,
+                "phase": "simulation",
                 "trader": trader_id,
                 "side": "sell",
                 "ticket_id": ticket.id,
                 "bucket": bucket_id,
-                "price": float(result.price),
+                "price": float(scaled_price),
+                "unit_price": float(result.price),
+                "face": float(ticket.face),
                 "is_passthrough": result.is_passthrough,
             })
 
@@ -14168,9 +16889,12 @@ def run_dealer_trading_phase(
             )
 
             if result.executed and result.ticket:
+                # Scale price by ticket face value
+                scaled_price = result.price * result.ticket.face
+
                 # Update trader state
                 trader.tickets_owned.append(result.ticket)
-                trader.cash -= result.price
+                trader.cash -= scaled_price
 
                 # Update asset issuer if first ticket
                 if trader.asset_issuer_id is None:
@@ -14179,11 +16903,14 @@ def run_dealer_trading_phase(
                 events.append({
                     "kind": "dealer_trade",
                     "day": current_day,
+                    "phase": "simulation",
                     "trader": trader_id,
                     "side": "buy",
                     "ticket_id": result.ticket.id,
                     "bucket": bucket_id,
-                    "price": float(result.price),
+                    "price": float(scaled_price),
+                    "unit_price": float(result.price),
+                    "face": float(result.ticket.face),
                     "is_passthrough": result.is_passthrough,
                 })
                 break  # One buy per trader per phase
@@ -14201,21 +16928,22 @@ def sync_dealer_to_system(
     This function bridges the dealer subsystem state back to the main
     simulation system, updating:
 
-    1. Agent cash balances:
+    1. Payable ownership:
+       - Update Payable.asset_holder_id for transferred claims
+       - Update agent.asset_ids lists (remove from old holder, add to new)
+       - Maintain double-entry consistency
+
+    2. Agent cash balances:
        - Apply cash changes from trader.cash to agent balance sheets
        - Update Cash contract amounts in system.state.contracts
 
-    2. Payable ownership:
-       - Update Payable.holder_id for transferred claims
-       - Maintain double-entry consistency
-
     3. Consistency checks:
-       - Verify ticket ownership matches payable holder_id
+       - Verify ticket ownership matches payable asset_holder_id
        - Ensure cash changes sum to zero (closed system)
 
     Implementation approach:
         - Use ticket_to_payable mapping to find contracts
-        - Update holder_id based on ticket.owner_id
+        - Update asset_holder_id based on ticket.owner_id
         - Calculate cash deltas by comparing trader.cash to agent balance
 
     Note: This is a simplified implementation. A full version would:
@@ -14240,7 +16968,11 @@ def sync_dealer_to_system(
     """
     from bilancio.domain.instruments.credit import Payable
 
-    # Step 1: Update Payable holder_id for transferred claims
+    # Step 1: Update Payable ownership for transferred claims
+    # Note: Payable has two holder fields:
+    # - asset_holder_id: original creditor (from base Instrument class)
+    # - holder_id: secondary market holder (specific to Payable)
+    # Settlement uses effective_creditor which returns holder_id if set, else asset_holder_id
     for ticket_id, ticket in subsystem.tickets.items():
         # Get corresponding payable
         payable_id = subsystem.ticket_to_payable.get(ticket_id)
@@ -14251,25 +16983,67 @@ def sync_dealer_to_system(
         if not isinstance(payable, Payable):
             continue
 
-        # Update holder if ownership changed in dealer system
-        # Skip dealer/VBT ownership (they're not in main system)
-        if ticket.owner_id.startswith("dealer_") or ticket.owner_id.startswith("vbt_"):
-            # Keep holder_id as dealer subsystem placeholder
-            # In full implementation, would need dealer agents in main system
-            pass
-        else:
-            # Update to actual agent owner
-            payable.holder_id = ticket.owner_id
+        # Check if ownership changed (compare with effective_creditor)
+        current_holder = payable.effective_creditor
+        new_holder = ticket.owner_id
 
-    # Step 2: Sync trader cash balances (simplified)
-    # In full implementation, would apply exact cash deltas from trades
-    # For now, we note that cash changes are tracked in trader.cash
-    # but not automatically synced to avoid double-counting with
-    # the main system's settlement logic
+        if current_holder != new_holder:
+            # Update agent asset_ids lists
+            old_holder_agent = system.state.agents.get(current_holder)
+            new_holder_agent = system.state.agents.get(new_holder)
 
-    # Future: Implement proper cash synchronization when dealer subsystem
-    # is fully integrated with the main settlement engine
-    pass
+            if old_holder_agent and payable_id in old_holder_agent.asset_ids:
+                old_holder_agent.asset_ids.remove(payable_id)
+
+            if new_holder_agent and payable_id not in new_holder_agent.asset_ids:
+                new_holder_agent.asset_ids.append(payable_id)
+
+            # Update payable's holder_id (secondary market holder)
+            # Keep asset_holder_id as the original creditor
+            payable.holder_id = new_holder
+
+            # Log the transfer
+            system.log(
+                "ClaimTransferredDealer",
+                payable_id=payable_id,
+                from_holder=current_holder,
+                to_holder=new_holder,
+                amount=payable.amount,
+                due_day=payable.due_day
+            )
+
+    # Step 2: Sync trader cash balances
+    # Compare trader.cash in dealer subsystem to actual cash in main system
+    # and apply the delta as minting (if trader gained) or burning (if trader paid)
+    for trader_id, trader in subsystem.traders.items():
+        main_system_cash = _get_agent_cash(system, trader_id)
+        dealer_cash = trader.cash
+        delta = dealer_cash - main_system_cash
+
+        if delta > 0:
+            # Trader gained cash from selling tickets - mint cash to them
+            # This represents money coming from outside the system (dealer/VBT)
+            system.mint_cash(to_agent_id=trader_id, amount=round(delta))
+        elif delta < 0:
+            # Trader spent cash buying tickets - need to reduce their cash
+            # Find and reduce their cash contracts
+            agent = system.state.agents.get(trader_id)
+            if agent:
+                remaining_to_burn = abs(delta)
+                for contract_id in list(agent.asset_ids):
+                    if remaining_to_burn <= 0:
+                        break
+                    contract = system.state.contracts.get(contract_id)
+                    if contract and contract.kind == "cash":
+                        if contract.amount <= remaining_to_burn:
+                            # Remove entire contract
+                            remaining_to_burn -= contract.amount
+                            agent.asset_ids.remove(contract_id)
+                            del system.state.contracts[contract_id]
+                        else:
+                            # Reduce contract amount
+                            contract.amount -= round(remaining_to_burn)
+                            remaining_to_burn = 0
 
 
 def _assign_bucket(remaining_tau: int, bucket_configs: List[BucketConfig]) -> str:
@@ -14495,9 +17269,18 @@ def _remove_contract(system, contract_id):
     contract_kind = contract.kind
     contract_amount = getattr(contract, "amount", 0)
 
-    asset_holder = system.state.agents[contract.asset_holder_id]
-    if contract_id in asset_holder.asset_ids:
-        asset_holder.asset_ids.remove(contract_id)
+    # For secondary market transfers (e.g., payables sold to dealers),
+    # remove from the effective holder, not the original asset_holder_id
+    effective_holder_id = getattr(contract, 'effective_creditor', None) or contract.asset_holder_id
+    effective_holder = system.state.agents.get(effective_holder_id)
+    if effective_holder and contract_id in effective_holder.asset_ids:
+        effective_holder.asset_ids.remove(contract_id)
+
+    # Also check original asset_holder in case it wasn't transferred properly
+    if effective_holder_id != contract.asset_holder_id:
+        original_holder = system.state.agents.get(contract.asset_holder_id)
+        if original_holder and contract_id in original_holder.asset_ids:
+            original_holder.asset_ids.remove(contract_id)
 
     liability_issuer = system.state.agents[contract.liability_issuer_id]
     if contract_id in liability_issuer.liability_ids:
@@ -15176,7 +17959,10 @@ class System:
             assert_no_duplicate_stock_refs,
         )
         for cid, c in self.state.contracts.items():
-            assert cid in self.state.agents[c.asset_holder_id].asset_ids, f"{cid} missing on asset holder"
+            # For secondary market transfers (e.g., payables sold to dealers),
+            # check the effective holder, not the original asset_holder_id
+            effective_holder_id = getattr(c, 'effective_creditor', None) or c.asset_holder_id
+            assert cid in self.state.agents[effective_holder_id].asset_ids, f"{cid} missing on asset holder {effective_holder_id}"
             assert cid in self.state.agents[c.liability_issuer_id].liability_ids, f"{cid} missing on issuer"
         assert_no_duplicate_refs(self)
         assert_cb_cash_matches_outstanding(self)
@@ -15676,6 +18462,465 @@ class SimpleValuationEngine:
 from .ring import RingSweepRunner, RingRunSummary
 
 __all__ = ["RingSweepRunner", "RingRunSummary"]
+
+```
+
+---
+
+### 📄 src/bilancio/experiments/comparison.py
+
+```python
+"""Utilities for running dealer comparison experiments.
+
+This module provides infrastructure for running paired control/treatment
+experiments comparing Kalecki ring simulations with and without dealer-mediated
+secondary markets.
+
+The key output is the delta in defaults between conditions, measuring
+the effect of the dealer on settlement rates.
+"""
+
+from __future__ import annotations
+
+import csv
+import json
+import logging
+from dataclasses import dataclass
+from decimal import Decimal
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Sequence, Tuple
+
+from pydantic import BaseModel, Field
+
+from bilancio.experiments.ring import RingSweepRunner, RingRunSummary, _decimal_list
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class ComparisonResult:
+    """Result of a single control/treatment comparison."""
+
+    kappa: Decimal
+    concentration: Decimal
+    mu: Decimal
+    monotonicity: Decimal
+    seed: int
+
+    # Control metrics (no dealer)
+    delta_control: Optional[Decimal]
+    phi_control: Optional[Decimal]
+    control_run_id: str
+    control_status: str
+
+    # Treatment metrics (with dealer)
+    delta_treatment: Optional[Decimal]
+    phi_treatment: Optional[Decimal]
+    treatment_run_id: str
+    treatment_status: str
+
+    @property
+    def delta_reduction(self) -> Optional[Decimal]:
+        """Absolute reduction in default rate."""
+        if self.delta_control is None or self.delta_treatment is None:
+            return None
+        return self.delta_control - self.delta_treatment
+
+    @property
+    def relief_ratio(self) -> Optional[Decimal]:
+        """Percentage reduction in defaults (0 if no baseline defaults)."""
+        if self.delta_control is None or self.delta_treatment is None:
+            return None
+        if self.delta_control == 0:
+            return Decimal("0")  # No defaults to reduce
+        return self.delta_reduction / self.delta_control
+
+
+class ComparisonSweepConfig(BaseModel):
+    """Configuration for dealer comparison experiments."""
+
+    # Ring parameters
+    n_agents: int = Field(default=100, description="Number of agents in ring")
+    maturity_days: int = Field(default=10, description="Maturity horizon in days")
+    max_simulation_days: int = Field(default=15, description="Max days to run simulation")
+    Q_total: Decimal = Field(default=Decimal("10000"), description="Total debt amount")
+    liquidity_mode: str = Field(default="uniform", description="Liquidity allocation mode")
+    liquidity_agent: Optional[str] = Field(default=None, description="Target agent for single_at mode")
+    base_seed: int = Field(default=42, description="Base random seed")
+    name_prefix: str = Field(default="Dealer Comparison", description="Scenario name prefix")
+    default_handling: str = Field(default="fail-fast", description="Default handling mode")
+
+    # Grid parameters
+    kappas: List[Decimal] = Field(default_factory=lambda: [Decimal("0.25"), Decimal("0.5"), Decimal("1"), Decimal("2"), Decimal("4")])
+    concentrations: List[Decimal] = Field(default_factory=lambda: [Decimal("0.2"), Decimal("0.5"), Decimal("1"), Decimal("2"), Decimal("5")])
+    mus: List[Decimal] = Field(default_factory=lambda: [Decimal("0"), Decimal("0.25"), Decimal("0.5"), Decimal("0.75"), Decimal("1")])
+    monotonicities: List[Decimal] = Field(default_factory=lambda: [Decimal("0")])
+
+    # Dealer configuration for treatment runs
+    # Per specification: Dealer and VBT bring NEW outside money (not taken from traders)
+    # Traders keep 100% of their receivables. Dealer/VBT start empty and buy from traders.
+    dealer_ticket_size: Decimal = Field(default=Decimal("1"), description="Ticket size for dealer")
+    dealer_share: Decimal = Field(default=Decimal("0.25"), description="Dealer capital as fraction of system cash (NEW outside money)")
+    vbt_share: Decimal = Field(default=Decimal("0.50"), description="VBT capital as fraction of system cash (NEW outside money)")
+
+
+class ComparisonSweepRunner:
+    """
+    Runs paired control/treatment experiments for dealer comparison.
+
+    For each parameter combination (κ, c, μ):
+    1. Run WITHOUT dealer -> control metrics
+    2. Run WITH dealer -> treatment metrics
+    3. Compute and log comparison metrics
+
+    Outputs:
+    - control/registry/experiments.csv: All control runs
+    - treatment/registry/experiments.csv: All treatment runs
+    - aggregate/comparison.csv: Paired comparison metrics
+    - aggregate/summary.json: Aggregate statistics
+    """
+
+    COMPARISON_FIELDS = [
+        "kappa",
+        "concentration",
+        "mu",
+        "monotonicity",
+        "seed",
+        "delta_control",
+        "delta_treatment",
+        "delta_reduction",
+        "relief_ratio",
+        "phi_control",
+        "phi_treatment",
+        "control_run_id",
+        "control_status",
+        "treatment_run_id",
+        "treatment_status",
+    ]
+
+    def __init__(self, config: ComparisonSweepConfig, out_dir: Path) -> None:
+        self.config = config
+        self.base_dir = out_dir
+        self.control_dir = self.base_dir / "control"
+        self.treatment_dir = self.base_dir / "treatment"
+        self.aggregate_dir = self.base_dir / "aggregate"
+
+        self.control_dir.mkdir(parents=True, exist_ok=True)
+        self.treatment_dir.mkdir(parents=True, exist_ok=True)
+        self.aggregate_dir.mkdir(parents=True, exist_ok=True)
+
+        self.comparison_results: List[ComparisonResult] = []
+        self.comparison_path = self.aggregate_dir / "comparison.csv"
+        self.summary_path = self.aggregate_dir / "summary.json"
+
+        # Build dealer config dict for treatment runs
+        self.dealer_config = {
+            "ticket_size": int(config.dealer_ticket_size),
+            "dealer_share": str(config.dealer_share),
+            "vbt_share": str(config.vbt_share),
+        }
+
+        # Initialize runners
+        self._control_runner: Optional[RingSweepRunner] = None
+        self._treatment_runner: Optional[RingSweepRunner] = None
+
+    def _get_control_runner(self) -> RingSweepRunner:
+        """Get or create control runner (no dealer)."""
+        if self._control_runner is None:
+            self._control_runner = RingSweepRunner(
+                out_dir=self.control_dir,
+                name_prefix=f"{self.config.name_prefix} (Control)",
+                n_agents=self.config.n_agents,
+                maturity_days=self.config.maturity_days,
+                Q_total=self.config.Q_total,
+                liquidity_mode=self.config.liquidity_mode,
+                liquidity_agent=self.config.liquidity_agent,
+                base_seed=self.config.base_seed,
+                default_handling=self.config.default_handling,
+                dealer_enabled=False,
+                dealer_config=None,
+            )
+        return self._control_runner
+
+    def _get_treatment_runner(self) -> RingSweepRunner:
+        """Get or create treatment runner (with dealer)."""
+        if self._treatment_runner is None:
+            self._treatment_runner = RingSweepRunner(
+                out_dir=self.treatment_dir,
+                name_prefix=f"{self.config.name_prefix} (Treatment)",
+                n_agents=self.config.n_agents,
+                maturity_days=self.config.maturity_days,
+                Q_total=self.config.Q_total,
+                liquidity_mode=self.config.liquidity_mode,
+                liquidity_agent=self.config.liquidity_agent,
+                base_seed=self.config.base_seed,
+                default_handling=self.config.default_handling,
+                dealer_enabled=True,
+                dealer_config=self.dealer_config,
+            )
+        return self._treatment_runner
+
+    def run_all(self) -> List[ComparisonResult]:
+        """Execute all control/treatment pairs and return comparison results."""
+        logger.info(
+            "Starting comparison sweep: %d kappas × %d concentrations × %d mus = %d pairs",
+            len(self.config.kappas),
+            len(self.config.concentrations),
+            len(self.config.mus),
+            len(self.config.kappas) * len(self.config.concentrations) * len(self.config.mus),
+        )
+
+        total_pairs = (
+            len(self.config.kappas)
+            * len(self.config.concentrations)
+            * len(self.config.mus)
+            * len(self.config.monotonicities)
+        )
+        pair_idx = 0
+
+        for kappa in self.config.kappas:
+            for concentration in self.config.concentrations:
+                for mu in self.config.mus:
+                    for monotonicity in self.config.monotonicities:
+                        pair_idx += 1
+                        logger.info(
+                            "[%d/%d] Running pair: κ=%s, c=%s, μ=%s",
+                            pair_idx,
+                            total_pairs,
+                            kappa,
+                            concentration,
+                            mu,
+                        )
+                        result = self._run_pair(kappa, concentration, mu, monotonicity)
+                        self.comparison_results.append(result)
+
+                        # Write incremental results
+                        self._write_comparison_csv()
+
+        # Write final summary
+        self._write_summary_json()
+
+        logger.info("Comparison sweep complete. Results at: %s", self.aggregate_dir)
+        return self.comparison_results
+
+    def _run_pair(
+        self,
+        kappa: Decimal,
+        concentration: Decimal,
+        mu: Decimal,
+        monotonicity: Decimal,
+    ) -> ComparisonResult:
+        """Run one control/treatment pair for given parameters."""
+        control_runner = self._get_control_runner()
+        treatment_runner = self._get_treatment_runner()
+
+        # Use same seed for both runs to ensure identical initial conditions
+        seed = control_runner._next_seed()
+        # Sync treatment runner seed
+        treatment_runner.seed_counter = seed + 1
+
+        # Run control (no dealer)
+        logger.info("  Running control (no dealer)...")
+        control_result = control_runner._execute_run(
+            phase="comparison_control",
+            kappa=kappa,
+            concentration=concentration,
+            mu=mu,
+            monotonicity=monotonicity,
+            seed=seed,
+        )
+
+        # Run treatment (with dealer) - use same seed
+        logger.info("  Running treatment (with dealer)...")
+        treatment_result = treatment_runner._execute_run(
+            phase="comparison_treatment",
+            kappa=kappa,
+            concentration=concentration,
+            mu=mu,
+            monotonicity=monotonicity,
+            seed=seed,
+        )
+
+        # Build comparison result
+        result = ComparisonResult(
+            kappa=kappa,
+            concentration=concentration,
+            mu=mu,
+            monotonicity=monotonicity,
+            seed=seed,
+            delta_control=control_result.delta_total,
+            phi_control=control_result.phi_total,
+            control_run_id=control_result.run_id,
+            control_status="completed" if control_result.delta_total is not None else "failed",
+            delta_treatment=treatment_result.delta_total,
+            phi_treatment=treatment_result.phi_total,
+            treatment_run_id=treatment_result.run_id,
+            treatment_status="completed" if treatment_result.delta_total is not None else "failed",
+        )
+
+        # Log comparison
+        if result.delta_reduction is not None:
+            logger.info(
+                "  Comparison: δ_control=%s, δ_treatment=%s, reduction=%s (%.1f%%)",
+                result.delta_control,
+                result.delta_treatment,
+                result.delta_reduction,
+                float(result.relief_ratio or 0) * 100,
+            )
+        else:
+            logger.warning("  Comparison: One or both runs failed, cannot compute reduction")
+
+        return result
+
+    def _write_comparison_csv(self) -> None:
+        """Write comparison results to CSV."""
+        with self.comparison_path.open("w", newline="") as fh:
+            writer = csv.DictWriter(fh, fieldnames=self.COMPARISON_FIELDS)
+            writer.writeheader()
+            for result in self.comparison_results:
+                row = {
+                    "kappa": str(result.kappa),
+                    "concentration": str(result.concentration),
+                    "mu": str(result.mu),
+                    "monotonicity": str(result.monotonicity),
+                    "seed": str(result.seed),
+                    "delta_control": str(result.delta_control) if result.delta_control is not None else "",
+                    "delta_treatment": str(result.delta_treatment) if result.delta_treatment is not None else "",
+                    "delta_reduction": str(result.delta_reduction) if result.delta_reduction is not None else "",
+                    "relief_ratio": str(result.relief_ratio) if result.relief_ratio is not None else "",
+                    "phi_control": str(result.phi_control) if result.phi_control is not None else "",
+                    "phi_treatment": str(result.phi_treatment) if result.phi_treatment is not None else "",
+                    "control_run_id": result.control_run_id,
+                    "control_status": result.control_status,
+                    "treatment_run_id": result.treatment_run_id,
+                    "treatment_status": result.treatment_status,
+                }
+                writer.writerow(row)
+
+    def _write_summary_json(self) -> None:
+        """Write summary statistics to JSON."""
+        completed = [r for r in self.comparison_results if r.delta_reduction is not None]
+        failed_control = [r for r in self.comparison_results if r.control_status == "failed"]
+        failed_treatment = [r for r in self.comparison_results if r.treatment_status == "failed"]
+
+        # Compute statistics
+        if completed:
+            delta_controls = [float(r.delta_control) for r in completed if r.delta_control is not None]
+            delta_treatments = [float(r.delta_treatment) for r in completed if r.delta_treatment is not None]
+            relief_ratios = [float(r.relief_ratio) for r in completed if r.relief_ratio is not None]
+
+            mean_delta_control = sum(delta_controls) / len(delta_controls) if delta_controls else None
+            mean_delta_treatment = sum(delta_treatments) / len(delta_treatments) if delta_treatments else None
+            mean_relief_ratio = sum(relief_ratios) / len(relief_ratios) if relief_ratios else None
+
+            improved = sum(1 for r in completed if r.delta_reduction and r.delta_reduction > 0)
+            unchanged = sum(1 for r in completed if r.delta_reduction == 0)
+            worsened = sum(1 for r in completed if r.delta_reduction and r.delta_reduction < 0)
+        else:
+            mean_delta_control = None
+            mean_delta_treatment = None
+            mean_relief_ratio = None
+            improved = 0
+            unchanged = 0
+            worsened = 0
+
+        summary = {
+            "total_pairs": len(self.comparison_results),
+            "completed_pairs": len(completed),
+            "failed_control_runs": len(failed_control),
+            "failed_treatment_runs": len(failed_treatment),
+            "mean_delta_control": mean_delta_control,
+            "mean_delta_treatment": mean_delta_treatment,
+            "mean_relief_ratio": mean_relief_ratio,
+            "pairs_with_improvement": improved,
+            "pairs_unchanged": unchanged,
+            "pairs_worsened": worsened,
+            "config": {
+                "n_agents": self.config.n_agents,
+                "maturity_days": self.config.maturity_days,
+                "Q_total": str(self.config.Q_total),
+                "base_seed": self.config.base_seed,
+                "kappas": [str(k) for k in self.config.kappas],
+                "concentrations": [str(c) for c in self.config.concentrations],
+                "mus": [str(m) for m in self.config.mus],
+            },
+        }
+
+        with self.summary_path.open("w") as fh:
+            json.dump(summary, fh, indent=2)
+
+
+def run_comparison_sweep(
+    out_dir: Path,
+    *,
+    n_agents: int = 100,
+    maturity_days: int = 10,
+    Q_total: Decimal = Decimal("10000"),
+    kappas: Sequence[Decimal],
+    concentrations: Sequence[Decimal],
+    mus: Sequence[Decimal],
+    monotonicities: Optional[Sequence[Decimal]] = None,
+    base_seed: int = 42,
+    default_handling: str = "fail-fast",
+    dealer_ticket_size: Decimal = Decimal("1"),
+    dealer_share: Decimal = Decimal("0.25"),
+    vbt_share: Decimal = Decimal("0.50"),
+    liquidity_mode: str = "uniform",
+    liquidity_agent: Optional[str] = None,
+    name_prefix: str = "Dealer Comparison",
+) -> List[ComparisonResult]:
+    """
+    Convenience function to run a comparison sweep.
+
+    Args:
+        out_dir: Output directory for results
+        n_agents: Number of agents in ring (default: 100)
+        maturity_days: Maturity horizon (default: 10)
+        Q_total: Total debt amount (default: 10000)
+        kappas: List of kappa values to sweep
+        concentrations: List of Dirichlet concentration values
+        mus: List of mu (misalignment) values
+        monotonicities: List of monotonicity values (default: [0])
+        base_seed: Base random seed
+        default_handling: How to handle defaults
+        dealer_ticket_size: Ticket size for dealer
+        dealer_share: Dealer capital as fraction of system cash (NEW outside money)
+        vbt_share: VBT capital as fraction of system cash (NEW outside money)
+        liquidity_mode: Liquidity allocation mode
+        liquidity_agent: Target agent for single_at mode
+        name_prefix: Scenario name prefix
+
+    Returns:
+        List of ComparisonResult objects
+    """
+    config = ComparisonSweepConfig(
+        n_agents=n_agents,
+        maturity_days=maturity_days,
+        Q_total=Q_total,
+        kappas=list(kappas),
+        concentrations=list(concentrations),
+        mus=list(mus),
+        monotonicities=list(monotonicities or [Decimal("0")]),
+        base_seed=base_seed,
+        default_handling=default_handling,
+        dealer_ticket_size=dealer_ticket_size,
+        dealer_share=dealer_share,
+        vbt_share=vbt_share,
+        liquidity_mode=liquidity_mode,
+        liquidity_agent=liquidity_agent,
+        name_prefix=name_prefix,
+    )
+
+    runner = ComparisonSweepRunner(config, out_dir)
+    return runner.run_all()
+
+
+__all__ = [
+    "ComparisonResult",
+    "ComparisonSweepConfig",
+    "ComparisonSweepRunner",
+    "run_comparison_sweep",
+]
 
 ```
 
@@ -17588,6 +20833,8 @@ from bilancio.experiments.ring import (
     load_ring_sweep_config,
     _decimal_list,
 )
+# Comparison imports deferred to avoid circular import
+# from bilancio.experiments.comparison import ComparisonSweepRunner, ComparisonSweepConfig
 
 
 console = Console()
@@ -17829,6 +21076,108 @@ def sweep_ring(
     console.print(f"[green]Sweep complete.[/green] Registry: {registry_csv}")
     console.print(f"[green]Aggregated results: {results_csv}")
     console.print(f"[green]Dashboard: {dashboard_html}")
+
+
+@sweep.command("comparison")
+@click.option('--out-dir', type=click.Path(path_type=Path), required=True, help='Output directory for results')
+@click.option('--n-agents', type=int, default=100, help='Ring size (default: 100)')
+@click.option('--maturity-days', type=int, default=10, help='Maturity horizon in days (default: 10)')
+@click.option('--q-total', type=float, default=10000.0, help='Total debt amount (default: 10000)')
+@click.option('--kappas', type=str, default="0.25,0.5,1,2,4", help='Comma list for kappa values')
+@click.option('--concentrations', type=str, default="0.2,0.5,1,2,5", help='Comma list for Dirichlet concentrations')
+@click.option('--mus', type=str, default="0,0.25,0.5,0.75,1", help='Comma list for mu values')
+@click.option('--monotonicities', type=str, default="0", help='Comma list for monotonicity values')
+@click.option('--base-seed', type=int, default=42, help='Base PRNG seed')
+@click.option('--default-handling', type=click.Choice(['fail-fast', 'expel-agent']), default='fail-fast', help='Default handling mode')
+@click.option('--dealer-ticket-size', type=float, default=1.0, help='Ticket size for dealer')
+@click.option('--dealer-share', type=float, default=0.25, help='Dealer capital as fraction of system cash (NEW outside money)')
+@click.option('--vbt-share', type=float, default=0.50, help='VBT capital as fraction of system cash (NEW outside money)')
+@click.option('--liquidity-mode', type=click.Choice(['single_at', 'uniform']), default='uniform', help='Liquidity allocation mode')
+@click.option('--liquidity-agent', type=str, default=None, help='Target agent for single_at mode')
+@click.option('--name-prefix', type=str, default='Dealer Comparison', help='Scenario name prefix')
+def sweep_comparison(
+    out_dir: Path,
+    n_agents: int,
+    maturity_days: int,
+    q_total: float,
+    kappas: str,
+    concentrations: str,
+    mus: str,
+    monotonicities: str,
+    base_seed: int,
+    default_handling: str,
+    dealer_ticket_size: float,
+    dealer_share: float,
+    vbt_share: float,
+    liquidity_mode: str,
+    liquidity_agent: Optional[str],
+    name_prefix: str,
+):
+    """
+    Run dealer comparison experiments.
+
+    For each parameter combination (κ, c, μ), runs:
+    1. Control: No dealer (baseline)
+    2. Treatment: With dealer
+
+    Outputs comparison metrics showing the delta in defaults between conditions.
+    """
+    import logging
+    logging.basicConfig(level=logging.INFO, format='%(message)s')
+
+    # Deferred import to avoid circular import
+    from bilancio.experiments.comparison import ComparisonSweepRunner, ComparisonSweepConfig
+
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    grid_kappas = _as_decimal_list(kappas)
+    grid_concentrations = _as_decimal_list(concentrations)
+    grid_mus = _as_decimal_list(mus)
+    grid_monotonicities = _as_decimal_list(monotonicities)
+
+    total_pairs = len(grid_kappas) * len(grid_concentrations) * len(grid_mus) * len(grid_monotonicities)
+    console.print(f"[dim]Output directory: {out_dir}[/dim]")
+    console.print(f"[dim]Running comparison sweep: {total_pairs} parameter combinations × 2 conditions = {total_pairs * 2} runs[/dim]")
+
+    config = ComparisonSweepConfig(
+        n_agents=n_agents,
+        maturity_days=maturity_days,
+        Q_total=Decimal(str(q_total)),
+        kappas=grid_kappas,
+        concentrations=grid_concentrations,
+        mus=grid_mus,
+        monotonicities=grid_monotonicities,
+        base_seed=base_seed,
+        default_handling=default_handling,
+        dealer_ticket_size=Decimal(str(dealer_ticket_size)),
+        dealer_share=Decimal(str(dealer_share)),
+        vbt_share=Decimal(str(vbt_share)),
+        liquidity_mode=liquidity_mode,
+        liquidity_agent=liquidity_agent,
+        name_prefix=name_prefix,
+    )
+
+    runner = ComparisonSweepRunner(config, out_dir)
+    results = runner.run_all()
+
+    # Summary
+    completed = [r for r in results if r.delta_reduction is not None]
+    if completed:
+        mean_relief = sum(float(r.relief_ratio or 0) for r in completed) / len(completed)
+        improved = sum(1 for r in completed if r.delta_reduction and r.delta_reduction > 0)
+        console.print(f"\n[green]Comparison sweep complete.[/green]")
+        console.print(f"  Pairs completed: {len(completed)}/{len(results)}")
+        console.print(f"  Mean relief ratio: {mean_relief:.1%}")
+        console.print(f"  Pairs with improvement: {improved}")
+    else:
+        console.print(f"\n[yellow]Comparison sweep complete but no pairs completed successfully.[/yellow]")
+
+    console.print(f"\n[green]Results:[/green]")
+    console.print(f"  Comparison CSV: {runner.comparison_path}")
+    console.print(f"  Summary JSON: {runner.summary_path}")
+    console.print(f"  Control registry: {runner.control_dir / 'registry' / 'experiments.csv'}")
+    console.print(f"  Treatment registry: {runner.treatment_dir / 'registry' / 'experiments.csv'}")
 
 
 @cli.command()
@@ -18719,6 +22068,13 @@ def _map_event_fields(e: Dict[str, Any]) -> Dict[str, str]:
         frm = e.get("debtor_bank"); to = e.get("creditor_bank")
     elif kind == "StockCreated":
         frm = e.get("owner"); to = None
+    elif kind == "dealer_trade":
+        # Dealer trade: trader sells/buys ticket through dealer
+        frm = e.get("trader")
+        to = "VBT" if e.get("is_passthrough") else "Dealer"
+    elif kind == "ClaimTransferredDealer":
+        frm = e.get("from_holder")
+        to = e.get("to_holder")
     else:
         frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer") or e.get("agent")
         to  = e.get("to") or e.get("creditor") or e.get("payee")
@@ -18732,13 +22088,15 @@ def _map_event_fields(e: Dict[str, Any]) -> Dict[str, str]:
         or e.get("id")
         or e.get("instr_id")
         or e.get("stock_id")
+        or e.get("ticket_id")  # For dealer_trade events
         or "—"
     )
     # SKU/Instr column should show SKU (for stock/delivery events) when available
     # Otherwise leave blank/dash
     sku = e.get("sku") or "—"
     qty = e.get("qty") or e.get("quantity") or "—"
-    amt = e.get("amount") or "—"
+    # Amount: use 'price' for dealer_trade, 'face' for showing original face value
+    amt = e.get("amount") or e.get("price") or "—"
     notes = ""
     if kind == "ClientPayment":
         notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
@@ -18755,6 +22113,18 @@ def _map_event_fields(e: Dict[str, Any]) -> Dict[str, str]:
         if trigger:
             bits.append(f"trigger {trigger}")
         notes = ", ".join(bits) if bits else "default"
+    elif kind == "dealer_trade":
+        side = e.get("side", "?")
+        unit_price = e.get("unit_price")
+        bucket = e.get("bucket", "?")
+        passthrough = "passthrough" if e.get("is_passthrough") else "interior"
+        if unit_price is not None:
+            notes = f"{side} @ {unit_price:.2f} ({bucket}, {passthrough})"
+        else:
+            notes = f"{side} ({bucket}, {passthrough})"
+    elif kind == "ClaimTransferredDealer":
+        due_day = e.get("due_day")
+        notes = f"due day {due_day}" if due_day is not None else ""
     return {
         "kind": kind,
         "from": _html_escape(frm or "—"),
@@ -18769,7 +22139,7 @@ def _map_event_fields(e: Dict[str, Any]) -> Dict[str, str]:
 
 def _render_events_table(title: str, events: List[Dict[str, Any]]) -> str:
     # Exclude marker rows
-    events = [e for e in events if e.get("kind") not in ("PhaseA","PhaseB","PhaseC","SubphaseB1","SubphaseB2")]
+    events = [e for e in events if e.get("kind") not in ("PhaseA","PhaseB","PhaseC","SubphaseB1","SubphaseB2","SubphaseB_Dealer")]
     rows_html = []
     for e in events:
         m = _map_event_fields(e)
@@ -18813,29 +22183,36 @@ def _split_by_phases(day_events: List[Dict[str, Any]]) -> Dict[str, List[Dict[st
         buckets[current].append(e)
     return buckets
 
-def _split_phase_b_into_subphases(events_b: List[Dict[str, Any]]) -> (List[Dict[str, Any]], List[Dict[str, Any]]):
-    """Split Phase B events into B1 (scheduled) and B2 (settlements) using subphase markers.
+def _split_phase_b_into_subphases(events_b: List[Dict[str, Any]]) -> tuple:
+    """Split Phase B events into B1 (scheduled), B_Dealer, and B2 (settlements) using subphase markers.
 
-    Excludes Subphase markers from returned lists.
+    Returns:
+        Tuple of (b1_events, b_dealer_events, b2_events)
+        Excludes Subphase markers from returned lists.
     """
     b1: List[Dict[str, Any]] = []
+    b_dealer: List[Dict[str, Any]] = []
     b2: List[Dict[str, Any]] = []
-    in_b2 = False
+    # 0=B1, 1=Dealer, 2=B2
+    current_phase = 0
     for e in events_b:
         k = e.get("kind")
         if k == "SubphaseB1":
-            # begin B1 (marker only)
-            in_b2 = False
+            current_phase = 0
+            continue
+        if k == "SubphaseB_Dealer":
+            current_phase = 1
             continue
         if k == "SubphaseB2":
-            # switch to B2 (marker only)
-            in_b2 = True
+            current_phase = 2
             continue
-        if in_b2:
-            b2.append(e)
-        else:
+        if current_phase == 0:
             b1.append(e)
-    return b1, b2
+        elif current_phase == 1:
+            b_dealer.append(e)
+        else:
+            b2.append(e)
+    return b1, b_dealer, b2
 
 
 def export_pretty_html(
@@ -18944,8 +22321,10 @@ def export_pretty_html(
         ev = d.get('events', [])
         buckets = _split_by_phases(ev)
         html_parts.append("<div class=\"events-section\">")
-        b1, b2 = _split_phase_b_into_subphases(buckets.get("B", []))
+        b1, b_dealer, b2 = _split_phase_b_into_subphases(buckets.get("B", []))
         html_parts.append(_render_events_table("Phase B1 — Scheduled Actions", b1))
+        if b_dealer:
+            html_parts.append(_render_events_table("Phase B — Dealer Trading", b_dealer))
         html_parts.append(_render_events_table("Phase B2 — Settlement", b2))
         html_parts.append(_render_events_table("Phase C — Clearing", buckets.get("C", [])))
         html_parts.append("</div>")
@@ -19916,7 +23295,10 @@ def run_scenario(
     
     # Track day data for PDF export
     days_data = []
-    
+
+    # Check if dealer subsystem is enabled
+    enable_dealer = hasattr(system.state, 'dealer_subsystem') and system.state.dealer_subsystem is not None
+
     if mode == "step":
         days_data = run_step_mode(
             system=system,
@@ -19925,7 +23307,8 @@ def run_scenario(
             agent_ids=agent_ids,
             check_invariants=check_invariants,
             scenario_name=config.name,
-            t_account=t_account
+            t_account=t_account,
+            enable_dealer=enable_dealer
         )
     else:
         days_data = run_until_stable_mode(
@@ -19936,7 +23319,8 @@ def run_scenario(
             agent_ids=agent_ids,
             check_invariants=check_invariants,
             scenario_name=config.name,
-            t_account=t_account
+            t_account=t_account,
+            enable_dealer=enable_dealer
         )
     
     # Export results if requested
@@ -19977,10 +23361,11 @@ def run_step_mode(
     agent_ids: Optional[List[str]],
     check_invariants: str,
     scenario_name: str,
-    t_account: bool = False
+    t_account: bool = False,
+    enable_dealer: bool = False
 ) -> List[Dict[str, Any]]:
     """Run simulation in step-by-step mode.
-    
+
     Args:
         system: Configured system
         max_days: Maximum days to simulate
@@ -19988,31 +23373,47 @@ def run_step_mode(
         agent_ids: Agent IDs to show balances for
         check_invariants: Invariant checking mode
         scenario_name: Name of the scenario for error context
-    
+        enable_dealer: If True, run dealer trading phase each day
+
     Returns:
         List of day data dictionaries
     """
     days_data = []
-    
+
     for _ in range(max_days):
-        # Get the current day before running 
+        # Get the current day before running
         day_before = system.state.day
-        
+
         # Prompt to continue (ask about the next day which is day_before + 1)
         console.print()
         if not Confirm.ask(f"[cyan]Run day {day_before + 1}?[/cyan]", default=True):
             console.print("[yellow]Simulation stopped by user[/yellow]")
             break
-        
+
         try:
             # Run the next day
-            day_report = run_day(system)
+            day_report = run_day(system, enable_dealer=enable_dealer)
             
             # Check invariants if requested
             if check_invariants == "daily":
                 system.assert_invariants()
             
-            # Skip day 0 - it's already shown as "Day 0 (After Setup)"
+            # Skip day 0 display - it's already shown as "Day 0 (After Setup)"
+            # But still capture Day 0 simulation events for HTML export
+            if day_before == 0:
+                # Only capture Day 0 simulation events for HTML
+                day0_events = [e for e in system.state.events
+                              if e.get("day") == 0 and e.get("phase") == "simulation"]
+                if day0_events:
+                    days_data.append({
+                        'day': 0,
+                        'events': day0_events,
+                        'quiet': False,
+                        'stable': False,
+                        'balances': {},
+                        'rows': {},
+                        'agent_ids': [],
+                    })
             if day_before >= 1:
                 # Show day summary
                 console.print(f"\n[bold cyan]📅 Day {day_before}[/bold cyan]")
@@ -20119,10 +23520,11 @@ def run_until_stable_mode(
     agent_ids: Optional[List[str]],
     check_invariants: str,
     scenario_name: str,
-    t_account: bool = False
+    t_account: bool = False,
+    enable_dealer: bool = False
 ) -> List[Dict[str, Any]]:
     """Run simulation until stable state is reached.
-    
+
     Args:
         system: Configured system
         max_days: Maximum days to simulate
@@ -20131,25 +23533,26 @@ def run_until_stable_mode(
         agent_ids: Agent IDs to show balances for
         check_invariants: Invariant checking mode
         scenario_name: Name of the scenario for error context
-    
+        enable_dealer: If True, run dealer trading phase each day
+
     Returns:
         List of day data dictionaries
     """
     console.print(f"\n[dim]Running simulation until stable (max {max_days} days)...[/dim]\n")
-    
+
     try:
         # Run simulation day by day to capture correct balance snapshots
         from bilancio.engines.simulation import run_day, _impacted_today, _has_open_obligations
         from bilancio.analysis.balances import agent_balance
-        
+
         reports = []
         consecutive_quiet = 0
         days_data = []
-        
+
         for _ in range(max_days):
             # Run the next day
             day_before = system.state.day
-            run_day(system)
+            run_day(system, enable_dealer=enable_dealer)
             impacted = _impacted_today(system, day_before)
             
             # Create report
@@ -20157,7 +23560,22 @@ def run_until_stable_mode(
             report = DayReport(day=day_before, impacted=impacted)
             reports.append(report)
             
-            # Skip day 0 - it's already shown as "Day 0 (After Setup)"
+            # Skip day 0 display - it's already shown as "Day 0 (After Setup)"
+            # But still capture Day 0 simulation events for HTML export
+            if day_before == 0:
+                # Only capture Day 0 simulation events for HTML
+                day0_events = [e for e in system.state.events
+                              if e.get("day") == 0 and e.get("phase") == "simulation"]
+                if day0_events:
+                    days_data.append({
+                        'day': 0,
+                        'events': day0_events,
+                        'quiet': False,
+                        'stable': False,
+                        'balances': {},
+                        'rows': {},
+                        'agent_ids': [],
+                    })
             if day_before >= 1:
                 # Display this day's results immediately (with correct balance state)
                 console.print(f"[bold cyan]📅 Day {day_before}[/bold cyan]")
@@ -28708,5 +32126,5 @@ def test_settle_multiple_obligations():
 ## End of Codebase
 
 Generated from: /home/runner/work/bilancio/bilancio
-Total source files: 79
+Total source files: 82
 Total test files: 34
