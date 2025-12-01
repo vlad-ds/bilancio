@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2025-12-01 19:07:15 UTC | Branch: main | Commit: 179c8be
+Generated: 2025-12-01 20:07:48 UTC | Branch: main | Commit: 96dbb34
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -2338,6 +2338,7 @@ This document contains the complete codebase structure and content for LLM inges
 │   │   ├── 016_dealer_ring_implementation.md
 │   │   ├── 017_dealer_ring_html_report.md
 │   │   ├── 018_dealer_comparison_experiments.md
+│   │   ├── 019_dealer_metrics.md
 │   │   └── Kalecki_debt_simulation (1).pdf
 │   ├── prompts
 │   │   ├── 015_expel_sweep_agent_prompt.md
@@ -3176,6 +3177,387 @@ This document contains the complete codebase structure and content for LLM inges
 │   │   │           │   └── metrics.html
 │   │   │           ├── run.html
 │   │   │           └── scenario.yaml
+│   │   ├── dealer_metrics_comparison_20251201
+│   │   │   ├── aggregate
+│   │   │   │   ├── comparison.csv
+│   │   │   │   └── summary.json
+│   │   │   └── treatment
+│   │   │       └── runs
+│   │   │           ├── comparison_treatment_01ff39121f26
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_029c1d62b710
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_0340625f5ded
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_0354e13f6eda
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_03a553d02e70
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_03e62f1d2506
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_044f19c2d01d
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_0a03d1b2fdc6
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_0bfb3d9559f0
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_0ffa9b9d5adb
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_1270fb8b6c33
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_1484db391a15
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_1561bf165717
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_16c4e8b07f40
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_1987bbfb0f6c
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_1b406e1619a2
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_1bbf14983a8e
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_1c6d9ac84a84
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_1c74f526c23a
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_21f38281d52f
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_233ab27a2660
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_282911c88e5a
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_292eaed1716d
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_2b5d558811b6
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_32de082c1ff5
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_337aafc14774
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_351c3dcf1cfb
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_36324be6e3cb
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_387de7315c93
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_389c06d94383
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_3afda93f05de
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_3b053d2b7fcb
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_3e4fd2bbc645
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_3ec46670b0ec
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_400fc2b1fb25
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_4116a26180f5
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_414a37696c6e
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_43913bf5b837
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_46ce4f77e3d5
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_47061e13439f
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_4760087d5fac
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_4b47d1840579
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_4badbf4a54a6
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_4c01b225c590
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_4c9a1292034a
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_4d2548c459e3
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_4e505b51d2ba
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_51f11815722f
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_544a94d085f0
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_56007ab6a090
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_57c4660393d3
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_586da3112ebc
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_5f19f494fbed
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_61a1f1669df4
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_61ac3b7e3e92
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_61c1f198d652
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_690679d7a266
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_69238ab40309
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_6db39e9839b1
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_6e597e22512c
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_6e79030a7efb
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_7089f6fa45e8
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_70b5b805ee67
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_7154aef34ab2
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_75dcabb90077
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_805661736d13
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_806d39a3eb86
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_80814ad03222
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_80e37789a5d4
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_8147c72d78c8
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_833c19a3febd
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_861f1814d7f1
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_88023ca2e653
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_8f3012468b71
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_8fad34b5ea0b
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_91a2247b061b
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_98e947b2ee59
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_9b490306a3e2
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_9ca52d4806ea
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_a1bcdf9a6455
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_a8761c888ffd
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_a957f1fe034a
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_a9eff0cabb1a
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_ab55e540236d
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_aba2b68b68d0
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_ac4bcad998db
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_b08676b0752c
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_b7284fd8ceb7
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_b9642f4710e6
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_bc2de0ede0fe
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_ca204522649a
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_ca7dec3289cc
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_cabd7885fbc9
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_cb697f3802a0
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_cd001029dd19
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_cdaadada09d7
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_cdd15ecea881
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_cea28809e66f
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_d043c86f6349
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_d0c1ebd2b451
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_d0f83279d113
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_d1bf87d3f40e
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_d3a2734f086d
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_d4068afe9b73
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_d8c7680aae88
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_d99c0ac275a0
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_db7261e2788a
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_de90f7477bc2
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_df2270c98b41
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_e1a6acd6a84d
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_e3223e8d23f5
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_e3bfcc2954df
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_e4055e380043
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_e72b264c3ef3
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_e76bff507252
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_e9c604b4743f
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_ea83ede95cbb
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_eaacf35ac94c
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_eb6993812a64
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_f0a9cfc9a94f
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_f0f34db35ccf
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_f344f7749633
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_fa65c329c9a3
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           ├── comparison_treatment_faa8cc31dfc8
+│   │   │           │   └── out
+│   │   │           │       └── dealer_metrics.json
+│   │   │           └── comparison_treatment_fd8bcba169fd
+│   │   │               └── out
+│   │   │                   └── dealer_metrics.json
 │   │   ├── expel_ring_sweep
 │   │   │   ├── aggregate
 │   │   │   │   ├── dashboard.html
@@ -4723,6 +5105,7 @@ This document contains the complete codebase structure and content for LLM inges
 │       │   ├── bridge.py
 │       │   ├── events.py
 │       │   ├── kernel.py
+│       │   ├── metrics.py
 │       │   ├── models.py
 │       │   ├── report.py
 │       │   ├── simulation.py
@@ -4811,6 +5194,7 @@ This document contains the complete codebase structure and content for LLM inges
     │   ├── __init__.py
     │   ├── test_examples.py
     │   ├── test_kernel.py
+    │   ├── test_metrics.py
     │   ├── test_report.py
     │   └── test_simulation.py
     ├── engines
@@ -4840,7 +5224,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-1326 directories, 3504 files
+1580 directories, 3634 files
 
 ```
 
@@ -6184,6 +6568,52 @@ Complete git history from oldest to newest:
 - **179c8be7** (2025-12-01) by Vlad Gheorghe
   Merge pull request #21 from vlad-ds/docs/dealer-ring-updates
   docs: add dealer ring documentation and conversation notes
+
+- **036b6ad2** (2025-12-01) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **5df10437** (2025-12-01) by vladgheorghe
+  feat(dealer): implement Section 8 metrics for functional dealer analysis
+  Implements the measurement framework defined in Section 8 of the
+  "New Kalecki Ring with Dealers" specification for evaluating
+  functional dealer criteria (D1-D3) and requirements (R1-R6).
+  Key additions:
+  - Trade log with pre/post state tracking (8.1)
+  - Dealer P&L and profitability metrics by bucket (8.2)
+  - Trader investment returns and liquidity use tracking (8.3)
+  - Repayment-priority diagnostics (safety margin tracking) (8.4)
+  - Experiment-level summary statistics (8.5)
+  Changes:
+  - New metrics module: src/bilancio/dealer/metrics.py
+    - TradeRecord, DealerSnapshot, TraderSnapshot dataclasses
+    - RunMetrics with P&L, return, and summary computations
+  - Dealer integration: capture metrics during trading phase
+  - Comparison experiment: export dealer metrics to comparison.csv
+  - UI/run: export dealer_metrics.json for each treatment run
+  - Tests: 15 new test cases for metrics functionality
+  The comparison CSV now includes 11 new dealer metric columns:
+  dealer_total_pnl, dealer_total_return, dealer_profitable,
+  spread_income_total, mean_trader_return, fraction_profitable_traders,
+  liquidity_driven_sales, rescue_events, total_trades,
+  unsafe_buy_count, fraction_unsafe_buys
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **96dbb341** (2025-12-01) by vladgheorghe
+  data: add dealer metrics experiment results (125 pairs)
+  Adds the output from the dealer comparison experiment with new
+  Section 8 metrics. Includes only the key data files:
+  - aggregate/comparison.csv: All 125 comparison results with 11 new
+    dealer metric columns
+  - aggregate/summary.json: Experiment configuration and summary stats
+  - 125 individual dealer_metrics.json files from treatment runs
+  Key findings from this experiment:
+  - 118/125 runs have non-profitable dealers (mean P&L = -3.84)
+  - Non-profitable dealers provide higher relief (4.22% vs 0%)
+  - Average 13.4 trades per run
+  - 0 liquidity-driven sales, rescue events, unsafe buys
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
 
 ---
 
@@ -12939,6 +13369,725 @@ class ExecutionResult:
 
 ---
 
+### 📄 src/bilancio/dealer/metrics.py
+
+```python
+"""
+Metrics data structures and computation for functional dealer analysis.
+
+This module implements the measurement framework defined in Section 8 of the
+"New Kalecki Ring with Dealers" specification. It provides comprehensive
+metrics to evaluate whether the dealer satisfies functional dealer criteria.
+
+Key metrics tracked:
+1. Trade log with pre/post state (8.1)
+2. Dealer P&L and profitability (8.2)
+3. Trader investment returns and liquidity use (8.3)
+4. Repayment-priority diagnostics (8.4)
+
+References:
+    - Section 8: "Measurement and data collection for functional dealer properties"
+    - D1-D3: Functional dealer and trader behaviour definitions
+    - R1-R6: Requirements for simulation analysis
+"""
+
+from dataclasses import dataclass, field
+from decimal import Decimal
+from typing import Dict, List, Optional, Any
+import json
+from pathlib import Path
+
+
+@dataclass
+class TradeRecord:
+    """
+    Record of a single dealer trade with full state information.
+
+    Implements Section 8.1 trade log requirements:
+    - time t, bucket b, side, agent i, price p, issuer, maturity
+
+    Extended with pre/post state for diagnostics:
+    - Dealer state before/after
+    - Trader safety margin before/after (Section 8.4)
+    - Liquidity-driven flag (Section 8.3)
+    """
+    # Core trade identifiers
+    day: int
+    bucket: str
+    side: str  # "BUY" or "SELL" (from customer perspective)
+    trader_id: str
+    ticket_id: str
+
+    # Ticket details
+    issuer_id: str
+    maturity_day: int
+    face_value: Decimal
+    price: Decimal
+    unit_price: Decimal  # price / face_value
+    is_passthrough: bool
+
+    # Pre-trade state
+    dealer_inventory_before: int = 0
+    dealer_cash_before: Decimal = Decimal(0)
+    dealer_bid_before: Decimal = Decimal(0)
+    dealer_ask_before: Decimal = Decimal(0)
+    vbt_mid_before: Decimal = Decimal(0)
+    trader_cash_before: Decimal = Decimal(0)
+    trader_safety_margin_before: Decimal = Decimal(0)
+
+    # Post-trade state
+    dealer_inventory_after: int = 0
+    dealer_cash_after: Decimal = Decimal(0)
+    dealer_bid_after: Decimal = Decimal(0)
+    dealer_ask_after: Decimal = Decimal(0)
+    trader_cash_after: Decimal = Decimal(0)
+    trader_safety_margin_after: Decimal = Decimal(0)
+
+    # Flags
+    is_liquidity_driven: bool = False  # Seller had shortfall (Section 8.3)
+    reduces_margin_below_zero: bool = False  # BUY reduced margin < 0 (Section 8.4)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary with serialized Decimals."""
+        return {
+            "day": self.day,
+            "bucket": self.bucket,
+            "side": self.side,
+            "trader_id": self.trader_id,
+            "ticket_id": self.ticket_id,
+            "issuer_id": self.issuer_id,
+            "maturity_day": self.maturity_day,
+            "face_value": str(self.face_value),
+            "price": str(self.price),
+            "unit_price": str(self.unit_price),
+            "is_passthrough": self.is_passthrough,
+            "dealer_inventory_before": self.dealer_inventory_before,
+            "dealer_cash_before": str(self.dealer_cash_before),
+            "dealer_bid_before": str(self.dealer_bid_before),
+            "dealer_ask_before": str(self.dealer_ask_before),
+            "vbt_mid_before": str(self.vbt_mid_before),
+            "trader_cash_before": str(self.trader_cash_before),
+            "trader_safety_margin_before": str(self.trader_safety_margin_before),
+            "dealer_inventory_after": self.dealer_inventory_after,
+            "dealer_cash_after": str(self.dealer_cash_after),
+            "dealer_bid_after": str(self.dealer_bid_after),
+            "dealer_ask_after": str(self.dealer_ask_after),
+            "trader_cash_after": str(self.trader_cash_after),
+            "trader_safety_margin_after": str(self.trader_safety_margin_after),
+            "is_liquidity_driven": self.is_liquidity_driven,
+            "reduces_margin_below_zero": self.reduces_margin_below_zero,
+        }
+
+
+@dataclass
+class DealerSnapshot:
+    """
+    Snapshot of dealer state at a point in time.
+
+    Implements Section 8.1 dealer state requirements:
+    - Inventory a_t^(b), cash C_t^(b)
+    - Outside mid M_t^(b), spread O_t^(b)
+    - Bid/ask quotes
+    - Mark-to-mid equity E_t^(b) = C_t^(b) + M_t^(b) * a_t^(b) * S
+    """
+    day: int
+    bucket: str
+    inventory: int  # a_t^(b) - number of tickets
+    cash: Decimal
+    bid: Decimal
+    ask: Decimal
+    midline: Decimal
+    vbt_mid: Decimal  # M_t^(b)
+    vbt_spread: Decimal  # O_t^(b)
+    ticket_size: Decimal  # S
+
+    @property
+    def mark_to_mid_equity(self) -> Decimal:
+        """
+        Mark-to-mid equity: E_t^(b) = C_t^(b) + M_t^(b) * a_t^(b) * S
+
+        This is the equity valuation using VBT mid price.
+        """
+        return self.cash + self.vbt_mid * self.inventory * self.ticket_size
+
+    @property
+    def spread(self) -> Decimal:
+        """Current bid-ask spread."""
+        return self.ask - self.bid
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary with serialized Decimals."""
+        return {
+            "day": self.day,
+            "bucket": self.bucket,
+            "inventory": self.inventory,
+            "cash": str(self.cash),
+            "bid": str(self.bid),
+            "ask": str(self.ask),
+            "midline": str(self.midline),
+            "vbt_mid": str(self.vbt_mid),
+            "vbt_spread": str(self.vbt_spread),
+            "ticket_size": str(self.ticket_size),
+            "mark_to_mid_equity": str(self.mark_to_mid_equity),
+            "spread": str(self.spread),
+        }
+
+
+@dataclass
+class TraderSnapshot:
+    """
+    Snapshot of trader state at a point in time.
+
+    Implements Section 8.1 trader state requirements:
+    - Cash C_i(t)
+    - Set of tickets held
+    - Schedule of future obligations
+    - Safety margin m_i(t) (Section 8.4)
+    """
+    day: int
+    trader_id: str
+    cash: Decimal
+    tickets_held_count: int
+    tickets_held_ids: List[str]
+    total_face_held: Decimal
+    obligations_remaining: Decimal  # D_i(t) - future obligations
+    saleable_value: Decimal  # Value of tickets at dealer bid prices
+    safety_margin: Decimal  # m_i(t) = A_i(t) - D_i(t)
+    defaulted: bool = False
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary with serialized Decimals."""
+        return {
+            "day": self.day,
+            "trader_id": self.trader_id,
+            "cash": str(self.cash),
+            "tickets_held_count": self.tickets_held_count,
+            "tickets_held_ids": self.tickets_held_ids,
+            "total_face_held": str(self.total_face_held),
+            "obligations_remaining": str(self.obligations_remaining),
+            "saleable_value": str(self.saleable_value),
+            "safety_margin": str(self.safety_margin),
+            "defaulted": self.defaulted,
+        }
+
+
+@dataclass
+class TicketOutcome:
+    """
+    Final outcome of a ticket for return calculation.
+
+    Implements Section 8.3 ticket-level realized return:
+    R_τ = (X_τ - p_buy) / p_buy
+
+    Where X_τ is:
+    - Settlement amount at maturity (if held)
+    - Resale price if sold to dealer
+    - Coupon payments (future extension)
+    """
+    ticket_id: str
+    issuer_id: str
+    maturity_day: int
+    face_value: Decimal
+
+    # Purchase from dealer (if applicable)
+    purchased_from_dealer: bool = False
+    purchase_day: Optional[int] = None
+    purchase_price: Optional[Decimal] = None
+    purchaser_id: Optional[str] = None
+
+    # Sale to dealer (if applicable)
+    sold_to_dealer: bool = False
+    sale_day: Optional[int] = None
+    sale_price: Optional[Decimal] = None
+    seller_id: Optional[str] = None
+
+    # Settlement outcome
+    settled: bool = False
+    settlement_day: Optional[int] = None
+    recovery_rate: Optional[Decimal] = None
+    settlement_amount: Optional[Decimal] = None
+
+    def realized_return(self) -> Optional[Decimal]:
+        """
+        Calculate realized return R_τ for ticket purchased from dealer.
+
+        Returns:
+            R_τ = (X_τ - p_buy) / p_buy, or None if not purchased from dealer
+        """
+        if not self.purchased_from_dealer or self.purchase_price is None:
+            return None
+
+        p_buy = self.purchase_price
+
+        # Determine total payoff X_τ
+        x_tau = Decimal(0)
+
+        if self.sold_to_dealer and self.sale_price is not None:
+            # Resold to dealer
+            x_tau = self.sale_price
+        elif self.settled and self.settlement_amount is not None:
+            # Held to maturity
+            x_tau = self.settlement_amount
+        else:
+            # Still held or defaulted with no recovery
+            return None
+
+        if p_buy == 0:
+            return None
+
+        return (x_tau - p_buy) / p_buy
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary with serialized Decimals."""
+        return {
+            "ticket_id": self.ticket_id,
+            "issuer_id": self.issuer_id,
+            "maturity_day": self.maturity_day,
+            "face_value": str(self.face_value),
+            "purchased_from_dealer": self.purchased_from_dealer,
+            "purchase_day": self.purchase_day,
+            "purchase_price": str(self.purchase_price) if self.purchase_price else None,
+            "purchaser_id": self.purchaser_id,
+            "sold_to_dealer": self.sold_to_dealer,
+            "sale_day": self.sale_day,
+            "sale_price": str(self.sale_price) if self.sale_price else None,
+            "seller_id": self.seller_id,
+            "settled": self.settled,
+            "settlement_day": self.settlement_day,
+            "recovery_rate": str(self.recovery_rate) if self.recovery_rate else None,
+            "settlement_amount": str(self.settlement_amount) if self.settlement_amount else None,
+            "realized_return": str(self.realized_return()) if self.realized_return() is not None else None,
+        }
+
+
+@dataclass
+class RunMetrics:
+    """
+    All metrics for a single simulation run.
+
+    This is the main container for Section 8 metrics, aggregating:
+    - Trade log (8.1)
+    - Daily dealer/trader snapshots (8.1)
+    - Ticket outcomes for return calculation (8.3)
+
+    Provides computed metrics for:
+    - Dealer P&L and profitability (8.2)
+    - Trader investment returns (8.3)
+    - Repayment-priority diagnostics (8.4)
+    """
+    # Trade log (Section 8.1)
+    trades: List[TradeRecord] = field(default_factory=list)
+
+    # Daily snapshots (Section 8.1)
+    dealer_snapshots: List[DealerSnapshot] = field(default_factory=list)
+    trader_snapshots: List[TraderSnapshot] = field(default_factory=list)
+
+    # Ticket outcomes (Section 8.3)
+    ticket_outcomes: Dict[str, TicketOutcome] = field(default_factory=dict)
+
+    # Initial equity by bucket (for P&L calculation)
+    initial_equity_by_bucket: Dict[str, Decimal] = field(default_factory=dict)
+
+    # =========================================================================
+    # Section 8.2: Dealer and VBT Profitability
+    # =========================================================================
+
+    def dealer_pnl_by_bucket(self) -> Dict[str, Decimal]:
+        """
+        Compute dealer P&L by bucket: Π_r^(b) = E_T^(b) - E_0^(b)
+
+        Returns:
+            Dictionary mapping bucket_id to P&L in currency units
+        """
+        pnl = {}
+        for bucket_id, initial_equity in self.initial_equity_by_bucket.items():
+            # Find final equity for this bucket
+            final_snapshots = [
+                s for s in self.dealer_snapshots
+                if s.bucket == bucket_id
+            ]
+            if final_snapshots:
+                # Take the last snapshot
+                final_equity = max(final_snapshots, key=lambda s: s.day).mark_to_mid_equity
+                pnl[bucket_id] = final_equity - initial_equity
+            else:
+                pnl[bucket_id] = Decimal(0)
+        return pnl
+
+    def dealer_return_by_bucket(self) -> Dict[str, Decimal]:
+        """
+        Compute dealer return by bucket: π_r^(b) = Π_r^(b) / E_0^(b)
+
+        Returns:
+            Dictionary mapping bucket_id to return (as fraction)
+        """
+        pnl = self.dealer_pnl_by_bucket()
+        returns = {}
+        for bucket_id, profit in pnl.items():
+            initial = self.initial_equity_by_bucket.get(bucket_id, Decimal(0))
+            if initial > 0:
+                returns[bucket_id] = profit / initial
+            else:
+                returns[bucket_id] = Decimal(0)
+        return returns
+
+    def total_dealer_pnl(self) -> Decimal:
+        """Total P&L across all buckets."""
+        return sum(self.dealer_pnl_by_bucket().values())
+
+    def total_dealer_return(self) -> Decimal:
+        """
+        Total dealer return weighted by initial equity.
+
+        Returns:
+            Π_total / E_0_total
+        """
+        total_pnl = self.total_dealer_pnl()
+        total_initial = sum(self.initial_equity_by_bucket.values())
+        if total_initial > 0:
+            return total_pnl / total_initial
+        return Decimal(0)
+
+    def is_dealer_profitable(self) -> bool:
+        """Check if dealer is profitable (Π >= 0)."""
+        return self.total_dealer_pnl() >= 0
+
+    def spread_income_total(self) -> Decimal:
+        """
+        Total spread income from interior trades.
+
+        For SELL: income = dealer_ask - dealer_bid (customer gets bid, dealer marks at mid)
+        For BUY: income = dealer_ask - dealer_bid (customer pays ask)
+
+        Simplified: count trades where dealer made the spread.
+        """
+        income = Decimal(0)
+        for trade in self.trades:
+            if not trade.is_passthrough:
+                # Interior trade - dealer earns spread
+                if trade.side == "SELL":
+                    # Customer sold to dealer at bid
+                    # Spread income = midline - bid
+                    midline = (trade.dealer_bid_before + trade.dealer_ask_before) / 2
+                    income += (midline - trade.dealer_bid_before) * trade.face_value
+                else:  # BUY
+                    # Customer bought from dealer at ask
+                    # Spread income = ask - midline
+                    midline = (trade.dealer_bid_before + trade.dealer_ask_before) / 2
+                    income += (trade.dealer_ask_before - midline) * trade.face_value
+        return income
+
+    def passthrough_count(self) -> int:
+        """Count of passthrough trades (dealer to VBT)."""
+        return sum(1 for t in self.trades if t.is_passthrough)
+
+    def interior_count(self) -> int:
+        """Count of interior trades (dealer only)."""
+        return sum(1 for t in self.trades if not t.is_passthrough)
+
+    # =========================================================================
+    # Section 8.3: Trader Investment Returns and Liquidity Use
+    # =========================================================================
+
+    def trader_returns(self) -> Dict[str, Decimal]:
+        """
+        Compute investment return R_i for each trader.
+
+        R_i = (1/|T_i|) * Σ R_τ for all tickets τ purchased by trader i
+
+        Returns:
+            Dictionary mapping trader_id to mean return
+        """
+        # Group outcomes by purchaser
+        returns_by_trader: Dict[str, List[Decimal]] = {}
+
+        for outcome in self.ticket_outcomes.values():
+            if outcome.purchased_from_dealer and outcome.purchaser_id:
+                r_tau = outcome.realized_return()
+                if r_tau is not None:
+                    if outcome.purchaser_id not in returns_by_trader:
+                        returns_by_trader[outcome.purchaser_id] = []
+                    returns_by_trader[outcome.purchaser_id].append(r_tau)
+
+        # Compute mean return per trader
+        trader_returns = {}
+        for trader_id, returns in returns_by_trader.items():
+            if returns:
+                trader_returns[trader_id] = sum(returns) / len(returns)
+            else:
+                trader_returns[trader_id] = Decimal(0)
+
+        return trader_returns
+
+    def mean_trader_return(self) -> Decimal:
+        """Mean return across all traders who bought from dealer."""
+        returns = list(self.trader_returns().values())
+        if returns:
+            return sum(returns) / len(returns)
+        return Decimal(0)
+
+    def fraction_profitable_traders(self) -> Decimal:
+        """Fraction of traders with positive return (R_i > 0)."""
+        returns = self.trader_returns()
+        if not returns:
+            return Decimal(0)
+        profitable = sum(1 for r in returns.values() if r > 0)
+        return Decimal(profitable) / len(returns)
+
+    def liquidity_driven_sales(self) -> int:
+        """
+        Count of liquidity-driven sales.
+
+        A sale is liquidity-driven when seller had shortfall in obligations.
+        """
+        return sum(1 for t in self.trades if t.side == "SELL" and t.is_liquidity_driven)
+
+    def rescue_events(self) -> int:
+        """
+        Count of rescue events.
+
+        A rescue event occurs when a liquidity-driven sale enables the seller
+        to meet an obligation that would otherwise have defaulted.
+
+        Note: This is approximated by counting liquidity-driven sales where
+        the trader's safety margin improved to positive after the trade.
+        """
+        rescues = 0
+        for trade in self.trades:
+            if trade.side == "SELL" and trade.is_liquidity_driven:
+                # Check if trade moved margin from negative to positive
+                if (trade.trader_safety_margin_before < 0 and
+                    trade.trader_safety_margin_after >= 0):
+                    rescues += 1
+        return rescues
+
+    # =========================================================================
+    # Section 8.4: Repayment-Priority Diagnostics
+    # =========================================================================
+
+    def unsafe_buy_count(self) -> int:
+        """Count of BUY trades that reduced safety margin below zero."""
+        return sum(1 for t in self.trades if t.reduces_margin_below_zero)
+
+    def fraction_unsafe_buys(self) -> Decimal:
+        """Fraction of BUY trades that reduced margin below zero."""
+        buys = [t for t in self.trades if t.side == "BUY"]
+        if not buys:
+            return Decimal(0)
+        unsafe = sum(1 for t in buys if t.reduces_margin_below_zero)
+        return Decimal(unsafe) / len(buys)
+
+    def margin_at_default_distribution(self) -> List[Decimal]:
+        """
+        Distribution of safety margins at time of default.
+
+        Returns list of m_i(t) values for agents that defaulted.
+        """
+        margins = []
+        for snapshot in self.trader_snapshots:
+            if snapshot.defaulted:
+                margins.append(snapshot.safety_margin)
+        return margins
+
+    def mean_margin_at_default(self) -> Optional[Decimal]:
+        """Mean safety margin at default time."""
+        margins = self.margin_at_default_distribution()
+        if margins:
+            return sum(margins) / len(margins)
+        return None
+
+    # =========================================================================
+    # Section 8.5: Experiment-Level Summary Statistics
+    # =========================================================================
+
+    def summary(self) -> Dict[str, Any]:
+        """
+        Generate summary statistics for experiment-level aggregation.
+
+        Returns dictionary suitable for comparison across runs.
+        """
+        return {
+            # Dealer profitability (8.2)
+            "dealer_total_pnl": float(self.total_dealer_pnl()),
+            "dealer_total_return": float(self.total_dealer_return()),
+            "dealer_profitable": self.is_dealer_profitable(),
+            "dealer_pnl_by_bucket": {k: float(v) for k, v in self.dealer_pnl_by_bucket().items()},
+            "dealer_return_by_bucket": {k: float(v) for k, v in self.dealer_return_by_bucket().items()},
+            "spread_income_total": float(self.spread_income_total()),
+            "interior_trades": self.interior_count(),
+            "passthrough_trades": self.passthrough_count(),
+
+            # Trader returns (8.3)
+            "mean_trader_return": float(self.mean_trader_return()),
+            "fraction_profitable_traders": float(self.fraction_profitable_traders()),
+            "liquidity_driven_sales": self.liquidity_driven_sales(),
+            "rescue_events": self.rescue_events(),
+
+            # Repayment priority (8.4)
+            "unsafe_buy_count": self.unsafe_buy_count(),
+            "fraction_unsafe_buys": float(self.fraction_unsafe_buys()),
+            "mean_margin_at_default": float(self.mean_margin_at_default()) if self.mean_margin_at_default() is not None else None,
+
+            # Trade counts
+            "total_trades": len(self.trades),
+            "total_sell_trades": sum(1 for t in self.trades if t.side == "SELL"),
+            "total_buy_trades": sum(1 for t in self.trades if t.side == "BUY"),
+        }
+
+    # =========================================================================
+    # Export Methods
+    # =========================================================================
+
+    def to_trade_log_csv(self, path: str) -> None:
+        """Export trade log to CSV file."""
+        import csv
+        path_obj = Path(path)
+        path_obj.parent.mkdir(parents=True, exist_ok=True)
+
+        if not self.trades:
+            return
+
+        with open(path_obj, "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=self.trades[0].to_dict().keys())
+            writer.writeheader()
+            for trade in self.trades:
+                writer.writerow(trade.to_dict())
+
+    def to_dealer_snapshots_csv(self, path: str) -> None:
+        """Export dealer snapshots to CSV file."""
+        import csv
+        path_obj = Path(path)
+        path_obj.parent.mkdir(parents=True, exist_ok=True)
+
+        if not self.dealer_snapshots:
+            return
+
+        with open(path_obj, "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=self.dealer_snapshots[0].to_dict().keys())
+            writer.writeheader()
+            for snapshot in self.dealer_snapshots:
+                writer.writerow(snapshot.to_dict())
+
+    def to_trader_snapshots_csv(self, path: str) -> None:
+        """Export trader snapshots to CSV file."""
+        import csv
+        path_obj = Path(path)
+        path_obj.parent.mkdir(parents=True, exist_ok=True)
+
+        if not self.trader_snapshots:
+            return
+
+        # Filter out tickets_held_ids for CSV (too verbose)
+        fieldnames = [k for k in self.trader_snapshots[0].to_dict().keys() if k != "tickets_held_ids"]
+
+        with open(path_obj, "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            for snapshot in self.trader_snapshots:
+                row = {k: v for k, v in snapshot.to_dict().items() if k != "tickets_held_ids"}
+                writer.writerow(row)
+
+    def to_ticket_outcomes_csv(self, path: str) -> None:
+        """Export ticket outcomes to CSV file."""
+        import csv
+        path_obj = Path(path)
+        path_obj.parent.mkdir(parents=True, exist_ok=True)
+
+        if not self.ticket_outcomes:
+            return
+
+        outcomes = list(self.ticket_outcomes.values())
+        with open(path_obj, "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=outcomes[0].to_dict().keys())
+            writer.writeheader()
+            for outcome in outcomes:
+                writer.writerow(outcome.to_dict())
+
+    def to_summary_json(self, path: str) -> None:
+        """Export summary statistics to JSON file."""
+        path_obj = Path(path)
+        path_obj.parent.mkdir(parents=True, exist_ok=True)
+
+        with open(path_obj, "w") as f:
+            json.dump(self.summary(), f, indent=2)
+
+
+# =============================================================================
+# Helper Functions for Safety Margin Computation
+# =============================================================================
+
+def compute_safety_margin(
+    cash: Decimal,
+    tickets_held: list,  # List of Ticket objects
+    obligations: list,   # List of Ticket objects (where trader is issuer)
+    dealers: dict,       # bucket_id -> DealerState
+    ticket_size: Decimal
+) -> Decimal:
+    """
+    Compute deterministic safety margin m_i(t) for a trader.
+
+    m_i(t) = A_i(t) - D_i(t)
+
+    Where:
+    - A_i(t) = cash + Σ (bid_price * face) for held tickets
+    - D_i(t) = Σ face for remaining obligations
+
+    Args:
+        cash: Trader's cash holdings
+        tickets_held: Tickets owned by trader
+        obligations: Trader's outstanding obligations
+        dealers: Dealer states by bucket (for bid prices)
+        ticket_size: Standard ticket size S
+
+    Returns:
+        Safety margin m_i(t)
+    """
+    # A_i(t): Cash plus saleable value of tickets at dealer bid
+    a_i = cash
+    for ticket in tickets_held:
+        bucket_id = ticket.bucket_id
+        dealer = dealers.get(bucket_id)
+        if dealer:
+            # Value at dealer bid price
+            a_i += dealer.bid * ticket.face
+        else:
+            # Fallback: use face value
+            a_i += ticket.face
+
+    # D_i(t): Sum of remaining obligations
+    d_i = sum(ticket.face for ticket in obligations)
+
+    return a_i - d_i
+
+
+def compute_saleable_value(
+    tickets_held: list,
+    dealers: dict,
+) -> Decimal:
+    """
+    Compute total saleable value of tickets at dealer bid prices.
+
+    Args:
+        tickets_held: Tickets owned by trader
+        dealers: Dealer states by bucket
+
+    Returns:
+        Total value if all tickets sold at bid
+    """
+    total = Decimal(0)
+    for ticket in tickets_held:
+        bucket_id = ticket.bucket_id
+        dealer = dealers.get(bucket_id)
+        if dealer:
+            total += dealer.bid * ticket.face
+        else:
+            total += ticket.face
+    return total
+
+```
+
+---
+
 ### 📄 src/bilancio/dealer/models.py
 
 ```python
@@ -16368,6 +17517,15 @@ from bilancio.dealer.models import (
 from bilancio.dealer.kernel import KernelParams, recompute_dealer_state
 from bilancio.dealer.trading import TradeExecutor
 from bilancio.dealer.simulation import DealerRingConfig
+from bilancio.dealer.metrics import (
+    RunMetrics,
+    TradeRecord,
+    DealerSnapshot,
+    TraderSnapshot,
+    TicketOutcome,
+    compute_safety_margin,
+    compute_saleable_value,
+)
 
 
 @dataclass
@@ -16419,6 +17577,9 @@ class DealerSubsystem:
     executor: Optional[TradeExecutor] = None
     enabled: bool = True
     rng: random.Random = field(default_factory=lambda: random.Random(42))
+
+    # Section 8 Metrics (functional dealer analysis)
+    metrics: RunMetrics = field(default_factory=RunMetrics)
 
 
 def initialize_dealer_subsystem(
@@ -16604,6 +17765,11 @@ def initialize_dealer_subsystem(
 
         # Run kernel to compute initial quotes
         recompute_dealer_state(dealer, vbt, subsystem.params)
+
+        # Capture initial equity for P&L calculation (Section 8.2)
+        # E_0^(b) = C_0^(b) + M * a_0^(b) * S
+        initial_equity = dealer.cash + vbt.M * dealer.a * subsystem.params.S
+        subsystem.metrics.initial_equity_by_bucket[bucket_id] = initial_equity
 
     # Step 3: Initialize traders (households only for now)
     for agent_id, agent in system.state.agents.items():
@@ -16820,6 +17986,10 @@ def run_dealer_trading_phase(
         vbt = subsystem.vbts[bucket_id]
         recompute_dealer_state(dealer, vbt, subsystem.params)
 
+    # Capture daily snapshots for metrics (Section 8.1)
+    _capture_dealer_snapshots(subsystem, current_day)
+    _capture_trader_snapshots(subsystem, current_day)
+
     # Phase 3: Build eligibility sets (simplified)
     # Traders who need cash (have shortfall coming in next few days)
     eligible_sellers = []
@@ -16858,6 +18028,17 @@ def run_dealer_trading_phase(
         dealer = subsystem.dealers[bucket_id]
         vbt = subsystem.vbts[bucket_id]
 
+        # Capture pre-trade state for metrics (Section 8.1, 8.4)
+        pre_dealer_inventory = dealer.a
+        pre_dealer_cash = dealer.cash
+        pre_dealer_bid = dealer.bid
+        pre_dealer_ask = dealer.ask
+        pre_trader_cash = trader.cash
+        pre_safety_margin = _compute_trader_safety_margin(subsystem, trader_id)
+
+        # Check if liquidity-driven (Section 8.3)
+        is_liquidity_driven = trader.shortfall(current_day) > 0
+
         # Execute customer sell
         result = subsystem.executor.execute_customer_sell(
             dealer, vbt, ticket, check_assertions=False
@@ -16872,6 +18053,53 @@ def run_dealer_trading_phase(
             trader.tickets_owned.remove(ticket)
             trader.cash += scaled_price
 
+            # Capture post-trade state
+            post_safety_margin = _compute_trader_safety_margin(subsystem, trader_id)
+
+            # Create detailed trade record for metrics (Section 8)
+            trade_record = TradeRecord(
+                day=current_day,
+                bucket=bucket_id,
+                side="SELL",
+                trader_id=trader_id,
+                ticket_id=ticket.id,
+                issuer_id=ticket.issuer_id,
+                maturity_day=ticket.maturity_day,
+                face_value=ticket.face,
+                price=scaled_price,
+                unit_price=result.price,
+                is_passthrough=result.is_passthrough,
+                dealer_inventory_before=pre_dealer_inventory,
+                dealer_cash_before=pre_dealer_cash,
+                dealer_bid_before=pre_dealer_bid,
+                dealer_ask_before=pre_dealer_ask,
+                vbt_mid_before=vbt.M,
+                trader_cash_before=pre_trader_cash,
+                trader_safety_margin_before=pre_safety_margin,
+                dealer_inventory_after=dealer.a,
+                dealer_cash_after=dealer.cash,
+                dealer_bid_after=dealer.bid,
+                dealer_ask_after=dealer.ask,
+                trader_cash_after=trader.cash,
+                trader_safety_margin_after=post_safety_margin,
+                is_liquidity_driven=is_liquidity_driven,
+                reduces_margin_below_zero=False,  # Only for BUYs
+            )
+            subsystem.metrics.trades.append(trade_record)
+
+            # Update ticket outcome for return tracking (Section 8.3)
+            if ticket.id not in subsystem.metrics.ticket_outcomes:
+                subsystem.metrics.ticket_outcomes[ticket.id] = TicketOutcome(
+                    ticket_id=ticket.id,
+                    issuer_id=ticket.issuer_id,
+                    maturity_day=ticket.maturity_day,
+                    face_value=ticket.face,
+                )
+            subsystem.metrics.ticket_outcomes[ticket.id].sold_to_dealer = True
+            subsystem.metrics.ticket_outcomes[ticket.id].sale_day = current_day
+            subsystem.metrics.ticket_outcomes[ticket.id].sale_price = scaled_price
+            subsystem.metrics.ticket_outcomes[ticket.id].seller_id = trader_id
+
             events.append({
                 "kind": "dealer_trade",
                 "day": current_day,
@@ -16884,6 +18112,7 @@ def run_dealer_trading_phase(
                 "unit_price": float(result.price),
                 "face": float(ticket.face),
                 "is_passthrough": result.is_passthrough,
+                "is_liquidity_driven": is_liquidity_driven,
             })
 
     # Process buyers (simplified: fewer trades)
@@ -16898,6 +18127,14 @@ def run_dealer_trading_phase(
             # Check if dealer or VBT has inventory
             if not dealer.inventory and not vbt.inventory:
                 continue
+
+            # Capture pre-trade state for metrics (Section 8.1, 8.4)
+            pre_dealer_inventory = dealer.a
+            pre_dealer_cash = dealer.cash
+            pre_dealer_bid = dealer.bid
+            pre_dealer_ask = dealer.ask
+            pre_trader_cash = trader.cash
+            pre_safety_margin = _compute_trader_safety_margin(subsystem, trader_id)
 
             # Execute customer buy
             result = subsystem.executor.execute_customer_buy(
@@ -16916,6 +18153,59 @@ def run_dealer_trading_phase(
                 if trader.asset_issuer_id is None:
                     trader.asset_issuer_id = result.ticket.issuer_id
 
+                # Capture post-trade state
+                post_safety_margin = _compute_trader_safety_margin(subsystem, trader_id)
+
+                # Check if BUY reduced margin below zero (Section 8.4)
+                reduces_margin_below_zero = (
+                    pre_safety_margin >= 0 and post_safety_margin < 0
+                )
+
+                # Create detailed trade record for metrics (Section 8)
+                trade_record = TradeRecord(
+                    day=current_day,
+                    bucket=bucket_id,
+                    side="BUY",
+                    trader_id=trader_id,
+                    ticket_id=result.ticket.id,
+                    issuer_id=result.ticket.issuer_id,
+                    maturity_day=result.ticket.maturity_day,
+                    face_value=result.ticket.face,
+                    price=scaled_price,
+                    unit_price=result.price,
+                    is_passthrough=result.is_passthrough,
+                    dealer_inventory_before=pre_dealer_inventory,
+                    dealer_cash_before=pre_dealer_cash,
+                    dealer_bid_before=pre_dealer_bid,
+                    dealer_ask_before=pre_dealer_ask,
+                    vbt_mid_before=vbt.M,
+                    trader_cash_before=pre_trader_cash,
+                    trader_safety_margin_before=pre_safety_margin,
+                    dealer_inventory_after=dealer.a,
+                    dealer_cash_after=dealer.cash,
+                    dealer_bid_after=dealer.bid,
+                    dealer_ask_after=dealer.ask,
+                    trader_cash_after=trader.cash,
+                    trader_safety_margin_after=post_safety_margin,
+                    is_liquidity_driven=False,  # BUYs are never liquidity-driven
+                    reduces_margin_below_zero=reduces_margin_below_zero,
+                )
+                subsystem.metrics.trades.append(trade_record)
+
+                # Update ticket outcome for return tracking (Section 8.3)
+                ticket = result.ticket
+                if ticket.id not in subsystem.metrics.ticket_outcomes:
+                    subsystem.metrics.ticket_outcomes[ticket.id] = TicketOutcome(
+                        ticket_id=ticket.id,
+                        issuer_id=ticket.issuer_id,
+                        maturity_day=ticket.maturity_day,
+                        face_value=ticket.face,
+                    )
+                subsystem.metrics.ticket_outcomes[ticket.id].purchased_from_dealer = True
+                subsystem.metrics.ticket_outcomes[ticket.id].purchase_day = current_day
+                subsystem.metrics.ticket_outcomes[ticket.id].purchase_price = scaled_price
+                subsystem.metrics.ticket_outcomes[ticket.id].purchaser_id = trader_id
+
                 events.append({
                     "kind": "dealer_trade",
                     "day": current_day,
@@ -16928,6 +18218,7 @@ def run_dealer_trading_phase(
                     "unit_price": float(result.price),
                     "face": float(result.ticket.face),
                     "is_passthrough": result.is_passthrough,
+                    "reduces_margin_below_zero": reduces_margin_below_zero,
                 })
                 break  # One buy per trader per phase
 
@@ -17060,6 +18351,90 @@ def sync_dealer_to_system(
                             # Reduce contract amount
                             contract.amount -= round(remaining_to_burn)
                             remaining_to_burn = 0
+
+
+def _capture_dealer_snapshots(
+    subsystem: DealerSubsystem,
+    current_day: int
+) -> None:
+    """
+    Capture dealer state snapshots for metrics (Section 8.1).
+
+    Records inventory, cash, quotes, and mark-to-mid equity for each bucket.
+    """
+    for bucket_id, dealer in subsystem.dealers.items():
+        vbt = subsystem.vbts[bucket_id]
+        snapshot = DealerSnapshot(
+            day=current_day,
+            bucket=bucket_id,
+            inventory=dealer.a,
+            cash=dealer.cash,
+            bid=dealer.bid,
+            ask=dealer.ask,
+            midline=dealer.midline,
+            vbt_mid=vbt.M,
+            vbt_spread=vbt.O,
+            ticket_size=subsystem.params.S,
+        )
+        subsystem.metrics.dealer_snapshots.append(snapshot)
+
+
+def _capture_trader_snapshots(
+    subsystem: DealerSubsystem,
+    current_day: int
+) -> None:
+    """
+    Capture trader state snapshots for metrics (Section 8.1).
+
+    Records cash, tickets, obligations, and safety margins.
+    """
+    for trader_id, trader in subsystem.traders.items():
+        # Calculate safety margin
+        safety_margin = compute_safety_margin(
+            cash=trader.cash,
+            tickets_held=trader.tickets_owned,
+            obligations=trader.obligations,
+            dealers=subsystem.dealers,
+            ticket_size=subsystem.params.S
+        )
+
+        # Calculate saleable value
+        saleable = compute_saleable_value(trader.tickets_owned, subsystem.dealers)
+
+        # Calculate remaining obligations
+        obligations_remaining = sum(t.face for t in trader.obligations)
+
+        snapshot = TraderSnapshot(
+            day=current_day,
+            trader_id=trader_id,
+            cash=trader.cash,
+            tickets_held_count=len(trader.tickets_owned),
+            tickets_held_ids=[t.id for t in trader.tickets_owned],
+            total_face_held=sum(t.face for t in trader.tickets_owned),
+            obligations_remaining=obligations_remaining,
+            saleable_value=saleable,
+            safety_margin=safety_margin,
+            defaulted=trader.defaulted,
+        )
+        subsystem.metrics.trader_snapshots.append(snapshot)
+
+
+def _compute_trader_safety_margin(
+    subsystem: DealerSubsystem,
+    trader_id: str
+) -> Decimal:
+    """Compute safety margin for a specific trader."""
+    trader = subsystem.traders.get(trader_id)
+    if not trader:
+        return Decimal(0)
+
+    return compute_safety_margin(
+        cash=trader.cash,
+        tickets_held=trader.tickets_owned,
+        obligations=trader.obligations,
+        dealers=subsystem.dealers,
+        ticket_size=subsystem.params.S
+    )
 
 
 def _assign_bucket(remaining_tau: int, bucket_configs: List[BucketConfig]) -> str:
@@ -18535,6 +19910,20 @@ class ComparisonResult:
     treatment_run_id: str
     treatment_status: str
 
+    # Dealer metrics (Section 8 of functional dealer specification)
+    # From treatment run only (dealer_metrics dictionary)
+    dealer_total_pnl: Optional[float] = None
+    dealer_total_return: Optional[float] = None
+    dealer_profitable: Optional[bool] = None
+    spread_income_total: Optional[float] = None
+    mean_trader_return: Optional[float] = None
+    fraction_profitable_traders: Optional[float] = None
+    liquidity_driven_sales: Optional[int] = None
+    rescue_events: Optional[int] = None
+    total_trades: Optional[int] = None
+    unsafe_buy_count: Optional[int] = None
+    fraction_unsafe_buys: Optional[float] = None
+
     @property
     def delta_reduction(self) -> Optional[Decimal]:
         """Absolute reduction in default rate."""
@@ -18612,6 +20001,18 @@ class ComparisonSweepRunner:
         "control_status",
         "treatment_run_id",
         "treatment_status",
+        # Dealer metrics (Section 8)
+        "dealer_total_pnl",
+        "dealer_total_return",
+        "dealer_profitable",
+        "spread_income_total",
+        "mean_trader_return",
+        "fraction_profitable_traders",
+        "liquidity_driven_sales",
+        "rescue_events",
+        "total_trades",
+        "unsafe_buy_count",
+        "fraction_unsafe_buys",
     ]
 
     def __init__(self, config: ComparisonSweepConfig, out_dir: Path) -> None:
@@ -18757,6 +20158,9 @@ class ComparisonSweepRunner:
             seed=seed,
         )
 
+        # Extract dealer metrics from treatment result
+        dm = treatment_result.dealer_metrics or {}
+
         # Build comparison result
         result = ComparisonResult(
             kappa=kappa,
@@ -18772,6 +20176,18 @@ class ComparisonSweepRunner:
             phi_treatment=treatment_result.phi_total,
             treatment_run_id=treatment_result.run_id,
             treatment_status="completed" if treatment_result.delta_total is not None else "failed",
+            # Dealer metrics from treatment run
+            dealer_total_pnl=dm.get("dealer_total_pnl"),
+            dealer_total_return=dm.get("dealer_total_return"),
+            dealer_profitable=dm.get("dealer_profitable"),
+            spread_income_total=dm.get("spread_income_total"),
+            mean_trader_return=dm.get("mean_trader_return"),
+            fraction_profitable_traders=dm.get("fraction_profitable_traders"),
+            liquidity_driven_sales=dm.get("liquidity_driven_sales"),
+            rescue_events=dm.get("rescue_events"),
+            total_trades=dm.get("total_trades"),
+            unsafe_buy_count=dm.get("unsafe_buy_count"),
+            fraction_unsafe_buys=dm.get("fraction_unsafe_buys"),
         )
 
         # Log comparison
@@ -18810,6 +20226,18 @@ class ComparisonSweepRunner:
                     "control_status": result.control_status,
                     "treatment_run_id": result.treatment_run_id,
                     "treatment_status": result.treatment_status,
+                    # Dealer metrics (Section 8)
+                    "dealer_total_pnl": str(result.dealer_total_pnl) if result.dealer_total_pnl is not None else "",
+                    "dealer_total_return": str(result.dealer_total_return) if result.dealer_total_return is not None else "",
+                    "dealer_profitable": str(result.dealer_profitable) if result.dealer_profitable is not None else "",
+                    "spread_income_total": str(result.spread_income_total) if result.spread_income_total is not None else "",
+                    "mean_trader_return": str(result.mean_trader_return) if result.mean_trader_return is not None else "",
+                    "fraction_profitable_traders": str(result.fraction_profitable_traders) if result.fraction_profitable_traders is not None else "",
+                    "liquidity_driven_sales": str(result.liquidity_driven_sales) if result.liquidity_driven_sales is not None else "",
+                    "rescue_events": str(result.rescue_events) if result.rescue_events is not None else "",
+                    "total_trades": str(result.total_trades) if result.total_trades is not None else "",
+                    "unsafe_buy_count": str(result.unsafe_buy_count) if result.unsafe_buy_count is not None else "",
+                    "fraction_unsafe_buys": str(result.fraction_unsafe_buys) if result.fraction_unsafe_buys is not None else "",
                 }
                 writer.writerow(row)
 
@@ -18987,6 +20415,8 @@ class RingRunSummary:
     delta_total: Optional[Decimal]
     phi_total: Optional[Decimal]
     time_to_stability: int
+    # Dealer metrics (only populated for treatment runs with dealer enabled)
+    dealer_metrics: Optional[Dict[str, Any]] = None
 
 
 def _decimal_list(spec: str) -> List[Decimal]:
@@ -19529,6 +20959,14 @@ class RingSweepRunner:
         phi_total = summary.get("phi_total")
         time_to_stability = int(summary.get("max_day") or 0)
 
+        # Read dealer metrics if available (treatment runs with dealer enabled)
+        dealer_metrics: Optional[Dict[str, Any]] = None
+        dealer_metrics_path = out_dir / "dealer_metrics.json"
+        if dealer_metrics_path.exists():
+            import json
+            with dealer_metrics_path.open() as f:
+                dealer_metrics = json.load(f)
+
         registry_entry.update({
             "status": "completed",
             "S1": str(S1),
@@ -19546,7 +20984,10 @@ class RingSweepRunner:
         })
         self._upsert_registry(registry_entry)
 
-        return RingRunSummary(run_id, phase, kappa, concentration, mu, monotonicity, delta_total, phi_total, time_to_stability)
+        return RingRunSummary(
+            run_id, phase, kappa, concentration, mu, monotonicity,
+            delta_total, phi_total, time_to_stability, dealer_metrics
+        )
 
     def _rel_path(self, absolute: Path) -> str:
         try:
@@ -23351,7 +24792,22 @@ def run_scenario(
         export_path.parent.mkdir(parents=True, exist_ok=True)
         write_events_jsonl(system, export_path)
         console.print(f"[green]✓[/green] Exported events to {export_path}")
-    
+
+    # Export dealer metrics if dealer subsystem is enabled
+    if enable_dealer and hasattr(system.state, 'dealer_subsystem') and system.state.dealer_subsystem is not None:
+        dealer_metrics_path = None
+        if export.get('events_jsonl'):
+            dealer_metrics_path = Path(export['events_jsonl']).parent / "dealer_metrics.json"
+        elif export.get('balances_csv'):
+            dealer_metrics_path = Path(export['balances_csv']).parent / "dealer_metrics.json"
+
+        if dealer_metrics_path:
+            import json
+            dealer_summary = system.state.dealer_subsystem.metrics.summary()
+            with dealer_metrics_path.open('w') as f:
+                json.dump(dealer_summary, f, indent=2)
+            console.print(f"[green]✓[/green] Exported dealer metrics to {dealer_metrics_path}")
+
     # Export to HTML if requested (semantic HTML for readability)
     if html_output:
         from .html_export import export_pretty_html
@@ -26771,6 +28227,407 @@ class TestKernelRecomputation:
         assert dealer.x == x_before + params.S
         assert dealer.a == 3
         assert dealer.V > V_before  # V increased (assuming M > 0)
+
+```
+
+---
+
+### 🧪 tests/dealer/test_metrics.py
+
+```python
+"""Tests for dealer metrics (Section 8 of the functional dealer specification).
+
+Tests verify the metrics tracking infrastructure for:
+- Trade log with pre/post state (8.1)
+- Dealer P&L and profitability (8.2)
+- Trader investment returns and liquidity use (8.3)
+- Repayment-priority diagnostics (8.4)
+"""
+
+import pytest
+from decimal import Decimal
+
+from bilancio.engines.system import System
+from bilancio.domain.agents import Household, CentralBank
+from bilancio.domain.instruments.credit import Payable
+from bilancio.engines.dealer_integration import (
+    initialize_dealer_subsystem,
+    run_dealer_trading_phase,
+)
+from bilancio.dealer.simulation import DealerRingConfig
+from bilancio.dealer.models import DEFAULT_BUCKETS
+from bilancio.dealer.metrics import (
+    RunMetrics,
+    TradeRecord,
+    DealerSnapshot,
+    TraderSnapshot,
+    TicketOutcome,
+    compute_safety_margin,
+)
+
+
+def create_test_system_with_ring():
+    """Create a test system with a Kalecki ring of debts.
+
+    Creates 5 households with:
+    - 100 cash each
+    - Ring of debts: h0->h1->h2->h3->h4->h0 (50 each, due day 5)
+    """
+    sys = System()
+
+    # Add central bank
+    cb = CentralBank(id="CB", name="Central Bank", kind="central_bank")
+    sys.add_agent(cb)
+
+    # Create households
+    households = []
+    for i in range(5):
+        h = Household(id=f"h{i}", name=f"Household {i}", kind="household")
+        sys.add_agent(h)
+        sys.mint_cash(h.id, 100)
+        households.append(h)
+
+    # Create ring of debt (each owes 50 to the next)
+    for i in range(5):
+        creditor_id = households[(i + 1) % 5].id
+        debtor_id = households[i].id
+
+        p_id = sys.new_contract_id("P")
+        payable = Payable(
+            id=p_id,
+            kind="payable",
+            amount=50,
+            denom="USD",
+            asset_holder_id=creditor_id,
+            liability_issuer_id=debtor_id,
+            due_day=5,
+        )
+        sys.add_contract(payable)
+
+    return sys, households
+
+
+def create_dealer_config():
+    """Create a test dealer configuration."""
+    return DealerRingConfig(
+        ticket_size=Decimal(1),
+        buckets=list(DEFAULT_BUCKETS),
+        dealer_share=Decimal("0.25"),
+        vbt_share=Decimal("0.50"),
+        vbt_anchors={
+            "short": (Decimal("1.0"), Decimal("0.20")),
+            "mid": (Decimal("1.0"), Decimal("0.30")),
+            "long": (Decimal("1.0"), Decimal("0.40")),
+        },
+        phi_M=Decimal("0.1"),
+        phi_O=Decimal("0.1"),
+        clip_nonneg_B=True,
+        seed=42,
+    )
+
+
+class TestMetricsInitialization:
+    """Test metrics are properly initialized."""
+
+    def test_initial_equity_captured(self):
+        """Test that initial equity is captured for each bucket."""
+        sys, _ = create_test_system_with_ring()
+        config = create_dealer_config()
+
+        subsystem = initialize_dealer_subsystem(sys, config, current_day=1)
+
+        # Should have initial equity for each bucket
+        assert len(subsystem.metrics.initial_equity_by_bucket) == 3
+        assert "short" in subsystem.metrics.initial_equity_by_bucket
+        assert "mid" in subsystem.metrics.initial_equity_by_bucket
+        assert "long" in subsystem.metrics.initial_equity_by_bucket
+
+        # Initial equity should be positive (dealer has cash)
+        for bucket_id, equity in subsystem.metrics.initial_equity_by_bucket.items():
+            assert equity > 0, f"Initial equity for {bucket_id} should be positive"
+
+    def test_metrics_object_created(self):
+        """Test that RunMetrics object is created."""
+        sys, _ = create_test_system_with_ring()
+        config = create_dealer_config()
+
+        subsystem = initialize_dealer_subsystem(sys, config, current_day=1)
+
+        assert subsystem.metrics is not None
+        assert isinstance(subsystem.metrics, RunMetrics)
+        assert len(subsystem.metrics.trades) == 0  # No trades yet
+        assert len(subsystem.metrics.dealer_snapshots) == 0  # No snapshots yet
+
+
+class TestTradeLogging:
+    """Test trade log captures (Section 8.1)."""
+
+    def test_dealer_snapshots_captured_each_day(self):
+        """Test dealer snapshots are captured each trading day."""
+        sys, _ = create_test_system_with_ring()
+        config = create_dealer_config()
+
+        subsystem = initialize_dealer_subsystem(sys, config, current_day=1)
+
+        # Run trading for 3 days
+        for day in range(1, 4):
+            run_dealer_trading_phase(subsystem, sys, current_day=day)
+
+        # Should have 3 snapshots per bucket (3 buckets * 3 days = 9)
+        assert len(subsystem.metrics.dealer_snapshots) == 9
+
+        # Each snapshot should have correct structure
+        for snapshot in subsystem.metrics.dealer_snapshots:
+            assert isinstance(snapshot, DealerSnapshot)
+            assert snapshot.day >= 1
+            assert snapshot.bucket in ["short", "mid", "long"]
+            assert snapshot.inventory >= 0
+            assert snapshot.cash >= 0
+
+    def test_trader_snapshots_captured_each_day(self):
+        """Test trader snapshots are captured each trading day."""
+        sys, _ = create_test_system_with_ring()
+        config = create_dealer_config()
+
+        subsystem = initialize_dealer_subsystem(sys, config, current_day=1)
+
+        # Run trading for 2 days
+        for day in range(1, 3):
+            run_dealer_trading_phase(subsystem, sys, current_day=day)
+
+        # Should have snapshots for each trader each day (5 traders * 2 days = 10)
+        assert len(subsystem.metrics.trader_snapshots) == 10
+
+        # Each snapshot should have correct structure
+        for snapshot in subsystem.metrics.trader_snapshots:
+            assert isinstance(snapshot, TraderSnapshot)
+            assert snapshot.trader_id.startswith("h")
+            assert snapshot.cash >= 0
+
+
+class TestDealerProfitability:
+    """Test dealer profitability metrics (Section 8.2)."""
+
+    def test_pnl_computation(self):
+        """Test P&L computation after trading."""
+        sys, _ = create_test_system_with_ring()
+        config = create_dealer_config()
+
+        subsystem = initialize_dealer_subsystem(sys, config, current_day=1)
+
+        # Run several trading days
+        for day in range(1, 6):
+            run_dealer_trading_phase(subsystem, sys, current_day=day)
+
+        # Get P&L by bucket
+        pnl = subsystem.metrics.dealer_pnl_by_bucket()
+
+        assert isinstance(pnl, dict)
+        assert "short" in pnl or "mid" in pnl or "long" in pnl
+
+    def test_return_computation(self):
+        """Test return computation after trading."""
+        sys, _ = create_test_system_with_ring()
+        config = create_dealer_config()
+
+        subsystem = initialize_dealer_subsystem(sys, config, current_day=1)
+
+        # Run trading
+        for day in range(1, 6):
+            run_dealer_trading_phase(subsystem, sys, current_day=day)
+
+        # Get returns by bucket
+        returns = subsystem.metrics.dealer_return_by_bucket()
+
+        assert isinstance(returns, dict)
+        # Returns should be in reasonable range (-1 to +1)
+        for bucket_id, ret in returns.items():
+            assert ret >= -1 and ret <= 1, f"Return for {bucket_id} should be reasonable"
+
+    def test_summary_includes_profitability(self):
+        """Test summary includes profitability metrics."""
+        sys, _ = create_test_system_with_ring()
+        config = create_dealer_config()
+
+        subsystem = initialize_dealer_subsystem(sys, config, current_day=1)
+        run_dealer_trading_phase(subsystem, sys, current_day=1)
+
+        summary = subsystem.metrics.summary()
+
+        assert "dealer_total_pnl" in summary
+        assert "dealer_total_return" in summary
+        assert "dealer_profitable" in summary
+        assert "dealer_pnl_by_bucket" in summary
+
+
+class TestSafetyMargin:
+    """Test repayment-priority diagnostics (Section 8.4)."""
+
+    def test_safety_margin_computation(self):
+        """Test safety margin computation for a trader."""
+        sys, _ = create_test_system_with_ring()
+        config = create_dealer_config()
+
+        subsystem = initialize_dealer_subsystem(sys, config, current_day=1)
+
+        # Run trading to generate snapshots
+        run_dealer_trading_phase(subsystem, sys, current_day=1)
+
+        # Check trader snapshots have safety margins
+        for snapshot in subsystem.metrics.trader_snapshots:
+            # Safety margin should be computed
+            assert snapshot.safety_margin is not None
+
+            # For our setup: cash=100, obligations=50
+            # Safety margin = cash + saleable_value - obligations
+            # Should be positive initially since cash > obligations
+            assert snapshot.safety_margin > Decimal(-200)  # Reasonable lower bound
+
+    def test_summary_includes_safety_metrics(self):
+        """Test summary includes safety margin metrics."""
+        sys, _ = create_test_system_with_ring()
+        config = create_dealer_config()
+
+        subsystem = initialize_dealer_subsystem(sys, config, current_day=1)
+        run_dealer_trading_phase(subsystem, sys, current_day=1)
+
+        summary = subsystem.metrics.summary()
+
+        assert "unsafe_buy_count" in summary
+        assert "fraction_unsafe_buys" in summary
+
+
+class TestLiquidityMetrics:
+    """Test liquidity-driven sales metrics (Section 8.3)."""
+
+    def test_liquidity_driven_flag_tracked(self):
+        """Test that liquidity-driven flag is tracked on trades."""
+        sys, _ = create_test_system_with_ring()
+        config = create_dealer_config()
+
+        subsystem = initialize_dealer_subsystem(sys, config, current_day=1)
+
+        # Run multiple days to potentially generate trades
+        for day in range(1, 6):
+            run_dealer_trading_phase(subsystem, sys, current_day=day)
+
+        # If there are trades, check they have the flag
+        for trade in subsystem.metrics.trades:
+            assert hasattr(trade, "is_liquidity_driven")
+
+    def test_summary_includes_liquidity_metrics(self):
+        """Test summary includes liquidity metrics."""
+        sys, _ = create_test_system_with_ring()
+        config = create_dealer_config()
+
+        subsystem = initialize_dealer_subsystem(sys, config, current_day=1)
+        run_dealer_trading_phase(subsystem, sys, current_day=1)
+
+        summary = subsystem.metrics.summary()
+
+        assert "liquidity_driven_sales" in summary
+        assert "rescue_events" in summary
+        assert "total_trades" in summary
+
+
+class TestSummaryStatistics:
+    """Test experiment-level summary statistics (Section 8.5)."""
+
+    def test_summary_completeness(self):
+        """Test that summary includes all required metrics."""
+        sys, _ = create_test_system_with_ring()
+        config = create_dealer_config()
+
+        subsystem = initialize_dealer_subsystem(sys, config, current_day=1)
+
+        # Run a few days
+        for day in range(1, 4):
+            run_dealer_trading_phase(subsystem, sys, current_day=day)
+
+        summary = subsystem.metrics.summary()
+
+        # Section 8.2: Dealer profitability
+        assert "dealer_total_pnl" in summary
+        assert "dealer_total_return" in summary
+        assert "dealer_profitable" in summary
+        assert "dealer_pnl_by_bucket" in summary
+        assert "dealer_return_by_bucket" in summary
+        assert "spread_income_total" in summary
+        assert "interior_trades" in summary
+        assert "passthrough_trades" in summary
+
+        # Section 8.3: Trader returns
+        assert "mean_trader_return" in summary
+        assert "fraction_profitable_traders" in summary
+        assert "liquidity_driven_sales" in summary
+        assert "rescue_events" in summary
+
+        # Section 8.4: Repayment priority
+        assert "unsafe_buy_count" in summary
+        assert "fraction_unsafe_buys" in summary
+        assert "mean_margin_at_default" in summary
+
+        # Trade counts
+        assert "total_trades" in summary
+        assert "total_sell_trades" in summary
+        assert "total_buy_trades" in summary
+
+    def test_summary_values_valid(self):
+        """Test that summary values are valid types."""
+        sys, _ = create_test_system_with_ring()
+        config = create_dealer_config()
+
+        subsystem = initialize_dealer_subsystem(sys, config, current_day=1)
+        run_dealer_trading_phase(subsystem, sys, current_day=1)
+
+        summary = subsystem.metrics.summary()
+
+        # All values should be JSON-serializable
+        import json
+        try:
+            json.dumps(summary)
+        except (TypeError, ValueError) as e:
+            pytest.fail(f"Summary should be JSON serializable: {e}")
+
+
+class TestMarkToMidEquity:
+    """Test mark-to-mid equity calculation."""
+
+    def test_equity_calculation(self):
+        """Test mark-to-mid equity is computed correctly."""
+        snapshot = DealerSnapshot(
+            day=1,
+            bucket="short",
+            inventory=10,
+            cash=Decimal(100),
+            bid=Decimal("0.9"),
+            ask=Decimal("1.1"),
+            midline=Decimal(1),
+            vbt_mid=Decimal(1),
+            vbt_spread=Decimal("0.2"),
+            ticket_size=Decimal(1),
+        )
+
+        # E = C + M * a * S = 100 + 1 * 10 * 1 = 110
+        assert snapshot.mark_to_mid_equity == Decimal(110)
+
+    def test_equity_with_zero_inventory(self):
+        """Test equity equals cash when no inventory."""
+        snapshot = DealerSnapshot(
+            day=1,
+            bucket="short",
+            inventory=0,
+            cash=Decimal(100),
+            bid=Decimal("0.9"),
+            ask=Decimal("1.1"),
+            midline=Decimal(1),
+            vbt_mid=Decimal(1),
+            vbt_spread=Decimal("0.2"),
+            ticket_size=Decimal(1),
+        )
+
+        # E = C + M * a * S = 100 + 1 * 0 * 1 = 100
+        assert snapshot.mark_to_mid_equity == Decimal(100)
 
 ```
 
@@ -32142,5 +33999,5 @@ def test_settle_multiple_obligations():
 ## End of Codebase
 
 Generated from: /home/runner/work/bilancio/bilancio
-Total source files: 82
-Total test files: 34
+Total source files: 83
+Total test files: 35
