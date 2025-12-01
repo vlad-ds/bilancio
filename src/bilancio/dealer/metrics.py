@@ -1,0 +1,711 @@
+"""
+Metrics data structures and computation for functional dealer analysis.
+
+This module implements the measurement framework defined in Section 8 of the
+"New Kalecki Ring with Dealers" specification. It provides comprehensive
+metrics to evaluate whether the dealer satisfies functional dealer criteria.
+
+Key metrics tracked:
+1. Trade log with pre/post state (8.1)
+2. Dealer P&L and profitability (8.2)
+3. Trader investment returns and liquidity use (8.3)
+4. Repayment-priority diagnostics (8.4)
+
+References:
+    - Section 8: "Measurement and data collection for functional dealer properties"
+    - D1-D3: Functional dealer and trader behaviour definitions
+    - R1-R6: Requirements for simulation analysis
+"""
+
+from dataclasses import dataclass, field
+from decimal import Decimal
+from typing import Dict, List, Optional, Any
+import json
+from pathlib import Path
+
+
+@dataclass
+class TradeRecord:
+    """
+    Record of a single dealer trade with full state information.
+
+    Implements Section 8.1 trade log requirements:
+    - time t, bucket b, side, agent i, price p, issuer, maturity
+
+    Extended with pre/post state for diagnostics:
+    - Dealer state before/after
+    - Trader safety margin before/after (Section 8.4)
+    - Liquidity-driven flag (Section 8.3)
+    """
+    # Core trade identifiers
+    day: int
+    bucket: str
+    side: str  # "BUY" or "SELL" (from customer perspective)
+    trader_id: str
+    ticket_id: str
+
+    # Ticket details
+    issuer_id: str
+    maturity_day: int
+    face_value: Decimal
+    price: Decimal
+    unit_price: Decimal  # price / face_value
+    is_passthrough: bool
+
+    # Pre-trade state
+    dealer_inventory_before: int = 0
+    dealer_cash_before: Decimal = Decimal(0)
+    dealer_bid_before: Decimal = Decimal(0)
+    dealer_ask_before: Decimal = Decimal(0)
+    vbt_mid_before: Decimal = Decimal(0)
+    trader_cash_before: Decimal = Decimal(0)
+    trader_safety_margin_before: Decimal = Decimal(0)
+
+    # Post-trade state
+    dealer_inventory_after: int = 0
+    dealer_cash_after: Decimal = Decimal(0)
+    dealer_bid_after: Decimal = Decimal(0)
+    dealer_ask_after: Decimal = Decimal(0)
+    trader_cash_after: Decimal = Decimal(0)
+    trader_safety_margin_after: Decimal = Decimal(0)
+
+    # Flags
+    is_liquidity_driven: bool = False  # Seller had shortfall (Section 8.3)
+    reduces_margin_below_zero: bool = False  # BUY reduced margin < 0 (Section 8.4)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary with serialized Decimals."""
+        return {
+            "day": self.day,
+            "bucket": self.bucket,
+            "side": self.side,
+            "trader_id": self.trader_id,
+            "ticket_id": self.ticket_id,
+            "issuer_id": self.issuer_id,
+            "maturity_day": self.maturity_day,
+            "face_value": str(self.face_value),
+            "price": str(self.price),
+            "unit_price": str(self.unit_price),
+            "is_passthrough": self.is_passthrough,
+            "dealer_inventory_before": self.dealer_inventory_before,
+            "dealer_cash_before": str(self.dealer_cash_before),
+            "dealer_bid_before": str(self.dealer_bid_before),
+            "dealer_ask_before": str(self.dealer_ask_before),
+            "vbt_mid_before": str(self.vbt_mid_before),
+            "trader_cash_before": str(self.trader_cash_before),
+            "trader_safety_margin_before": str(self.trader_safety_margin_before),
+            "dealer_inventory_after": self.dealer_inventory_after,
+            "dealer_cash_after": str(self.dealer_cash_after),
+            "dealer_bid_after": str(self.dealer_bid_after),
+            "dealer_ask_after": str(self.dealer_ask_after),
+            "trader_cash_after": str(self.trader_cash_after),
+            "trader_safety_margin_after": str(self.trader_safety_margin_after),
+            "is_liquidity_driven": self.is_liquidity_driven,
+            "reduces_margin_below_zero": self.reduces_margin_below_zero,
+        }
+
+
+@dataclass
+class DealerSnapshot:
+    """
+    Snapshot of dealer state at a point in time.
+
+    Implements Section 8.1 dealer state requirements:
+    - Inventory a_t^(b), cash C_t^(b)
+    - Outside mid M_t^(b), spread O_t^(b)
+    - Bid/ask quotes
+    - Mark-to-mid equity E_t^(b) = C_t^(b) + M_t^(b) * a_t^(b) * S
+    """
+    day: int
+    bucket: str
+    inventory: int  # a_t^(b) - number of tickets
+    cash: Decimal
+    bid: Decimal
+    ask: Decimal
+    midline: Decimal
+    vbt_mid: Decimal  # M_t^(b)
+    vbt_spread: Decimal  # O_t^(b)
+    ticket_size: Decimal  # S
+
+    @property
+    def mark_to_mid_equity(self) -> Decimal:
+        """
+        Mark-to-mid equity: E_t^(b) = C_t^(b) + M_t^(b) * a_t^(b) * S
+
+        This is the equity valuation using VBT mid price.
+        """
+        return self.cash + self.vbt_mid * self.inventory * self.ticket_size
+
+    @property
+    def spread(self) -> Decimal:
+        """Current bid-ask spread."""
+        return self.ask - self.bid
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary with serialized Decimals."""
+        return {
+            "day": self.day,
+            "bucket": self.bucket,
+            "inventory": self.inventory,
+            "cash": str(self.cash),
+            "bid": str(self.bid),
+            "ask": str(self.ask),
+            "midline": str(self.midline),
+            "vbt_mid": str(self.vbt_mid),
+            "vbt_spread": str(self.vbt_spread),
+            "ticket_size": str(self.ticket_size),
+            "mark_to_mid_equity": str(self.mark_to_mid_equity),
+            "spread": str(self.spread),
+        }
+
+
+@dataclass
+class TraderSnapshot:
+    """
+    Snapshot of trader state at a point in time.
+
+    Implements Section 8.1 trader state requirements:
+    - Cash C_i(t)
+    - Set of tickets held
+    - Schedule of future obligations
+    - Safety margin m_i(t) (Section 8.4)
+    """
+    day: int
+    trader_id: str
+    cash: Decimal
+    tickets_held_count: int
+    tickets_held_ids: List[str]
+    total_face_held: Decimal
+    obligations_remaining: Decimal  # D_i(t) - future obligations
+    saleable_value: Decimal  # Value of tickets at dealer bid prices
+    safety_margin: Decimal  # m_i(t) = A_i(t) - D_i(t)
+    defaulted: bool = False
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary with serialized Decimals."""
+        return {
+            "day": self.day,
+            "trader_id": self.trader_id,
+            "cash": str(self.cash),
+            "tickets_held_count": self.tickets_held_count,
+            "tickets_held_ids": self.tickets_held_ids,
+            "total_face_held": str(self.total_face_held),
+            "obligations_remaining": str(self.obligations_remaining),
+            "saleable_value": str(self.saleable_value),
+            "safety_margin": str(self.safety_margin),
+            "defaulted": self.defaulted,
+        }
+
+
+@dataclass
+class TicketOutcome:
+    """
+    Final outcome of a ticket for return calculation.
+
+    Implements Section 8.3 ticket-level realized return:
+    R_τ = (X_τ - p_buy) / p_buy
+
+    Where X_τ is:
+    - Settlement amount at maturity (if held)
+    - Resale price if sold to dealer
+    - Coupon payments (future extension)
+    """
+    ticket_id: str
+    issuer_id: str
+    maturity_day: int
+    face_value: Decimal
+
+    # Purchase from dealer (if applicable)
+    purchased_from_dealer: bool = False
+    purchase_day: Optional[int] = None
+    purchase_price: Optional[Decimal] = None
+    purchaser_id: Optional[str] = None
+
+    # Sale to dealer (if applicable)
+    sold_to_dealer: bool = False
+    sale_day: Optional[int] = None
+    sale_price: Optional[Decimal] = None
+    seller_id: Optional[str] = None
+
+    # Settlement outcome
+    settled: bool = False
+    settlement_day: Optional[int] = None
+    recovery_rate: Optional[Decimal] = None
+    settlement_amount: Optional[Decimal] = None
+
+    def realized_return(self) -> Optional[Decimal]:
+        """
+        Calculate realized return R_τ for ticket purchased from dealer.
+
+        Returns:
+            R_τ = (X_τ - p_buy) / p_buy, or None if not purchased from dealer
+        """
+        if not self.purchased_from_dealer or self.purchase_price is None:
+            return None
+
+        p_buy = self.purchase_price
+
+        # Determine total payoff X_τ
+        x_tau = Decimal(0)
+
+        if self.sold_to_dealer and self.sale_price is not None:
+            # Resold to dealer
+            x_tau = self.sale_price
+        elif self.settled and self.settlement_amount is not None:
+            # Held to maturity
+            x_tau = self.settlement_amount
+        else:
+            # Still held or defaulted with no recovery
+            return None
+
+        if p_buy == 0:
+            return None
+
+        return (x_tau - p_buy) / p_buy
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary with serialized Decimals."""
+        return {
+            "ticket_id": self.ticket_id,
+            "issuer_id": self.issuer_id,
+            "maturity_day": self.maturity_day,
+            "face_value": str(self.face_value),
+            "purchased_from_dealer": self.purchased_from_dealer,
+            "purchase_day": self.purchase_day,
+            "purchase_price": str(self.purchase_price) if self.purchase_price else None,
+            "purchaser_id": self.purchaser_id,
+            "sold_to_dealer": self.sold_to_dealer,
+            "sale_day": self.sale_day,
+            "sale_price": str(self.sale_price) if self.sale_price else None,
+            "seller_id": self.seller_id,
+            "settled": self.settled,
+            "settlement_day": self.settlement_day,
+            "recovery_rate": str(self.recovery_rate) if self.recovery_rate else None,
+            "settlement_amount": str(self.settlement_amount) if self.settlement_amount else None,
+            "realized_return": str(self.realized_return()) if self.realized_return() is not None else None,
+        }
+
+
+@dataclass
+class RunMetrics:
+    """
+    All metrics for a single simulation run.
+
+    This is the main container for Section 8 metrics, aggregating:
+    - Trade log (8.1)
+    - Daily dealer/trader snapshots (8.1)
+    - Ticket outcomes for return calculation (8.3)
+
+    Provides computed metrics for:
+    - Dealer P&L and profitability (8.2)
+    - Trader investment returns (8.3)
+    - Repayment-priority diagnostics (8.4)
+    """
+    # Trade log (Section 8.1)
+    trades: List[TradeRecord] = field(default_factory=list)
+
+    # Daily snapshots (Section 8.1)
+    dealer_snapshots: List[DealerSnapshot] = field(default_factory=list)
+    trader_snapshots: List[TraderSnapshot] = field(default_factory=list)
+
+    # Ticket outcomes (Section 8.3)
+    ticket_outcomes: Dict[str, TicketOutcome] = field(default_factory=dict)
+
+    # Initial equity by bucket (for P&L calculation)
+    initial_equity_by_bucket: Dict[str, Decimal] = field(default_factory=dict)
+
+    # =========================================================================
+    # Section 8.2: Dealer and VBT Profitability
+    # =========================================================================
+
+    def dealer_pnl_by_bucket(self) -> Dict[str, Decimal]:
+        """
+        Compute dealer P&L by bucket: Π_r^(b) = E_T^(b) - E_0^(b)
+
+        Returns:
+            Dictionary mapping bucket_id to P&L in currency units
+        """
+        pnl = {}
+        for bucket_id, initial_equity in self.initial_equity_by_bucket.items():
+            # Find final equity for this bucket
+            final_snapshots = [
+                s for s in self.dealer_snapshots
+                if s.bucket == bucket_id
+            ]
+            if final_snapshots:
+                # Take the last snapshot
+                final_equity = max(final_snapshots, key=lambda s: s.day).mark_to_mid_equity
+                pnl[bucket_id] = final_equity - initial_equity
+            else:
+                pnl[bucket_id] = Decimal(0)
+        return pnl
+
+    def dealer_return_by_bucket(self) -> Dict[str, Decimal]:
+        """
+        Compute dealer return by bucket: π_r^(b) = Π_r^(b) / E_0^(b)
+
+        Returns:
+            Dictionary mapping bucket_id to return (as fraction)
+        """
+        pnl = self.dealer_pnl_by_bucket()
+        returns = {}
+        for bucket_id, profit in pnl.items():
+            initial = self.initial_equity_by_bucket.get(bucket_id, Decimal(0))
+            if initial > 0:
+                returns[bucket_id] = profit / initial
+            else:
+                returns[bucket_id] = Decimal(0)
+        return returns
+
+    def total_dealer_pnl(self) -> Decimal:
+        """Total P&L across all buckets."""
+        return sum(self.dealer_pnl_by_bucket().values())
+
+    def total_dealer_return(self) -> Decimal:
+        """
+        Total dealer return weighted by initial equity.
+
+        Returns:
+            Π_total / E_0_total
+        """
+        total_pnl = self.total_dealer_pnl()
+        total_initial = sum(self.initial_equity_by_bucket.values())
+        if total_initial > 0:
+            return total_pnl / total_initial
+        return Decimal(0)
+
+    def is_dealer_profitable(self) -> bool:
+        """Check if dealer is profitable (Π >= 0)."""
+        return self.total_dealer_pnl() >= 0
+
+    def spread_income_total(self) -> Decimal:
+        """
+        Total spread income from interior trades.
+
+        For SELL: income = dealer_ask - dealer_bid (customer gets bid, dealer marks at mid)
+        For BUY: income = dealer_ask - dealer_bid (customer pays ask)
+
+        Simplified: count trades where dealer made the spread.
+        """
+        income = Decimal(0)
+        for trade in self.trades:
+            if not trade.is_passthrough:
+                # Interior trade - dealer earns spread
+                if trade.side == "SELL":
+                    # Customer sold to dealer at bid
+                    # Spread income = midline - bid
+                    midline = (trade.dealer_bid_before + trade.dealer_ask_before) / 2
+                    income += (midline - trade.dealer_bid_before) * trade.face_value
+                else:  # BUY
+                    # Customer bought from dealer at ask
+                    # Spread income = ask - midline
+                    midline = (trade.dealer_bid_before + trade.dealer_ask_before) / 2
+                    income += (trade.dealer_ask_before - midline) * trade.face_value
+        return income
+
+    def passthrough_count(self) -> int:
+        """Count of passthrough trades (dealer to VBT)."""
+        return sum(1 for t in self.trades if t.is_passthrough)
+
+    def interior_count(self) -> int:
+        """Count of interior trades (dealer only)."""
+        return sum(1 for t in self.trades if not t.is_passthrough)
+
+    # =========================================================================
+    # Section 8.3: Trader Investment Returns and Liquidity Use
+    # =========================================================================
+
+    def trader_returns(self) -> Dict[str, Decimal]:
+        """
+        Compute investment return R_i for each trader.
+
+        R_i = (1/|T_i|) * Σ R_τ for all tickets τ purchased by trader i
+
+        Returns:
+            Dictionary mapping trader_id to mean return
+        """
+        # Group outcomes by purchaser
+        returns_by_trader: Dict[str, List[Decimal]] = {}
+
+        for outcome in self.ticket_outcomes.values():
+            if outcome.purchased_from_dealer and outcome.purchaser_id:
+                r_tau = outcome.realized_return()
+                if r_tau is not None:
+                    if outcome.purchaser_id not in returns_by_trader:
+                        returns_by_trader[outcome.purchaser_id] = []
+                    returns_by_trader[outcome.purchaser_id].append(r_tau)
+
+        # Compute mean return per trader
+        trader_returns = {}
+        for trader_id, returns in returns_by_trader.items():
+            if returns:
+                trader_returns[trader_id] = sum(returns) / len(returns)
+            else:
+                trader_returns[trader_id] = Decimal(0)
+
+        return trader_returns
+
+    def mean_trader_return(self) -> Decimal:
+        """Mean return across all traders who bought from dealer."""
+        returns = list(self.trader_returns().values())
+        if returns:
+            return sum(returns) / len(returns)
+        return Decimal(0)
+
+    def fraction_profitable_traders(self) -> Decimal:
+        """Fraction of traders with positive return (R_i > 0)."""
+        returns = self.trader_returns()
+        if not returns:
+            return Decimal(0)
+        profitable = sum(1 for r in returns.values() if r > 0)
+        return Decimal(profitable) / len(returns)
+
+    def liquidity_driven_sales(self) -> int:
+        """
+        Count of liquidity-driven sales.
+
+        A sale is liquidity-driven when seller had shortfall in obligations.
+        """
+        return sum(1 for t in self.trades if t.side == "SELL" and t.is_liquidity_driven)
+
+    def rescue_events(self) -> int:
+        """
+        Count of rescue events.
+
+        A rescue event occurs when a liquidity-driven sale enables the seller
+        to meet an obligation that would otherwise have defaulted.
+
+        Note: This is approximated by counting liquidity-driven sales where
+        the trader's safety margin improved to positive after the trade.
+        """
+        rescues = 0
+        for trade in self.trades:
+            if trade.side == "SELL" and trade.is_liquidity_driven:
+                # Check if trade moved margin from negative to positive
+                if (trade.trader_safety_margin_before < 0 and
+                    trade.trader_safety_margin_after >= 0):
+                    rescues += 1
+        return rescues
+
+    # =========================================================================
+    # Section 8.4: Repayment-Priority Diagnostics
+    # =========================================================================
+
+    def unsafe_buy_count(self) -> int:
+        """Count of BUY trades that reduced safety margin below zero."""
+        return sum(1 for t in self.trades if t.reduces_margin_below_zero)
+
+    def fraction_unsafe_buys(self) -> Decimal:
+        """Fraction of BUY trades that reduced margin below zero."""
+        buys = [t for t in self.trades if t.side == "BUY"]
+        if not buys:
+            return Decimal(0)
+        unsafe = sum(1 for t in buys if t.reduces_margin_below_zero)
+        return Decimal(unsafe) / len(buys)
+
+    def margin_at_default_distribution(self) -> List[Decimal]:
+        """
+        Distribution of safety margins at time of default.
+
+        Returns list of m_i(t) values for agents that defaulted.
+        """
+        margins = []
+        for snapshot in self.trader_snapshots:
+            if snapshot.defaulted:
+                margins.append(snapshot.safety_margin)
+        return margins
+
+    def mean_margin_at_default(self) -> Optional[Decimal]:
+        """Mean safety margin at default time."""
+        margins = self.margin_at_default_distribution()
+        if margins:
+            return sum(margins) / len(margins)
+        return None
+
+    # =========================================================================
+    # Section 8.5: Experiment-Level Summary Statistics
+    # =========================================================================
+
+    def summary(self) -> Dict[str, Any]:
+        """
+        Generate summary statistics for experiment-level aggregation.
+
+        Returns dictionary suitable for comparison across runs.
+        """
+        return {
+            # Dealer profitability (8.2)
+            "dealer_total_pnl": float(self.total_dealer_pnl()),
+            "dealer_total_return": float(self.total_dealer_return()),
+            "dealer_profitable": self.is_dealer_profitable(),
+            "dealer_pnl_by_bucket": {k: float(v) for k, v in self.dealer_pnl_by_bucket().items()},
+            "dealer_return_by_bucket": {k: float(v) for k, v in self.dealer_return_by_bucket().items()},
+            "spread_income_total": float(self.spread_income_total()),
+            "interior_trades": self.interior_count(),
+            "passthrough_trades": self.passthrough_count(),
+
+            # Trader returns (8.3)
+            "mean_trader_return": float(self.mean_trader_return()),
+            "fraction_profitable_traders": float(self.fraction_profitable_traders()),
+            "liquidity_driven_sales": self.liquidity_driven_sales(),
+            "rescue_events": self.rescue_events(),
+
+            # Repayment priority (8.4)
+            "unsafe_buy_count": self.unsafe_buy_count(),
+            "fraction_unsafe_buys": float(self.fraction_unsafe_buys()),
+            "mean_margin_at_default": float(self.mean_margin_at_default()) if self.mean_margin_at_default() is not None else None,
+
+            # Trade counts
+            "total_trades": len(self.trades),
+            "total_sell_trades": sum(1 for t in self.trades if t.side == "SELL"),
+            "total_buy_trades": sum(1 for t in self.trades if t.side == "BUY"),
+        }
+
+    # =========================================================================
+    # Export Methods
+    # =========================================================================
+
+    def to_trade_log_csv(self, path: str) -> None:
+        """Export trade log to CSV file."""
+        import csv
+        path_obj = Path(path)
+        path_obj.parent.mkdir(parents=True, exist_ok=True)
+
+        if not self.trades:
+            return
+
+        with open(path_obj, "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=self.trades[0].to_dict().keys())
+            writer.writeheader()
+            for trade in self.trades:
+                writer.writerow(trade.to_dict())
+
+    def to_dealer_snapshots_csv(self, path: str) -> None:
+        """Export dealer snapshots to CSV file."""
+        import csv
+        path_obj = Path(path)
+        path_obj.parent.mkdir(parents=True, exist_ok=True)
+
+        if not self.dealer_snapshots:
+            return
+
+        with open(path_obj, "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=self.dealer_snapshots[0].to_dict().keys())
+            writer.writeheader()
+            for snapshot in self.dealer_snapshots:
+                writer.writerow(snapshot.to_dict())
+
+    def to_trader_snapshots_csv(self, path: str) -> None:
+        """Export trader snapshots to CSV file."""
+        import csv
+        path_obj = Path(path)
+        path_obj.parent.mkdir(parents=True, exist_ok=True)
+
+        if not self.trader_snapshots:
+            return
+
+        # Filter out tickets_held_ids for CSV (too verbose)
+        fieldnames = [k for k in self.trader_snapshots[0].to_dict().keys() if k != "tickets_held_ids"]
+
+        with open(path_obj, "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            for snapshot in self.trader_snapshots:
+                row = {k: v for k, v in snapshot.to_dict().items() if k != "tickets_held_ids"}
+                writer.writerow(row)
+
+    def to_ticket_outcomes_csv(self, path: str) -> None:
+        """Export ticket outcomes to CSV file."""
+        import csv
+        path_obj = Path(path)
+        path_obj.parent.mkdir(parents=True, exist_ok=True)
+
+        if not self.ticket_outcomes:
+            return
+
+        outcomes = list(self.ticket_outcomes.values())
+        with open(path_obj, "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=outcomes[0].to_dict().keys())
+            writer.writeheader()
+            for outcome in outcomes:
+                writer.writerow(outcome.to_dict())
+
+    def to_summary_json(self, path: str) -> None:
+        """Export summary statistics to JSON file."""
+        path_obj = Path(path)
+        path_obj.parent.mkdir(parents=True, exist_ok=True)
+
+        with open(path_obj, "w") as f:
+            json.dump(self.summary(), f, indent=2)
+
+
+# =============================================================================
+# Helper Functions for Safety Margin Computation
+# =============================================================================
+
+def compute_safety_margin(
+    cash: Decimal,
+    tickets_held: list,  # List of Ticket objects
+    obligations: list,   # List of Ticket objects (where trader is issuer)
+    dealers: dict,       # bucket_id -> DealerState
+    ticket_size: Decimal
+) -> Decimal:
+    """
+    Compute deterministic safety margin m_i(t) for a trader.
+
+    m_i(t) = A_i(t) - D_i(t)
+
+    Where:
+    - A_i(t) = cash + Σ (bid_price * face) for held tickets
+    - D_i(t) = Σ face for remaining obligations
+
+    Args:
+        cash: Trader's cash holdings
+        tickets_held: Tickets owned by trader
+        obligations: Trader's outstanding obligations
+        dealers: Dealer states by bucket (for bid prices)
+        ticket_size: Standard ticket size S
+
+    Returns:
+        Safety margin m_i(t)
+    """
+    # A_i(t): Cash plus saleable value of tickets at dealer bid
+    a_i = cash
+    for ticket in tickets_held:
+        bucket_id = ticket.bucket_id
+        dealer = dealers.get(bucket_id)
+        if dealer:
+            # Value at dealer bid price
+            a_i += dealer.bid * ticket.face
+        else:
+            # Fallback: use face value
+            a_i += ticket.face
+
+    # D_i(t): Sum of remaining obligations
+    d_i = sum(ticket.face for ticket in obligations)
+
+    return a_i - d_i
+
+
+def compute_saleable_value(
+    tickets_held: list,
+    dealers: dict,
+) -> Decimal:
+    """
+    Compute total saleable value of tickets at dealer bid prices.
+
+    Args:
+        tickets_held: Tickets owned by trader
+        dealers: Dealer states by bucket
+
+    Returns:
+        Total value if all tickets sold at bid
+    """
+    total = Decimal(0)
+    for ticket in tickets_held:
+        bucket_id = ticket.bucket_id
+        dealer = dealers.get(bucket_id)
+        if dealer:
+            total += dealer.bid * ticket.face
+        else:
+            total += ticket.face
+    return total

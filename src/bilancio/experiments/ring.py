@@ -40,6 +40,8 @@ class RingRunSummary:
     delta_total: Optional[Decimal]
     phi_total: Optional[Decimal]
     time_to_stability: int
+    # Dealer metrics (only populated for treatment runs with dealer enabled)
+    dealer_metrics: Optional[Dict[str, Any]] = None
 
 
 def _decimal_list(spec: str) -> List[Decimal]:
@@ -582,6 +584,14 @@ class RingSweepRunner:
         phi_total = summary.get("phi_total")
         time_to_stability = int(summary.get("max_day") or 0)
 
+        # Read dealer metrics if available (treatment runs with dealer enabled)
+        dealer_metrics: Optional[Dict[str, Any]] = None
+        dealer_metrics_path = out_dir / "dealer_metrics.json"
+        if dealer_metrics_path.exists():
+            import json
+            with dealer_metrics_path.open() as f:
+                dealer_metrics = json.load(f)
+
         registry_entry.update({
             "status": "completed",
             "S1": str(S1),
@@ -599,7 +609,10 @@ class RingSweepRunner:
         })
         self._upsert_registry(registry_entry)
 
-        return RingRunSummary(run_id, phase, kappa, concentration, mu, monotonicity, delta_total, phi_total, time_to_stability)
+        return RingRunSummary(
+            run_id, phase, kappa, concentration, mu, monotonicity,
+            delta_total, phi_total, time_to_stability, dealer_metrics
+        )
 
     def _rel_path(self, absolute: Path) -> str:
         try:

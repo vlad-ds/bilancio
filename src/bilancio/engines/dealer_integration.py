@@ -44,6 +44,15 @@ from bilancio.dealer.models import (
 from bilancio.dealer.kernel import KernelParams, recompute_dealer_state
 from bilancio.dealer.trading import TradeExecutor
 from bilancio.dealer.simulation import DealerRingConfig
+from bilancio.dealer.metrics import (
+    RunMetrics,
+    TradeRecord,
+    DealerSnapshot,
+    TraderSnapshot,
+    TicketOutcome,
+    compute_safety_margin,
+    compute_saleable_value,
+)
 
 
 @dataclass
@@ -95,6 +104,9 @@ class DealerSubsystem:
     executor: Optional[TradeExecutor] = None
     enabled: bool = True
     rng: random.Random = field(default_factory=lambda: random.Random(42))
+
+    # Section 8 Metrics (functional dealer analysis)
+    metrics: RunMetrics = field(default_factory=RunMetrics)
 
 
 def initialize_dealer_subsystem(
@@ -280,6 +292,11 @@ def initialize_dealer_subsystem(
 
         # Run kernel to compute initial quotes
         recompute_dealer_state(dealer, vbt, subsystem.params)
+
+        # Capture initial equity for P&L calculation (Section 8.2)
+        # E_0^(b) = C_0^(b) + M * a_0^(b) * S
+        initial_equity = dealer.cash + vbt.M * dealer.a * subsystem.params.S
+        subsystem.metrics.initial_equity_by_bucket[bucket_id] = initial_equity
 
     # Step 3: Initialize traders (households only for now)
     for agent_id, agent in system.state.agents.items():
@@ -496,6 +513,10 @@ def run_dealer_trading_phase(
         vbt = subsystem.vbts[bucket_id]
         recompute_dealer_state(dealer, vbt, subsystem.params)
 
+    # Capture daily snapshots for metrics (Section 8.1)
+    _capture_dealer_snapshots(subsystem, current_day)
+    _capture_trader_snapshots(subsystem, current_day)
+
     # Phase 3: Build eligibility sets (simplified)
     # Traders who need cash (have shortfall coming in next few days)
     eligible_sellers = []
@@ -534,6 +555,17 @@ def run_dealer_trading_phase(
         dealer = subsystem.dealers[bucket_id]
         vbt = subsystem.vbts[bucket_id]
 
+        # Capture pre-trade state for metrics (Section 8.1, 8.4)
+        pre_dealer_inventory = dealer.a
+        pre_dealer_cash = dealer.cash
+        pre_dealer_bid = dealer.bid
+        pre_dealer_ask = dealer.ask
+        pre_trader_cash = trader.cash
+        pre_safety_margin = _compute_trader_safety_margin(subsystem, trader_id)
+
+        # Check if liquidity-driven (Section 8.3)
+        is_liquidity_driven = trader.shortfall(current_day) > 0
+
         # Execute customer sell
         result = subsystem.executor.execute_customer_sell(
             dealer, vbt, ticket, check_assertions=False
@@ -548,6 +580,53 @@ def run_dealer_trading_phase(
             trader.tickets_owned.remove(ticket)
             trader.cash += scaled_price
 
+            # Capture post-trade state
+            post_safety_margin = _compute_trader_safety_margin(subsystem, trader_id)
+
+            # Create detailed trade record for metrics (Section 8)
+            trade_record = TradeRecord(
+                day=current_day,
+                bucket=bucket_id,
+                side="SELL",
+                trader_id=trader_id,
+                ticket_id=ticket.id,
+                issuer_id=ticket.issuer_id,
+                maturity_day=ticket.maturity_day,
+                face_value=ticket.face,
+                price=scaled_price,
+                unit_price=result.price,
+                is_passthrough=result.is_passthrough,
+                dealer_inventory_before=pre_dealer_inventory,
+                dealer_cash_before=pre_dealer_cash,
+                dealer_bid_before=pre_dealer_bid,
+                dealer_ask_before=pre_dealer_ask,
+                vbt_mid_before=vbt.M,
+                trader_cash_before=pre_trader_cash,
+                trader_safety_margin_before=pre_safety_margin,
+                dealer_inventory_after=dealer.a,
+                dealer_cash_after=dealer.cash,
+                dealer_bid_after=dealer.bid,
+                dealer_ask_after=dealer.ask,
+                trader_cash_after=trader.cash,
+                trader_safety_margin_after=post_safety_margin,
+                is_liquidity_driven=is_liquidity_driven,
+                reduces_margin_below_zero=False,  # Only for BUYs
+            )
+            subsystem.metrics.trades.append(trade_record)
+
+            # Update ticket outcome for return tracking (Section 8.3)
+            if ticket.id not in subsystem.metrics.ticket_outcomes:
+                subsystem.metrics.ticket_outcomes[ticket.id] = TicketOutcome(
+                    ticket_id=ticket.id,
+                    issuer_id=ticket.issuer_id,
+                    maturity_day=ticket.maturity_day,
+                    face_value=ticket.face,
+                )
+            subsystem.metrics.ticket_outcomes[ticket.id].sold_to_dealer = True
+            subsystem.metrics.ticket_outcomes[ticket.id].sale_day = current_day
+            subsystem.metrics.ticket_outcomes[ticket.id].sale_price = scaled_price
+            subsystem.metrics.ticket_outcomes[ticket.id].seller_id = trader_id
+
             events.append({
                 "kind": "dealer_trade",
                 "day": current_day,
@@ -560,6 +639,7 @@ def run_dealer_trading_phase(
                 "unit_price": float(result.price),
                 "face": float(ticket.face),
                 "is_passthrough": result.is_passthrough,
+                "is_liquidity_driven": is_liquidity_driven,
             })
 
     # Process buyers (simplified: fewer trades)
@@ -574,6 +654,14 @@ def run_dealer_trading_phase(
             # Check if dealer or VBT has inventory
             if not dealer.inventory and not vbt.inventory:
                 continue
+
+            # Capture pre-trade state for metrics (Section 8.1, 8.4)
+            pre_dealer_inventory = dealer.a
+            pre_dealer_cash = dealer.cash
+            pre_dealer_bid = dealer.bid
+            pre_dealer_ask = dealer.ask
+            pre_trader_cash = trader.cash
+            pre_safety_margin = _compute_trader_safety_margin(subsystem, trader_id)
 
             # Execute customer buy
             result = subsystem.executor.execute_customer_buy(
@@ -592,6 +680,59 @@ def run_dealer_trading_phase(
                 if trader.asset_issuer_id is None:
                     trader.asset_issuer_id = result.ticket.issuer_id
 
+                # Capture post-trade state
+                post_safety_margin = _compute_trader_safety_margin(subsystem, trader_id)
+
+                # Check if BUY reduced margin below zero (Section 8.4)
+                reduces_margin_below_zero = (
+                    pre_safety_margin >= 0 and post_safety_margin < 0
+                )
+
+                # Create detailed trade record for metrics (Section 8)
+                trade_record = TradeRecord(
+                    day=current_day,
+                    bucket=bucket_id,
+                    side="BUY",
+                    trader_id=trader_id,
+                    ticket_id=result.ticket.id,
+                    issuer_id=result.ticket.issuer_id,
+                    maturity_day=result.ticket.maturity_day,
+                    face_value=result.ticket.face,
+                    price=scaled_price,
+                    unit_price=result.price,
+                    is_passthrough=result.is_passthrough,
+                    dealer_inventory_before=pre_dealer_inventory,
+                    dealer_cash_before=pre_dealer_cash,
+                    dealer_bid_before=pre_dealer_bid,
+                    dealer_ask_before=pre_dealer_ask,
+                    vbt_mid_before=vbt.M,
+                    trader_cash_before=pre_trader_cash,
+                    trader_safety_margin_before=pre_safety_margin,
+                    dealer_inventory_after=dealer.a,
+                    dealer_cash_after=dealer.cash,
+                    dealer_bid_after=dealer.bid,
+                    dealer_ask_after=dealer.ask,
+                    trader_cash_after=trader.cash,
+                    trader_safety_margin_after=post_safety_margin,
+                    is_liquidity_driven=False,  # BUYs are never liquidity-driven
+                    reduces_margin_below_zero=reduces_margin_below_zero,
+                )
+                subsystem.metrics.trades.append(trade_record)
+
+                # Update ticket outcome for return tracking (Section 8.3)
+                ticket = result.ticket
+                if ticket.id not in subsystem.metrics.ticket_outcomes:
+                    subsystem.metrics.ticket_outcomes[ticket.id] = TicketOutcome(
+                        ticket_id=ticket.id,
+                        issuer_id=ticket.issuer_id,
+                        maturity_day=ticket.maturity_day,
+                        face_value=ticket.face,
+                    )
+                subsystem.metrics.ticket_outcomes[ticket.id].purchased_from_dealer = True
+                subsystem.metrics.ticket_outcomes[ticket.id].purchase_day = current_day
+                subsystem.metrics.ticket_outcomes[ticket.id].purchase_price = scaled_price
+                subsystem.metrics.ticket_outcomes[ticket.id].purchaser_id = trader_id
+
                 events.append({
                     "kind": "dealer_trade",
                     "day": current_day,
@@ -604,6 +745,7 @@ def run_dealer_trading_phase(
                     "unit_price": float(result.price),
                     "face": float(result.ticket.face),
                     "is_passthrough": result.is_passthrough,
+                    "reduces_margin_below_zero": reduces_margin_below_zero,
                 })
                 break  # One buy per trader per phase
 
@@ -736,6 +878,90 @@ def sync_dealer_to_system(
                             # Reduce contract amount
                             contract.amount -= round(remaining_to_burn)
                             remaining_to_burn = 0
+
+
+def _capture_dealer_snapshots(
+    subsystem: DealerSubsystem,
+    current_day: int
+) -> None:
+    """
+    Capture dealer state snapshots for metrics (Section 8.1).
+
+    Records inventory, cash, quotes, and mark-to-mid equity for each bucket.
+    """
+    for bucket_id, dealer in subsystem.dealers.items():
+        vbt = subsystem.vbts[bucket_id]
+        snapshot = DealerSnapshot(
+            day=current_day,
+            bucket=bucket_id,
+            inventory=dealer.a,
+            cash=dealer.cash,
+            bid=dealer.bid,
+            ask=dealer.ask,
+            midline=dealer.midline,
+            vbt_mid=vbt.M,
+            vbt_spread=vbt.O,
+            ticket_size=subsystem.params.S,
+        )
+        subsystem.metrics.dealer_snapshots.append(snapshot)
+
+
+def _capture_trader_snapshots(
+    subsystem: DealerSubsystem,
+    current_day: int
+) -> None:
+    """
+    Capture trader state snapshots for metrics (Section 8.1).
+
+    Records cash, tickets, obligations, and safety margins.
+    """
+    for trader_id, trader in subsystem.traders.items():
+        # Calculate safety margin
+        safety_margin = compute_safety_margin(
+            cash=trader.cash,
+            tickets_held=trader.tickets_owned,
+            obligations=trader.obligations,
+            dealers=subsystem.dealers,
+            ticket_size=subsystem.params.S
+        )
+
+        # Calculate saleable value
+        saleable = compute_saleable_value(trader.tickets_owned, subsystem.dealers)
+
+        # Calculate remaining obligations
+        obligations_remaining = sum(t.face for t in trader.obligations)
+
+        snapshot = TraderSnapshot(
+            day=current_day,
+            trader_id=trader_id,
+            cash=trader.cash,
+            tickets_held_count=len(trader.tickets_owned),
+            tickets_held_ids=[t.id for t in trader.tickets_owned],
+            total_face_held=sum(t.face for t in trader.tickets_owned),
+            obligations_remaining=obligations_remaining,
+            saleable_value=saleable,
+            safety_margin=safety_margin,
+            defaulted=trader.defaulted,
+        )
+        subsystem.metrics.trader_snapshots.append(snapshot)
+
+
+def _compute_trader_safety_margin(
+    subsystem: DealerSubsystem,
+    trader_id: str
+) -> Decimal:
+    """Compute safety margin for a specific trader."""
+    trader = subsystem.traders.get(trader_id)
+    if not trader:
+        return Decimal(0)
+
+    return compute_safety_margin(
+        cash=trader.cash,
+        tickets_held=trader.tickets_owned,
+        obligations=trader.obligations,
+        dealers=subsystem.dealers,
+        ticket_size=subsystem.params.S
+    )
 
 
 def _assign_bucket(remaining_tau: int, bucket_configs: List[BucketConfig]) -> str:

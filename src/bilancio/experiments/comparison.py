@@ -47,6 +47,20 @@ class ComparisonResult:
     treatment_run_id: str
     treatment_status: str
 
+    # Dealer metrics (Section 8 of functional dealer specification)
+    # From treatment run only (dealer_metrics dictionary)
+    dealer_total_pnl: Optional[float] = None
+    dealer_total_return: Optional[float] = None
+    dealer_profitable: Optional[bool] = None
+    spread_income_total: Optional[float] = None
+    mean_trader_return: Optional[float] = None
+    fraction_profitable_traders: Optional[float] = None
+    liquidity_driven_sales: Optional[int] = None
+    rescue_events: Optional[int] = None
+    total_trades: Optional[int] = None
+    unsafe_buy_count: Optional[int] = None
+    fraction_unsafe_buys: Optional[float] = None
+
     @property
     def delta_reduction(self) -> Optional[Decimal]:
         """Absolute reduction in default rate."""
@@ -124,6 +138,18 @@ class ComparisonSweepRunner:
         "control_status",
         "treatment_run_id",
         "treatment_status",
+        # Dealer metrics (Section 8)
+        "dealer_total_pnl",
+        "dealer_total_return",
+        "dealer_profitable",
+        "spread_income_total",
+        "mean_trader_return",
+        "fraction_profitable_traders",
+        "liquidity_driven_sales",
+        "rescue_events",
+        "total_trades",
+        "unsafe_buy_count",
+        "fraction_unsafe_buys",
     ]
 
     def __init__(self, config: ComparisonSweepConfig, out_dir: Path) -> None:
@@ -269,6 +295,9 @@ class ComparisonSweepRunner:
             seed=seed,
         )
 
+        # Extract dealer metrics from treatment result
+        dm = treatment_result.dealer_metrics or {}
+
         # Build comparison result
         result = ComparisonResult(
             kappa=kappa,
@@ -284,6 +313,18 @@ class ComparisonSweepRunner:
             phi_treatment=treatment_result.phi_total,
             treatment_run_id=treatment_result.run_id,
             treatment_status="completed" if treatment_result.delta_total is not None else "failed",
+            # Dealer metrics from treatment run
+            dealer_total_pnl=dm.get("dealer_total_pnl"),
+            dealer_total_return=dm.get("dealer_total_return"),
+            dealer_profitable=dm.get("dealer_profitable"),
+            spread_income_total=dm.get("spread_income_total"),
+            mean_trader_return=dm.get("mean_trader_return"),
+            fraction_profitable_traders=dm.get("fraction_profitable_traders"),
+            liquidity_driven_sales=dm.get("liquidity_driven_sales"),
+            rescue_events=dm.get("rescue_events"),
+            total_trades=dm.get("total_trades"),
+            unsafe_buy_count=dm.get("unsafe_buy_count"),
+            fraction_unsafe_buys=dm.get("fraction_unsafe_buys"),
         )
 
         # Log comparison
@@ -322,6 +363,18 @@ class ComparisonSweepRunner:
                     "control_status": result.control_status,
                     "treatment_run_id": result.treatment_run_id,
                     "treatment_status": result.treatment_status,
+                    # Dealer metrics (Section 8)
+                    "dealer_total_pnl": str(result.dealer_total_pnl) if result.dealer_total_pnl is not None else "",
+                    "dealer_total_return": str(result.dealer_total_return) if result.dealer_total_return is not None else "",
+                    "dealer_profitable": str(result.dealer_profitable) if result.dealer_profitable is not None else "",
+                    "spread_income_total": str(result.spread_income_total) if result.spread_income_total is not None else "",
+                    "mean_trader_return": str(result.mean_trader_return) if result.mean_trader_return is not None else "",
+                    "fraction_profitable_traders": str(result.fraction_profitable_traders) if result.fraction_profitable_traders is not None else "",
+                    "liquidity_driven_sales": str(result.liquidity_driven_sales) if result.liquidity_driven_sales is not None else "",
+                    "rescue_events": str(result.rescue_events) if result.rescue_events is not None else "",
+                    "total_trades": str(result.total_trades) if result.total_trades is not None else "",
+                    "unsafe_buy_count": str(result.unsafe_buy_count) if result.unsafe_buy_count is not None else "",
+                    "fraction_unsafe_buys": str(result.fraction_unsafe_buys) if result.fraction_unsafe_buys is not None else "",
                 }
                 writer.writerow(row)
 

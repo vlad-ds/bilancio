@@ -212,7 +212,22 @@ def run_scenario(
         export_path.parent.mkdir(parents=True, exist_ok=True)
         write_events_jsonl(system, export_path)
         console.print(f"[green]✓[/green] Exported events to {export_path}")
-    
+
+    # Export dealer metrics if dealer subsystem is enabled
+    if enable_dealer and hasattr(system.state, 'dealer_subsystem') and system.state.dealer_subsystem is not None:
+        dealer_metrics_path = None
+        if export.get('events_jsonl'):
+            dealer_metrics_path = Path(export['events_jsonl']).parent / "dealer_metrics.json"
+        elif export.get('balances_csv'):
+            dealer_metrics_path = Path(export['balances_csv']).parent / "dealer_metrics.json"
+
+        if dealer_metrics_path:
+            import json
+            dealer_summary = system.state.dealer_subsystem.metrics.summary()
+            with dealer_metrics_path.open('w') as f:
+                json.dump(dealer_summary, f, indent=2)
+            console.print(f"[green]✓[/green] Exported dealer metrics to {dealer_metrics_path}")
+
     # Export to HTML if requested (semantic HTML for readability)
     if html_output:
         from .html_export import export_pretty_html
