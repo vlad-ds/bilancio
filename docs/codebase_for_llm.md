@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2025-11-29 08:07:53 UTC | Branch: main | Commit: 1cb9799
+Generated: 2025-12-01 19:07:15 UTC | Branch: main | Commit: 179c8be
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -2305,11 +2305,13 @@ This document contains the complete codebase structure and content for LLM inges
 │   │   └── 016_dealer_comparison_analysis.md
 │   ├── codebase_for_llm.md
 │   ├── dealer_ring
+│   │   ├── New_Kalecki_ring_with_dealers.pdf
 │   │   ├── conversations
 │   │   │   ├── 20251110.txt
 │   │   │   ├── 20251114.txt
 │   │   │   ├── 20251118.txt
-│   │   │   └── 20251127.txt
+│   │   │   ├── 20251127.txt
+│   │   │   └── 20251201.txt
 │   │   ├── dealer_examples.pdf
 │   │   ├── dealer_implementation_readiness.pdf
 │   │   └── dealer_specification.pdf
@@ -4838,7 +4840,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-1326 directories, 3502 files
+1326 directories, 3504 files
 
 ```
 
@@ -6168,6 +6170,20 @@ Complete git history from oldest to newest:
 
 - **1cb97994** (2025-11-29) by vladgheorghe
   Merge branch 'feature/018-dealer-comparison-experiments'
+
+- **11bbfa64** (2025-11-29) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **5077dee0** (2025-12-01) by vladgheorghe
+  docs: add dealer ring documentation and conversation notes
+  - Add New_Kalecki_ring_with_dealers.pdf with updated ring design
+  - Add conversation notes from Dec 1, 2025
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **179c8be7** (2025-12-01) by Vlad Gheorghe
+  Merge pull request #21 from vlad-ds/docs/dealer-ring-updates
+  docs: add dealer ring documentation and conversation notes
 
 ---
 
