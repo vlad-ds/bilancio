@@ -1,0 +1,540 @@
+Unknown
+01:36
+Hello
+Unknown
+01:38
+How are you?
+Alex
+01:40
+I'm dead, it's 11:15, I'm still in the office.
+Unknown
+01:43
+Ah, shit.
+Unknown
+01:45
+That's crazy.
+Alex
+01:47
+I just had a meeting, so this is the last one.
+Alex
+01:51
+Okay, so I did some work.
+Alex
+01:59
+He has a version and then I have another version very soon. Let me share this version with you first.
+Alex
+02:07
+You can torture it a bit.
+Alex
+02:19
+Sedition warts.
+Sam
+02:28
+Okay.
+Alex
+02:34
+So let me take you through this.
+Alex
+02:42
+So basically, first of all, I define what we care about.
+Alex
+02:50
+And what we care about is what I call here a functional dealer.
+Alex
+02:56
+Or whatever function of dealer behavior.
+Alex
+03:00
+And the idea is that the dealer is willing to both sell and buy.
+Alex
+03:10
+And that over the relevant horizon, he is trying to make money and his principle not like getting totally destroyed by being involved in these trades. He doesn't need to end up making money but he needs to try to make money and not at least fail miserably at it.
+Sam
+03:32
+Yeah.
+Alex
+03:34
+That's the point we need from the dealer, besides what we already know about for the trader.
+Alex
+03:42
+The idea is that we want the trader to be trying to make money.
+Alex
+04:16
+So we want the trader to try to make money in principle, not at least because he needs to repay, but also even beyond that, that he wants to earn money.
+Alex
+04:34
+But also, of course, to be earning money, having in mind that he needs to repay when he needs to repay, so he doesn't want to take some excessive risk in terms of investment.
+Sam
+04:46
+Hmm.
+Alex
+04:53
+This is already clear that you get liquidity when you sell to the dealer. Repayment priority on stream, this is what they just explained.
+Alex
+05:09
+Yeah, within the repayment priority constraints that they tried to make.
+Alex
+05:15
+Okay.
+Alex
+05:27
+And then what we do here, just give me one second.
+Alex
+06:20
+And then basically we come up with a set of, okay, you can even skip everything until seven, go to section seven on page 12. I don't even know whether we need, I think maybe this will, I don't need to clean it up.
+Alex
+06:37
+And then you can see here what we have for analysis on the basis of these ideas of what happened in our simulation.
+Alex
+06:49
+Implemented dealer is functionally capable of reducing defaults across the 125.3 and the mean default rate falls by about 90% and there are no cases where dealer reverses defaults.
+Alex
+07:05
+However, you roughly at a quantum parameter space either if also already zero or the remaining before so not alleviated at all, indicating regions where retraining applies. Dealer fixed outside capital cannot resolve structural liquidity problems.
+Alex
+07:21
+Behaviorally, the current design does not formulate the narrative of traders seeking yield while always prioritizing repayment. In aggregate, enabling buying slightly reduces relief of debt. This is what you told me.
+Alex
+07:39
+And key elements of the specification, dealer profits and losses dynamics, trader returns, explicit repayment priority metrics are not measured, right?
+Sam
+07:48
+This is what we have until now.
+Sam
+07:51
+This is what we did until now.
+Sam
+07:54
+This is the results.
+Alex
+07:54
+This was the analysis, what we did, right? And the main thing about the analysis is that we first need to introduce a couple of indicators that are simply going to measure what is already going on.
+Alex
+08:11
+So that we get a better sense of what is going on in terms of the things that matter to us. Okay.
+Alex
+08:21
+So given the already existing simulation, we want to understand.
+Sam
+08:30
+You are saying we're going to add more metrics to the existing simulation?
+Alex
+08:32
+Yes, just metrics of analysis, not parameters.
+Sam
+08:37
+Like the behavior will be the same, but we will be measuring more stuff.
+Alex
+08:40
+Yeah, we want to measure these few things, right?
+Alex
+08:58
+So consider the single, in 8.1, simulation run index star between time periods this.
+Alex
+09:08
+We have the aggregate metrics that already exist.
+Alex
+09:19
+And we have the counts of sizes of defaults in distribution of recovery across the shares. And then we have the dealer.
+Alex
+09:33
+And then we have the trader, right?
+Alex
+09:36
+We require a trade log for each dealer trade at time T, record time T bucket.
+Alex
+09:47
+Buy, sell, agent price, issue maturity.
+Alex
+09:53
+And then this helps us construct the diagnostic.
+Alex
+09:57
+Which is dealer profit loss, profitability, trader investment return, and liquidity use.
+Alex
+10:16
+Specifically liquidity-driven sales and rescues.
+Alex
+10:20
+Repayment priority, to what extent they observe the repayment priority.
+Alex
+10:31
+And that's basically it.
+Alex
+10:35
+So we get measures that we can then observe for these runs.
+Sam
+10:41
+Yeah.
+Sam
+10:43
+So that's the main point, just add these measures.
+Alex
+10:46
+So that will be the first point, right? Once we do that, we get into this part.
+Alex
+10:55
+Let me give you, I have a version 3.0, let me give you a new version of this document just because I was working on this last section.
+Alex
+11:04
+It would be probably the most clear and useful to it.
+Alex
+11:18
+So here we go.
+Alex
+11:24
+Here is the same document, but it has additional bits at the end.
+Alex
+11:34
+So what I did, like is I thought together with him about ways in which
+Alex
+11:41
+So my sense is, and I think, is that we will see that the system doesn't perform well according to these new metrics.
+Alex
+11:52
+Right. We'll see that the dealer is mostly losing money.
+Alex
+11:58
+Trading like investing in securities often leads the entities to lose money as well over time.
+Alex
+12:10
+It just doesn't do what we would like it to do in a kind of realistic sense.
+Sam
+12:17
+Okay.
+Alex
+12:19
+So the point would be to possibly then add one or more of these few things that could help us get it to do the things we want to do.
+Alex
+12:35
+And I have three things, right? So one is that we introduce the coupon to the claim.
+Alex
+12:43
+There is basically an additional amount of money, like a bonus, like a premium that you earn if you hold the security to the end.
+Sam
+12:53
+Ah, okay.
+Alex
+12:55
+Right?
+Sam
+12:55
+If you hold, if you hold.
+Sam
+12:58
+The security, like
+Sam
+13:02
+I have a debt security.
+Alex
+13:11
+Yeah, the face value of the security is $300 but at the repayment it pays $310. So the security is issued to obtain $100.
+Sam
+13:18
+That's like the interest payment.
+Alex
+13:20
+Yeah, interest is a very ambiguous term, but yeah, it's some kind of premium that you get for holding until maturity.
+Sam
+13:30
+But if I sell the security, what happens to the coupon?
+Alex
+13:35
+It goes with the security.
+Sam
+13:37
+So it goes to the last one who holds it when it expires.
+Alex
+13:42
+Exactly.
+Alex
+13:44
+So this should be something that enables the investors in security to have reason to invest in it, to gain more money than they put into it at the beginning, right?
+Alex
+14:08
+I need to still think more about this. I'm just giving you...
+Sam
+14:12
+It needs to affect the sale price of the security because I'm not just selling you the security, I'm selling you a claim on the coupon.
+Alex
+14:23
+Yes.
+Sam
+14:23
+And the closer you are to the coupon, the more valuable it is because you're likely to get it.
+Alex
+14:27
+Yes.
+Alex
+14:32
+In principle, yes, but not always, because maybe if you're thinking that it's going to default, then the closer you are the worse, right? Because if you're thinking short-term debt is going to default, you're ready to pay more for your longer-term debt.
+Sam
+14:44
+Yeah.
+Sam
+14:48
+Yeah.
+Alex
+14:49
+Anyway, so that's one thing. We'll see exactly whether it can do the job and how exactly.
+Alex
+14:59
+The second is a bit more complicated. It's simple to explain, but probably a bit more complicated to implement. What it amounts to is instead of running one, it amounts to thinking about this sequence as a loop.
+Alex
+15:16
+So when you repay that, you immediately get new debts at the next maturity.
+Sam
+15:30
+I didn't understand.
+Alex
+15:32
+So basically, let's say I'm a trader and I have a debt to repay at T10 for a 300. And it then comes and I repeat. Instead of my liabilities being cleared out, I issue a new piece of debt.
+Alex
+15:55
+This would make it so that we could run the simulation for a longer period of time, right?
+Alex
+16:02
+So we could have, let's say, a sequence. If the first set of debts matures as the maximum maturity of 10, we could have one 10-period set and then another 10-period set and then another 10-period set, maybe three or four periods. We don't need an infinite amount.
+Alex
+16:19
+But the point of this is that there are two points that this would add to our story. One is that if the dealers start, for example, empty with no securities in the first loop, in the second loop, they will not be able.
+Sam
+16:42
+Right, then you will be more balanced over time.
+Alex
+16:45
+The other thing that it does is in our system, because it just has one loop, it starts with our dealers having no securities and a lot of money, then buying up a lot of securities. And then as time goes by, because not a lot of people are buying securities from them, they end up holding them to maturity. The securities slowly mature and disappear and the dealers get cash, right? So a dealer starts with only cash, gets an amount of securities for a time, and then those securities mature. At the end of the simulation, the dealer again has no security.
+Alex
+17:35
+But we don't want that, right? We want our dealers not in this kind of position but rather in a position where they have an ongoing balance of securities and cash. They are not getting completely dried out of securities because everything matures and nothing new is issued.
+Sam
+17:59
+Yeah.
+Alex
+18:01
+So that's the second mechanism that could help us.
+Alex
+18:06
+And then the third one is very simple, right? The third one is the way we can think of the treatment and control thing that we are doing.
+Sam
+18:15
+Hmm.
+Alex
+18:15
+The problem that we encountered is that we were comparing a system where we had a set of debts distributed among these agents without a dealer. And then a set of these debts, this end money distributed between these agents and then a dealer full of money.
+Sam
+18:39
+Right.
+Alex
+18:41
+And of course, if you have an entity that is full of money in a story where people are kind of tight on money and need to pay the debt, and that guy is willing to give them money for whatever they have, it's going to be less defaults for sure, right? It's the system that has more money and the entity that has money is willing to give it to the entities that need it. So of course there will be less performance.
+Sam
+19:04
+Yeah,
+Alex
+19:06
+So the comparison is a big pears and apples, right?
+Sam
+19:09
+Yeah,
+Alex
+19:09
+But the comparison which has passive holders, right? So agents that have money in debt by their agents, but they're just like, it's basically a system that says we have the types of agents that we defined, but we single out six agents where we define how big they have to be in terms of their money and their asset claims that they hold. They have no debt to repay, right? But they are no dealers.
+Sam
+19:52
+They
+Alex
+19:52
+Right.
+Sam
+19:52
+just have money and no debt.
+Alex
+19:55
+Yeah, so basically we are creating a mid scenario between the scenario of dealers that have security claims and cash claims, and the scenario where there is no dealer support.
+Sam
+20:14
+Yeah, but what do these people do? They just have money. What do they do with it?
+Alex
+20:17
+They have money and they have claims, right?
+Sam
+20:24
+So they have to be paid so they will make even more money.
+Sam
+20:32
+So they're just owed money.
+Alex
+20:38
+Yes, so there, yes, and the reason why this is going to be helpful is because they are going to take losses if there are defaults, but they are not going to default themselves, right? So they're holding these claims.
+Sam
+21:09
+Ah, so the...
+Alex
+21:12
+But they are not trading this crypto, right, but they can soak up defaults that could occur in the system without defaulting themselves and propagating before by their own dealers. So they're a much better control group for the dealer world.
+Sam
+21:36
+Okay,
+Alex
+21:36
+right
+Sam
+21:36
+I understand. Because they affect the metric,
+Alex
+21:38
+because
+Sam
+21:39
+metric of percentage of default.
+Alex
+21:40
+makes a difference
+Sam
+21:41
+They affect the metric of default percentage.
+Sam
+21:46
+Exactly. The dimension will
+Alex
+21:46
+to cut down the default. Exactly. They're going to cut down the default.
+Alex
+21:51
+But they are not going to cut it down the way that but hopefully the dealers are not going to cut it down more.
+Sam
+21:59
+Yeah.
+Alex
+22:01
+So that should be a relatively simple thing, right? All we need is to get the setup to identify these actors and that they have a position that is pretty fine in terms of its ratio to other positions, right?
+Alex
+22:23
+And that would give us a better comparison.
+Alex
+22:27
+That would be the one thing. We get this kind of comparison.
+Alex
+22:33
+And then we see about these first two things, right? Whether we have this looping mechanic and whether we have this coupon mechanic, this premium mechanic.
+Alex
+22:47
+Because those two should help get the dealer to operate a bit more realistically and also get the possibility of earning by holding on to the assets to be a reality.
+Sam
+23:10
+Okay.
+Alex
+23:12
+And so now I also put down this additional, which are supposed to help us implement it in the tent.
+Alex
+23:30
+But with vegan start is like simply looking at the implementation for these metrics and getting the metrics.
+Sam
+23:41
+Okay.
+Alex
+23:44
+That should be, I guess, maybe not so difficult because the simulation stays the same.
+Alex
+23:53
+And then we can take a look at the metrics.
+Sam
+23:57
+All right. So I'll do that ASAP.
+Alex
+24:04
+If you get it to me before you go, I will then work on it when you fly.
+Sam
+24:11
+Okay.
+Sam
+24:12
+Yeah, I can do that.
+Alex
+24:15
+And then you can see whether one of these additional tools exactly is going to be helpful.
+Alex
+24:22
+I know that I'm not. There is more there to think about.
+Alex
+24:38
+That's it for me.
+Sam
+24:39
+Nice. Are you going for dinner?
+Alex
+24:42
+11 p.m. What dinner are we talking about? I may have dinner before any of—
+Sam
+24:48
+I don't know, maybe a Spanish dinner.
+Alex
+24:52
+Maybe sharing dinner.
+Alex
+24:57
+Oh, phew, exactly.
+Alex
+24:59
+No, I'm going home and I'm going to immediately bite the pillow because I have to be back here tomorrow by nine.
+Sam
+25:09
+All right.
+Alex
+25:12
+It's okay.
+Alex
+25:15
+But it's fine. I don't mind. And this is exciting. If we can nail it, I feel we are close. We just need to tighten it a little bit.
+Sam
+25:26
+Yeah, we got lucky that they dropped this Opus 4.5.
+Alex
+25:32
+You think it's much better?
+Sam
+25:33
+Yeah, it's definitely an improvement.
+Alex
+25:42
+Yeah.
+Alex
+25:44
+I'm sad I can't use it.
+Sam
+25:46
+But I mean you could, you're just paying for the pro. It's just a money thing, right?
+Alex
+25:55
+But I feel like if I need to pour it over all my stuff, it's just so hard.
+Sam
+26:01
+Now, I think it's a good combination. Like you have pro now and you use pro as the subject matter expert. And I have Claude and I code with him. That's a good combo.
+Alex
+26:15
+But we need to see what about these students because they will need class probably.
+Sam
+26:21
+I mean the students can use Codex. Yeah, because...
+Alex
+26:25
+It is.
+Sam
+26:26
+They can pay the 20 euro a month and they should get enough Codex and Codex is also good.
+Alex
+26:33
+They have pro, they said they have pro, so they probably have put it—
+Sam
+26:37
+Problems.
+Alex
+26:39
+Yeah.
+Sam
+26:40
+All right then.
+Alex
+26:42
+We're rich students. These are rich NYU students, you know.
