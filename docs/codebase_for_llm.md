@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2025-12-04 18:36:39 UTC | Branch: main | Commit: 2551b91
+Generated: 2025-12-04 18:37:19 UTC | Branch: main | Commit: 6aa8218
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -3180,6 +3180,10 @@ This document contains the complete codebase structure and content for LLM inges
 │   │   │           │   └── metrics.html
 │   │   │           ├── run.html
 │   │   │           └── scenario.yaml
+│   │   ├── balanced_comparison_20251204
+│   │   │   └── aggregate
+│   │   │       ├── comparison.csv
+│   │   │       └── summary.json
 │   │   ├── dealer_metrics_comparison_20251201
 │   │   │   ├── aggregate
 │   │   │   │   ├── comparison.csv
@@ -5228,7 +5232,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-1580 directories, 3638 files
+1582 directories, 3640 files
 
 ```
 
@@ -6668,6 +6672,14 @@ Complete git history from oldest to newest:
   - Mean trading effect: 2% reduction in defaults
   - 16 pairs showed improvement (12.8%)
   - Trading most effective with high inequality (c=5) and moderate liquidity
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **082dfe18** (2025-12-04) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **6aa82188** (2025-12-04) by vladgheorghe
+  data: add balanced dealer comparison results (125 pairs)
   🤖 Generated with [Claude Code](https://claude.com/claude-code)
   Co-Authored-By: Claude <noreply@anthropic.com>
 
