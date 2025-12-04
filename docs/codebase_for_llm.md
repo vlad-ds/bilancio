@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2025-12-04 08:02:07 UTC | Branch: main | Commit: 3889cad
+Generated: 2025-12-04 18:36:39 UTC | Branch: main | Commit: 2551b91
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -2311,7 +2311,8 @@ This document contains the complete codebase structure and content for LLM inges
 │   │   │   ├── 20251114.txt
 │   │   │   ├── 20251118.txt
 │   │   │   ├── 20251127.txt
-│   │   │   └── 20251201.txt
+│   │   │   ├── 20251201.txt
+│   │   │   └── 20251204.txt
 │   │   ├── dealer_examples.pdf
 │   │   ├── dealer_implementation_readiness.pdf
 │   │   └── dealer_specification.pdf
@@ -2340,6 +2341,7 @@ This document contains the complete codebase structure and content for LLM inges
 │   │   ├── 018_dealer_comparison_experiments.md
 │   │   ├── 019_dealer_metrics.md
 │   │   ├── 020_dealer_mid_tracking_metrics.md
+│   │   ├── 021_balanced_dealer_comparison.md
 │   │   └── Kalecki_debt_simulation (1).pdf
 │   ├── prompts
 │   │   ├── 015_expel_sweep_agent_prompt.md
@@ -5143,6 +5145,7 @@ This document contains the complete codebase structure and content for LLM inges
 │       │   └── valuation.py
 │       ├── experiments
 │       │   ├── __init__.py
+│       │   ├── balanced_comparison.py
 │       │   ├── comparison.py
 │       │   └── ring.py
 │       ├── export
@@ -5225,7 +5228,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-1580 directories, 3635 files
+1580 directories, 3638 files
 
 ```
 
@@ -6627,6 +6630,44 @@ Complete git history from oldest to newest:
   - Capture debt-to-money ratio at simulation start as control variable
   - Export time series data to CSV for analysis
   - Add 14 new unit tests for the metrics
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **4530425e** (2025-12-04) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **ac115ab8** (2025-12-04) by vladgheorghe
+  docs: add plan 021 for balanced dealer comparison (C & D)
+  Add implementation plan for the three-way comparison framework from
+  Section 9.3, based on Alex's feedback. Creates fair comparison between:
+  - C (Mimic/Passive): Big entities hold securities + cash, no trading
+  - D (Dealer/Active): Same starting position WITH trading enabled
+  Also captures Alex's clarifications on face value, outside mid, and
+  the "off-balance" metric (A.1).
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **2551b914** (2025-12-04) by vladgheorghe
+  feat: implement balanced dealer comparison (C vs D) framework
+  Implements Plan 021 for comparing passive holders (C) against active
+  dealers (D) with identical starting balance sheets.
+  Key features:
+  - BalancedDealerConfig for face_value, outside_mid_ratio, big_entity_share
+  - compile_ring_explorer_balanced() for generating balanced scenarios
+  - initialize_balanced_dealer_subsystem() for big entities with inventory
+  - Passive mode (no trading) vs Active mode (trading enabled)
+  - BalancedComparisonRunner for paired experiments
+  - CLI: `bilancio sweep balanced` command
+  Math:
+  - Face value S = 20 (cashflow at maturity)
+  - Outside mid M = ρ × S where ρ is configurable (default 0.75)
+  - Traders issue additional debt (β × original), big entities hold claims
+  - Traders get matching additional cash to preserve cash/debt ratio
+  - Big entities start balanced: Cash = Securities × M
+  Results from 125-pair sweep (5κ × 5c × 5μ):
+  - Mean trading effect: 2% reduction in defaults
+  - 16 pairs showed improvement (12.8%)
+  - Trading most effective with high inequality (c=5) and moderate liquidity
   🤖 Generated with [Claude Code](https://claude.com/claude-code)
   Co-Authored-By: Claude <noreply@anthropic.com>
 
@@ -11588,6 +11629,59 @@ class DealerConfig(BaseModel):
         return self
 
 
+class BalancedDealerConfig(BaseModel):
+    """Configuration for balanced dealer/mimic scenarios (C & D).
+
+    This enables fair comparison between passive holders and active dealers
+    by ensuring identical starting balance sheets.
+
+    Key concepts:
+    - face_value (S): Cashflow at maturity, default 20
+    - outside_mid_ratio (ρ): M/S ratio where M is the outside mid price
+    - big_entity_share (β): Fraction of trader debt allocated to big entities
+    - mode: "passive" for mimics (C), "active" for dealers (D)
+    """
+
+    enabled: bool = Field(default=False, description="Whether balanced mode is active")
+    face_value: Decimal = Field(
+        default=Decimal("20"),
+        description="Face value S - cashflow at maturity"
+    )
+    outside_mid_ratio: Decimal = Field(
+        default=Decimal("0.75"),
+        description="M/S ratio - outside mid as fraction of face value (0.5 to 1.0)"
+    )
+    big_entity_share: Decimal = Field(
+        default=Decimal("0.25"),
+        description="Fraction of trader debt allocated to big entities (β)"
+    )
+    mode: Literal["passive", "active"] = Field(
+        default="active",
+        description="passive = C (mimics don't trade), active = D (dealers can trade)"
+    )
+
+    @field_validator("face_value")
+    @classmethod
+    def face_value_positive(cls, v):
+        if v <= 0:
+            raise ValueError("face_value must be positive")
+        return v
+
+    @field_validator("outside_mid_ratio")
+    @classmethod
+    def outside_mid_ratio_valid(cls, v):
+        if not (Decimal("0") < v <= Decimal("1")):
+            raise ValueError("outside_mid_ratio must be between 0 (exclusive) and 1 (inclusive)")
+        return v
+
+    @field_validator("big_entity_share")
+    @classmethod
+    def big_entity_share_valid(cls, v):
+        if not (Decimal("0") < v < Decimal("1")):
+            raise ValueError("big_entity_share must be between 0 and 1 (exclusive)")
+        return v
+
+
 class ScenarioConfig(BaseModel):
     """Complete scenario configuration."""
     version: int = Field(1, description="Configuration version")
@@ -11600,6 +11694,10 @@ class ScenarioConfig(BaseModel):
     dealer: Optional[DealerConfig] = Field(
         None,
         description="Dealer subsystem configuration"
+    )
+    balanced_dealer: Optional[BalancedDealerConfig] = Field(
+        None,
+        description="Balanced dealer/mimic configuration for C vs D comparison"
     )
     agents: List[AgentSpec] = Field(..., description="Agents in the scenario")
     initial_actions: List[Dict[str, Any]] = Field(
@@ -18039,6 +18137,227 @@ def initialize_dealer_subsystem(
     return subsystem
 
 
+def initialize_balanced_dealer_subsystem(
+    system,
+    dealer_config: DealerRingConfig,
+    face_value: Decimal = Decimal("20"),
+    outside_mid_ratio: Decimal = Decimal("0.75"),
+    big_entity_share: Decimal = Decimal("0.25"),
+    mode: str = "active",
+    current_day: int = 0
+) -> DealerSubsystem:
+    """
+    Initialize dealer subsystem for balanced scenarios (C vs D comparison).
+
+    Unlike standard initialization where dealers start empty:
+    - Big entities (dealers) START with securities (claims on traders)
+    - Big entities have cash = market value of their securities (balanced position)
+    - For mode="passive": trading is disabled (big entities just hold)
+    - For mode="active": trading is enabled as normal
+
+    Key differences from initialize_dealer_subsystem():
+    1. Big entities have initial inventory based on payables held
+    2. Cash is pre-calculated to match market value
+    3. Passive mode flag controls whether trading occurs
+
+    Args:
+        system: Main System instance with agents and contracts
+        dealer_config: Configuration for dealer subsystem
+        face_value: Face value S (cashflow at maturity)
+        outside_mid_ratio: M/S ratio (outside mid as fraction of face)
+        big_entity_share: Fraction of debt held by big entities (for reference)
+        mode: "passive" (no trading) or "active" (trading enabled)
+        current_day: Current simulation day
+
+    Returns:
+        Initialized DealerSubsystem ready for trading (or holding if passive)
+    """
+    from bilancio.domain.agents import Dealer, VBT
+    from bilancio.domain.instruments.credit import Payable
+
+    # Calculate outside mid M from ratio and face value
+    outside_mid = outside_mid_ratio * face_value
+
+    subsystem = DealerSubsystem(
+        bucket_configs=dealer_config.buckets,
+        params=KernelParams(S=face_value),  # Use face_value as ticket size
+        rng=random.Random(dealer_config.seed),
+        enabled=(mode == "active"),  # Disable trading for passive mode
+    )
+
+    # Step 0: Create dealer/VBT agents in main system (same as standard init)
+    for bucket_config in dealer_config.buckets:
+        bucket_id = bucket_config.name
+        dealer_agent_id = f"dealer_{bucket_id}"
+        vbt_agent_id = f"vbt_{bucket_id}"
+
+        if dealer_agent_id not in system.state.agents:
+            dealer_agent = Dealer(
+                id=dealer_agent_id,
+                name=f"Dealer ({bucket_id})",
+            )
+            system.state.agents[dealer_agent_id] = dealer_agent
+
+        if vbt_agent_id not in system.state.agents:
+            vbt_agent = VBT(
+                id=vbt_agent_id,
+                name=f"VBT ({bucket_id})",
+            )
+            system.state.agents[vbt_agent_id] = vbt_agent
+
+    # Initialize trade executor
+    subsystem.executor = TradeExecutor(subsystem.params, subsystem.rng)
+
+    # Step 1: Convert Payables to Tickets and identify big entity holdings
+    serial_counter = 0
+    big_entity_tickets: Dict[str, List[Ticket]] = {bc.name: [] for bc in dealer_config.buckets}
+    trader_tickets: Dict[str, List[Ticket]] = {}
+
+    for contract_id, contract in system.state.contracts.items():
+        if not isinstance(contract, Payable):
+            continue
+
+        ticket_id = f"TKT_{contract_id}"
+        remaining_tau = max(0, contract.due_day - current_day)
+
+        ticket = Ticket(
+            id=ticket_id,
+            issuer_id=contract.liability_issuer_id,
+            owner_id=contract.effective_creditor,
+            face=Decimal(contract.amount),
+            maturity_day=contract.due_day,
+            remaining_tau=remaining_tau,
+            bucket_id="",
+            serial=serial_counter,
+        )
+        serial_counter += 1
+
+        ticket.bucket_id = _assign_bucket(ticket.remaining_tau, subsystem.bucket_configs)
+
+        subsystem.tickets[ticket_id] = ticket
+        subsystem.ticket_to_payable[ticket_id] = contract_id
+        subsystem.payable_to_ticket[contract_id] = ticket_id
+
+        # Check if this ticket is held by a big entity
+        owner = ticket.owner_id
+        if owner.startswith("big_"):
+            # Map big_short -> short, etc.
+            bucket_name = owner.replace("big_", "")
+            if bucket_name in big_entity_tickets:
+                big_entity_tickets[bucket_name].append(ticket)
+        else:
+            if owner not in trader_tickets:
+                trader_tickets[owner] = []
+            trader_tickets[owner].append(ticket)
+
+    # Step 2: Calculate total system cash (excluding big entities)
+    total_system_cash = Decimal(0)
+    for agent_id, agent in system.state.agents.items():
+        if agent.kind in ("dealer", "vbt") or agent_id.startswith("big_"):
+            continue
+        total_system_cash += _get_agent_cash(system, agent_id)
+
+    # Step 3: Initialize market makers with pre-existing inventory
+    num_buckets = len(subsystem.bucket_configs)
+
+    for bucket_config in subsystem.bucket_configs:
+        bucket_id = bucket_config.name
+
+        # Get the tickets held by big entity for this bucket
+        bucket_tickets = big_entity_tickets.get(bucket_id, [])
+
+        # Calculate market value of big entity holdings
+        big_entity_face_value = sum(t.face for t in bucket_tickets)
+        big_entity_market_value = big_entity_face_value * outside_mid_ratio
+
+        # Dealer gets the tickets and matching cash
+        # Note: In balanced mode, dealer starts WITH inventory
+        dealer = DealerState(
+            bucket_id=bucket_id,
+            agent_id=f"dealer_{bucket_id}",
+            inventory=list(bucket_tickets),  # Pre-populated with big entity holdings!
+            cash=big_entity_market_value,     # Cash = market value (balanced)
+        )
+        subsystem.dealers[bucket_id] = dealer
+
+        # Update ticket ownership to dealer
+        for ticket in bucket_tickets:
+            ticket.owner_id = f"dealer_{bucket_id}"
+
+        # VBT with anchors based on outside_mid
+        M = outside_mid  # Use calculated outside mid
+        O = Decimal("0.30")  # Default spread
+
+        # VBT gets some capital but no inventory
+        vbt_capital = (total_system_cash * dealer_config.vbt_share) / num_buckets
+
+        vbt = VBTState(
+            bucket_id=bucket_id,
+            agent_id=f"vbt_{bucket_id}",
+            M=M,
+            O=O,
+            phi_M=dealer_config.phi_M,
+            phi_O=dealer_config.phi_O,
+            clip_nonneg_B=dealer_config.clip_nonneg_B,
+            inventory=[],
+            cash=vbt_capital,
+        )
+        vbt.recompute_quotes()
+        subsystem.vbts[bucket_id] = vbt
+
+        # Compute dealer quotes
+        recompute_dealer_state(dealer, vbt, subsystem.params)
+
+        # Capture initial equity
+        initial_equity = dealer.cash + vbt.M * dealer.a * subsystem.params.S
+        subsystem.metrics.initial_equity_by_bucket[bucket_id] = initial_equity
+
+    # Step 4: Initialize traders (same as standard init)
+    for agent_id, agent in system.state.agents.items():
+        if agent.kind != "household":
+            continue
+        if agent_id.startswith("big_"):
+            continue  # Skip big entity agents
+
+        trader_cash = _get_agent_cash(system, agent_id)
+
+        trader = TraderState(
+            agent_id=agent_id,
+            cash=trader_cash,
+            tickets_owned=[],
+            obligations=[],
+            asset_issuer_id=None,
+        )
+
+        # Link trader to their tickets
+        for ticket in subsystem.tickets.values():
+            if ticket.owner_id == agent_id:
+                trader.tickets_owned.append(ticket)
+                if trader.asset_issuer_id is None:
+                    trader.asset_issuer_id = ticket.issuer_id
+
+            if ticket.issuer_id == agent_id:
+                trader.obligations.append(ticket)
+
+        subsystem.traders[agent_id] = trader
+
+    # Step 5: Capture initial debt-to-money ratio
+    total_debt = Decimal(0)
+    for contract in system.state.contracts.values():
+        if isinstance(contract, Payable):
+            total_debt += Decimal(contract.amount)
+
+    total_money = Decimal(0)
+    for agent_id_iter, agent in system.state.agents.items():
+        if agent.kind not in ("dealer", "vbt") and not agent_id_iter.startswith("big_"):
+            total_money += _get_agent_cash(system, agent_id_iter)
+
+    subsystem.metrics.initial_total_debt = total_debt
+    subsystem.metrics.initial_total_money = total_money
+
+    return subsystem
+
+
 def _get_agent_cash(system, agent_id: str) -> Decimal:
     """
     Get total cash balance for an agent from the main system.
@@ -20094,6 +20413,530 @@ __all__ = ["RingSweepRunner", "RingRunSummary"]
 
 ---
 
+### 📄 src/bilancio/experiments/balanced_comparison.py
+
+```python
+"""Utilities for running balanced C vs D comparison experiments.
+
+This module provides infrastructure for running paired passive/active
+experiments comparing Kalecki ring simulations with:
+- C (Passive): Big entities hold securities + cash but DON'T trade
+- D (Active): Big entities hold securities + cash and CAN trade
+
+The key output is the delta in defaults between conditions, measuring
+the effect of market-making by dealers.
+
+Reference: Plan 021 and Section 9.3 of the specification.
+"""
+
+from __future__ import annotations
+
+import csv
+import json
+import logging
+from dataclasses import dataclass, field
+from decimal import Decimal
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Sequence
+
+from pydantic import BaseModel, Field
+
+from bilancio.experiments.ring import RingSweepRunner, RingRunSummary
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class BalancedComparisonResult:
+    """Result of a single C vs D comparison."""
+
+    # Parameters
+    kappa: Decimal
+    concentration: Decimal
+    mu: Decimal
+    monotonicity: Decimal
+    seed: int
+
+    # Balanced mode parameters
+    face_value: Decimal
+    outside_mid_ratio: Decimal
+    big_entity_share: Decimal
+
+    # C (Passive) metrics
+    delta_passive: Optional[Decimal]
+    phi_passive: Optional[Decimal]
+    passive_run_id: str
+    passive_status: str
+
+    # D (Active) metrics
+    delta_active: Optional[Decimal]
+    phi_active: Optional[Decimal]
+    active_run_id: str
+    active_status: str
+
+    # Dealer metrics from active run
+    dealer_total_pnl: Optional[float] = None
+    dealer_total_return: Optional[float] = None
+    total_trades: Optional[int] = None
+
+    # Big entity loss metrics
+    big_entity_loss_passive: Optional[float] = None
+    big_entity_pnl_active: Optional[float] = None
+
+    @property
+    def trading_effect(self) -> Optional[Decimal]:
+        """Effect of trading = delta_passive - delta_active.
+
+        Positive means trading reduced defaults.
+        """
+        if self.delta_passive is None or self.delta_active is None:
+            return None
+        return self.delta_passive - self.delta_active
+
+    @property
+    def trading_relief_ratio(self) -> Optional[Decimal]:
+        """Percentage reduction in defaults from trading."""
+        if self.delta_passive is None or self.delta_active is None:
+            return None
+        if self.delta_passive == 0:
+            return Decimal("0")  # No defaults to reduce
+        return self.trading_effect / self.delta_passive
+
+
+class BalancedComparisonConfig(BaseModel):
+    """Configuration for C vs D balanced comparison experiments."""
+
+    # Ring parameters
+    n_agents: int = Field(default=100, description="Number of agents in ring")
+    maturity_days: int = Field(default=10, description="Maturity horizon in days")
+    max_simulation_days: int = Field(default=15, description="Max days to run simulation")
+    Q_total: Decimal = Field(default=Decimal("10000"), description="Total debt amount")
+    liquidity_mode: str = Field(default="uniform", description="Liquidity allocation mode")
+    base_seed: int = Field(default=42, description="Base random seed")
+    name_prefix: str = Field(default="Balanced Comparison", description="Scenario name prefix")
+    default_handling: str = Field(default="fail-fast", description="Default handling mode")
+
+    # Grid parameters
+    kappas: List[Decimal] = Field(
+        default_factory=lambda: [Decimal("0.25"), Decimal("0.5"), Decimal("1"), Decimal("2"), Decimal("4")]
+    )
+    concentrations: List[Decimal] = Field(
+        default_factory=lambda: [Decimal("0.2"), Decimal("0.5"), Decimal("1"), Decimal("2"), Decimal("5")]
+    )
+    mus: List[Decimal] = Field(
+        default_factory=lambda: [Decimal("0"), Decimal("0.25"), Decimal("0.5"), Decimal("0.75"), Decimal("1")]
+    )
+    monotonicities: List[Decimal] = Field(default_factory=lambda: [Decimal("0")])
+
+    # Balanced dealer parameters
+    face_value: Decimal = Field(default=Decimal("20"), description="Face value S (cashflow at maturity)")
+    outside_mid_ratios: List[Decimal] = Field(
+        default_factory=lambda: [Decimal("1.0"), Decimal("0.9"), Decimal("0.8"), Decimal("0.75"), Decimal("0.5")],
+        description="M/S ratios to sweep"
+    )
+    big_entity_share: Decimal = Field(default=Decimal("0.25"), description="Fraction of debt held by big entities")
+
+    # VBT configuration (for active mode)
+    vbt_share: Decimal = Field(default=Decimal("0.50"), description="VBT capital as fraction of system cash")
+
+
+class BalancedComparisonRunner:
+    """
+    Runs C vs D comparison experiments.
+
+    For each parameter combination (κ, c, μ, ρ):
+    1. Run C (passive): Big entities hold but don't trade
+    2. Run D (active): Big entities can trade
+    3. Compute comparison metrics
+
+    Outputs:
+    - passive/: All passive holder runs
+    - active/: All active dealer runs
+    - aggregate/comparison.csv: C vs D metrics
+    - aggregate/summary.json: Aggregate statistics
+    """
+
+    COMPARISON_FIELDS = [
+        "kappa",
+        "concentration",
+        "mu",
+        "monotonicity",
+        "seed",
+        "face_value",
+        "outside_mid_ratio",
+        "big_entity_share",
+        "delta_passive",
+        "delta_active",
+        "trading_effect",
+        "trading_relief_ratio",
+        "phi_passive",
+        "phi_active",
+        "passive_run_id",
+        "passive_status",
+        "active_run_id",
+        "active_status",
+        "dealer_total_pnl",
+        "dealer_total_return",
+        "total_trades",
+    ]
+
+    def __init__(self, config: BalancedComparisonConfig, out_dir: Path) -> None:
+        self.config = config
+        self.base_dir = out_dir
+        self.passive_dir = self.base_dir / "passive"
+        self.active_dir = self.base_dir / "active"
+        self.aggregate_dir = self.base_dir / "aggregate"
+
+        self.passive_dir.mkdir(parents=True, exist_ok=True)
+        self.active_dir.mkdir(parents=True, exist_ok=True)
+        self.aggregate_dir.mkdir(parents=True, exist_ok=True)
+
+        self.comparison_results: List[BalancedComparisonResult] = []
+        self.comparison_path = self.aggregate_dir / "comparison.csv"
+        self.summary_path = self.aggregate_dir / "summary.json"
+
+        self._passive_runner: Optional[RingSweepRunner] = None
+        self._active_runner: Optional[RingSweepRunner] = None
+        self.seed_counter = config.base_seed
+
+    def _next_seed(self) -> int:
+        """Get next seed and increment counter."""
+        seed = self.seed_counter
+        self.seed_counter += 1
+        return seed
+
+    def _get_passive_runner(self, outside_mid_ratio: Decimal) -> RingSweepRunner:
+        """Get or create passive runner (no dealer trading)."""
+        # For passive mode, we use the balanced scenario but with dealers disabled
+        # In balanced mode, big entities have inventory but don't trade
+        return RingSweepRunner(
+            out_dir=self.passive_dir,
+            name_prefix=f"{self.config.name_prefix} (Passive)",
+            n_agents=self.config.n_agents,
+            maturity_days=self.config.maturity_days,
+            Q_total=self.config.Q_total,
+            liquidity_mode=self.config.liquidity_mode,
+            liquidity_agent=None,  # Not used with uniform mode
+            base_seed=self.config.base_seed,
+            default_handling=self.config.default_handling,
+            dealer_enabled=False,  # No dealer trading in passive mode
+            dealer_config=None,
+            # Pass balanced mode config
+            balanced_mode=True,
+            face_value=self.config.face_value,
+            outside_mid_ratio=outside_mid_ratio,
+            big_entity_share=self.config.big_entity_share,
+        )
+
+    def _get_active_runner(self, outside_mid_ratio: Decimal) -> RingSweepRunner:
+        """Get or create active runner (with dealer trading)."""
+        dealer_config = {
+            "ticket_size": int(self.config.face_value),
+            "dealer_share": str(Decimal("0")),  # Dealers already have inventory
+            "vbt_share": str(self.config.vbt_share),
+        }
+
+        return RingSweepRunner(
+            out_dir=self.active_dir,
+            name_prefix=f"{self.config.name_prefix} (Active)",
+            n_agents=self.config.n_agents,
+            maturity_days=self.config.maturity_days,
+            Q_total=self.config.Q_total,
+            liquidity_mode=self.config.liquidity_mode,
+            liquidity_agent=None,  # Not used with uniform mode
+            base_seed=self.config.base_seed,
+            default_handling=self.config.default_handling,
+            dealer_enabled=True,  # Dealer trading enabled
+            dealer_config=dealer_config,
+            # Pass balanced mode config
+            balanced_mode=True,
+            face_value=self.config.face_value,
+            outside_mid_ratio=outside_mid_ratio,
+            big_entity_share=self.config.big_entity_share,
+        )
+
+    def run_all(self) -> List[BalancedComparisonResult]:
+        """Execute all passive/active pairs and return comparison results."""
+        total_pairs = (
+            len(self.config.kappas)
+            * len(self.config.concentrations)
+            * len(self.config.mus)
+            * len(self.config.monotonicities)
+            * len(self.config.outside_mid_ratios)
+        )
+
+        logger.info(
+            "Starting balanced comparison sweep: %d kappas × %d concentrations × %d mus × %d ρ = %d pairs",
+            len(self.config.kappas),
+            len(self.config.concentrations),
+            len(self.config.mus),
+            len(self.config.outside_mid_ratios),
+            total_pairs,
+        )
+
+        pair_idx = 0
+
+        for outside_mid_ratio in self.config.outside_mid_ratios:
+            for kappa in self.config.kappas:
+                for concentration in self.config.concentrations:
+                    for mu in self.config.mus:
+                        for monotonicity in self.config.monotonicities:
+                            pair_idx += 1
+                            logger.info(
+                                "[%d/%d] Running pair: κ=%s, c=%s, μ=%s, ρ=%s",
+                                pair_idx,
+                                total_pairs,
+                                kappa,
+                                concentration,
+                                mu,
+                                outside_mid_ratio,
+                            )
+                            result = self._run_pair(
+                                kappa, concentration, mu, monotonicity, outside_mid_ratio
+                            )
+                            self.comparison_results.append(result)
+
+                            # Write incremental results
+                            self._write_comparison_csv()
+
+        # Write final summary
+        self._write_summary_json()
+
+        logger.info("Balanced comparison sweep complete. Results at: %s", self.aggregate_dir)
+        return self.comparison_results
+
+    def _run_pair(
+        self,
+        kappa: Decimal,
+        concentration: Decimal,
+        mu: Decimal,
+        monotonicity: Decimal,
+        outside_mid_ratio: Decimal,
+    ) -> BalancedComparisonResult:
+        """Run one passive/active pair for given parameters."""
+        passive_runner = self._get_passive_runner(outside_mid_ratio)
+        active_runner = self._get_active_runner(outside_mid_ratio)
+
+        # Use same seed for both runs
+        seed = self._next_seed()
+
+        # Run passive (no trading)
+        logger.info("  Running passive (no trading)...")
+        passive_result = passive_runner._execute_run(
+            phase="balanced_passive",
+            kappa=kappa,
+            concentration=concentration,
+            mu=mu,
+            monotonicity=monotonicity,
+            seed=seed,
+        )
+
+        # Run active (with trading)
+        logger.info("  Running active (with trading)...")
+        active_result = active_runner._execute_run(
+            phase="balanced_active",
+            kappa=kappa,
+            concentration=concentration,
+            mu=mu,
+            monotonicity=monotonicity,
+            seed=seed,
+        )
+
+        # Extract dealer metrics from active result
+        dm = active_result.dealer_metrics or {}
+
+        result = BalancedComparisonResult(
+            kappa=kappa,
+            concentration=concentration,
+            mu=mu,
+            monotonicity=monotonicity,
+            seed=seed,
+            face_value=self.config.face_value,
+            outside_mid_ratio=outside_mid_ratio,
+            big_entity_share=self.config.big_entity_share,
+            delta_passive=passive_result.delta_total,
+            phi_passive=passive_result.phi_total,
+            passive_run_id=passive_result.run_id,
+            passive_status="completed" if passive_result.delta_total is not None else "failed",
+            delta_active=active_result.delta_total,
+            phi_active=active_result.phi_total,
+            active_run_id=active_result.run_id,
+            active_status="completed" if active_result.delta_total is not None else "failed",
+            dealer_total_pnl=dm.get("dealer_total_pnl"),
+            dealer_total_return=dm.get("dealer_total_return"),
+            total_trades=dm.get("total_trades"),
+        )
+
+        # Log comparison
+        if result.trading_effect is not None:
+            logger.info(
+                "  Comparison: δ_passive=%s, δ_active=%s, effect=%s (%.1f%%)",
+                result.delta_passive,
+                result.delta_active,
+                result.trading_effect,
+                float(result.trading_relief_ratio or 0) * 100,
+            )
+        else:
+            logger.warning("  Comparison: One or both runs failed")
+
+        return result
+
+    def _write_comparison_csv(self) -> None:
+        """Write comparison results to CSV."""
+        with self.comparison_path.open("w", newline="") as fh:
+            writer = csv.DictWriter(fh, fieldnames=self.COMPARISON_FIELDS)
+            writer.writeheader()
+            for result in self.comparison_results:
+                row = {
+                    "kappa": str(result.kappa),
+                    "concentration": str(result.concentration),
+                    "mu": str(result.mu),
+                    "monotonicity": str(result.monotonicity),
+                    "seed": str(result.seed),
+                    "face_value": str(result.face_value),
+                    "outside_mid_ratio": str(result.outside_mid_ratio),
+                    "big_entity_share": str(result.big_entity_share),
+                    "delta_passive": str(result.delta_passive) if result.delta_passive is not None else "",
+                    "delta_active": str(result.delta_active) if result.delta_active is not None else "",
+                    "trading_effect": str(result.trading_effect) if result.trading_effect is not None else "",
+                    "trading_relief_ratio": str(result.trading_relief_ratio) if result.trading_relief_ratio is not None else "",
+                    "phi_passive": str(result.phi_passive) if result.phi_passive is not None else "",
+                    "phi_active": str(result.phi_active) if result.phi_active is not None else "",
+                    "passive_run_id": result.passive_run_id,
+                    "passive_status": result.passive_status,
+                    "active_run_id": result.active_run_id,
+                    "active_status": result.active_status,
+                    "dealer_total_pnl": str(result.dealer_total_pnl) if result.dealer_total_pnl is not None else "",
+                    "dealer_total_return": str(result.dealer_total_return) if result.dealer_total_return is not None else "",
+                    "total_trades": str(result.total_trades) if result.total_trades is not None else "",
+                }
+                writer.writerow(row)
+
+    def _write_summary_json(self) -> None:
+        """Write summary statistics to JSON."""
+        completed = [r for r in self.comparison_results if r.trading_effect is not None]
+
+        if completed:
+            delta_passives = [float(r.delta_passive) for r in completed if r.delta_passive is not None]
+            delta_actives = [float(r.delta_active) for r in completed if r.delta_active is not None]
+            trading_effects = [float(r.trading_effect) for r in completed if r.trading_effect is not None]
+            relief_ratios = [float(r.trading_relief_ratio) for r in completed if r.trading_relief_ratio is not None]
+
+            mean_delta_passive = sum(delta_passives) / len(delta_passives) if delta_passives else None
+            mean_delta_active = sum(delta_actives) / len(delta_actives) if delta_actives else None
+            mean_trading_effect = sum(trading_effects) / len(trading_effects) if trading_effects else None
+            mean_relief_ratio = sum(relief_ratios) / len(relief_ratios) if relief_ratios else None
+
+            improved = sum(1 for r in completed if r.trading_effect and r.trading_effect > 0)
+            unchanged = sum(1 for r in completed if r.trading_effect == 0)
+            worsened = sum(1 for r in completed if r.trading_effect and r.trading_effect < 0)
+        else:
+            mean_delta_passive = None
+            mean_delta_active = None
+            mean_trading_effect = None
+            mean_relief_ratio = None
+            improved = 0
+            unchanged = 0
+            worsened = 0
+
+        summary = {
+            "total_pairs": len(self.comparison_results),
+            "completed_pairs": len(completed),
+            "mean_delta_passive": mean_delta_passive,
+            "mean_delta_active": mean_delta_active,
+            "mean_trading_effect": mean_trading_effect,
+            "mean_relief_ratio": mean_relief_ratio,
+            "pairs_with_improvement": improved,
+            "pairs_unchanged": unchanged,
+            "pairs_worsened": worsened,
+            "config": {
+                "n_agents": self.config.n_agents,
+                "maturity_days": self.config.maturity_days,
+                "Q_total": str(self.config.Q_total),
+                "base_seed": self.config.base_seed,
+                "face_value": str(self.config.face_value),
+                "big_entity_share": str(self.config.big_entity_share),
+                "kappas": [str(k) for k in self.config.kappas],
+                "concentrations": [str(c) for c in self.config.concentrations],
+                "mus": [str(m) for m in self.config.mus],
+                "outside_mid_ratios": [str(r) for r in self.config.outside_mid_ratios],
+            },
+        }
+
+        with self.summary_path.open("w") as fh:
+            json.dump(summary, fh, indent=2)
+
+
+def run_balanced_comparison_sweep(
+    out_dir: Path,
+    *,
+    n_agents: int = 100,
+    maturity_days: int = 10,
+    Q_total: Decimal = Decimal("10000"),
+    kappas: Sequence[Decimal],
+    concentrations: Sequence[Decimal],
+    mus: Sequence[Decimal],
+    monotonicities: Optional[Sequence[Decimal]] = None,
+    face_value: Decimal = Decimal("20"),
+    outside_mid_ratios: Sequence[Decimal],
+    big_entity_share: Decimal = Decimal("0.25"),
+    base_seed: int = 42,
+    default_handling: str = "fail-fast",
+    name_prefix: str = "Balanced Comparison",
+) -> List[BalancedComparisonResult]:
+    """
+    Convenience function to run a balanced comparison sweep.
+
+    Args:
+        out_dir: Output directory for results
+        n_agents: Number of agents in ring (default: 100)
+        maturity_days: Maturity horizon (default: 10)
+        Q_total: Total debt amount (default: 10000)
+        kappas: List of kappa values to sweep
+        concentrations: List of Dirichlet concentration values
+        mus: List of mu (misalignment) values
+        monotonicities: List of monotonicity values (default: [0])
+        face_value: Face value S (default: 20)
+        outside_mid_ratios: List of M/S ratios to sweep
+        big_entity_share: Fraction of debt held by big entities (default: 0.25)
+        base_seed: Base random seed
+        default_handling: How to handle defaults
+        name_prefix: Scenario name prefix
+
+    Returns:
+        List of BalancedComparisonResult objects
+    """
+    config = BalancedComparisonConfig(
+        n_agents=n_agents,
+        maturity_days=maturity_days,
+        Q_total=Q_total,
+        kappas=list(kappas),
+        concentrations=list(concentrations),
+        mus=list(mus),
+        monotonicities=list(monotonicities or [Decimal("0")]),
+        face_value=face_value,
+        outside_mid_ratios=list(outside_mid_ratios),
+        big_entity_share=big_entity_share,
+        base_seed=base_seed,
+        default_handling=default_handling,
+        name_prefix=name_prefix,
+    )
+
+    runner = BalancedComparisonRunner(config, out_dir)
+    return runner.run_all()
+
+
+__all__ = [
+    "BalancedComparisonResult",
+    "BalancedComparisonConfig",
+    "BalancedComparisonRunner",
+    "run_balanced_comparison_sweep",
+]
+
+```
+
+---
+
 ### 📄 src/bilancio/experiments/comparison.py
 
 ```python
@@ -20879,6 +21722,10 @@ class RingSweepRunner:
         default_handling: str = "fail-fast",
         dealer_enabled: bool = False,
         dealer_config: Optional[Dict[str, Any]] = None,
+        balanced_mode: bool = False,
+        face_value: Optional[Decimal] = None,
+        outside_mid_ratio: Optional[Decimal] = None,
+        big_entity_share: Optional[Decimal] = None,
     ) -> None:
         self.base_dir = out_dir
         self.registry_dir = self.base_dir / "registry"
@@ -20894,6 +21741,10 @@ class RingSweepRunner:
         self.default_handling = default_handling
         self.dealer_enabled = dealer_enabled
         self.dealer_config = dealer_config
+        self.balanced_mode = balanced_mode
+        self.face_value = face_value or Decimal("20")
+        self.outside_mid_ratio = outside_mid_ratio or Decimal("0.75")
+        self.big_entity_share = big_entity_share or Decimal("0.25")
         self.registry_rows: List[Dict[str, Any]] = []
 
         self.registry_dir.mkdir(parents=True, exist_ok=True)
@@ -21153,7 +22004,20 @@ class RingSweepRunner:
         }
 
         generator_config = RingExplorerGeneratorConfig.model_validate(generator_data)
-        scenario = compile_ring_explorer(generator_config, source_path=None)
+
+        if self.balanced_mode:
+            # Use balanced generator for C vs D comparison scenarios
+            from bilancio.scenarios.generators.ring_explorer import compile_ring_explorer_balanced
+            scenario = compile_ring_explorer_balanced(
+                generator_config,
+                face_value=self.face_value,
+                outside_mid_ratio=self.outside_mid_ratio,
+                big_entity_share=self.big_entity_share,
+                mode="active" if self.dealer_enabled else "passive",
+                source_path=None,
+            )
+        else:
+            scenario = compile_ring_explorer(generator_config, source_path=None)
 
         if self.dealer_enabled:
             dealer_section: Dict[str, Any] = {"enabled": True}
@@ -22243,6 +23107,202 @@ def compile_ring_explorer(
     return scenario
 
 
+def compile_ring_explorer_balanced(
+    config: RingExplorerGeneratorConfig,
+    face_value: Decimal = Decimal("20"),
+    outside_mid_ratio: Decimal = Decimal("0.75"),
+    big_entity_share: Decimal = Decimal("0.25"),
+    mode: str = "active",
+    *,
+    source_path: Optional[Path] = None,
+) -> Dict[str, Any]:
+    """
+    Generate a ring scenario with balanced big entities (C or D).
+
+    The scenario augments the base ring with:
+    1. Additional debt per trader (held by big entities)
+    2. Additional cash per trader (preserves cash/debt ratio)
+    3. Big entities initialized with securities + matching cash
+
+    Args:
+        config: Base ring explorer configuration
+        face_value: Face value S (cashflow at maturity), default 20
+        outside_mid_ratio: M/S ratio (0.5 to 1.0), default 0.75
+        big_entity_share: Fraction of trader debt for big entities (β), default 0.25
+        mode: "passive" (mimics) or "active" (dealers)
+        source_path: Optional path for YAML output
+
+    Returns:
+        Complete scenario dictionary with balanced big entities
+    """
+    params = RingExplorerParams.from_model(config.params)
+
+    # Get base payable amounts (this is the original debt distribution)
+    base_payable_amounts = _draw_payables(
+        params.n_agents,
+        params.inequality.concentration,
+        params.inequality.monotonicity,
+        params.Q_total,
+        params.seed,
+    )
+
+    # Scale up payable amounts by (1 + big_entity_share)
+    scale_factor = Decimal("1") + big_entity_share
+    scaled_payable_amounts = [amt * scale_factor for amt in base_payable_amounts]
+
+    # Get base liquidity amounts and scale up
+    base_liquidity = params.liquidity.total
+    scaled_liquidity_total = base_liquidity * scale_factor
+
+    # Recalculate liquidity allocation with scaled total
+    scaled_params = RingExplorerParams(
+        n_agents=params.n_agents,
+        seed=params.seed,
+        kappa=params.kappa,
+        Q_total=params.Q_total * scale_factor,
+        liquidity=LiquiditySpec(
+            total=scaled_liquidity_total,
+            mode=params.liquidity.mode,
+            agent=params.liquidity.agent,
+            vector=params.liquidity.vector,
+        ),
+        inequality=params.inequality,
+        maturity=params.maturity,
+        currency=params.currency,
+        policy_overrides=params.policy_overrides,
+    )
+    scaled_liquidity_amounts = _allocate_liquidity(scaled_params)
+
+    due_days = _build_due_days(params.n_agents, params.maturity.days, params.maturity.mu)
+
+    agents = _build_agents(params.n_agents)
+
+    # Add big entity agents (one per bucket: short, mid, long)
+    big_entity_buckets = ["short", "mid", "long"]
+    for bucket in big_entity_buckets:
+        agent_id = f"big_{bucket}"
+        agents.append({
+            "id": agent_id,
+            "kind": "household",  # Use household for now
+            "name": f"Big Entity ({bucket})",
+        })
+
+    initial_actions = []
+
+    # Seed cash liquidity to traders (scaled amounts)
+    for idx, amount in enumerate(scaled_liquidity_amounts):
+        if amount <= 0:
+            continue
+        agent_id = f"H{idx + 1}"
+        initial_actions.append({
+            "mint_cash": {
+                "to": agent_id,
+                "amount": amount,
+                "alias": f"LIQ_{agent_id}",
+            }
+        })
+
+    # Create ring payables (scaled amounts - original debt structure preserved)
+    for idx, amount in enumerate(scaled_payable_amounts):
+        from_agent = f"H{idx + 1}"
+        to_agent = f"H{(idx + 1) % params.n_agents + 1}"
+        due_day = due_days[idx]
+        initial_actions.append({
+            "create_payable": {
+                "from": from_agent,
+                "to": to_agent,
+                "amount": amount,
+                "due_day": due_day,
+                "alias": f"P_{from_agent}_{to_agent}",
+            }
+        })
+
+    # Create additional payables from traders to big entities
+    # These represent the debt held by big entities
+    # Distribute across buckets based on maturity
+    outside_mid = outside_mid_ratio * face_value
+    total_big_entity_debt = params.Q_total * big_entity_share
+
+    # Split debt across buckets (for simplicity, equal distribution)
+    debt_per_bucket = total_big_entity_debt / Decimal(len(big_entity_buckets))
+
+    # Create payables to big entities (spread across traders)
+    debt_per_trader_to_big = total_big_entity_debt / Decimal(params.n_agents)
+    for idx in range(params.n_agents):
+        from_agent = f"H{idx + 1}"
+        # Assign to bucket based on maturity structure
+        bucket_idx = idx % len(big_entity_buckets)
+        to_agent = f"big_{big_entity_buckets[bucket_idx]}"
+        due_day = due_days[idx]
+        initial_actions.append({
+            "create_payable": {
+                "from": from_agent,
+                "to": to_agent,
+                "amount": debt_per_trader_to_big,
+                "due_day": due_day,
+                "alias": f"P_{from_agent}_{to_agent}_big",
+            }
+        })
+
+    # Mint cash to big entities (market value of securities = balanced position)
+    # Each big entity gets cash = market value of their securities
+    # Market value = face_value_held × outside_mid_ratio
+    cash_per_bucket = debt_per_bucket * outside_mid_ratio
+    for bucket in big_entity_buckets:
+        agent_id = f"big_{bucket}"
+        initial_actions.append({
+            "mint_cash": {
+                "to": agent_id,
+                "amount": cash_per_bucket,
+                "alias": f"LIQ_{agent_id}",
+            }
+        })
+
+    scenario_name = _render_scenario_name(config.name_prefix, params)
+    scenario_name = f"{scenario_name} [Balanced {mode}]"
+    description = _render_description(params)
+    description = f"{description}; balanced mode={mode}, β={_fmt_decimal(big_entity_share)}, ρ={_fmt_decimal(outside_mid_ratio)}"
+
+    scenario: Dict[str, Any] = {
+        "version": 1,
+        "name": scenario_name,
+        "description": description,
+        "policy_overrides": params.policy_overrides,
+        "agents": agents,
+        "initial_actions": initial_actions,
+        "scheduled_actions": [],
+        "run": {
+            "mode": "until_stable",
+            "max_days": max(30, params.maturity.days + 5),
+            "quiet_days": 2,
+            "show": {
+                "balances": [agent["id"] for agent in agents],
+                "events": "detailed",
+            },
+            "export": {
+                "balances_csv": "out/balances.csv",
+                "events_jsonl": "out/events.jsonl",
+            },
+        },
+        # Store balanced config for later use
+        "_balanced_config": {
+            "face_value": float(face_value),
+            "outside_mid_ratio": float(outside_mid_ratio),
+            "big_entity_share": float(big_entity_share),
+            "mode": mode,
+        },
+    }
+
+    if config.compile.emit_yaml:
+        _emit_yaml(
+            scenario,
+            config,
+            source_path=source_path,
+        )
+
+    return scenario
+
+
 def _draw_payables(
     n: int,
     concentration: Decimal,
@@ -22504,7 +23564,7 @@ def _to_yaml_ready(obj: Any) -> Any:
     return obj
 
 
-__all__ = ["compile_ring_explorer"]
+__all__ = ["compile_ring_explorer", "compile_ring_explorer_balanced"]
 
 ```
 
@@ -22904,6 +23964,121 @@ def sweep_comparison(
     console.print(f"  Summary JSON: {runner.summary_path}")
     console.print(f"  Control registry: {runner.control_dir / 'registry' / 'experiments.csv'}")
     console.print(f"  Treatment registry: {runner.treatment_dir / 'registry' / 'experiments.csv'}")
+
+
+@sweep.command("balanced")
+@click.option(
+    "--out-dir",
+    type=click.Path(path_type=Path),
+    required=True,
+    help="Output directory for results",
+)
+@click.option("--n-agents", type=int, default=100, help="Number of agents in ring")
+@click.option("--maturity-days", type=int, default=10, help="Maturity horizon")
+@click.option("--q-total", type=Decimal, default=Decimal("10000"), help="Total debt")
+@click.option("--base-seed", type=int, default=42, help="Base random seed")
+@click.option(
+    "--kappas",
+    type=str,
+    default="0.25,0.5,1,2,4",
+    help="Comma-separated kappa values",
+)
+@click.option(
+    "--concentrations",
+    type=str,
+    default="0.2,0.5,1,2,5",
+    help="Comma-separated concentration values",
+)
+@click.option(
+    "--mus",
+    type=str,
+    default="0,0.25,0.5,0.75,1",
+    help="Comma-separated mu values",
+)
+@click.option(
+    "--face-value",
+    type=Decimal,
+    default=Decimal("20"),
+    help="Face value S (cashflow at maturity)",
+)
+@click.option(
+    "--outside-mid-ratios",
+    type=str,
+    default="1.0,0.9,0.8,0.75,0.5",
+    help="Comma-separated M/S ratios to sweep",
+)
+@click.option(
+    "--big-entity-share",
+    type=Decimal,
+    default=Decimal("0.25"),
+    help="Fraction of debt held by big entities (β)",
+)
+@click.option(
+    "--default-handling",
+    type=click.Choice(["fail-fast", "expel-agent"]),
+    default="fail-fast",
+    help="Default handling mode",
+)
+def sweep_balanced(
+    out_dir: Path,
+    n_agents: int,
+    maturity_days: int,
+    q_total: Decimal,
+    base_seed: int,
+    kappas: str,
+    concentrations: str,
+    mus: str,
+    face_value: Decimal,
+    outside_mid_ratios: str,
+    big_entity_share: Decimal,
+    default_handling: str,
+) -> None:
+    """
+    Run balanced C vs D comparison experiments.
+
+    Compares passive holders (C) against active dealers (D) with
+    identical starting balance sheets. Each pair runs the same scenario
+    twice: once with trading disabled (passive) and once with trading
+    enabled (active).
+
+    Output:
+      - passive/: All passive holder runs
+      - active/: All active dealer runs
+      - aggregate/comparison.csv: C vs D metrics
+      - aggregate/summary.json: Aggregate statistics
+    """
+    from bilancio.experiments.ring import _decimal_list
+    from bilancio.experiments.balanced_comparison import (
+        BalancedComparisonConfig,
+        BalancedComparisonRunner,
+    )
+
+    config = BalancedComparisonConfig(
+        n_agents=n_agents,
+        maturity_days=maturity_days,
+        Q_total=q_total,
+        base_seed=base_seed,
+        kappas=_decimal_list(kappas),
+        concentrations=_decimal_list(concentrations),
+        mus=_decimal_list(mus),
+        face_value=face_value,
+        outside_mid_ratios=_decimal_list(outside_mid_ratios),
+        big_entity_share=big_entity_share,
+        default_handling=default_handling,
+    )
+
+    runner = BalancedComparisonRunner(config, out_dir)
+    results = runner.run_all()
+
+    # Print summary
+    completed = sum(1 for r in results if r.trading_effect is not None)
+    improved = sum(1 for r in results if r.trading_effect and r.trading_effect > 0)
+
+    click.echo(f"\nBalanced comparison complete!")
+    click.echo(f"  Total pairs: {len(results)}")
+    click.echo(f"  Completed: {completed}")
+    click.echo(f"  Improved with trading: {improved}")
+    click.echo(f"\nResults at: {out_dir / 'aggregate' / 'comparison.csv'}")
 
 
 @cli.command()
@@ -34531,5 +35706,5 @@ def test_settle_multiple_obligations():
 ## End of Codebase
 
 Generated from: /home/runner/work/bilancio/bilancio
-Total source files: 83
+Total source files: 84
 Total test files: 35
