@@ -478,6 +478,59 @@ class DealerConfig(BaseModel):
         return self
 
 
+class BalancedDealerConfig(BaseModel):
+    """Configuration for balanced dealer/mimic scenarios (C & D).
+
+    This enables fair comparison between passive holders and active dealers
+    by ensuring identical starting balance sheets.
+
+    Key concepts:
+    - face_value (S): Cashflow at maturity, default 20
+    - outside_mid_ratio (ρ): M/S ratio where M is the outside mid price
+    - big_entity_share (β): Fraction of trader debt allocated to big entities
+    - mode: "passive" for mimics (C), "active" for dealers (D)
+    """
+
+    enabled: bool = Field(default=False, description="Whether balanced mode is active")
+    face_value: Decimal = Field(
+        default=Decimal("20"),
+        description="Face value S - cashflow at maturity"
+    )
+    outside_mid_ratio: Decimal = Field(
+        default=Decimal("0.75"),
+        description="M/S ratio - outside mid as fraction of face value (0.5 to 1.0)"
+    )
+    big_entity_share: Decimal = Field(
+        default=Decimal("0.25"),
+        description="Fraction of trader debt allocated to big entities (β)"
+    )
+    mode: Literal["passive", "active"] = Field(
+        default="active",
+        description="passive = C (mimics don't trade), active = D (dealers can trade)"
+    )
+
+    @field_validator("face_value")
+    @classmethod
+    def face_value_positive(cls, v):
+        if v <= 0:
+            raise ValueError("face_value must be positive")
+        return v
+
+    @field_validator("outside_mid_ratio")
+    @classmethod
+    def outside_mid_ratio_valid(cls, v):
+        if not (Decimal("0") < v <= Decimal("1")):
+            raise ValueError("outside_mid_ratio must be between 0 (exclusive) and 1 (inclusive)")
+        return v
+
+    @field_validator("big_entity_share")
+    @classmethod
+    def big_entity_share_valid(cls, v):
+        if not (Decimal("0") < v < Decimal("1")):
+            raise ValueError("big_entity_share must be between 0 and 1 (exclusive)")
+        return v
+
+
 class ScenarioConfig(BaseModel):
     """Complete scenario configuration."""
     version: int = Field(1, description="Configuration version")
@@ -490,6 +543,10 @@ class ScenarioConfig(BaseModel):
     dealer: Optional[DealerConfig] = Field(
         None,
         description="Dealer subsystem configuration"
+    )
+    balanced_dealer: Optional[BalancedDealerConfig] = Field(
+        None,
+        description="Balanced dealer/mimic configuration for C vs D comparison"
     )
     agents: List[AgentSpec] = Field(..., description="Agents in the scenario")
     initial_actions: List[Dict[str, Any]] = Field(

@@ -1,0 +1,516 @@
+"""Utilities for running balanced C vs D comparison experiments.
+
+This module provides infrastructure for running paired passive/active
+experiments comparing Kalecki ring simulations with:
+- C (Passive): Big entities hold securities + cash but DON'T trade
+- D (Active): Big entities hold securities + cash and CAN trade
+
+The key output is the delta in defaults between conditions, measuring
+the effect of market-making by dealers.
+
+Reference: Plan 021 and Section 9.3 of the specification.
+"""
+
+from __future__ import annotations
+
+import csv
+import json
+import logging
+from dataclasses import dataclass, field
+from decimal import Decimal
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Sequence
+
+from pydantic import BaseModel, Field
+
+from bilancio.experiments.ring import RingSweepRunner, RingRunSummary
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class BalancedComparisonResult:
+    """Result of a single C vs D comparison."""
+
+    # Parameters
+    kappa: Decimal
+    concentration: Decimal
+    mu: Decimal
+    monotonicity: Decimal
+    seed: int
+
+    # Balanced mode parameters
+    face_value: Decimal
+    outside_mid_ratio: Decimal
+    big_entity_share: Decimal
+
+    # C (Passive) metrics
+    delta_passive: Optional[Decimal]
+    phi_passive: Optional[Decimal]
+    passive_run_id: str
+    passive_status: str
+
+    # D (Active) metrics
+    delta_active: Optional[Decimal]
+    phi_active: Optional[Decimal]
+    active_run_id: str
+    active_status: str
+
+    # Dealer metrics from active run
+    dealer_total_pnl: Optional[float] = None
+    dealer_total_return: Optional[float] = None
+    total_trades: Optional[int] = None
+
+    # Big entity loss metrics
+    big_entity_loss_passive: Optional[float] = None
+    big_entity_pnl_active: Optional[float] = None
+
+    @property
+    def trading_effect(self) -> Optional[Decimal]:
+        """Effect of trading = delta_passive - delta_active.
+
+        Positive means trading reduced defaults.
+        """
+        if self.delta_passive is None or self.delta_active is None:
+            return None
+        return self.delta_passive - self.delta_active
+
+    @property
+    def trading_relief_ratio(self) -> Optional[Decimal]:
+        """Percentage reduction in defaults from trading."""
+        if self.delta_passive is None or self.delta_active is None:
+            return None
+        if self.delta_passive == 0:
+            return Decimal("0")  # No defaults to reduce
+        return self.trading_effect / self.delta_passive
+
+
+class BalancedComparisonConfig(BaseModel):
+    """Configuration for C vs D balanced comparison experiments."""
+
+    # Ring parameters
+    n_agents: int = Field(default=100, description="Number of agents in ring")
+    maturity_days: int = Field(default=10, description="Maturity horizon in days")
+    max_simulation_days: int = Field(default=15, description="Max days to run simulation")
+    Q_total: Decimal = Field(default=Decimal("10000"), description="Total debt amount")
+    liquidity_mode: str = Field(default="uniform", description="Liquidity allocation mode")
+    base_seed: int = Field(default=42, description="Base random seed")
+    name_prefix: str = Field(default="Balanced Comparison", description="Scenario name prefix")
+    default_handling: str = Field(default="fail-fast", description="Default handling mode")
+
+    # Grid parameters
+    kappas: List[Decimal] = Field(
+        default_factory=lambda: [Decimal("0.25"), Decimal("0.5"), Decimal("1"), Decimal("2"), Decimal("4")]
+    )
+    concentrations: List[Decimal] = Field(
+        default_factory=lambda: [Decimal("0.2"), Decimal("0.5"), Decimal("1"), Decimal("2"), Decimal("5")]
+    )
+    mus: List[Decimal] = Field(
+        default_factory=lambda: [Decimal("0"), Decimal("0.25"), Decimal("0.5"), Decimal("0.75"), Decimal("1")]
+    )
+    monotonicities: List[Decimal] = Field(default_factory=lambda: [Decimal("0")])
+
+    # Balanced dealer parameters
+    face_value: Decimal = Field(default=Decimal("20"), description="Face value S (cashflow at maturity)")
+    outside_mid_ratios: List[Decimal] = Field(
+        default_factory=lambda: [Decimal("1.0"), Decimal("0.9"), Decimal("0.8"), Decimal("0.75"), Decimal("0.5")],
+        description="M/S ratios to sweep"
+    )
+    big_entity_share: Decimal = Field(default=Decimal("0.25"), description="Fraction of debt held by big entities")
+
+    # VBT configuration (for active mode)
+    vbt_share: Decimal = Field(default=Decimal("0.50"), description="VBT capital as fraction of system cash")
+
+
+class BalancedComparisonRunner:
+    """
+    Runs C vs D comparison experiments.
+
+    For each parameter combination (κ, c, μ, ρ):
+    1. Run C (passive): Big entities hold but don't trade
+    2. Run D (active): Big entities can trade
+    3. Compute comparison metrics
+
+    Outputs:
+    - passive/: All passive holder runs
+    - active/: All active dealer runs
+    - aggregate/comparison.csv: C vs D metrics
+    - aggregate/summary.json: Aggregate statistics
+    """
+
+    COMPARISON_FIELDS = [
+        "kappa",
+        "concentration",
+        "mu",
+        "monotonicity",
+        "seed",
+        "face_value",
+        "outside_mid_ratio",
+        "big_entity_share",
+        "delta_passive",
+        "delta_active",
+        "trading_effect",
+        "trading_relief_ratio",
+        "phi_passive",
+        "phi_active",
+        "passive_run_id",
+        "passive_status",
+        "active_run_id",
+        "active_status",
+        "dealer_total_pnl",
+        "dealer_total_return",
+        "total_trades",
+    ]
+
+    def __init__(self, config: BalancedComparisonConfig, out_dir: Path) -> None:
+        self.config = config
+        self.base_dir = out_dir
+        self.passive_dir = self.base_dir / "passive"
+        self.active_dir = self.base_dir / "active"
+        self.aggregate_dir = self.base_dir / "aggregate"
+
+        self.passive_dir.mkdir(parents=True, exist_ok=True)
+        self.active_dir.mkdir(parents=True, exist_ok=True)
+        self.aggregate_dir.mkdir(parents=True, exist_ok=True)
+
+        self.comparison_results: List[BalancedComparisonResult] = []
+        self.comparison_path = self.aggregate_dir / "comparison.csv"
+        self.summary_path = self.aggregate_dir / "summary.json"
+
+        self._passive_runner: Optional[RingSweepRunner] = None
+        self._active_runner: Optional[RingSweepRunner] = None
+        self.seed_counter = config.base_seed
+
+    def _next_seed(self) -> int:
+        """Get next seed and increment counter."""
+        seed = self.seed_counter
+        self.seed_counter += 1
+        return seed
+
+    def _get_passive_runner(self, outside_mid_ratio: Decimal) -> RingSweepRunner:
+        """Get or create passive runner (no dealer trading)."""
+        # For passive mode, we use the balanced scenario but with dealers disabled
+        # In balanced mode, big entities have inventory but don't trade
+        return RingSweepRunner(
+            out_dir=self.passive_dir,
+            name_prefix=f"{self.config.name_prefix} (Passive)",
+            n_agents=self.config.n_agents,
+            maturity_days=self.config.maturity_days,
+            Q_total=self.config.Q_total,
+            liquidity_mode=self.config.liquidity_mode,
+            liquidity_agent=None,  # Not used with uniform mode
+            base_seed=self.config.base_seed,
+            default_handling=self.config.default_handling,
+            dealer_enabled=False,  # No dealer trading in passive mode
+            dealer_config=None,
+            # Pass balanced mode config
+            balanced_mode=True,
+            face_value=self.config.face_value,
+            outside_mid_ratio=outside_mid_ratio,
+            big_entity_share=self.config.big_entity_share,
+        )
+
+    def _get_active_runner(self, outside_mid_ratio: Decimal) -> RingSweepRunner:
+        """Get or create active runner (with dealer trading)."""
+        dealer_config = {
+            "ticket_size": int(self.config.face_value),
+            "dealer_share": str(Decimal("0")),  # Dealers already have inventory
+            "vbt_share": str(self.config.vbt_share),
+        }
+
+        return RingSweepRunner(
+            out_dir=self.active_dir,
+            name_prefix=f"{self.config.name_prefix} (Active)",
+            n_agents=self.config.n_agents,
+            maturity_days=self.config.maturity_days,
+            Q_total=self.config.Q_total,
+            liquidity_mode=self.config.liquidity_mode,
+            liquidity_agent=None,  # Not used with uniform mode
+            base_seed=self.config.base_seed,
+            default_handling=self.config.default_handling,
+            dealer_enabled=True,  # Dealer trading enabled
+            dealer_config=dealer_config,
+            # Pass balanced mode config
+            balanced_mode=True,
+            face_value=self.config.face_value,
+            outside_mid_ratio=outside_mid_ratio,
+            big_entity_share=self.config.big_entity_share,
+        )
+
+    def run_all(self) -> List[BalancedComparisonResult]:
+        """Execute all passive/active pairs and return comparison results."""
+        total_pairs = (
+            len(self.config.kappas)
+            * len(self.config.concentrations)
+            * len(self.config.mus)
+            * len(self.config.monotonicities)
+            * len(self.config.outside_mid_ratios)
+        )
+
+        logger.info(
+            "Starting balanced comparison sweep: %d kappas × %d concentrations × %d mus × %d ρ = %d pairs",
+            len(self.config.kappas),
+            len(self.config.concentrations),
+            len(self.config.mus),
+            len(self.config.outside_mid_ratios),
+            total_pairs,
+        )
+
+        pair_idx = 0
+
+        for outside_mid_ratio in self.config.outside_mid_ratios:
+            for kappa in self.config.kappas:
+                for concentration in self.config.concentrations:
+                    for mu in self.config.mus:
+                        for monotonicity in self.config.monotonicities:
+                            pair_idx += 1
+                            logger.info(
+                                "[%d/%d] Running pair: κ=%s, c=%s, μ=%s, ρ=%s",
+                                pair_idx,
+                                total_pairs,
+                                kappa,
+                                concentration,
+                                mu,
+                                outside_mid_ratio,
+                            )
+                            result = self._run_pair(
+                                kappa, concentration, mu, monotonicity, outside_mid_ratio
+                            )
+                            self.comparison_results.append(result)
+
+                            # Write incremental results
+                            self._write_comparison_csv()
+
+        # Write final summary
+        self._write_summary_json()
+
+        logger.info("Balanced comparison sweep complete. Results at: %s", self.aggregate_dir)
+        return self.comparison_results
+
+    def _run_pair(
+        self,
+        kappa: Decimal,
+        concentration: Decimal,
+        mu: Decimal,
+        monotonicity: Decimal,
+        outside_mid_ratio: Decimal,
+    ) -> BalancedComparisonResult:
+        """Run one passive/active pair for given parameters."""
+        passive_runner = self._get_passive_runner(outside_mid_ratio)
+        active_runner = self._get_active_runner(outside_mid_ratio)
+
+        # Use same seed for both runs
+        seed = self._next_seed()
+
+        # Run passive (no trading)
+        logger.info("  Running passive (no trading)...")
+        passive_result = passive_runner._execute_run(
+            phase="balanced_passive",
+            kappa=kappa,
+            concentration=concentration,
+            mu=mu,
+            monotonicity=monotonicity,
+            seed=seed,
+        )
+
+        # Run active (with trading)
+        logger.info("  Running active (with trading)...")
+        active_result = active_runner._execute_run(
+            phase="balanced_active",
+            kappa=kappa,
+            concentration=concentration,
+            mu=mu,
+            monotonicity=monotonicity,
+            seed=seed,
+        )
+
+        # Extract dealer metrics from active result
+        dm = active_result.dealer_metrics or {}
+
+        result = BalancedComparisonResult(
+            kappa=kappa,
+            concentration=concentration,
+            mu=mu,
+            monotonicity=monotonicity,
+            seed=seed,
+            face_value=self.config.face_value,
+            outside_mid_ratio=outside_mid_ratio,
+            big_entity_share=self.config.big_entity_share,
+            delta_passive=passive_result.delta_total,
+            phi_passive=passive_result.phi_total,
+            passive_run_id=passive_result.run_id,
+            passive_status="completed" if passive_result.delta_total is not None else "failed",
+            delta_active=active_result.delta_total,
+            phi_active=active_result.phi_total,
+            active_run_id=active_result.run_id,
+            active_status="completed" if active_result.delta_total is not None else "failed",
+            dealer_total_pnl=dm.get("dealer_total_pnl"),
+            dealer_total_return=dm.get("dealer_total_return"),
+            total_trades=dm.get("total_trades"),
+        )
+
+        # Log comparison
+        if result.trading_effect is not None:
+            logger.info(
+                "  Comparison: δ_passive=%s, δ_active=%s, effect=%s (%.1f%%)",
+                result.delta_passive,
+                result.delta_active,
+                result.trading_effect,
+                float(result.trading_relief_ratio or 0) * 100,
+            )
+        else:
+            logger.warning("  Comparison: One or both runs failed")
+
+        return result
+
+    def _write_comparison_csv(self) -> None:
+        """Write comparison results to CSV."""
+        with self.comparison_path.open("w", newline="") as fh:
+            writer = csv.DictWriter(fh, fieldnames=self.COMPARISON_FIELDS)
+            writer.writeheader()
+            for result in self.comparison_results:
+                row = {
+                    "kappa": str(result.kappa),
+                    "concentration": str(result.concentration),
+                    "mu": str(result.mu),
+                    "monotonicity": str(result.monotonicity),
+                    "seed": str(result.seed),
+                    "face_value": str(result.face_value),
+                    "outside_mid_ratio": str(result.outside_mid_ratio),
+                    "big_entity_share": str(result.big_entity_share),
+                    "delta_passive": str(result.delta_passive) if result.delta_passive is not None else "",
+                    "delta_active": str(result.delta_active) if result.delta_active is not None else "",
+                    "trading_effect": str(result.trading_effect) if result.trading_effect is not None else "",
+                    "trading_relief_ratio": str(result.trading_relief_ratio) if result.trading_relief_ratio is not None else "",
+                    "phi_passive": str(result.phi_passive) if result.phi_passive is not None else "",
+                    "phi_active": str(result.phi_active) if result.phi_active is not None else "",
+                    "passive_run_id": result.passive_run_id,
+                    "passive_status": result.passive_status,
+                    "active_run_id": result.active_run_id,
+                    "active_status": result.active_status,
+                    "dealer_total_pnl": str(result.dealer_total_pnl) if result.dealer_total_pnl is not None else "",
+                    "dealer_total_return": str(result.dealer_total_return) if result.dealer_total_return is not None else "",
+                    "total_trades": str(result.total_trades) if result.total_trades is not None else "",
+                }
+                writer.writerow(row)
+
+    def _write_summary_json(self) -> None:
+        """Write summary statistics to JSON."""
+        completed = [r for r in self.comparison_results if r.trading_effect is not None]
+
+        if completed:
+            delta_passives = [float(r.delta_passive) for r in completed if r.delta_passive is not None]
+            delta_actives = [float(r.delta_active) for r in completed if r.delta_active is not None]
+            trading_effects = [float(r.trading_effect) for r in completed if r.trading_effect is not None]
+            relief_ratios = [float(r.trading_relief_ratio) for r in completed if r.trading_relief_ratio is not None]
+
+            mean_delta_passive = sum(delta_passives) / len(delta_passives) if delta_passives else None
+            mean_delta_active = sum(delta_actives) / len(delta_actives) if delta_actives else None
+            mean_trading_effect = sum(trading_effects) / len(trading_effects) if trading_effects else None
+            mean_relief_ratio = sum(relief_ratios) / len(relief_ratios) if relief_ratios else None
+
+            improved = sum(1 for r in completed if r.trading_effect and r.trading_effect > 0)
+            unchanged = sum(1 for r in completed if r.trading_effect == 0)
+            worsened = sum(1 for r in completed if r.trading_effect and r.trading_effect < 0)
+        else:
+            mean_delta_passive = None
+            mean_delta_active = None
+            mean_trading_effect = None
+            mean_relief_ratio = None
+            improved = 0
+            unchanged = 0
+            worsened = 0
+
+        summary = {
+            "total_pairs": len(self.comparison_results),
+            "completed_pairs": len(completed),
+            "mean_delta_passive": mean_delta_passive,
+            "mean_delta_active": mean_delta_active,
+            "mean_trading_effect": mean_trading_effect,
+            "mean_relief_ratio": mean_relief_ratio,
+            "pairs_with_improvement": improved,
+            "pairs_unchanged": unchanged,
+            "pairs_worsened": worsened,
+            "config": {
+                "n_agents": self.config.n_agents,
+                "maturity_days": self.config.maturity_days,
+                "Q_total": str(self.config.Q_total),
+                "base_seed": self.config.base_seed,
+                "face_value": str(self.config.face_value),
+                "big_entity_share": str(self.config.big_entity_share),
+                "kappas": [str(k) for k in self.config.kappas],
+                "concentrations": [str(c) for c in self.config.concentrations],
+                "mus": [str(m) for m in self.config.mus],
+                "outside_mid_ratios": [str(r) for r in self.config.outside_mid_ratios],
+            },
+        }
+
+        with self.summary_path.open("w") as fh:
+            json.dump(summary, fh, indent=2)
+
+
+def run_balanced_comparison_sweep(
+    out_dir: Path,
+    *,
+    n_agents: int = 100,
+    maturity_days: int = 10,
+    Q_total: Decimal = Decimal("10000"),
+    kappas: Sequence[Decimal],
+    concentrations: Sequence[Decimal],
+    mus: Sequence[Decimal],
+    monotonicities: Optional[Sequence[Decimal]] = None,
+    face_value: Decimal = Decimal("20"),
+    outside_mid_ratios: Sequence[Decimal],
+    big_entity_share: Decimal = Decimal("0.25"),
+    base_seed: int = 42,
+    default_handling: str = "fail-fast",
+    name_prefix: str = "Balanced Comparison",
+) -> List[BalancedComparisonResult]:
+    """
+    Convenience function to run a balanced comparison sweep.
+
+    Args:
+        out_dir: Output directory for results
+        n_agents: Number of agents in ring (default: 100)
+        maturity_days: Maturity horizon (default: 10)
+        Q_total: Total debt amount (default: 10000)
+        kappas: List of kappa values to sweep
+        concentrations: List of Dirichlet concentration values
+        mus: List of mu (misalignment) values
+        monotonicities: List of monotonicity values (default: [0])
+        face_value: Face value S (default: 20)
+        outside_mid_ratios: List of M/S ratios to sweep
+        big_entity_share: Fraction of debt held by big entities (default: 0.25)
+        base_seed: Base random seed
+        default_handling: How to handle defaults
+        name_prefix: Scenario name prefix
+
+    Returns:
+        List of BalancedComparisonResult objects
+    """
+    config = BalancedComparisonConfig(
+        n_agents=n_agents,
+        maturity_days=maturity_days,
+        Q_total=Q_total,
+        kappas=list(kappas),
+        concentrations=list(concentrations),
+        mus=list(mus),
+        monotonicities=list(monotonicities or [Decimal("0")]),
+        face_value=face_value,
+        outside_mid_ratios=list(outside_mid_ratios),
+        big_entity_share=big_entity_share,
+        base_seed=base_seed,
+        default_handling=default_handling,
+        name_prefix=name_prefix,
+    )
+
+    runner = BalancedComparisonRunner(config, out_dir)
+    return runner.run_all()
+
+
+__all__ = [
+    "BalancedComparisonResult",
+    "BalancedComparisonConfig",
+    "BalancedComparisonRunner",
+    "run_balanced_comparison_sweep",
+]

@@ -379,6 +379,121 @@ def sweep_comparison(
     console.print(f"  Treatment registry: {runner.treatment_dir / 'registry' / 'experiments.csv'}")
 
 
+@sweep.command("balanced")
+@click.option(
+    "--out-dir",
+    type=click.Path(path_type=Path),
+    required=True,
+    help="Output directory for results",
+)
+@click.option("--n-agents", type=int, default=100, help="Number of agents in ring")
+@click.option("--maturity-days", type=int, default=10, help="Maturity horizon")
+@click.option("--q-total", type=Decimal, default=Decimal("10000"), help="Total debt")
+@click.option("--base-seed", type=int, default=42, help="Base random seed")
+@click.option(
+    "--kappas",
+    type=str,
+    default="0.25,0.5,1,2,4",
+    help="Comma-separated kappa values",
+)
+@click.option(
+    "--concentrations",
+    type=str,
+    default="0.2,0.5,1,2,5",
+    help="Comma-separated concentration values",
+)
+@click.option(
+    "--mus",
+    type=str,
+    default="0,0.25,0.5,0.75,1",
+    help="Comma-separated mu values",
+)
+@click.option(
+    "--face-value",
+    type=Decimal,
+    default=Decimal("20"),
+    help="Face value S (cashflow at maturity)",
+)
+@click.option(
+    "--outside-mid-ratios",
+    type=str,
+    default="1.0,0.9,0.8,0.75,0.5",
+    help="Comma-separated M/S ratios to sweep",
+)
+@click.option(
+    "--big-entity-share",
+    type=Decimal,
+    default=Decimal("0.25"),
+    help="Fraction of debt held by big entities (β)",
+)
+@click.option(
+    "--default-handling",
+    type=click.Choice(["fail-fast", "expel-agent"]),
+    default="fail-fast",
+    help="Default handling mode",
+)
+def sweep_balanced(
+    out_dir: Path,
+    n_agents: int,
+    maturity_days: int,
+    q_total: Decimal,
+    base_seed: int,
+    kappas: str,
+    concentrations: str,
+    mus: str,
+    face_value: Decimal,
+    outside_mid_ratios: str,
+    big_entity_share: Decimal,
+    default_handling: str,
+) -> None:
+    """
+    Run balanced C vs D comparison experiments.
+
+    Compares passive holders (C) against active dealers (D) with
+    identical starting balance sheets. Each pair runs the same scenario
+    twice: once with trading disabled (passive) and once with trading
+    enabled (active).
+
+    Output:
+      - passive/: All passive holder runs
+      - active/: All active dealer runs
+      - aggregate/comparison.csv: C vs D metrics
+      - aggregate/summary.json: Aggregate statistics
+    """
+    from bilancio.experiments.ring import _decimal_list
+    from bilancio.experiments.balanced_comparison import (
+        BalancedComparisonConfig,
+        BalancedComparisonRunner,
+    )
+
+    config = BalancedComparisonConfig(
+        n_agents=n_agents,
+        maturity_days=maturity_days,
+        Q_total=q_total,
+        base_seed=base_seed,
+        kappas=_decimal_list(kappas),
+        concentrations=_decimal_list(concentrations),
+        mus=_decimal_list(mus),
+        face_value=face_value,
+        outside_mid_ratios=_decimal_list(outside_mid_ratios),
+        big_entity_share=big_entity_share,
+        default_handling=default_handling,
+    )
+
+    runner = BalancedComparisonRunner(config, out_dir)
+    results = runner.run_all()
+
+    # Print summary
+    completed = sum(1 for r in results if r.trading_effect is not None)
+    improved = sum(1 for r in results if r.trading_effect and r.trading_effect > 0)
+
+    click.echo(f"\nBalanced comparison complete!")
+    click.echo(f"  Total pairs: {len(results)}")
+    click.echo(f"  Completed: {completed}")
+    click.echo(f"  Improved with trading: {improved}")
+    click.echo(f"\nResults at: {out_dir / 'aggregate' / 'comparison.csv'}")
+
+
 @cli.command()
 @click.argument('scenario_file', type=click.Path(exists=True, path_type=Path))
 @click.option('--mode', type=click.Choice(['step', 'until-stable']), 

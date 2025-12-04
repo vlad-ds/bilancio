@@ -189,6 +189,202 @@ def compile_ring_explorer(
     return scenario
 
 
+def compile_ring_explorer_balanced(
+    config: RingExplorerGeneratorConfig,
+    face_value: Decimal = Decimal("20"),
+    outside_mid_ratio: Decimal = Decimal("0.75"),
+    big_entity_share: Decimal = Decimal("0.25"),
+    mode: str = "active",
+    *,
+    source_path: Optional[Path] = None,
+) -> Dict[str, Any]:
+    """
+    Generate a ring scenario with balanced big entities (C or D).
+
+    The scenario augments the base ring with:
+    1. Additional debt per trader (held by big entities)
+    2. Additional cash per trader (preserves cash/debt ratio)
+    3. Big entities initialized with securities + matching cash
+
+    Args:
+        config: Base ring explorer configuration
+        face_value: Face value S (cashflow at maturity), default 20
+        outside_mid_ratio: M/S ratio (0.5 to 1.0), default 0.75
+        big_entity_share: Fraction of trader debt for big entities (β), default 0.25
+        mode: "passive" (mimics) or "active" (dealers)
+        source_path: Optional path for YAML output
+
+    Returns:
+        Complete scenario dictionary with balanced big entities
+    """
+    params = RingExplorerParams.from_model(config.params)
+
+    # Get base payable amounts (this is the original debt distribution)
+    base_payable_amounts = _draw_payables(
+        params.n_agents,
+        params.inequality.concentration,
+        params.inequality.monotonicity,
+        params.Q_total,
+        params.seed,
+    )
+
+    # Scale up payable amounts by (1 + big_entity_share)
+    scale_factor = Decimal("1") + big_entity_share
+    scaled_payable_amounts = [amt * scale_factor for amt in base_payable_amounts]
+
+    # Get base liquidity amounts and scale up
+    base_liquidity = params.liquidity.total
+    scaled_liquidity_total = base_liquidity * scale_factor
+
+    # Recalculate liquidity allocation with scaled total
+    scaled_params = RingExplorerParams(
+        n_agents=params.n_agents,
+        seed=params.seed,
+        kappa=params.kappa,
+        Q_total=params.Q_total * scale_factor,
+        liquidity=LiquiditySpec(
+            total=scaled_liquidity_total,
+            mode=params.liquidity.mode,
+            agent=params.liquidity.agent,
+            vector=params.liquidity.vector,
+        ),
+        inequality=params.inequality,
+        maturity=params.maturity,
+        currency=params.currency,
+        policy_overrides=params.policy_overrides,
+    )
+    scaled_liquidity_amounts = _allocate_liquidity(scaled_params)
+
+    due_days = _build_due_days(params.n_agents, params.maturity.days, params.maturity.mu)
+
+    agents = _build_agents(params.n_agents)
+
+    # Add big entity agents (one per bucket: short, mid, long)
+    big_entity_buckets = ["short", "mid", "long"]
+    for bucket in big_entity_buckets:
+        agent_id = f"big_{bucket}"
+        agents.append({
+            "id": agent_id,
+            "kind": "household",  # Use household for now
+            "name": f"Big Entity ({bucket})",
+        })
+
+    initial_actions = []
+
+    # Seed cash liquidity to traders (scaled amounts)
+    for idx, amount in enumerate(scaled_liquidity_amounts):
+        if amount <= 0:
+            continue
+        agent_id = f"H{idx + 1}"
+        initial_actions.append({
+            "mint_cash": {
+                "to": agent_id,
+                "amount": amount,
+                "alias": f"LIQ_{agent_id}",
+            }
+        })
+
+    # Create ring payables (scaled amounts - original debt structure preserved)
+    for idx, amount in enumerate(scaled_payable_amounts):
+        from_agent = f"H{idx + 1}"
+        to_agent = f"H{(idx + 1) % params.n_agents + 1}"
+        due_day = due_days[idx]
+        initial_actions.append({
+            "create_payable": {
+                "from": from_agent,
+                "to": to_agent,
+                "amount": amount,
+                "due_day": due_day,
+                "alias": f"P_{from_agent}_{to_agent}",
+            }
+        })
+
+    # Create additional payables from traders to big entities
+    # These represent the debt held by big entities
+    # Distribute across buckets based on maturity
+    outside_mid = outside_mid_ratio * face_value
+    total_big_entity_debt = params.Q_total * big_entity_share
+
+    # Split debt across buckets (for simplicity, equal distribution)
+    debt_per_bucket = total_big_entity_debt / Decimal(len(big_entity_buckets))
+
+    # Create payables to big entities (spread across traders)
+    debt_per_trader_to_big = total_big_entity_debt / Decimal(params.n_agents)
+    for idx in range(params.n_agents):
+        from_agent = f"H{idx + 1}"
+        # Assign to bucket based on maturity structure
+        bucket_idx = idx % len(big_entity_buckets)
+        to_agent = f"big_{big_entity_buckets[bucket_idx]}"
+        due_day = due_days[idx]
+        initial_actions.append({
+            "create_payable": {
+                "from": from_agent,
+                "to": to_agent,
+                "amount": debt_per_trader_to_big,
+                "due_day": due_day,
+                "alias": f"P_{from_agent}_{to_agent}_big",
+            }
+        })
+
+    # Mint cash to big entities (market value of securities = balanced position)
+    # Each big entity gets cash = market value of their securities
+    # Market value = face_value_held × outside_mid_ratio
+    cash_per_bucket = debt_per_bucket * outside_mid_ratio
+    for bucket in big_entity_buckets:
+        agent_id = f"big_{bucket}"
+        initial_actions.append({
+            "mint_cash": {
+                "to": agent_id,
+                "amount": cash_per_bucket,
+                "alias": f"LIQ_{agent_id}",
+            }
+        })
+
+    scenario_name = _render_scenario_name(config.name_prefix, params)
+    scenario_name = f"{scenario_name} [Balanced {mode}]"
+    description = _render_description(params)
+    description = f"{description}; balanced mode={mode}, β={_fmt_decimal(big_entity_share)}, ρ={_fmt_decimal(outside_mid_ratio)}"
+
+    scenario: Dict[str, Any] = {
+        "version": 1,
+        "name": scenario_name,
+        "description": description,
+        "policy_overrides": params.policy_overrides,
+        "agents": agents,
+        "initial_actions": initial_actions,
+        "scheduled_actions": [],
+        "run": {
+            "mode": "until_stable",
+            "max_days": max(30, params.maturity.days + 5),
+            "quiet_days": 2,
+            "show": {
+                "balances": [agent["id"] for agent in agents],
+                "events": "detailed",
+            },
+            "export": {
+                "balances_csv": "out/balances.csv",
+                "events_jsonl": "out/events.jsonl",
+            },
+        },
+        # Store balanced config for later use
+        "_balanced_config": {
+            "face_value": float(face_value),
+            "outside_mid_ratio": float(outside_mid_ratio),
+            "big_entity_share": float(big_entity_share),
+            "mode": mode,
+        },
+    }
+
+    if config.compile.emit_yaml:
+        _emit_yaml(
+            scenario,
+            config,
+            source_path=source_path,
+        )
+
+    return scenario
+
+
 def _draw_payables(
     n: int,
     concentration: Decimal,
@@ -450,4 +646,4 @@ def _to_yaml_ready(obj: Any) -> Any:
     return obj
 
 
-__all__ = ["compile_ring_explorer"]
+__all__ = ["compile_ring_explorer", "compile_ring_explorer_balanced"]

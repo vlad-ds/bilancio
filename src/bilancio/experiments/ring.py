@@ -235,6 +235,10 @@ class RingSweepRunner:
         default_handling: str = "fail-fast",
         dealer_enabled: bool = False,
         dealer_config: Optional[Dict[str, Any]] = None,
+        balanced_mode: bool = False,
+        face_value: Optional[Decimal] = None,
+        outside_mid_ratio: Optional[Decimal] = None,
+        big_entity_share: Optional[Decimal] = None,
     ) -> None:
         self.base_dir = out_dir
         self.registry_dir = self.base_dir / "registry"
@@ -250,6 +254,10 @@ class RingSweepRunner:
         self.default_handling = default_handling
         self.dealer_enabled = dealer_enabled
         self.dealer_config = dealer_config
+        self.balanced_mode = balanced_mode
+        self.face_value = face_value or Decimal("20")
+        self.outside_mid_ratio = outside_mid_ratio or Decimal("0.75")
+        self.big_entity_share = big_entity_share or Decimal("0.25")
         self.registry_rows: List[Dict[str, Any]] = []
 
         self.registry_dir.mkdir(parents=True, exist_ok=True)
@@ -509,7 +517,20 @@ class RingSweepRunner:
         }
 
         generator_config = RingExplorerGeneratorConfig.model_validate(generator_data)
-        scenario = compile_ring_explorer(generator_config, source_path=None)
+
+        if self.balanced_mode:
+            # Use balanced generator for C vs D comparison scenarios
+            from bilancio.scenarios.generators.ring_explorer import compile_ring_explorer_balanced
+            scenario = compile_ring_explorer_balanced(
+                generator_config,
+                face_value=self.face_value,
+                outside_mid_ratio=self.outside_mid_ratio,
+                big_entity_share=self.big_entity_share,
+                mode="active" if self.dealer_enabled else "passive",
+                source_path=None,
+            )
+        else:
+            scenario = compile_ring_explorer(generator_config, source_path=None)
 
         if self.dealer_enabled:
             dealer_section: Dict[str, Any] = {"enabled": True}
