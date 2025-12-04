@@ -327,6 +327,26 @@ def initialize_dealer_subsystem(
 
         subsystem.traders[agent_id] = trader
 
+    # Step 4: Capture initial debt-to-money ratio (Plan 020 - Phase B)
+    # This is a key control variable - results only make sense given this ratio
+    from bilancio.domain.instruments.credit import Payable as PayableClass
+
+    # Sum all payable amounts (total debt in system)
+    total_debt = Decimal(0)
+    for contract in system.state.contracts.values():
+        if isinstance(contract, PayableClass):
+            total_debt += Decimal(contract.amount)
+
+    # Sum all cash holdings (total money in system, excluding dealer/VBT)
+    total_money = Decimal(0)
+    for agent_id_iter, agent in system.state.agents.items():
+        if agent.kind not in ("dealer", "vbt"):
+            total_money += _get_agent_cash(system, agent_id_iter)
+
+    # Store in metrics
+    subsystem.metrics.initial_total_debt = total_debt
+    subsystem.metrics.initial_total_money = total_money
+
     return subsystem
 
 

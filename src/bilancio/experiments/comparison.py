@@ -61,6 +61,15 @@ class ComparisonResult:
     unsafe_buy_count: Optional[int] = None
     fraction_unsafe_buys: Optional[float] = None
 
+    # Plan 020 metrics: debt-to-money ratio and mid prices
+    initial_total_debt: Optional[float] = None
+    initial_total_money: Optional[float] = None
+    debt_to_money_ratio: Optional[float] = None
+    dealer_mid_final: Optional[Dict[str, float]] = None
+    vbt_mid_final: Optional[Dict[str, float]] = None
+    dealer_premium_final_pct: Optional[Dict[str, float]] = None
+    vbt_premium_final_pct: Optional[Dict[str, float]] = None
+
     @property
     def delta_reduction(self) -> Optional[Decimal]:
         """Absolute reduction in default rate."""
@@ -150,6 +159,14 @@ class ComparisonSweepRunner:
         "total_trades",
         "unsafe_buy_count",
         "fraction_unsafe_buys",
+        # Plan 020 metrics
+        "initial_total_debt",
+        "initial_total_money",
+        "debt_to_money_ratio",
+        "dealer_mid_final",
+        "vbt_mid_final",
+        "dealer_premium_final_pct",
+        "vbt_premium_final_pct",
     ]
 
     def __init__(self, config: ComparisonSweepConfig, out_dir: Path) -> None:
@@ -325,6 +342,14 @@ class ComparisonSweepRunner:
             total_trades=dm.get("total_trades"),
             unsafe_buy_count=dm.get("unsafe_buy_count"),
             fraction_unsafe_buys=dm.get("fraction_unsafe_buys"),
+            # Plan 020 metrics
+            initial_total_debt=dm.get("initial_total_debt"),
+            initial_total_money=dm.get("initial_total_money"),
+            debt_to_money_ratio=dm.get("debt_to_money_ratio"),
+            dealer_mid_final=dm.get("dealer_mid_final"),
+            vbt_mid_final=dm.get("vbt_mid_final"),
+            dealer_premium_final_pct=dm.get("dealer_premium_final_pct"),
+            vbt_premium_final_pct=dm.get("vbt_premium_final_pct"),
         )
 
         # Log comparison
@@ -375,6 +400,14 @@ class ComparisonSweepRunner:
                     "total_trades": str(result.total_trades) if result.total_trades is not None else "",
                     "unsafe_buy_count": str(result.unsafe_buy_count) if result.unsafe_buy_count is not None else "",
                     "fraction_unsafe_buys": str(result.fraction_unsafe_buys) if result.fraction_unsafe_buys is not None else "",
+                    # Plan 020 metrics
+                    "initial_total_debt": str(result.initial_total_debt) if result.initial_total_debt is not None else "",
+                    "initial_total_money": str(result.initial_total_money) if result.initial_total_money is not None else "",
+                    "debt_to_money_ratio": str(result.debt_to_money_ratio) if result.debt_to_money_ratio is not None else "",
+                    "dealer_mid_final": json.dumps(result.dealer_mid_final) if result.dealer_mid_final is not None else "",
+                    "vbt_mid_final": json.dumps(result.vbt_mid_final) if result.vbt_mid_final is not None else "",
+                    "dealer_premium_final_pct": json.dumps(result.dealer_premium_final_pct) if result.dealer_premium_final_pct is not None else "",
+                    "vbt_premium_final_pct": json.dumps(result.vbt_premium_final_pct) if result.vbt_premium_final_pct is not None else "",
                 }
                 writer.writerow(row)
 

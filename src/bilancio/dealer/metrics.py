@@ -141,6 +141,43 @@ class DealerSnapshot:
         """Current bid-ask spread."""
         return self.ask - self.bid
 
+    @property
+    def dealer_premium_vs_face(self) -> Decimal:
+        """
+        Dealer midline premium/discount vs face value (par = 1).
+
+        Returns (midline - 1).
+        Positive = premium, Negative = discount.
+        """
+        return self.midline - Decimal(1)
+
+    @property
+    def dealer_premium_pct(self) -> Decimal:
+        """
+        Dealer premium/discount as percentage.
+
+        ((midline - 1) / 1) * 100
+        """
+        return (self.midline - Decimal(1)) * 100
+
+    @property
+    def vbt_premium_vs_face(self) -> Decimal:
+        """
+        VBT mid premium/discount vs face value (par = 1).
+
+        Returns (M - 1).
+        """
+        return self.vbt_mid - Decimal(1)
+
+    @property
+    def vbt_premium_pct(self) -> Decimal:
+        """
+        VBT premium/discount as percentage.
+
+        ((M - 1) / 1) * 100
+        """
+        return (self.vbt_mid - Decimal(1)) * 100
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary with serialized Decimals."""
         return {
@@ -156,6 +193,8 @@ class DealerSnapshot:
             "ticket_size": str(self.ticket_size),
             "mark_to_mid_equity": str(self.mark_to_mid_equity),
             "spread": str(self.spread),
+            "dealer_premium_pct": str(self.dealer_premium_pct),
+            "vbt_premium_pct": str(self.vbt_premium_pct),
         }
 
 
@@ -313,6 +352,25 @@ class RunMetrics:
 
     # Initial equity by bucket (for P&L calculation)
     initial_equity_by_bucket: Dict[str, Decimal] = field(default_factory=dict)
+
+    # System-level initial state (debt-to-money ratio control variable)
+    initial_total_debt: Decimal = Decimal(0)    # Sum of all payable amounts at t=0
+    initial_total_money: Decimal = Decimal(0)   # Sum of all cash holdings at t=0
+
+    @property
+    def debt_to_money_ratio(self) -> Decimal:
+        """
+        Debt-to-money ratio at simulation start.
+
+        This is a key control variable: results only make sense
+        given the same ratio. More money = fewer expected defaults.
+
+        Returns:
+            total_debt / total_money (or 0 if no money)
+        """
+        if self.initial_total_money > 0:
+            return self.initial_total_debt / self.initial_total_money
+        return Decimal(0)
 
     # =========================================================================
     # Section 8.2: Dealer and VBT Profitability
@@ -523,6 +581,106 @@ class RunMetrics:
         return None
 
     # =========================================================================
+    # Mid Price Time Series (Plan 020)
+    # =========================================================================
+
+    def dealer_mid_timeseries(self) -> Dict[int, Dict[str, Decimal]]:
+        """
+        Extract dealer midline time series by bucket.
+
+        Returns:
+            {day: {bucket_id: midline_value}}
+        """
+        result: Dict[int, Dict[str, Decimal]] = {}
+        for snap in self.dealer_snapshots:
+            if snap.day not in result:
+                result[snap.day] = {}
+            result[snap.day][snap.bucket] = snap.midline
+        return result
+
+    def vbt_mid_timeseries(self) -> Dict[int, Dict[str, Decimal]]:
+        """
+        Extract VBT mid (M) time series by bucket.
+
+        Returns:
+            {day: {bucket_id: M_value}}
+        """
+        result: Dict[int, Dict[str, Decimal]] = {}
+        for snap in self.dealer_snapshots:
+            if snap.day not in result:
+                result[snap.day] = {}
+            result[snap.day][snap.bucket] = snap.vbt_mid
+        return result
+
+    def dealer_premium_timeseries(self) -> Dict[int, Dict[str, Decimal]]:
+        """
+        Extract dealer premium/discount vs face time series.
+
+        Returns:
+            {day: {bucket_id: premium_pct}}
+        """
+        result: Dict[int, Dict[str, Decimal]] = {}
+        for snap in self.dealer_snapshots:
+            if snap.day not in result:
+                result[snap.day] = {}
+            result[snap.day][snap.bucket] = snap.dealer_premium_pct
+        return result
+
+    def vbt_premium_timeseries(self) -> Dict[int, Dict[str, Decimal]]:
+        """
+        Extract VBT premium/discount vs face time series.
+
+        Returns:
+            {day: {bucket_id: premium_pct}}
+        """
+        result: Dict[int, Dict[str, Decimal]] = {}
+        for snap in self.dealer_snapshots:
+            if snap.day not in result:
+                result[snap.day] = {}
+            result[snap.day][snap.bucket] = snap.vbt_premium_pct
+        return result
+
+    def _final_dealer_mids(self) -> Dict[str, float]:
+        """Get final dealer midline by bucket."""
+        result = {}
+        for bucket_id in set(s.bucket for s in self.dealer_snapshots):
+            bucket_snaps = [s for s in self.dealer_snapshots if s.bucket == bucket_id]
+            if bucket_snaps:
+                final = max(bucket_snaps, key=lambda s: s.day)
+                result[bucket_id] = float(final.midline)
+        return result
+
+    def _final_vbt_mids(self) -> Dict[str, float]:
+        """Get final VBT mid by bucket."""
+        result = {}
+        for bucket_id in set(s.bucket for s in self.dealer_snapshots):
+            bucket_snaps = [s for s in self.dealer_snapshots if s.bucket == bucket_id]
+            if bucket_snaps:
+                final = max(bucket_snaps, key=lambda s: s.day)
+                result[bucket_id] = float(final.vbt_mid)
+        return result
+
+    def _final_dealer_premiums(self) -> Dict[str, float]:
+        """Get final dealer premium % by bucket."""
+        result = {}
+        for bucket_id in set(s.bucket for s in self.dealer_snapshots):
+            bucket_snaps = [s for s in self.dealer_snapshots if s.bucket == bucket_id]
+            if bucket_snaps:
+                final = max(bucket_snaps, key=lambda s: s.day)
+                result[bucket_id] = float(final.dealer_premium_pct)
+        return result
+
+    def _final_vbt_premiums(self) -> Dict[str, float]:
+        """Get final VBT premium % by bucket."""
+        result = {}
+        for bucket_id in set(s.bucket for s in self.dealer_snapshots):
+            bucket_snaps = [s for s in self.dealer_snapshots if s.bucket == bucket_id]
+            if bucket_snaps:
+                final = max(bucket_snaps, key=lambda s: s.day)
+                result[bucket_id] = float(final.vbt_premium_pct)
+        return result
+
+    # =========================================================================
     # Section 8.5: Experiment-Level Summary Statistics
     # =========================================================================
 
@@ -558,6 +716,17 @@ class RunMetrics:
             "total_trades": len(self.trades),
             "total_sell_trades": sum(1 for t in self.trades if t.side == "SELL"),
             "total_buy_trades": sum(1 for t in self.trades if t.side == "BUY"),
+
+            # System-level control variable (Plan 020 - Phase B)
+            "initial_total_debt": float(self.initial_total_debt),
+            "initial_total_money": float(self.initial_total_money),
+            "debt_to_money_ratio": float(self.debt_to_money_ratio),
+
+            # Mid price summary stats (Plan 020 - Phase A.2, A.3)
+            "dealer_mid_final": self._final_dealer_mids(),
+            "vbt_mid_final": self._final_vbt_mids(),
+            "dealer_premium_final_pct": self._final_dealer_premiums(),
+            "vbt_premium_final_pct": self._final_vbt_premiums(),
         }
 
     # =========================================================================
@@ -636,6 +805,38 @@ class RunMetrics:
 
         with open(path_obj, "w") as f:
             json.dump(self.summary(), f, indent=2)
+
+    def to_mid_timeseries_csv(self, path: str) -> None:
+        """
+        Export mid price time series to CSV.
+
+        Columns: day, bucket, dealer_midline, vbt_mid, dealer_premium_pct, vbt_premium_pct
+        """
+        import csv
+        path_obj = Path(path)
+        path_obj.parent.mkdir(parents=True, exist_ok=True)
+
+        if not self.dealer_snapshots:
+            return
+
+        fieldnames = [
+            "day", "bucket",
+            "dealer_midline", "vbt_mid",
+            "dealer_premium_pct", "vbt_premium_pct"
+        ]
+
+        with open(path_obj, "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            for snap in sorted(self.dealer_snapshots, key=lambda s: (s.day, s.bucket)):
+                writer.writerow({
+                    "day": snap.day,
+                    "bucket": snap.bucket,
+                    "dealer_midline": str(snap.midline),
+                    "vbt_mid": str(snap.vbt_mid),
+                    "dealer_premium_pct": str(snap.dealer_premium_pct),
+                    "vbt_premium_pct": str(snap.vbt_premium_pct),
+                })
 
 
 # =============================================================================
