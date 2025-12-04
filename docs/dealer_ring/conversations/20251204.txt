@@ -1,0 +1,68 @@
+Alex (Sasa) Feedback on C & D Requirements
+==========================================
+Date: 2025-12-04
+
+Context: Claude provided interpretation of requirements C & D for the three-way comparison
+(passive holders vs dealers). Alex responded to the clarifying questions.
+
+---
+
+Re A.1 "How off-balance the dealer and VBT"
+(12:42)
+
+This is correct - just how far it is from midpoint in inventory
+
+---
+
+Re Question 4 (Comparison structure):
+(Edited 12:48)
+
+The main comparison will be between passive large holders versus traders [dealers].
+The less important is between passive large holders and no passive large holders.
+There is no point comparing dealers and no passive holders as the effect of structure
+of holdings of claims (even if we control for initial debt to money ratio) will differ.
+
+---
+
+Re Question 3 (Balance calculation / how many securities):
+(12:48)
+
+This relates to my comment about 4. Essentially we need a rule that preserves the
+structure of holdings of securities and money from no large entities case in the
+passive large entities case. I am open to Claude's suggestion.
+
+An option could be: each trader has an additional percent of debt liabilities given
+its debt in no big entities case, the claim on that debt is held by relevant big entity.
+Given the amount of debt claims they hold these entities then also get to have as much
+money to have balanced inventory. Also the traders are given additional cash such that
+their cash to debt ratio from the case without big entities is preserved.
+
+---
+
+Re Question 2 (What securities do mimics/dealers start with):
+(13:07)
+
+The above responds to 2 as well
+
+---
+
+Re Question 1 (Face value of 20):
+(13:23)
+
+This one is the trickiest. Give me more time to think
+
+(18:51)
+
+The way we wanted to do it is that we have the ticket size as the size of a single
+debt claim (in terms of cashflow at maturity) which was supposed to be 20. Then,
+the outside mid could be somehow related to that value. Meaning that it could be
+either the full value or some percentage of the full value, such as 90% or 80%, etc.
+
+---
+
+Summary of Answers:
+- A.1 (off-balance): Confirmed - distance from midpoint in inventory
+- Q1 (face value): Ticket size = 20 (cashflow at maturity), outside mid is a percentage of this (100%, 90%, 80%, etc.)
+- Q2 (what securities): Answered by Q3 response - big entities hold claims on additional debt issued by traders
+- Q3 (how many securities): Each trader issues additional debt (as % of their existing debt), big entities hold these claims. Big entities get matching cash for balanced inventory. Traders also get extra cash to preserve their original cash-to-debt ratio.
+- Q4 (comparison structure): Main comparison is passive holders vs dealers (with trading). Secondary is passive holders vs no big entities. No direct comparison of dealers vs no big entities.
