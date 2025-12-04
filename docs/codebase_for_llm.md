@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2025-12-01 20:07:48 UTC | Branch: main | Commit: 96dbb34
+Generated: 2025-12-04 08:02:07 UTC | Branch: main | Commit: 3889cad
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -2339,6 +2339,7 @@ This document contains the complete codebase structure and content for LLM inges
 │   │   ├── 017_dealer_ring_html_report.md
 │   │   ├── 018_dealer_comparison_experiments.md
 │   │   ├── 019_dealer_metrics.md
+│   │   ├── 020_dealer_mid_tracking_metrics.md
 │   │   └── Kalecki_debt_simulation (1).pdf
 │   ├── prompts
 │   │   ├── 015_expel_sweep_agent_prompt.md
@@ -5224,7 +5225,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-1580 directories, 3634 files
+1580 directories, 3635 files
 
 ```
 
@@ -6612,6 +6613,20 @@ Complete git history from oldest to newest:
   - Non-profitable dealers provide higher relief (4.22% vs 0%)
   - Average 13.4 trades per run
   - 0 liquidity-driven sales, rescue events, unsafe buys
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **fd736599** (2025-12-01) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **3889cada** (2025-12-04) by vladgheorghe
+  feat(dealer): add mid price tracking and debt-to-money ratio metrics
+  Implements Plan 020 for dealer ring analysis:
+  - Track dealer midline and VBT mid prices across all timepoints
+  - Add premium/discount metrics vs face value (par = 1)
+  - Capture debt-to-money ratio at simulation start as control variable
+  - Export time series data to CSV for analysis
+  - Add 14 new unit tests for the metrics
   🤖 Generated with [Claude Code](https://claude.com/claude-code)
   Co-Authored-By: Claude <noreply@anthropic.com>
 
@@ -13515,6 +13530,43 @@ class DealerSnapshot:
         """Current bid-ask spread."""
         return self.ask - self.bid
 
+    @property
+    def dealer_premium_vs_face(self) -> Decimal:
+        """
+        Dealer midline premium/discount vs face value (par = 1).
+
+        Returns (midline - 1).
+        Positive = premium, Negative = discount.
+        """
+        return self.midline - Decimal(1)
+
+    @property
+    def dealer_premium_pct(self) -> Decimal:
+        """
+        Dealer premium/discount as percentage.
+
+        ((midline - 1) / 1) * 100
+        """
+        return (self.midline - Decimal(1)) * 100
+
+    @property
+    def vbt_premium_vs_face(self) -> Decimal:
+        """
+        VBT mid premium/discount vs face value (par = 1).
+
+        Returns (M - 1).
+        """
+        return self.vbt_mid - Decimal(1)
+
+    @property
+    def vbt_premium_pct(self) -> Decimal:
+        """
+        VBT premium/discount as percentage.
+
+        ((M - 1) / 1) * 100
+        """
+        return (self.vbt_mid - Decimal(1)) * 100
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary with serialized Decimals."""
         return {
@@ -13530,6 +13582,8 @@ class DealerSnapshot:
             "ticket_size": str(self.ticket_size),
             "mark_to_mid_equity": str(self.mark_to_mid_equity),
             "spread": str(self.spread),
+            "dealer_premium_pct": str(self.dealer_premium_pct),
+            "vbt_premium_pct": str(self.vbt_premium_pct),
         }
 
 
@@ -13687,6 +13741,25 @@ class RunMetrics:
 
     # Initial equity by bucket (for P&L calculation)
     initial_equity_by_bucket: Dict[str, Decimal] = field(default_factory=dict)
+
+    # System-level initial state (debt-to-money ratio control variable)
+    initial_total_debt: Decimal = Decimal(0)    # Sum of all payable amounts at t=0
+    initial_total_money: Decimal = Decimal(0)   # Sum of all cash holdings at t=0
+
+    @property
+    def debt_to_money_ratio(self) -> Decimal:
+        """
+        Debt-to-money ratio at simulation start.
+
+        This is a key control variable: results only make sense
+        given the same ratio. More money = fewer expected defaults.
+
+        Returns:
+            total_debt / total_money (or 0 if no money)
+        """
+        if self.initial_total_money > 0:
+            return self.initial_total_debt / self.initial_total_money
+        return Decimal(0)
 
     # =========================================================================
     # Section 8.2: Dealer and VBT Profitability
@@ -13897,6 +13970,106 @@ class RunMetrics:
         return None
 
     # =========================================================================
+    # Mid Price Time Series (Plan 020)
+    # =========================================================================
+
+    def dealer_mid_timeseries(self) -> Dict[int, Dict[str, Decimal]]:
+        """
+        Extract dealer midline time series by bucket.
+
+        Returns:
+            {day: {bucket_id: midline_value}}
+        """
+        result: Dict[int, Dict[str, Decimal]] = {}
+        for snap in self.dealer_snapshots:
+            if snap.day not in result:
+                result[snap.day] = {}
+            result[snap.day][snap.bucket] = snap.midline
+        return result
+
+    def vbt_mid_timeseries(self) -> Dict[int, Dict[str, Decimal]]:
+        """
+        Extract VBT mid (M) time series by bucket.
+
+        Returns:
+            {day: {bucket_id: M_value}}
+        """
+        result: Dict[int, Dict[str, Decimal]] = {}
+        for snap in self.dealer_snapshots:
+            if snap.day not in result:
+                result[snap.day] = {}
+            result[snap.day][snap.bucket] = snap.vbt_mid
+        return result
+
+    def dealer_premium_timeseries(self) -> Dict[int, Dict[str, Decimal]]:
+        """
+        Extract dealer premium/discount vs face time series.
+
+        Returns:
+            {day: {bucket_id: premium_pct}}
+        """
+        result: Dict[int, Dict[str, Decimal]] = {}
+        for snap in self.dealer_snapshots:
+            if snap.day not in result:
+                result[snap.day] = {}
+            result[snap.day][snap.bucket] = snap.dealer_premium_pct
+        return result
+
+    def vbt_premium_timeseries(self) -> Dict[int, Dict[str, Decimal]]:
+        """
+        Extract VBT premium/discount vs face time series.
+
+        Returns:
+            {day: {bucket_id: premium_pct}}
+        """
+        result: Dict[int, Dict[str, Decimal]] = {}
+        for snap in self.dealer_snapshots:
+            if snap.day not in result:
+                result[snap.day] = {}
+            result[snap.day][snap.bucket] = snap.vbt_premium_pct
+        return result
+
+    def _final_dealer_mids(self) -> Dict[str, float]:
+        """Get final dealer midline by bucket."""
+        result = {}
+        for bucket_id in set(s.bucket for s in self.dealer_snapshots):
+            bucket_snaps = [s for s in self.dealer_snapshots if s.bucket == bucket_id]
+            if bucket_snaps:
+                final = max(bucket_snaps, key=lambda s: s.day)
+                result[bucket_id] = float(final.midline)
+        return result
+
+    def _final_vbt_mids(self) -> Dict[str, float]:
+        """Get final VBT mid by bucket."""
+        result = {}
+        for bucket_id in set(s.bucket for s in self.dealer_snapshots):
+            bucket_snaps = [s for s in self.dealer_snapshots if s.bucket == bucket_id]
+            if bucket_snaps:
+                final = max(bucket_snaps, key=lambda s: s.day)
+                result[bucket_id] = float(final.vbt_mid)
+        return result
+
+    def _final_dealer_premiums(self) -> Dict[str, float]:
+        """Get final dealer premium % by bucket."""
+        result = {}
+        for bucket_id in set(s.bucket for s in self.dealer_snapshots):
+            bucket_snaps = [s for s in self.dealer_snapshots if s.bucket == bucket_id]
+            if bucket_snaps:
+                final = max(bucket_snaps, key=lambda s: s.day)
+                result[bucket_id] = float(final.dealer_premium_pct)
+        return result
+
+    def _final_vbt_premiums(self) -> Dict[str, float]:
+        """Get final VBT premium % by bucket."""
+        result = {}
+        for bucket_id in set(s.bucket for s in self.dealer_snapshots):
+            bucket_snaps = [s for s in self.dealer_snapshots if s.bucket == bucket_id]
+            if bucket_snaps:
+                final = max(bucket_snaps, key=lambda s: s.day)
+                result[bucket_id] = float(final.vbt_premium_pct)
+        return result
+
+    # =========================================================================
     # Section 8.5: Experiment-Level Summary Statistics
     # =========================================================================
 
@@ -13932,6 +14105,17 @@ class RunMetrics:
             "total_trades": len(self.trades),
             "total_sell_trades": sum(1 for t in self.trades if t.side == "SELL"),
             "total_buy_trades": sum(1 for t in self.trades if t.side == "BUY"),
+
+            # System-level control variable (Plan 020 - Phase B)
+            "initial_total_debt": float(self.initial_total_debt),
+            "initial_total_money": float(self.initial_total_money),
+            "debt_to_money_ratio": float(self.debt_to_money_ratio),
+
+            # Mid price summary stats (Plan 020 - Phase A.2, A.3)
+            "dealer_mid_final": self._final_dealer_mids(),
+            "vbt_mid_final": self._final_vbt_mids(),
+            "dealer_premium_final_pct": self._final_dealer_premiums(),
+            "vbt_premium_final_pct": self._final_vbt_premiums(),
         }
 
     # =========================================================================
@@ -14010,6 +14194,38 @@ class RunMetrics:
 
         with open(path_obj, "w") as f:
             json.dump(self.summary(), f, indent=2)
+
+    def to_mid_timeseries_csv(self, path: str) -> None:
+        """
+        Export mid price time series to CSV.
+
+        Columns: day, bucket, dealer_midline, vbt_mid, dealer_premium_pct, vbt_premium_pct
+        """
+        import csv
+        path_obj = Path(path)
+        path_obj.parent.mkdir(parents=True, exist_ok=True)
+
+        if not self.dealer_snapshots:
+            return
+
+        fieldnames = [
+            "day", "bucket",
+            "dealer_midline", "vbt_mid",
+            "dealer_premium_pct", "vbt_premium_pct"
+        ]
+
+        with open(path_obj, "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            for snap in sorted(self.dealer_snapshots, key=lambda s: (s.day, s.bucket)):
+                writer.writerow({
+                    "day": snap.day,
+                    "bucket": snap.bucket,
+                    "dealer_midline": str(snap.midline),
+                    "vbt_mid": str(snap.vbt_mid),
+                    "dealer_premium_pct": str(snap.dealer_premium_pct),
+                    "vbt_premium_pct": str(snap.vbt_premium_pct),
+                })
 
 
 # =============================================================================
@@ -17800,6 +18016,26 @@ def initialize_dealer_subsystem(
 
         subsystem.traders[agent_id] = trader
 
+    # Step 4: Capture initial debt-to-money ratio (Plan 020 - Phase B)
+    # This is a key control variable - results only make sense given this ratio
+    from bilancio.domain.instruments.credit import Payable as PayableClass
+
+    # Sum all payable amounts (total debt in system)
+    total_debt = Decimal(0)
+    for contract in system.state.contracts.values():
+        if isinstance(contract, PayableClass):
+            total_debt += Decimal(contract.amount)
+
+    # Sum all cash holdings (total money in system, excluding dealer/VBT)
+    total_money = Decimal(0)
+    for agent_id_iter, agent in system.state.agents.items():
+        if agent.kind not in ("dealer", "vbt"):
+            total_money += _get_agent_cash(system, agent_id_iter)
+
+    # Store in metrics
+    subsystem.metrics.initial_total_debt = total_debt
+    subsystem.metrics.initial_total_money = total_money
+
     return subsystem
 
 
@@ -19924,6 +20160,15 @@ class ComparisonResult:
     unsafe_buy_count: Optional[int] = None
     fraction_unsafe_buys: Optional[float] = None
 
+    # Plan 020 metrics: debt-to-money ratio and mid prices
+    initial_total_debt: Optional[float] = None
+    initial_total_money: Optional[float] = None
+    debt_to_money_ratio: Optional[float] = None
+    dealer_mid_final: Optional[Dict[str, float]] = None
+    vbt_mid_final: Optional[Dict[str, float]] = None
+    dealer_premium_final_pct: Optional[Dict[str, float]] = None
+    vbt_premium_final_pct: Optional[Dict[str, float]] = None
+
     @property
     def delta_reduction(self) -> Optional[Decimal]:
         """Absolute reduction in default rate."""
@@ -20013,6 +20258,14 @@ class ComparisonSweepRunner:
         "total_trades",
         "unsafe_buy_count",
         "fraction_unsafe_buys",
+        # Plan 020 metrics
+        "initial_total_debt",
+        "initial_total_money",
+        "debt_to_money_ratio",
+        "dealer_mid_final",
+        "vbt_mid_final",
+        "dealer_premium_final_pct",
+        "vbt_premium_final_pct",
     ]
 
     def __init__(self, config: ComparisonSweepConfig, out_dir: Path) -> None:
@@ -20188,6 +20441,14 @@ class ComparisonSweepRunner:
             total_trades=dm.get("total_trades"),
             unsafe_buy_count=dm.get("unsafe_buy_count"),
             fraction_unsafe_buys=dm.get("fraction_unsafe_buys"),
+            # Plan 020 metrics
+            initial_total_debt=dm.get("initial_total_debt"),
+            initial_total_money=dm.get("initial_total_money"),
+            debt_to_money_ratio=dm.get("debt_to_money_ratio"),
+            dealer_mid_final=dm.get("dealer_mid_final"),
+            vbt_mid_final=dm.get("vbt_mid_final"),
+            dealer_premium_final_pct=dm.get("dealer_premium_final_pct"),
+            vbt_premium_final_pct=dm.get("vbt_premium_final_pct"),
         )
 
         # Log comparison
@@ -20238,6 +20499,14 @@ class ComparisonSweepRunner:
                     "total_trades": str(result.total_trades) if result.total_trades is not None else "",
                     "unsafe_buy_count": str(result.unsafe_buy_count) if result.unsafe_buy_count is not None else "",
                     "fraction_unsafe_buys": str(result.fraction_unsafe_buys) if result.fraction_unsafe_buys is not None else "",
+                    # Plan 020 metrics
+                    "initial_total_debt": str(result.initial_total_debt) if result.initial_total_debt is not None else "",
+                    "initial_total_money": str(result.initial_total_money) if result.initial_total_money is not None else "",
+                    "debt_to_money_ratio": str(result.debt_to_money_ratio) if result.debt_to_money_ratio is not None else "",
+                    "dealer_mid_final": json.dumps(result.dealer_mid_final) if result.dealer_mid_final is not None else "",
+                    "vbt_mid_final": json.dumps(result.vbt_mid_final) if result.vbt_mid_final is not None else "",
+                    "dealer_premium_final_pct": json.dumps(result.dealer_premium_final_pct) if result.dealer_premium_final_pct is not None else "",
+                    "vbt_premium_final_pct": json.dumps(result.vbt_premium_final_pct) if result.vbt_premium_final_pct is not None else "",
                 }
                 writer.writerow(row)
 
@@ -28628,6 +28897,269 @@ class TestMarkToMidEquity:
 
         # E = C + M * a * S = 100 + 1 * 0 * 1 = 100
         assert snapshot.mark_to_mid_equity == Decimal(100)
+
+
+class TestDealerPremiumMetrics:
+    """Test dealer and VBT premium/discount metrics (Plan 020 - Phase A.3)."""
+
+    def test_dealer_premium_at_par(self):
+        """Test dealer premium is 0 when midline equals face value."""
+        snapshot = DealerSnapshot(
+            day=1,
+            bucket="short",
+            inventory=0,
+            cash=Decimal(100),
+            bid=Decimal("0.95"),
+            ask=Decimal("1.05"),
+            midline=Decimal("1.0"),  # At par
+            vbt_mid=Decimal("1.0"),  # At par
+            vbt_spread=Decimal("0.10"),
+            ticket_size=Decimal(1),
+        )
+
+        assert snapshot.dealer_premium_vs_face == Decimal(0)
+        assert snapshot.dealer_premium_pct == Decimal(0)
+        assert snapshot.vbt_premium_vs_face == Decimal(0)
+        assert snapshot.vbt_premium_pct == Decimal(0)
+
+    def test_dealer_premium_above_par(self):
+        """Test premium is positive when midline above face value."""
+        snapshot = DealerSnapshot(
+            day=1,
+            bucket="short",
+            inventory=0,
+            cash=Decimal(100),
+            bid=Decimal("1.00"),
+            ask=Decimal("1.10"),
+            midline=Decimal("1.05"),  # 5% above par
+            vbt_mid=Decimal("1.02"),  # 2% above par
+            vbt_spread=Decimal("0.10"),
+            ticket_size=Decimal(1),
+        )
+
+        assert snapshot.dealer_premium_vs_face == Decimal("0.05")
+        assert snapshot.dealer_premium_pct == Decimal("5")  # 5%
+        assert snapshot.vbt_premium_vs_face == Decimal("0.02")
+        assert snapshot.vbt_premium_pct == Decimal("2")  # 2%
+
+    def test_dealer_discount_below_par(self):
+        """Test premium is negative (discount) when midline below face value."""
+        snapshot = DealerSnapshot(
+            day=1,
+            bucket="short",
+            inventory=0,
+            cash=Decimal(100),
+            bid=Decimal("0.80"),
+            ask=Decimal("0.90"),
+            midline=Decimal("0.85"),  # 15% below par
+            vbt_mid=Decimal("0.90"),  # 10% below par
+            vbt_spread=Decimal("0.10"),
+            ticket_size=Decimal(1),
+        )
+
+        assert snapshot.dealer_premium_vs_face == Decimal("-0.15")
+        assert snapshot.dealer_premium_pct == Decimal("-15")  # -15%
+        assert snapshot.vbt_premium_vs_face == Decimal("-0.10")
+        assert snapshot.vbt_premium_pct == Decimal("-10")  # -10%
+
+    def test_to_dict_includes_premium_fields(self):
+        """Test that to_dict includes premium fields."""
+        snapshot = DealerSnapshot(
+            day=1,
+            bucket="short",
+            inventory=0,
+            cash=Decimal(100),
+            bid=Decimal("0.90"),
+            ask=Decimal("1.10"),
+            midline=Decimal("1.0"),
+            vbt_mid=Decimal("0.98"),
+            vbt_spread=Decimal("0.20"),
+            ticket_size=Decimal(1),
+        )
+
+        d = snapshot.to_dict()
+
+        assert "dealer_premium_pct" in d
+        assert "vbt_premium_pct" in d
+        # Compare as floats to handle Decimal formatting differences
+        assert float(d["dealer_premium_pct"]) == 0.0
+        assert float(d["vbt_premium_pct"]) == -2.0
+
+
+class TestDebtToMoneyRatio:
+    """Test debt-to-money ratio metric (Plan 020 - Phase B)."""
+
+    def test_debt_to_money_ratio_computation(self):
+        """Test debt-to-money ratio is computed correctly."""
+        metrics = RunMetrics()
+        metrics.initial_total_debt = Decimal(10000)
+        metrics.initial_total_money = Decimal(5000)
+
+        # Ratio = 10000 / 5000 = 2
+        assert metrics.debt_to_money_ratio == Decimal(2)
+
+    def test_debt_to_money_ratio_zero_money(self):
+        """Test debt-to-money ratio with zero money returns 0."""
+        metrics = RunMetrics()
+        metrics.initial_total_debt = Decimal(10000)
+        metrics.initial_total_money = Decimal(0)
+
+        assert metrics.debt_to_money_ratio == Decimal(0)
+
+    def test_debt_to_money_captured_on_init(self):
+        """Test that debt and money are captured at initialization."""
+        sys, _ = create_test_system_with_ring()
+        config = create_dealer_config()
+
+        subsystem = initialize_dealer_subsystem(sys, config, current_day=1)
+
+        # Should have captured initial debt and money
+        assert subsystem.metrics.initial_total_debt > 0
+        assert subsystem.metrics.initial_total_money > 0
+
+        # For our test setup: 5 payables * 50 = 250 total debt
+        # 5 households * 100 cash = 500 total money
+        assert subsystem.metrics.initial_total_debt == Decimal(250)
+        assert subsystem.metrics.initial_total_money == Decimal(500)
+
+        # Ratio should be 250/500 = 0.5
+        assert subsystem.metrics.debt_to_money_ratio == Decimal("0.5")
+
+    def test_summary_includes_debt_to_money(self):
+        """Test summary includes debt-to-money metrics."""
+        sys, _ = create_test_system_with_ring()
+        config = create_dealer_config()
+
+        subsystem = initialize_dealer_subsystem(sys, config, current_day=1)
+        run_dealer_trading_phase(subsystem, sys, current_day=1)
+
+        summary = subsystem.metrics.summary()
+
+        assert "initial_total_debt" in summary
+        assert "initial_total_money" in summary
+        assert "debt_to_money_ratio" in summary
+        assert summary["initial_total_debt"] == 250.0
+        assert summary["initial_total_money"] == 500.0
+        assert summary["debt_to_money_ratio"] == 0.5
+
+
+class TestMidPriceTimeSeries:
+    """Test mid price time series methods (Plan 020 - Phase A.2)."""
+
+    def test_dealer_mid_timeseries(self):
+        """Test dealer mid time series extraction."""
+        sys, _ = create_test_system_with_ring()
+        config = create_dealer_config()
+
+        subsystem = initialize_dealer_subsystem(sys, config, current_day=1)
+
+        # Run trading for 3 days
+        for day in range(1, 4):
+            run_dealer_trading_phase(subsystem, sys, current_day=day)
+
+        timeseries = subsystem.metrics.dealer_mid_timeseries()
+
+        # Should have entries for each day
+        assert len(timeseries) == 3
+        assert 1 in timeseries
+        assert 2 in timeseries
+        assert 3 in timeseries
+
+        # Each day should have entries for each bucket
+        for day, buckets in timeseries.items():
+            assert len(buckets) == 3
+            assert "short" in buckets or "mid" in buckets or "long" in buckets
+
+    def test_vbt_mid_timeseries(self):
+        """Test VBT mid time series extraction."""
+        sys, _ = create_test_system_with_ring()
+        config = create_dealer_config()
+
+        subsystem = initialize_dealer_subsystem(sys, config, current_day=1)
+
+        # Run trading for 2 days
+        for day in range(1, 3):
+            run_dealer_trading_phase(subsystem, sys, current_day=day)
+
+        timeseries = subsystem.metrics.vbt_mid_timeseries()
+
+        # Should have entries for each day
+        assert len(timeseries) == 2
+
+    def test_premium_timeseries(self):
+        """Test premium time series extraction."""
+        sys, _ = create_test_system_with_ring()
+        config = create_dealer_config()
+
+        subsystem = initialize_dealer_subsystem(sys, config, current_day=1)
+        run_dealer_trading_phase(subsystem, sys, current_day=1)
+
+        dealer_premium = subsystem.metrics.dealer_premium_timeseries()
+        vbt_premium = subsystem.metrics.vbt_premium_timeseries()
+
+        assert len(dealer_premium) >= 1
+        assert len(vbt_premium) >= 1
+
+    def test_final_mids_in_summary(self):
+        """Test summary includes final mid prices."""
+        sys, _ = create_test_system_with_ring()
+        config = create_dealer_config()
+
+        subsystem = initialize_dealer_subsystem(sys, config, current_day=1)
+
+        # Run trading
+        for day in range(1, 4):
+            run_dealer_trading_phase(subsystem, sys, current_day=day)
+
+        summary = subsystem.metrics.summary()
+
+        assert "dealer_mid_final" in summary
+        assert "vbt_mid_final" in summary
+        assert "dealer_premium_final_pct" in summary
+        assert "vbt_premium_final_pct" in summary
+
+        # These should be dicts with bucket keys
+        assert isinstance(summary["dealer_mid_final"], dict)
+        assert isinstance(summary["vbt_mid_final"], dict)
+
+
+class TestMidTimeseriesCSVExport:
+    """Test CSV export of mid price time series."""
+
+    def test_mid_timeseries_csv_export(self, tmp_path):
+        """Test exporting mid time series to CSV."""
+        sys, _ = create_test_system_with_ring()
+        config = create_dealer_config()
+
+        subsystem = initialize_dealer_subsystem(sys, config, current_day=1)
+
+        # Run trading for 2 days
+        for day in range(1, 3):
+            run_dealer_trading_phase(subsystem, sys, current_day=day)
+
+        # Export to CSV
+        csv_path = tmp_path / "mid_timeseries.csv"
+        subsystem.metrics.to_mid_timeseries_csv(str(csv_path))
+
+        # Verify file exists
+        assert csv_path.exists()
+
+        # Read and verify contents
+        import csv
+        with open(csv_path, "r") as f:
+            reader = csv.DictReader(f)
+            rows = list(reader)
+
+        # Should have rows (2 days * 3 buckets = 6 rows)
+        assert len(rows) == 6
+
+        # Check header fields
+        assert "day" in rows[0]
+        assert "bucket" in rows[0]
+        assert "dealer_midline" in rows[0]
+        assert "vbt_mid" in rows[0]
+        assert "dealer_premium_pct" in rows[0]
+        assert "vbt_premium_pct" in rows[0]
 
 ```
 
