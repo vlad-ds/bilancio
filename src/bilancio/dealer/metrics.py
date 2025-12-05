@@ -436,6 +436,73 @@ class SystemStateSnapshot:
 
 
 @dataclass
+class RepaymentEvent:
+    """
+    Track how a trader managed a specific liability (Plan 022 - Phase 2).
+
+    For each (trader, liability) pair, records:
+    - Outcome: did they repay or default?
+    - Trading activity: buys/sells before maturity
+    - Strategy classification: no_trade, hold_to_maturity, sell_before, round_trip
+
+    This enables analysis of whether trading helped traders avoid defaults.
+    """
+    run_id: str
+    regime: str
+    trader_id: str
+    liability_id: str      # The contract/ticket ID representing their debt
+    maturity_day: int
+    face_value: Decimal
+
+    # Outcome
+    outcome: str           # "repaid" or "defaulted"
+
+    # Trading activity BEFORE this maturity
+    buy_count: int = 0
+    sell_count: int = 0
+    net_cash_pnl: Decimal = Decimal(0)  # Net cash from trading (sells - buys)
+
+    # Strategy classification
+    strategy: str = ""     # "no_trade", "hold_to_maturity", "sell_before", "round_trip"
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary with serialized Decimals."""
+        return {
+            "run_id": self.run_id,
+            "regime": self.regime,
+            "trader_id": self.trader_id,
+            "liability_id": self.liability_id,
+            "maturity_day": self.maturity_day,
+            "face_value": str(self.face_value),
+            "outcome": self.outcome,
+            "buy_count": self.buy_count,
+            "sell_count": self.sell_count,
+            "net_cash_pnl": str(self.net_cash_pnl),
+            "strategy": self.strategy,
+        }
+
+
+def classify_trading_strategy(buy_count: int, sell_count: int) -> str:
+    """
+    Classify a trader's strategy based on their trading activity.
+
+    Returns:
+        - "no_trade": Never traded with the dealer
+        - "hold_to_maturity": Bought but never sold (holding for maturity payment)
+        - "sell_before": Sold tickets to get cash (liquidity-seeking)
+        - "round_trip": Both bought and sold (active trading)
+    """
+    if buy_count == 0 and sell_count == 0:
+        return "no_trade"
+    elif buy_count > 0 and sell_count > 0:
+        return "round_trip"
+    elif sell_count > 0:
+        return "sell_before"
+    else:  # buy_count > 0, sell_count == 0
+        return "hold_to_maturity"
+
+
+@dataclass
 class RunMetrics:
     """
     All metrics for a single simulation run.
@@ -459,6 +526,9 @@ class RunMetrics:
 
     # System state timeseries (Plan 022 - Phase 4)
     system_state_snapshots: List[SystemStateSnapshot] = field(default_factory=list)
+
+    # Repayment events (Plan 022 - Phase 2)
+    repayment_events: List[RepaymentEvent] = field(default_factory=list)
 
     # Ticket outcomes (Section 8.3)
     ticket_outcomes: Dict[str, TicketOutcome] = field(default_factory=dict)
@@ -1022,6 +1092,32 @@ class RunMetrics:
             for snapshot in sorted(self.system_state_snapshots, key=lambda s: s.day):
                 writer.writerow(snapshot.to_dict())
 
+    def to_repayment_events_csv(self, path: str) -> None:
+        """
+        Export repayment events to CSV (Plan 022 - Phase 2).
+
+        Tracks how each trader managed each liability - did they repay or default,
+        and what trading strategy did they use?
+
+        Columns: run_id, regime, trader_id, liability_id, maturity_day, face_value,
+                 outcome, buy_count, sell_count, net_cash_pnl, strategy
+        """
+        import csv
+        path_obj = Path(path)
+        path_obj.parent.mkdir(parents=True, exist_ok=True)
+
+        if not self.repayment_events:
+            return
+
+        with open(path_obj, "w", newline="") as f:
+            writer = csv.DictWriter(
+                f,
+                fieldnames=self.repayment_events[0].to_dict().keys()
+            )
+            writer.writeheader()
+            for event in sorted(self.repayment_events, key=lambda e: (e.maturity_day, e.trader_id)):
+                writer.writerow(event.to_dict())
+
 
 # =============================================================================
 # Helper Functions for Safety Margin Computation
@@ -1094,3 +1190,115 @@ def compute_saleable_value(
         else:
             total += ticket.face
     return total
+
+
+# =============================================================================
+# Repayment Event Builder (Plan 022 - Phase 2)
+# =============================================================================
+
+def build_repayment_events(
+    event_log: List[Dict[str, Any]],
+    trades: List[TradeRecord],
+    run_id: str = "",
+    regime: str = "",
+) -> List[RepaymentEvent]:
+    """
+    Build RepaymentEvent objects from the simulation event log and trade records.
+
+    Scans the event log for "PayableSettled" and "ObligationDefaulted" events,
+    then for each settlement event:
+    1. Looks up the trader's trades before that maturity day
+    2. Counts buys/sells and calculates net cash P&L
+    3. Classifies the trading strategy
+    4. Creates a RepaymentEvent
+
+    Args:
+        event_log: List of event dictionaries from system.events
+        trades: List of TradeRecord objects from metrics.trades
+        run_id: Run identifier for tracking
+        regime: "passive" or "active"
+
+    Returns:
+        List of RepaymentEvent objects
+    """
+    repayment_events: List[RepaymentEvent] = []
+
+    # Index trades by trader_id for fast lookup
+    trades_by_trader: Dict[str, List[TradeRecord]] = {}
+    for trade in trades:
+        trader_id = trade.trader_id
+        if trader_id not in trades_by_trader:
+            trades_by_trader[trader_id] = []
+        trades_by_trader[trader_id].append(trade)
+
+    # Scan event log for settlement events
+    # Note: Events use "kind" field (from events.jsonl) or "event" field (from system.events)
+    for event in event_log:
+        event_type = event.get("kind") or event.get("event")
+
+        if event_type == "PayableSettled":
+            outcome = "repaid"
+            trader_id = event.get("debtor", "")
+            liability_id = event.get("contract_id", "")
+            face_value = Decimal(str(event.get("amount", 0)))
+            # PayableSettled doesn't have maturity_day directly, but we can infer it
+            # from the day field (settlement happens on maturity day)
+            maturity_day = event.get("day", 0)
+
+        elif event_type == "ObligationDefaulted" or event_type == "Default":
+            # Only count payable defaults, not delivery obligations
+            contract_kind = event.get("contract_kind", "") or event.get("kind", "")
+            if contract_kind != "payable":
+                continue
+
+            outcome = "defaulted"
+            trader_id = event.get("debtor", "")
+            liability_id = event.get("contract_id", "")
+            face_value = Decimal(str(event.get("original_amount", event.get("amount", 0))))
+            maturity_day = event.get("day", 0)
+
+        else:
+            continue
+
+        # Skip if we don't have trader_id
+        if not trader_id:
+            continue
+
+        # Get trader's trades BEFORE this maturity day
+        trader_trades = trades_by_trader.get(trader_id, [])
+        trades_before_maturity = [t for t in trader_trades if t.day < maturity_day]
+
+        # Count buys and sells
+        buy_count = sum(1 for t in trades_before_maturity if t.side == "BUY")
+        sell_count = sum(1 for t in trades_before_maturity if t.side == "SELL")
+
+        # Calculate net cash P&L from trading
+        # SELL = trader receives cash (positive)
+        # BUY = trader pays cash (negative)
+        net_cash_pnl = Decimal(0)
+        for t in trades_before_maturity:
+            if t.side == "SELL":
+                net_cash_pnl += t.price
+            elif t.side == "BUY":
+                net_cash_pnl -= t.price
+
+        # Classify strategy
+        strategy = classify_trading_strategy(buy_count, sell_count)
+
+        # Create RepaymentEvent
+        repayment_event = RepaymentEvent(
+            run_id=run_id,
+            regime=regime,
+            trader_id=trader_id,
+            liability_id=liability_id,
+            maturity_day=maturity_day,
+            face_value=face_value,
+            outcome=outcome,
+            buy_count=buy_count,
+            sell_count=sell_count,
+            net_cash_pnl=net_cash_pnl,
+            strategy=strategy,
+        )
+        repayment_events.append(repayment_event)
+
+    return repayment_events

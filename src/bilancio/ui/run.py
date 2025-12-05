@@ -270,6 +270,20 @@ def run_scenario(
                 metrics.to_system_state_csv(str(system_state_path))
                 console.print(f"[green]✓[/green] Exported system state timeseries to {system_state_path}")
 
+                # repayment_events.csv (Plan 022 - Phase 2)
+                # Build repayment events from the event log and trades
+                from bilancio.dealer.metrics import build_repayment_events
+                repayment_events = build_repayment_events(
+                    event_log=system.state.events,
+                    trades=metrics.trades,
+                    run_id=run_id,
+                    regime=regime,
+                )
+                metrics.repayment_events = repayment_events
+                repayment_events_path = out_dir / "repayment_events.csv"
+                metrics.to_repayment_events_csv(str(repayment_events_path))
+                console.print(f"[green]✓[/green] Exported repayment events to {repayment_events_path}")
+
     # Export to HTML if requested (semantic HTML for readability)
     if html_output:
         from .html_export import export_pretty_html
