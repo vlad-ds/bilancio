@@ -1,7 +1,7 @@
 # Plan 022: Enhanced Instrumentation for Dealer Ring Experiments
 
 **Reference**: Conversation 20251205.txt
-**Status**: Draft
+**Status**: Complete
 **Goal**: Add detailed logging to understand *why* dealers help (or don't help) reduce defaults
 
 ---
