@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2025-12-05 19:59:35 UTC | Branch: main | Commit: 0a22a56
+Generated: 2025-12-05 20:05:14 UTC | Branch: main | Commit: 96f23f8
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -6069,6 +6069,3332 @@ This document contains the complete codebase structure and content for LLM inges
 │   │   │               │   └── metrics_intraday.csv
 │   │   │               ├── run.html
 │   │   │               └── scenario.yaml
+│   │   ├── detailed_instrumentation_sweep
+│   │   │   ├── active
+│   │   │   │   ├── registry
+│   │   │   │   │   └── experiments.csv
+│   │   │   │   └── runs
+│   │   │   │       ├── balanced_active_003bc752314e
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_00b6876ca7ce
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_024f56303450
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_04a2e2622399
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_04e154fc5480
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_05a66dfce12a
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_070f34e07037
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   └── system_state_timeseries.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_0dca2e77acbb
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_0f5bd0e4b871
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   └── system_state_timeseries.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_0f89c8657297
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_10bdddd26371
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_114f7d4502cc
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_163c75e1f38f
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_1a187e63be2c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_1aaf45699b76
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   └── system_state_timeseries.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_1edfa5923099
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_20769ae7e77d
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_217607e59aa5
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_217c39aa1a78
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_299c011c320e
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_29bde5824086
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_2a782f37bb1f
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   └── system_state_timeseries.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_2d060a08c1ac
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_2d6c732353c7
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_2f32980ba2d6
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_2fa219b0acbe
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_31153b8af860
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_31b25729a878
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_32b0717045f9
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   └── system_state_timeseries.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_33aea155f12f
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_35ffa79677de
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_3719aa1d0f38
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_3a7123ed3fa6
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_3b2968be945c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_3bc1318319fb
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_3f2ff04130bf
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_40b3f8990b54
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_422231f45895
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_43bcf2524504
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_47aa48b2a6f5
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   └── system_state_timeseries.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_49b5176ba9da
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   └── system_state_timeseries.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_4fa3bc9d7bc1
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_5265839a2266
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_5382ddfd84a2
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_53e51cfd0b0c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_552e9f460589
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_552f2d625434
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   └── system_state_timeseries.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_5688f383060f
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_57a1c0f389d2
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_588a2d9b15f7
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_58b5c6d4b52d
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   └── system_state_timeseries.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_58d72c684210
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_5ba59784f828
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_61649bd43dbc
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_63ba11c394de
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   └── system_state_timeseries.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_6b593a7fe5bc
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_6be00f5c8d53
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_6fdefa6b4299
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_71ecb30b0704
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_73e11dbd7e9b
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_75266b4b8488
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_75bbe5b38758
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_7a857f128eca
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_7b591202ff17
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_809018e0a7a4
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_82b62fda9d8d
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_877400ddc0d4
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   └── system_state_timeseries.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_889711b324f9
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   └── system_state_timeseries.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_89ef98363abd
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   └── system_state_timeseries.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_8b53f90c4dee
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_8e71d20b560f
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_939d30d6274c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_9833164b0ea0
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   └── system_state_timeseries.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_998c8c4178a1
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_9a51a36e9bb0
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   └── system_state_timeseries.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_9a760b0b4c61
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_9b0427581fb3
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_9b9a25a0daaf
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   └── system_state_timeseries.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_a0d9864e7fb6
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_a32f9f34a03d
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_a759d07f6d1a
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_a8607ceb0132
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   └── system_state_timeseries.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_a9b6ed92b260
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_ab9b47c3573a
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   └── system_state_timeseries.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_b148660c9c42
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   └── system_state_timeseries.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_b1bc7ad90a36
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_b214ca9e8bf9
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_b286fada1c19
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   └── system_state_timeseries.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_baedd3137738
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_bd3ce2026183
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_c57241d69a5e
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   └── system_state_timeseries.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_c7c62755ac20
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_c89e4e9e3ee2
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_cba9844a547f
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_cf001ab62212
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   └── system_state_timeseries.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_cfbdc182f4cc
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_cfcb32ca475c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_d605a80a97a7
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_d68915b79bfe
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_d804514e976b
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_d966e204d83f
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_dbafe2da2c93
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_dc22a3c03551
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_dc348c969fa3
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_dcb50972d87e
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   └── system_state_timeseries.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_dd3790da12e0
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e08f97225bf5
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   └── system_state_timeseries.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e1654de56fdd
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   └── system_state_timeseries.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e2d63210d527
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e3ca6166252f
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   └── system_state_timeseries.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e4fd9a00b4f6
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e630aa5811d2
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e7d89ef530fa
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e8cc9bec7bad
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_eb32487cc950
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f06237ee7d7b
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   └── system_state_timeseries.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f46c75bafae4
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f59703117849
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f7905cefaf88
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f8d9c321e14c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f96792cd0c5a
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   └── system_state_timeseries.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f9cc304863c4
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_fa96833725b7
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_fb6d3a533163
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── balances.csv
+│   │   │   │       │   │   ├── dealer_metrics.json
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   ├── inventory_timeseries.csv
+│   │   │   │       │   │   ├── metrics.csv
+│   │   │   │       │   │   ├── metrics.html
+│   │   │   │       │   │   ├── metrics.json
+│   │   │   │       │   │   ├── metrics_ds.csv
+│   │   │   │       │   │   ├── metrics_intraday.csv
+│   │   │   │       │   │   ├── repayment_events.csv
+│   │   │   │       │   │   ├── system_state_timeseries.csv
+│   │   │   │       │   │   └── trades.csv
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       └── balanced_active_feec1e2db475
+│   │   │   │           ├── out
+│   │   │   │           │   ├── balances.csv
+│   │   │   │           │   ├── dealer_metrics.json
+│   │   │   │           │   ├── events.jsonl
+│   │   │   │           │   ├── inventory_timeseries.csv
+│   │   │   │           │   ├── metrics.csv
+│   │   │   │           │   ├── metrics.html
+│   │   │   │           │   ├── metrics.json
+│   │   │   │           │   ├── metrics_ds.csv
+│   │   │   │           │   ├── metrics_intraday.csv
+│   │   │   │           │   ├── repayment_events.csv
+│   │   │   │           │   ├── system_state_timeseries.csv
+│   │   │   │           │   └── trades.csv
+│   │   │   │           ├── run.html
+│   │   │   │           └── scenario.yaml
+│   │   │   ├── aggregate
+│   │   │   │   ├── comparison.csv
+│   │   │   │   └── summary.json
+│   │   │   └── passive
+│   │   │       ├── registry
+│   │   │       │   └── experiments.csv
+│   │   │       └── runs
+│   │   │           ├── balanced_passive_01fe15f8b539
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_038e7fff3f66
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_0d08430e833a
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_0da4be094ce7
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_12ab41fcb1da
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_1393e47ab477
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_13b2994d192c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_141fb0ce321f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_156aab9e1f84
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_15ac0846f630
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_160dac8a2424
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_1ddeae766a1c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_20433b6b2c33
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_204ff84875fc
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_2128472a0d82
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_22a97a2a650d
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_2426b2aae24b
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_29371ca9aa52
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_2ddd6d118164
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_33507caa0926
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_359713703bda
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_36be1523f5b2
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_3999bb369463
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_3a9fb615ea07
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_3deee3612203
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_40dc7dcb82d2
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_415918e6a51f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_4325c6215268
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_445f11084bcb
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_45e9e2c9b8d0
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_4631c8a58a0c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_4681a1766852
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_46ef6c5a2a51
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_473dc6577b90
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_49636886bb82
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_49884c74548d
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_4ad2186e12db
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_4afa54c07c12
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_4daaf0e4fea1
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_50c996c5d1a0
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_5153c4765ef8
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_5194bcb676d7
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_525763cab8dd
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_52dd540b0b36
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_55c0d3db5304
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_5c4e853b3ad0
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_5d0d9ac4abd6
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_5fcb960b211c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_6394a40c6e42
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_6407134e667b
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_641b64bff55f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_66c391a6f80e
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_68dfa07f20ac
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_68e7c7b1d544
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_6a27d7076b37
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_6d9595102f1e
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_729fc1d15fa9
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_73aea9a38999
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_7654a6ac0f2a
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_768d99ba6dae
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_77f169573936
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_78cba0fbe4d6
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_798c8bbc4b74
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_7b54b697d9c8
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_8794e61ff05f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_8cb1ca1c273d
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_8d6140abe3f8
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_8dd5126e7bc8
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_926796177955
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9292b2aec0fa
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_93b7e31f166f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_942305ad13fe
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_94e9f2412d0b
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_954943028cac
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_99318e093fab
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9a386dfe432f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9cc96df356b3
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9d9a84f01342
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9de109880a18
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_a339fd01eb77
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_a6dea06cc5b3
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_a80b7612dffc
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_a95d269afd49
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_aab8bfb05f4d
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_af0ec76d7ab1
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_af6093c5f99c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_aff1db0e95c0
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_b22a56178a7c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_b78c6169c74e
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_ba5c4f4f6212
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_ba9548e46c77
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_bb22bdafb20f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_be3df9af8a9b
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_bed9b65a53f7
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_bf43c78da3d4
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c62d01398536
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c8d53a0ec1e6
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_cc82793b8c95
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_cf605379a6c8
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_d06ff3be85a5
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_d2dc83f38433
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_d3435ac4ae06
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_d45e9fa72bf0
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_d6caa78c9463
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_dc56487d5b85
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_dc6753d72e69
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_de94e9ab4035
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_e57435e93f94
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_e6ee006aa79c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_e9a0b889f039
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_ea0685b83a59
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_eb4e4e38abf1
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_ec8f1c38080a
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_ed0f06cc47b7
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_edc76ae9bfdd
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_eeed27baaa20
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f0b09a95acd0
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f11d9e431a63
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f14369bf8137
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f1d451fcd0c7
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f248e57916c4
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f5cc893ae7e6
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f835a495b700
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f93257b138b9
+│   │   │           │   ├── out
+│   │   │           │   │   ├── balances.csv
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   ├── metrics.csv
+│   │   │           │   │   ├── metrics.html
+│   │   │           │   │   ├── metrics.json
+│   │   │           │   │   ├── metrics_ds.csv
+│   │   │           │   │   └── metrics_intraday.csv
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           └── balanced_passive_fe24c1a6c0a0
+│   │   │               ├── out
+│   │   │               │   ├── balances.csv
+│   │   │               │   ├── events.jsonl
+│   │   │               │   ├── metrics.csv
+│   │   │               │   ├── metrics.html
+│   │   │               │   ├── metrics.json
+│   │   │               │   ├── metrics_ds.csv
+│   │   │               │   └── metrics_intraday.csv
+│   │   │               ├── run.html
+│   │   │               └── scenario.yaml
 │   │   ├── expel_ring_sweep
 │   │   │   ├── aggregate
 │   │   │   │   ├── dashboard.html
@@ -7736,7 +11062,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-1834 directories, 5892 files
+2342 directories, 8710 files
 
 ```
 
@@ -9260,6 +12586,27 @@ Complete git history from oldest to newest:
 
 - **0a22a560** (2025-12-05) by vladgheorghe
   docs: mark Plan 022 as complete
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **0c3af8db** (2025-12-05) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **96f23f88** (2025-12-05) by vladgheorghe
+  data: add detailed instrumentation sweep results (125 pairs)
+  Full balanced comparison sweep with Plan 022 detailed logging:
+  - 125 comparison pairs (5 kappa × 5 concentration × 5 mu)
+  - n_agents=5, outside_mid_ratio=1.0, base_seed=42
+  Structure:
+  - aggregate/comparison.csv: Summary metrics for all C vs D pairs
+  - aggregate/summary.json: Aggregate statistics
+  - passive/runs/: 125 passive (no trading) individual runs
+  - active/runs/: 125 active (with trading) individual runs
+  Each active run includes detailed CSVs:
+  - trades.csv: Per-trade log with prices, VBT routing
+  - inventory_timeseries.csv: Dealer capacity utilization over time
+  - system_state_timeseries.csv: Total debt/money evolution
+  - repayment_events.csv: Trading strategy vs repayment outcome
   🤖 Generated with [Claude Code](https://claude.com/claude-code)
   Co-Authored-By: Claude <noreply@anthropic.com>
 
