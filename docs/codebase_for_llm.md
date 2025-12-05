@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2025-12-05 18:48:05 UTC | Branch: main | Commit: b8543c7
+Generated: 2025-12-05 19:43:19 UTC | Branch: main | Commit: a17e45b
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -2312,7 +2312,8 @@ This document contains the complete codebase structure and content for LLM inges
 │   │   │   ├── 20251118.txt
 │   │   │   ├── 20251127.txt
 │   │   │   ├── 20251201.txt
-│   │   │   └── 20251204.txt
+│   │   │   ├── 20251204.txt
+│   │   │   └── 20251205.txt
 │   │   ├── dealer_examples.pdf
 │   │   ├── dealer_implementation_readiness.pdf
 │   │   └── dealer_specification.pdf
@@ -2342,6 +2343,7 @@ This document contains the complete codebase structure and content for LLM inges
 │   │   ├── 019_dealer_metrics.md
 │   │   ├── 020_dealer_mid_tracking_metrics.md
 │   │   ├── 021_balanced_dealer_comparison.md
+│   │   ├── 022_enhanced_instrumentation.md
 │   │   └── Kalecki_debt_simulation (1).pdf
 │   ├── prompts
 │   │   ├── 015_expel_sweep_agent_prompt.md
@@ -7734,7 +7736,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-1834 directories, 5890 files
+1834 directories, 5892 files
 
 ```
 
@@ -9198,6 +9200,36 @@ Complete git history from oldest to newest:
 
 - **b8543c74** (2025-12-05) by vladgheorghe
   chore: remove old dealer_metrics_comparison experiment data
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **52413609** (2025-12-05) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **a17e45b7** (2025-12-05) by vladgheorghe
+  feat(dealer): implement Plan 022 enhanced instrumentation (Phases 1,3,4,5)
+  Add detailed logging infrastructure for dealer ring experiments to understand
+  why dealers help (or don't help) reduce defaults.
+  Phase 1 - Enhanced Trade Logging:
+  - Add run_id, regime, hit_inventory_limit fields to TradeRecord
+  - Update to_dict() to include new fields in CSV exports
+  Phase 3 - Inventory Timeseries:
+  - Extend DealerSnapshot with max_capacity, capacity_pct, is_at_zero,
+    hit_vbt_this_step, total_system_face, dealer_share_pct
+  - Add to_inventory_timeseries_csv() export method
+  Phase 4 - System State Timeseries:
+  - New SystemStateSnapshot dataclass tracking total_face_value,
+    face_by_bucket, total_cash, debt_to_money ratio
+  - Add _capture_system_state_snapshot() in dealer_integration
+  - Add to_system_state_csv() export method
+  Phase 5 - Integration:
+  - Add detailed_logging config to BalancedComparisonConfig
+  - Add detailed_dealer_logging, run_id, regime params to run_scenario
+  - Export trades.csv, inventory_timeseries.csv, system_state_timeseries.csv
+    when detailed_logging=True
+  - Fix circular import in ring.py with lazy import
+  Phase 2 (Repayment Events) deferred - most complex, requires linking
+  trades to liabilities.
   🤖 Generated with [Claude Code](https://claude.com/claude-code)
   Co-Authored-By: Claude <noreply@anthropic.com>
 
@@ -16053,6 +16085,10 @@ class TradeRecord:
     - Dealer state before/after
     - Trader safety margin before/after (Section 8.4)
     - Liquidity-driven flag (Section 8.3)
+
+    Plan 022 extensions:
+    - run_id/regime for experiment tracking
+    - hit_inventory_limit flag for VBT routing analysis
     """
     # Core trade identifiers
     day: int
@@ -16068,6 +16104,12 @@ class TradeRecord:
     price: Decimal
     unit_price: Decimal  # price / face_value
     is_passthrough: bool
+
+    # === Fields with defaults below ===
+
+    # Run context (Plan 022 - Phase 1)
+    run_id: str = ""              # e.g., "grid_abc123"
+    regime: str = ""              # "passive" or "active"
 
     # Pre-trade state
     dealer_inventory_before: int = 0
@@ -16090,9 +16132,20 @@ class TradeRecord:
     is_liquidity_driven: bool = False  # Seller had shortfall (Section 8.3)
     reduces_margin_below_zero: bool = False  # BUY reduced margin < 0 (Section 8.4)
 
+    # VBT routing analysis (Plan 022 - Phase 1)
+    # hit_inventory_limit is different from is_passthrough:
+    # - is_passthrough=True means trade went to VBT
+    # - hit_inventory_limit=True means VBT was used *because* dealer was at capacity
+    #   (side=SELL and dealer at max_capacity, or side=BUY and dealer at 0 inventory)
+    hit_inventory_limit: bool = False
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary with serialized Decimals."""
         return {
+            # Run context (Plan 022)
+            "run_id": self.run_id,
+            "regime": self.regime,
+            # Core trade identifiers
             "day": self.day,
             "bucket": self.bucket,
             "side": self.side,
@@ -16119,6 +16172,8 @@ class TradeRecord:
             "trader_safety_margin_after": str(self.trader_safety_margin_after),
             "is_liquidity_driven": self.is_liquidity_driven,
             "reduces_margin_below_zero": self.reduces_margin_below_zero,
+            # VBT routing analysis (Plan 022)
+            "hit_inventory_limit": self.hit_inventory_limit,
         }
 
 
@@ -16132,6 +16187,11 @@ class DealerSnapshot:
     - Outside mid M_t^(b), spread O_t^(b)
     - Bid/ask quotes
     - Mark-to-mid equity E_t^(b) = C_t^(b) + M_t^(b) * a_t^(b) * S
+
+    Plan 022 extensions (Phase 3 - inventory timeseries):
+    - max_capacity, capacity_pct for utilization tracking
+    - is_at_zero, hit_vbt_this_step for VBT routing analysis
+    - total_system_face, dealer_share_pct for system-level context
     """
     day: int
     bucket: str
@@ -16144,6 +16204,15 @@ class DealerSnapshot:
     vbt_spread: Decimal  # O_t^(b)
     ticket_size: Decimal  # S
 
+    # Plan 022 - Phase 3: Inventory timeseries fields
+    run_id: str = ""              # Run identifier for tracking
+    regime: str = ""              # "passive" or "active"
+    max_capacity: int = 0         # K* - max dealer inventory capacity
+    is_at_zero: bool = False      # inventory == 0?
+    hit_vbt_this_step: bool = False  # Did we route to VBT this step?
+    total_system_face: Decimal = Decimal(0)  # Total face value in system for this bucket
+    dealer_share_pct: Decimal = Decimal(0)   # % of bucket's face held by dealer
+
     @property
     def mark_to_mid_equity(self) -> Decimal:
         """
@@ -16152,6 +16221,17 @@ class DealerSnapshot:
         This is the equity valuation using VBT mid price.
         """
         return self.cash + self.vbt_mid * self.inventory * self.ticket_size
+
+    @property
+    def capacity_pct(self) -> Decimal:
+        """
+        Capacity utilization as percentage (Plan 022).
+
+        inventory / max_capacity * 100, or 0 if max_capacity is 0.
+        """
+        if self.max_capacity == 0:
+            return Decimal(0)
+        return (Decimal(self.inventory) / Decimal(self.max_capacity)) * 100
 
     @property
     def spread(self) -> Decimal:
@@ -16198,6 +16278,10 @@ class DealerSnapshot:
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary with serialized Decimals."""
         return {
+            # Run context (Plan 022)
+            "run_id": self.run_id,
+            "regime": self.regime,
+            # Core fields
             "day": self.day,
             "bucket": self.bucket,
             "inventory": self.inventory,
@@ -16212,6 +16296,13 @@ class DealerSnapshot:
             "spread": str(self.spread),
             "dealer_premium_pct": str(self.dealer_premium_pct),
             "vbt_premium_pct": str(self.vbt_premium_pct),
+            # Plan 022 - Phase 3: Inventory timeseries
+            "max_capacity": self.max_capacity,
+            "capacity_pct": str(self.capacity_pct),
+            "is_at_zero": self.is_at_zero,
+            "hit_vbt_this_step": self.hit_vbt_this_step,
+            "total_system_face": str(self.total_system_face),
+            "dealer_share_pct": str(self.dealer_share_pct),
         }
 
 
@@ -16343,6 +16434,57 @@ class TicketOutcome:
 
 
 @dataclass
+class SystemStateSnapshot:
+    """
+    System-level state at a point in time (Plan 022 - Phase 4).
+
+    Tracks how total debt/money evolves over time to understand
+    the "winding down" dynamics of the system.
+
+    Fields:
+    - run_id, regime: Run context for experiment tracking
+    - day: Simulation day
+    - total_face_value: Sum of all outstanding ticket face values
+    - face_by_bucket: Face value breakdown by maturity bucket
+    - total_cash: Sum of all agent cash holdings
+    - debt_to_money: Current debt/money ratio
+    """
+    run_id: str
+    regime: str
+    day: int
+
+    # Total face value outstanding
+    total_face_value: Decimal        # All maturities
+    face_bucket_short: Decimal = Decimal(0)
+    face_bucket_mid: Decimal = Decimal(0)
+    face_bucket_long: Decimal = Decimal(0)
+
+    # Total cash in system
+    total_cash: Decimal = Decimal(0)
+
+    @property
+    def debt_to_money(self) -> Decimal:
+        """Current debt-to-money ratio."""
+        if self.total_cash > 0:
+            return self.total_face_value / self.total_cash
+        return Decimal(0)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary with serialized Decimals."""
+        return {
+            "run_id": self.run_id,
+            "regime": self.regime,
+            "day": self.day,
+            "total_face_value": str(self.total_face_value),
+            "face_bucket_short": str(self.face_bucket_short),
+            "face_bucket_mid": str(self.face_bucket_mid),
+            "face_bucket_long": str(self.face_bucket_long),
+            "total_cash": str(self.total_cash),
+            "debt_to_money": str(self.debt_to_money),
+        }
+
+
+@dataclass
 class RunMetrics:
     """
     All metrics for a single simulation run.
@@ -16364,6 +16506,9 @@ class RunMetrics:
     dealer_snapshots: List[DealerSnapshot] = field(default_factory=list)
     trader_snapshots: List[TraderSnapshot] = field(default_factory=list)
 
+    # System state timeseries (Plan 022 - Phase 4)
+    system_state_snapshots: List[SystemStateSnapshot] = field(default_factory=list)
+
     # Ticket outcomes (Section 8.3)
     ticket_outcomes: Dict[str, TicketOutcome] = field(default_factory=dict)
 
@@ -16373,6 +16518,10 @@ class RunMetrics:
     # System-level initial state (debt-to-money ratio control variable)
     initial_total_debt: Decimal = Decimal(0)    # Sum of all payable amounts at t=0
     initial_total_money: Decimal = Decimal(0)   # Sum of all cash holdings at t=0
+
+    # Run context (Plan 022 - for tracking)
+    run_id: str = ""
+    regime: str = ""
 
     @property
     def debt_to_money_ratio(self) -> Decimal:
@@ -16854,6 +17003,73 @@ class RunMetrics:
                     "dealer_premium_pct": str(snap.dealer_premium_pct),
                     "vbt_premium_pct": str(snap.vbt_premium_pct),
                 })
+
+    def to_inventory_timeseries_csv(self, path: str) -> None:
+        """
+        Export inventory timeseries to CSV (Plan 022 - Phase 3).
+
+        Tracks dealer capacity utilization over time.
+
+        Columns: run_id, regime, day, bucket, dealer_inventory, max_capacity,
+                 capacity_pct, is_at_zero, hit_vbt_this_step, total_system_face,
+                 dealer_share_pct
+        """
+        import csv
+        path_obj = Path(path)
+        path_obj.parent.mkdir(parents=True, exist_ok=True)
+
+        if not self.dealer_snapshots:
+            return
+
+        fieldnames = [
+            "run_id", "regime", "day", "bucket",
+            "dealer_inventory", "max_capacity", "capacity_pct",
+            "is_at_zero", "hit_vbt_this_step",
+            "total_system_face", "dealer_share_pct"
+        ]
+
+        with open(path_obj, "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            for snap in sorted(self.dealer_snapshots, key=lambda s: (s.day, s.bucket)):
+                writer.writerow({
+                    "run_id": snap.run_id,
+                    "regime": snap.regime,
+                    "day": snap.day,
+                    "bucket": snap.bucket,
+                    "dealer_inventory": snap.inventory,
+                    "max_capacity": snap.max_capacity,
+                    "capacity_pct": str(snap.capacity_pct),
+                    "is_at_zero": snap.is_at_zero,
+                    "hit_vbt_this_step": snap.hit_vbt_this_step,
+                    "total_system_face": str(snap.total_system_face),
+                    "dealer_share_pct": str(snap.dealer_share_pct),
+                })
+
+    def to_system_state_csv(self, path: str) -> None:
+        """
+        Export system state timeseries to CSV (Plan 022 - Phase 4).
+
+        Tracks how total debt/money evolves over time.
+
+        Columns: run_id, regime, day, total_face_value, face_bucket_short,
+                 face_bucket_mid, face_bucket_long, total_cash, debt_to_money
+        """
+        import csv
+        path_obj = Path(path)
+        path_obj.parent.mkdir(parents=True, exist_ok=True)
+
+        if not self.system_state_snapshots:
+            return
+
+        with open(path_obj, "w", newline="") as f:
+            writer = csv.DictWriter(
+                f,
+                fieldnames=self.system_state_snapshots[0].to_dict().keys()
+            )
+            writer.writeheader()
+            for snapshot in sorted(self.system_state_snapshots, key=lambda s: s.day):
+                writer.writerow(snapshot.to_dict())
 
 
 # =============================================================================
@@ -20367,6 +20583,7 @@ from bilancio.dealer.metrics import (
     DealerSnapshot,
     TraderSnapshot,
     TicketOutcome,
+    SystemStateSnapshot,  # Plan 022
     compute_safety_margin,
     compute_saleable_value,
 )
@@ -21074,6 +21291,7 @@ def run_dealer_trading_phase(
     # Capture daily snapshots for metrics (Section 8.1)
     _capture_dealer_snapshots(subsystem, current_day)
     _capture_trader_snapshots(subsystem, current_day)
+    _capture_system_state_snapshot(subsystem, current_day)  # Plan 022
 
     # Phase 3: Build eligibility sets (simplified)
     # Traders who need cash (have shortfall coming in next few days)
@@ -21446,9 +21664,35 @@ def _capture_dealer_snapshots(
     Capture dealer state snapshots for metrics (Section 8.1).
 
     Records inventory, cash, quotes, and mark-to-mid equity for each bucket.
+
+    Plan 022 extensions:
+    - max_capacity, is_at_zero for capacity tracking
+    - hit_vbt_this_step from trade records
+    - total_system_face, dealer_share_pct for system context
     """
+    # Check if any VBT trades happened this step (for hit_vbt_this_step flag)
+    # Look at trades from today that are passthroughs
+    vbt_used_buckets = set()
+    for trade in subsystem.metrics.trades:
+        if trade.day == current_day and trade.is_passthrough:
+            vbt_used_buckets.add(trade.bucket)
+
     for bucket_id, dealer in subsystem.dealers.items():
         vbt = subsystem.vbts[bucket_id]
+
+        # Calculate total system face value for this bucket
+        total_face = Decimal(0)
+        dealer_face = Decimal(0)
+        for trader in subsystem.traders.values():
+            for ticket in trader.tickets_owned:
+                if ticket.bucket_id == bucket_id:
+                    total_face += subsystem.params.S
+        # Dealer inventory contribution
+        dealer_face = Decimal(dealer.a) * subsystem.params.S
+
+        # Dealer share percentage
+        dealer_share = (dealer_face / total_face * 100) if total_face > 0 else Decimal(0)
+
         snapshot = DealerSnapshot(
             day=current_day,
             bucket=bucket_id,
@@ -21460,6 +21704,12 @@ def _capture_dealer_snapshots(
             vbt_mid=vbt.M,
             vbt_spread=vbt.O,
             ticket_size=subsystem.params.S,
+            # Plan 022 extensions
+            max_capacity=dealer.X_star,
+            is_at_zero=(dealer.a == 0),
+            hit_vbt_this_step=(bucket_id in vbt_used_buckets),
+            total_system_face=total_face,
+            dealer_share_pct=dealer_share,
         )
         subsystem.metrics.dealer_snapshots.append(snapshot)
 
@@ -21502,6 +21752,59 @@ def _capture_trader_snapshots(
             defaulted=trader.defaulted,
         )
         subsystem.metrics.trader_snapshots.append(snapshot)
+
+
+def _capture_system_state_snapshot(
+    subsystem: DealerSubsystem,
+    current_day: int
+) -> None:
+    """
+    Capture system-level state snapshot for metrics (Plan 022 - Phase 4).
+
+    Records total face value, cash, and debt-to-money ratio across the system.
+    """
+    # Calculate total face value by bucket
+    face_by_bucket: Dict[str, Decimal] = {}
+    total_face = Decimal(0)
+
+    for bucket_id in subsystem.dealers.keys():
+        face_by_bucket[bucket_id] = Decimal(0)
+
+    # Sum face value from all tickets held by traders
+    for trader in subsystem.traders.values():
+        for ticket in trader.tickets_owned:
+            bucket = ticket.bucket_id
+            face = subsystem.params.S
+            face_by_bucket[bucket] = face_by_bucket.get(bucket, Decimal(0)) + face
+            total_face += face
+
+    # Also add dealer inventory
+    for bucket_id, dealer in subsystem.dealers.items():
+        dealer_face = Decimal(dealer.a) * subsystem.params.S
+        face_by_bucket[bucket_id] = face_by_bucket.get(bucket_id, Decimal(0)) + dealer_face
+        total_face += dealer_face
+
+    # Calculate total cash in system
+    total_cash = Decimal(0)
+    for trader in subsystem.traders.values():
+        total_cash += trader.cash
+    for dealer in subsystem.dealers.values():
+        total_cash += dealer.cash
+    for vbt in subsystem.vbts.values():
+        total_cash += vbt.cash
+
+    # Create snapshot
+    snapshot = SystemStateSnapshot(
+        run_id="",  # Will be set at export time
+        regime="",  # Will be set at export time
+        day=current_day,
+        total_face_value=total_face,
+        face_bucket_short=face_by_bucket.get("short", Decimal(0)),
+        face_bucket_mid=face_by_bucket.get("mid", Decimal(0)),
+        face_bucket_long=face_by_bucket.get("long", Decimal(0)),
+        total_cash=total_cash,
+    )
+    subsystem.metrics.system_state_snapshots.append(snapshot)
 
 
 def _compute_trader_safety_margin(
@@ -23046,6 +23349,12 @@ class BalancedComparisonConfig(BaseModel):
     name_prefix: str = Field(default="Balanced Comparison", description="Scenario name prefix")
     default_handling: str = Field(default="fail-fast", description="Default handling mode")
 
+    # Detailed logging (Plan 022)
+    detailed_logging: bool = Field(
+        default=False,
+        description="Enable detailed CSV logging (trades.csv, inventory_timeseries.csv, system_state_timeseries.csv)"
+    )
+
     # Grid parameters
     kappas: List[Decimal] = Field(
         default_factory=lambda: [Decimal("0.25"), Decimal("0.5"), Decimal("1"), Decimal("2"), Decimal("4")]
@@ -23156,6 +23465,7 @@ class BalancedComparisonRunner:
             face_value=self.config.face_value,
             outside_mid_ratio=outside_mid_ratio,
             big_entity_share=self.config.big_entity_share,
+            detailed_dealer_logging=self.config.detailed_logging,  # Plan 022
         )
 
     def _get_active_runner(self, outside_mid_ratio: Decimal) -> RingSweepRunner:
@@ -23183,6 +23493,7 @@ class BalancedComparisonRunner:
             face_value=self.config.face_value,
             outside_mid_ratio=outside_mid_ratio,
             big_entity_share=self.config.big_entity_share,
+            detailed_dealer_logging=self.config.detailed_logging,  # Plan 022
         )
 
     def run_all(self) -> List[BalancedComparisonResult]:
@@ -24043,7 +24354,8 @@ from bilancio.analysis.report import (
 )
 from bilancio.config.models import RingExplorerGeneratorConfig
 from bilancio.scenarios.generators.ring_explorer import compile_ring_explorer
-from bilancio.ui.run import run_scenario
+
+# Note: run_scenario imported lazily in _execute_run to avoid circular import
 
 
 @dataclass
@@ -24256,6 +24568,7 @@ class RingSweepRunner:
         face_value: Optional[Decimal] = None,
         outside_mid_ratio: Optional[Decimal] = None,
         big_entity_share: Optional[Decimal] = None,
+        detailed_dealer_logging: bool = False,  # Plan 022
     ) -> None:
         self.base_dir = out_dir
         self.registry_dir = self.base_dir / "registry"
@@ -24275,6 +24588,7 @@ class RingSweepRunner:
         self.face_value = face_value or Decimal("20")
         self.outside_mid_ratio = outside_mid_ratio or Decimal("0.75")
         self.big_entity_share = big_entity_share or Decimal("0.25")
+        self.detailed_dealer_logging = detailed_dealer_logging  # Plan 022
         self.registry_rows: List[Dict[str, Any]] = []
 
         self.registry_dir.mkdir(parents=True, exist_ok=True)
@@ -24578,6 +24892,12 @@ class RingSweepRunner:
             if "mint_cash" in action:
                 L0 += action["mint_cash"]["amount"]
 
+        # Determine regime for logging (Plan 022)
+        regime = "active" if self.dealer_enabled else "passive"
+
+        # Lazy import to avoid circular import
+        from bilancio.ui.run import run_scenario
+
         try:
             run_scenario(
                 path=scenario_path,
@@ -24594,6 +24914,9 @@ class RingSweepRunner:
                 html_output=run_html_path,
                 t_account=False,
                 default_handling=self.default_handling,
+                detailed_dealer_logging=self.detailed_dealer_logging,  # Plan 022
+                run_id=run_id,  # Plan 022
+                regime=regime,  # Plan 022
             )
         except Exception as exc:
             registry_entry.update({
@@ -28609,7 +28932,10 @@ def run_scenario(
     export: Optional[Dict[str, str]] = None,
     html_output: Optional[Path] = None,
     t_account: bool = False,
-    default_handling: Optional[str] = None
+    default_handling: Optional[str] = None,
+    detailed_dealer_logging: bool = False,
+    run_id: str = "",
+    regime: str = "",
 ) -> None:
     """Run a Bilancio simulation scenario.
     
@@ -28781,6 +29107,45 @@ def run_scenario(
             with dealer_metrics_path.open('w') as f:
                 json.dump(dealer_summary, f, indent=2)
             console.print(f"[green]✓[/green] Exported dealer metrics to {dealer_metrics_path}")
+
+            # Plan 022: Export detailed dealer CSV logs if enabled
+            if detailed_dealer_logging:
+                metrics = system.state.dealer_subsystem.metrics
+                # Set run context on metrics and propagate to all records
+                metrics.run_id = run_id
+                metrics.regime = regime
+
+                # Propagate run_id/regime to all trade records
+                for trade in metrics.trades:
+                    trade.run_id = run_id
+                    trade.regime = regime
+
+                # Propagate to dealer snapshots
+                for snap in metrics.dealer_snapshots:
+                    snap.run_id = run_id
+                    snap.regime = regime
+
+                # Propagate to system state snapshots
+                for snap in metrics.system_state_snapshots:
+                    snap.run_id = run_id
+                    snap.regime = regime
+
+                out_dir = dealer_metrics_path.parent
+
+                # trades.csv
+                trades_path = out_dir / "trades.csv"
+                metrics.to_trade_log_csv(str(trades_path))
+                console.print(f"[green]✓[/green] Exported trades to {trades_path}")
+
+                # inventory_timeseries.csv (uses dealer_snapshots with new fields)
+                inventory_path = out_dir / "inventory_timeseries.csv"
+                metrics.to_inventory_timeseries_csv(str(inventory_path))
+                console.print(f"[green]✓[/green] Exported inventory timeseries to {inventory_path}")
+
+                # system_state_timeseries.csv
+                system_state_path = out_dir / "system_state_timeseries.csv"
+                metrics.to_system_state_csv(str(system_state_path))
+                console.print(f"[green]✓[/green] Exported system state timeseries to {system_state_path}")
 
     # Export to HTML if requested (semantic HTML for readability)
     if html_output:
