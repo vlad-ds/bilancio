@@ -1,0 +1,5 @@
+run_id,regime,day,bucket,side,trader_id,ticket_id,issuer_id,maturity_day,face_value,price,unit_price,is_passthrough,dealer_inventory_before,dealer_cash_before,dealer_bid_before,dealer_ask_before,vbt_mid_before,trader_cash_before,trader_safety_margin_before,dealer_inventory_after,dealer_cash_after,dealer_bid_after,dealer_ask_after,trader_cash_after,trader_safety_margin_after,is_liquidity_driven,reduces_margin_below_zero,hit_inventory_limit
+balanced_active_7a3ac5e2e33b,active,0,long,SELL,H5,TKT_PAY_052ff655a841,H4,9,3888,3110.40,0.80,True,0,0,0.80,1.20,1.0,2500,830.40,0,0,0.80,1.20,5610.40,830.40,False,False,False
+balanced_active_7a3ac5e2e33b,active,0,mid,SELL,H4,TKT_PAY_50a0aa29c858,H3,5,1862,1582.70,0.85,True,0,0,0.85,1.15,1.0,2500,-305.30,0,0,0.85,1.15,4082.70,-305.30,False,False,False
+balanced_active_7a3ac5e2e33b,active,0,mid,BUY,big_long,TKT_PAY_50a0aa29c858,H3,5,1862,2141.30,1.15,True,0,0,0.85,1.15,1.0,750,1175.00,0,0,0.85,1.15,-1391.30,616.40,False,False,False
+balanced_active_7a3ac5e2e33b,active,1,mid,BUY,big_mid,TKT_PAY_052ff655a841,H4,9,3888,4471.20,1.15,True,0,0,0.85,1.15,1.0,750,1200.00,0,0,0.85,1.15,-3721.20,33.60,False,False,False

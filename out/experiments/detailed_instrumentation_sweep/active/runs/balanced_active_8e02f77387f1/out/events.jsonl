@@ -1,0 +1,56 @@
+{"kind": "CashMinted", "day": 0, "phase": "setup", "to": "H1", "amount": 625, "instr_id": "C_3c98a4b6e577", "alias": "LIQ_H1"}
+{"kind": "CashMinted", "day": 0, "phase": "setup", "to": "H2", "amount": 625, "instr_id": "C_c6cfd8d02b47", "alias": "LIQ_H2"}
+{"kind": "CashMinted", "day": 0, "phase": "setup", "to": "H3", "amount": 625, "instr_id": "C_b1ae5b3cdab7", "alias": "LIQ_H3"}
+{"kind": "CashMinted", "day": 0, "phase": "setup", "to": "H4", "amount": 625, "instr_id": "C_ad85aabfe937", "alias": "LIQ_H4"}
+{"kind": "CashMinted", "day": 0, "phase": "setup", "to": "H5", "amount": 625, "instr_id": "C_43d1fc3f7452", "alias": "LIQ_H5"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H1", "creditor": "H2", "amount": 4138, "due_day": 4, "payable_id": "PAY_5e2648bcc5b0", "alias": "P_H1_H2"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H2", "creditor": "H3", "amount": 1098, "due_day": 1, "payable_id": "PAY_57af169623bf", "alias": "P_H2_H3"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H3", "creditor": "H4", "amount": 3334, "due_day": 8, "payable_id": "PAY_87dc22ef19f4", "alias": "P_H3_H4"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H4", "creditor": "H5", "amount": 2516, "due_day": 5, "payable_id": "PAY_47dbdcb70deb", "alias": "P_H4_H5"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H5", "creditor": "H1", "amount": 1411, "due_day": 2, "payable_id": "PAY_27caaf9c11c7", "alias": "P_H5_H1"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H1", "creditor": "big_short", "amount": 500, "due_day": 4, "payable_id": "PAY_58d87cf570fc", "alias": "P_H1_big_short_big"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H2", "creditor": "big_mid", "amount": 500, "due_day": 1, "payable_id": "PAY_f9634415bb4a", "alias": "P_H2_big_mid_big"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H3", "creditor": "big_long", "amount": 500, "due_day": 8, "payable_id": "PAY_761b018efa91", "alias": "P_H3_big_long_big"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H4", "creditor": "big_short", "amount": 500, "due_day": 5, "payable_id": "PAY_fc728c01a1c3", "alias": "P_H4_big_short_big"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H5", "creditor": "big_mid", "amount": 500, "due_day": 2, "payable_id": "PAY_8a74c12665d9", "alias": "P_H5_big_mid_big"}
+{"kind": "CashMinted", "day": 0, "phase": "setup", "to": "big_short", "amount": 625, "instr_id": "C_a86ef8b2d778", "alias": "LIQ_big_short"}
+{"kind": "CashMinted", "day": 0, "phase": "setup", "to": "big_mid", "amount": 625, "instr_id": "C_338d8e2d7283", "alias": "LIQ_big_mid"}
+{"kind": "CashMinted", "day": 0, "phase": "setup", "to": "big_long", "amount": 625, "instr_id": "C_01d9ff210180", "alias": "LIQ_big_long"}
+{"kind": "PhaseA", "day": 0, "phase": "simulation"}
+{"kind": "PhaseB", "day": 0, "phase": "simulation"}
+{"kind": "SubphaseB1", "day": 0, "phase": "simulation"}
+{"kind": "SubphaseB_Dealer", "day": 0, "phase": "simulation"}
+{"kind": "dealer_trade", "day": 0, "phase": "simulation", "trader": "H4", "side": "sell", "ticket_id": "TKT_PAY_87dc22ef19f4", "bucket": "mid", "price": 2833.9, "unit_price": 0.85, "face": 3334.0, "is_passthrough": true, "is_liquidity_driven": false}
+{"kind": "dealer_trade", "day": 0, "phase": "simulation", "trader": "H2", "side": "sell", "ticket_id": "TKT_PAY_5e2648bcc5b0", "bucket": "mid", "price": 3517.3, "unit_price": 0.85, "face": 4138.0, "is_passthrough": true, "is_liquidity_driven": false}
+{"kind": "dealer_trade", "day": 0, "phase": "simulation", "trader": "H3", "side": "sell", "ticket_id": "TKT_PAY_57af169623bf", "bucket": "short", "price": 988.2, "unit_price": 0.9, "face": 1098.0, "is_passthrough": true, "is_liquidity_driven": false}
+{"kind": "dealer_trade", "day": 0, "phase": "simulation", "trader": "H5", "side": "sell", "ticket_id": "TKT_PAY_47dbdcb70deb", "bucket": "mid", "price": 2138.6, "unit_price": 0.85, "face": 2516.0, "is_passthrough": true, "is_liquidity_driven": false}
+{"kind": "dealer_trade", "day": 0, "phase": "simulation", "trader": "H1", "side": "sell", "ticket_id": "TKT_PAY_27caaf9c11c7", "bucket": "short", "price": 1269.9, "unit_price": 0.9, "face": 1411.0, "is_passthrough": true, "is_liquidity_driven": false}
+{"kind": "dealer_trade", "day": 0, "phase": "simulation", "trader": "big_mid", "side": "buy", "ticket_id": "TKT_PAY_57af169623bf", "bucket": "short", "price": 1207.8, "unit_price": 1.1, "face": 1098.0, "is_passthrough": true, "reduces_margin_below_zero": false}
+{"kind": "ClaimTransferredDealer", "day": 0, "phase": "simulation", "payable_id": "PAY_5e2648bcc5b0", "from_holder": "H2", "to_holder": "vbt_mid", "amount": 4138, "due_day": 4}
+{"kind": "ClaimTransferredDealer", "day": 0, "phase": "simulation", "payable_id": "PAY_57af169623bf", "from_holder": "H3", "to_holder": "big_mid", "amount": 1098, "due_day": 1}
+{"kind": "ClaimTransferredDealer", "day": 0, "phase": "simulation", "payable_id": "PAY_87dc22ef19f4", "from_holder": "H4", "to_holder": "vbt_mid", "amount": 3334, "due_day": 8}
+{"kind": "ClaimTransferredDealer", "day": 0, "phase": "simulation", "payable_id": "PAY_47dbdcb70deb", "from_holder": "H5", "to_holder": "vbt_mid", "amount": 2516, "due_day": 5}
+{"kind": "ClaimTransferredDealer", "day": 0, "phase": "simulation", "payable_id": "PAY_27caaf9c11c7", "from_holder": "H1", "to_holder": "vbt_short", "amount": 1411, "due_day": 2}
+{"kind": "CashMinted", "day": 0, "phase": "simulation", "to": "H1", "amount": 1270, "instr_id": "C_6c24dcad403e"}
+{"kind": "CashMinted", "day": 0, "phase": "simulation", "to": "H2", "amount": 3517, "instr_id": "C_ea75a194c606"}
+{"kind": "CashMinted", "day": 0, "phase": "simulation", "to": "H3", "amount": 988, "instr_id": "C_9a27ef231156"}
+{"kind": "CashMinted", "day": 0, "phase": "simulation", "to": "H4", "amount": 2834, "instr_id": "C_8dbb74d46437"}
+{"kind": "CashMinted", "day": 0, "phase": "simulation", "to": "H5", "amount": 2139, "instr_id": "C_cc9362aca26c"}
+{"kind": "SubphaseB2", "day": 0, "phase": "simulation"}
+{"kind": "PhaseC", "day": 0, "phase": "simulation"}
+{"kind": "PhaseA", "day": 1, "phase": "simulation"}
+{"kind": "PhaseB", "day": 1, "phase": "simulation"}
+{"kind": "SubphaseB1", "day": 1, "phase": "simulation"}
+{"kind": "SubphaseB_Dealer", "day": 1, "phase": "simulation"}
+{"kind": "dealer_trade", "day": 1, "phase": "simulation", "trader": "big_long", "side": "buy", "ticket_id": "TKT_PAY_27caaf9c11c7", "bucket": "short", "price": 1552.1, "unit_price": 1.1, "face": 1411.0, "is_passthrough": true, "reduces_margin_below_zero": false}
+{"kind": "ClaimTransferredDealer", "day": 1, "phase": "simulation", "payable_id": "PAY_5e2648bcc5b0", "from_holder": "vbt_mid", "to_holder": "vbt_short", "amount": 4138, "due_day": 4}
+{"kind": "ClaimTransferredDealer", "day": 1, "phase": "simulation", "payable_id": "PAY_27caaf9c11c7", "from_holder": "vbt_short", "to_holder": "big_long", "amount": 1411, "due_day": 2}
+{"kind": "SubphaseB2", "day": 1, "phase": "simulation"}
+{"kind": "CashTransferred", "day": 1, "phase": "simulation", "frm": "H2", "to": "big_mid", "amount": 625, "instr_id": "C_c6cfd8d02b47"}
+{"kind": "CashTransferred", "day": 1, "phase": "simulation", "frm": "H2", "to": "big_mid", "amount": 473, "instr_id": "C_df652777ec6e"}
+{"kind": "InstrumentMerged", "day": 1, "phase": "simulation", "keep": "C_c6cfd8d02b47", "removed": "C_df652777ec6e"}
+{"kind": "PayableSettled", "day": 1, "phase": "simulation", "pid": "PAY_57af169623bf", "contract_id": "PAY_57af169623bf", "alias": "P_H2_H3", "debtor": "H2", "creditor": "big_mid", "amount": 1098}
+{"kind": "CashTransferred", "day": 1, "phase": "simulation", "frm": "H2", "to": "big_mid", "amount": 500, "instr_id": "C_14de39816e0b"}
+{"kind": "InstrumentMerged", "day": 1, "phase": "simulation", "keep": "C_c6cfd8d02b47", "removed": "C_14de39816e0b"}
+{"kind": "PayableSettled", "day": 1, "phase": "simulation", "pid": "PAY_f9634415bb4a", "contract_id": "PAY_f9634415bb4a", "alias": "P_H2_big_mid_big", "debtor": "H2", "creditor": "big_mid", "amount": 500}
+{"kind": "PhaseC", "day": 1, "phase": "simulation"}

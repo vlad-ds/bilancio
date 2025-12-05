@@ -1,13 +1,13 @@
 {
-  "total_pairs": 125,
-  "completed_pairs": 125,
-  "mean_delta_passive": 0.6812562926041404,
-  "mean_delta_active": 0.6608510994951435,
-  "mean_trading_effect": 0.020405193108996616,
-  "mean_relief_ratio": 0.01851346320559376,
-  "pairs_with_improvement": 29,
-  "pairs_unchanged": 78,
-  "pairs_worsened": 18,
+  "total_pairs": 625,
+  "completed_pairs": 625,
+  "mean_delta_passive": 0.6748681838520596,
+  "mean_delta_active": 0.6475515933999354,
+  "mean_trading_effect": 0.02731659045212469,
+  "mean_relief_ratio": -0.04370247104625068,
+  "pairs_with_improvement": 158,
+  "pairs_unchanged": 396,
+  "pairs_worsened": 71,
   "config": {
     "n_agents": 5,
     "maturity_days": 10,
@@ -37,7 +37,11 @@
       "1"
     ],
     "outside_mid_ratios": [
-      "1.0"
+      "1.0",
+      "0.9",
+      "0.8",
+      "0.75",
+      "0.5"
     ]
   }
 }
