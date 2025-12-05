@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2025-12-05 19:59:00 UTC | Branch: main | Commit: 3b58d4d
+Generated: 2025-12-05 19:59:35 UTC | Branch: main | Commit: 0a22a56
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -9252,6 +9252,14 @@ Complete git history from oldest to newest:
     detailed_dealer_logging is enabled
   The repayment_events.csv enables analysis of whether trading helped
   traders avoid defaults and what strategies were most effective.
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **51a8983b** (2025-12-05) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **0a22a560** (2025-12-05) by vladgheorghe
+  docs: mark Plan 022 as complete
   🤖 Generated with [Claude Code](https://claude.com/claude-code)
   Co-Authored-By: Claude <noreply@anthropic.com>
 
