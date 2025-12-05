@@ -1,0 +1,202 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bilancio Analytics Report</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 24px; color: #222; }
+    h1 { margin: 0 0 4px; font-size: 22px; }
+    h2 { margin-top: 28px; font-size: 18px; }
+    h3 { margin-top: 18px; font-size: 16px; }
+    h4 { margin-top: 12px; font-size: 14px; }
+    p.small { color: #555; margin-top: 4px; }
+    table.grid { border-collapse: collapse; width: 100%; margin-top: 8px; }
+    table.grid th, table.grid td { border: 1px solid #ddd; padding: 6px 8px; font-size: 13px; }
+    table.grid thead th { background: #f8f8f8; text-align: left; }
+    .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; margin-top: 8px; }
+    .card { border: 1px solid #eee; padding: 10px; border-radius: 6px; background: #fcfcfc; }
+    .muted { color: #666; }
+    dl { display: grid; grid-template-columns: max-content 1fr; grid-gap: 4px 16px; font-size: 13px; }
+    dt { font-weight: 600; }
+    dd { margin: 0 0 8px 0; color: #333; }
+  </style>
+  <meta name="generator" content="Bilancio Analytics" />
+  <meta name="description" content="Kalecki-style payment microstructure metrics" />
+  <meta name="robots" content="noindex" />
+</head>
+<body>
+  <header>
+    <h1>Bilancio Analytics Report</h1>
+    
+  </header>
+
+  <section>
+    <h2>Summary Across Days</h2>
+    <div class="summary">
+      <div class="card"><div class="muted">Days analyzed</div><div><strong>10</strong></div></div>
+      <div class="card"><div class="muted">Total dues ∑ S_t</div><div><strong>14954</strong></div></div>
+      <div class="card"><div class="muted">Gross settled total</div><div><strong>14954</strong></div></div>
+      <div class="card"><div class="muted">Max operational peak</div><div><strong>1905</strong></div></div>
+      <div class="card"><div class="muted">Avg velocity</div><div><strong>1</strong></div></div>
+      <div class="card"><div class="muted">Weighted on-time φ</div><div><strong>1</strong></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Day-by-Day Metrics</h2>
+    <table class="grid">
+      <thead>
+        <tr><th>Day</th><th>Total dues S_t</th><th>Min net liquidity ̅M_t</th><th>Start-of-day money M_t</th><th>Liquidity gap G_t</th><th>Netting potential α_t</th><th>Operational peak M^peak_t</th><th>Gross settled</th><th>Intraday velocity v_t</th><th>On-time settlement φ_t</th><th>Deferral/default δ_t</th><th># debtors</th><th># creditors</th><th>Creditor HHI^+</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>1378</td><td>1378</td><td>51813</td><td>0</td><td>0</td><td>1378</td><td>1378</td><td>1</td><td>1</td><td>0</td><td>10</td><td>13</td><td>0.092109</td><td></td></tr><tr><td>2</td><td>1169</td><td>1169</td><td>51813</td><td>0</td><td>0</td><td>1169</td><td>1169</td><td>1</td><td>1</td><td>0</td><td>10</td><td>13</td><td>0.095175</td><td></td></tr><tr><td>3</td><td>1432</td><td>1432</td><td>51813</td><td>0</td><td>0</td><td>1432</td><td>1432</td><td>1</td><td>1</td><td>0</td><td>10</td><td>13</td><td>0.10132</td><td></td></tr><tr><td>4</td><td>1450</td><td>1450</td><td>51813</td><td>0</td><td>0</td><td>1450</td><td>1450</td><td>1</td><td>1</td><td>0</td><td>10</td><td>13</td><td>0.113123</td><td></td></tr><tr><td>5</td><td>1905</td><td>1905</td><td>51813</td><td>0</td><td>0</td><td>1905</td><td>1905</td><td>1</td><td>1</td><td>0</td><td>10</td><td>13</td><td>0.117696</td><td></td></tr><tr><td>6</td><td>1479</td><td>1479</td><td>51813</td><td>0</td><td>0</td><td>1479</td><td>1479</td><td>1</td><td>1</td><td>0</td><td>10</td><td>13</td><td>0.105645</td><td></td></tr><tr><td>7</td><td>1377</td><td>1377</td><td>51813</td><td>0</td><td>0</td><td>1377</td><td>1377</td><td>1</td><td>1</td><td>0</td><td>10</td><td>13</td><td>0.103199</td><td></td></tr><tr><td>8</td><td>1256</td><td>1256</td><td>51813</td><td>0</td><td>0</td><td>1256</td><td>1256</td><td>1</td><td>1</td><td>0</td><td>10</td><td>13</td><td>0.095588</td><td></td></tr><tr><td>9</td><td>1835</td><td>1835</td><td>51813</td><td>0</td><td>0</td><td>1835</td><td>1835</td><td>1</td><td>1</td><td>0</td><td>10</td><td>13</td><td>0.140863</td><td></td></tr><tr><td>10</td><td>1673</td><td>1673</td><td>51813</td><td>0</td><td>0</td><td>1673</td><td>1673</td><td>1</td><td>1</td><td>0</td><td>10</td><td>13</td><td>0.101224</td><td></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Debtor Shortfall Shares DS_t(i)</h2>
+    <h4>Day 1</h4><table class="grid"><thead><tr><th>Agent</th><th>H12</th><th>H13</th><th>H2</th><th>H22</th><th>H23</th><th>H3</th><th>H32</th><th>H33</th><th>H42</th><th>H43</th><th>H52</th><th>H53</th><th>H62</th><th>H63</th><th>H72</th><th>H73</th><th>H82</th><th>H83</th><th>H92</th><th>H93</th><th>big_long</th><th>big_mid</th><th>big_short</th></tr></thead><tbody><tr><th>DS_t</th><td>0.134978</td><td>0</td><td>0.07402</td><td>0.101597</td><td>0</td><td>0</td><td>0.174891</td><td>0</td><td>0.103774</td><td>0</td><td>0.093614</td><td>0</td><td>0.04209</td><td>0</td><td>0.111756</td><td>0</td><td>0.048621</td><td>0</td><td>0.114659</td><td>0</td><td>0</td><td>0</td><td>0</td></tr></tbody></table><h4>Day 2</h4><table class="grid"><thead><tr><th>Agent</th><th>H1</th><th>H11</th><th>H12</th><th>H2</th><th>H21</th><th>H22</th><th>H31</th><th>H32</th><th>H41</th><th>H42</th><th>H51</th><th>H52</th><th>H61</th><th>H62</th><th>H71</th><th>H72</th><th>H81</th><th>H82</th><th>H91</th><th>H92</th><th>big_long</th><th>big_mid</th><th>big_short</th></tr></thead><tbody><tr><th>DS_t</th><td>0.121471</td><td>0.155689</td><td>0</td><td>0</td><td>0.154833</td><td>0</td><td>0.063302</td><td>0</td><td>0.095808</td><td>0</td><td>0.040205</td><td>0</td><td>0.077844</td><td>0</td><td>0.137725</td><td>0</td><td>0.035928</td><td>0</td><td>0.117194</td><td>0</td><td>0</td><td>0</td><td>0</td></tr></tbody></table><h4>Day 3</h4><table class="grid"><thead><tr><th>Agent</th><th>H1</th><th>H10</th><th>H100</th><th>H11</th><th>H20</th><th>H21</th><th>H30</th><th>H31</th><th>H40</th><th>H41</th><th>H50</th><th>H51</th><th>H60</th><th>H61</th><th>H70</th><th>H71</th><th>H80</th><th>H81</th><th>H90</th><th>H91</th><th>big_long</th><th>big_mid</th><th>big_short</th></tr></thead><tbody><tr><th>DS_t</th><td>0</td><td>0.074022</td><td>0.054469</td><td>0</td><td>0.056564</td><td>0</td><td>0.156425</td><td>0</td><td>0.122207</td><td>0</td><td>0.13338</td><td>0</td><td>0.190642</td><td>0</td><td>0.031425</td><td>0</td><td>0.102654</td><td>0</td><td>0.078212</td><td>0</td><td>0</td><td>0</td><td>0</td></tr></tbody></table><h4>Day 4</h4><table class="grid"><thead><tr><th>Agent</th><th>H10</th><th>H100</th><th>H19</th><th>H20</th><th>H29</th><th>H30</th><th>H39</th><th>H40</th><th>H49</th><th>H50</th><th>H59</th><th>H60</th><th>H69</th><th>H70</th><th>H79</th><th>H80</th><th>H89</th><th>H9</th><th>H90</th><th>H99</th><th>big_long</th><th>big_mid</th><th>big_short</th></tr></thead><tbody><tr><th>DS_t</th><td>0</td><td>0</td><td>0.073793</td><td>0</td><td>0.090345</td><td>0</td><td>0.118621</td><td>0</td><td>0.053793</td><td>0</td><td>0.042069</td><td>0</td><td>0.047586</td><td>0</td><td>0.088966</td><td>0</td><td>0.209655</td><td>0.066207</td><td>0</td><td>0.208966</td><td>0</td><td>0</td><td>0</td></tr></tbody></table><h4>Day 5</h4><table class="grid"><thead><tr><th>Agent</th><th>H18</th><th>H19</th><th>H28</th><th>H29</th><th>H38</th><th>H39</th><th>H48</th><th>H49</th><th>H58</th><th>H59</th><th>H68</th><th>H69</th><th>H78</th><th>H79</th><th>H8</th><th>H88</th><th>H89</th><th>H9</th><th>H98</th><th>H99</th><th>big_long</th><th>big_mid</th><th>big_short</th></tr></thead><tbody><tr><th>DS_t</th><td>0.065092</td><td>0</td><td>0.135958</td><td>0</td><td>0.230971</td><td>0</td><td>0.055643</td><td>0</td><td>0.052493</td><td>0</td><td>0.029396</td><td>0</td><td>0.16273</td><td>0</td><td>0.12336</td><td>0.099213</td><td>0</td><td>0</td><td>0.045144</td><td>0</td><td>0</td><td>0</td><td>0</td></tr></tbody></table><h4>Day 6</h4><table class="grid"><thead><tr><th>Agent</th><th>H17</th><th>H18</th><th>H27</th><th>H28</th><th>H37</th><th>H38</th><th>H47</th><th>H48</th><th>H57</th><th>H58</th><th>H67</th><th>H68</th><th>H7</th><th>H77</th><th>H78</th><th>H8</th><th>H87</th><th>H88</th><th>H97</th><th>H98</th><th>big_long</th><th>big_mid</th><th>big_short</th></tr></thead><tbody><tr><th>DS_t</th><td>0.23597</td><td>0</td><td>0.053414</td><td>0</td><td>0.08046</td><td>0</td><td>0.043949</td><td>0</td><td>0.131846</td><td>0</td><td>0.116295</td><td>0</td><td>0.085869</td><td>0.097363</td><td>0</td><td>0</td><td>0.087221</td><td>0</td><td>0.067613</td><td>0</td><td>0</td><td>0</td><td>0</td></tr></tbody></table><h4>Day 7</h4><table class="grid"><thead><tr><th>Agent</th><th>H16</th><th>H17</th><th>H26</th><th>H27</th><th>H36</th><th>H37</th><th>H46</th><th>H47</th><th>H56</th><th>H57</th><th>H6</th><th>H66</th><th>H67</th><th>H7</th><th>H76</th><th>H77</th><th>H86</th><th>H87</th><th>H96</th><th>H97</th><th>big_long</th><th>big_mid</th><th>big_short</th></tr></thead><tbody><tr><th>DS_t</th><td>0.025418</td><td>0</td><td>0.135076</td><td>0</td><td>0.063181</td><td>0</td><td>0.169208</td><td>0</td><td>0.04793</td><td>0</td><td>0.136529</td><td>0.095861</td><td>0</td><td>0</td><td>0.131445</td><td>0</td><td>0.038489</td><td>0</td><td>0.156863</td><td>0</td><td>0</td><td>0</td><td>0</td></tr></tbody></table><h4>Day 8</h4><table class="grid"><thead><tr><th>Agent</th><th>H15</th><th>H16</th><th>H25</th><th>H26</th><th>H35</th><th>H36</th><th>H45</th><th>H46</th><th>H5</th><th>H55</th><th>H56</th><th>H6</th><th>H65</th><th>H66</th><th>H75</th><th>H76</th><th>H85</th><th>H86</th><th>H95</th><th>H96</th><th>big_long</th><th>big_mid</th><th>big_short</th></tr></thead><tbody><tr><th>DS_t</th><td>0.038217</td><td>0</td><td>0.16879</td><td>0</td><td>0.111465</td><td>0</td><td>0.133758</td><td>0</td><td>0.057325</td><td>0.10828</td><td>0</td><td>0</td><td>0.062898</td><td>0</td><td>0.142516</td><td>0</td><td>0.125796</td><td>0</td><td>0.050955</td><td>0</td><td>0</td><td>0</td><td>0</td></tr></tbody></table><h4>Day 9</h4><table class="grid"><thead><tr><th>Agent</th><th>H14</th><th>H15</th><th>H24</th><th>H25</th><th>H34</th><th>H35</th><th>H4</th><th>H44</th><th>H45</th><th>H5</th><th>H54</th><th>H55</th><th>H64</th><th>H65</th><th>H74</th><th>H75</th><th>H84</th><th>H85</th><th>H94</th><th>H95</th><th>big_long</th><th>big_mid</th><th>big_short</th></tr></thead><tbody><tr><th>DS_t</th><td>0.06594</td><td>0</td><td>0.06376</td><td>0</td><td>0.089373</td><td>0</td><td>0.065395</td><td>0.073569</td><td>0</td><td>0</td><td>0.083924</td><td>0</td><td>0.079564</td><td>0</td><td>0.059401</td><td>0</td><td>0.330245</td><td>0</td><td>0.088828</td><td>0</td><td>0</td><td>0</td><td>0</td></tr></tbody></table><h4>Day 10</h4><table class="grid"><thead><tr><th>Agent</th><th>H13</th><th>H14</th><th>H23</th><th>H24</th><th>H3</th><th>H33</th><th>H34</th><th>H4</th><th>H43</th><th>H44</th><th>H53</th><th>H54</th><th>H63</th><th>H64</th><th>H73</th><th>H74</th><th>H83</th><th>H84</th><th>H93</th><th>H94</th><th>big_long</th><th>big_mid</th><th>big_short</th></tr></thead><tbody><tr><th>DS_t</th><td>0.135087</td><td>0</td><td>0.070532</td><td>0</td><td>0.083682</td><td>0.047221</td><td>0</td><td>0</td><td>0.056186</td><td>0</td><td>0.161984</td><td>0</td><td>0.06575</td><td>0</td><td>0.078302</td><td>0</td><td>0.108189</td><td>0</td><td>0.193066</td><td>0</td><td>0</td><td>0</td><td>0</td></tr></tbody></table>
+  </section>
+
+  <section>
+    <h2>Intraday Diagnostics: Prefix Liquidity P(s)</h2>
+    <p class="small muted">For each settlement sequence on day t, P(s) = ∑_i max(0, Δ_i(s)) and M^peak_t = max_s P(s).</p>
+    <h4>Day 1</h4>
+<svg width="520" height="140" viewBox="0 0 520 140" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="520" height="140" fill="#fff"/>
+  <line x1="35" y1="115" x2="510" y2="115" stroke="#999" stroke-width="1"/>
+  <line x1="35" y1="10" x2="35" y2="115" stroke="#999" stroke-width="1"/>
+  <text x="35" y="8" font-size="10" fill="#555">P_prefix</text>
+  <text x="510" y="129" font-size="10" fill="#555" text-anchor="end">step</text>
+  <text x="29" y="18" font-size="10" fill="#555" text-anchor="end">1378</text>
+  <polyline fill="none" stroke="#2a7" stroke-width="2" points="35.0,109.1 60.0,96.9 85.0,88.1 110.0,71.6 135.0,62.7 160.0,54.7 185.0,52.2 210.0,42.4 235.0,39.2 260.0,29.0 285.0,27.1 310.0,25.2 335.0,23.3 360.0,21.4 385.0,19.5 410.0,17.6 435.0,15.7 460.0,13.8 485.0,11.9 510.0,10.0" />
+</svg>
+<h4>Day 2</h4>
+<svg width="520" height="140" viewBox="0 0 520 140" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="520" height="140" fill="#fff"/>
+  <line x1="35" y1="115" x2="510" y2="115" stroke="#999" stroke-width="1"/>
+  <line x1="35" y1="10" x2="35" y2="115" stroke="#999" stroke-width="1"/>
+  <text x="35" y="8" font-size="10" fill="#555">P_prefix</text>
+  <text x="510" y="129" font-size="10" fill="#555" text-anchor="end">step</text>
+  <text x="29" y="18" font-size="10" fill="#555" text-anchor="end">1169</text>
+  <polyline fill="none" stroke="#2a7" stroke-width="2" points="35.0,104.5 60.0,90.4 85.0,76.4 110.0,72.0 135.0,64.2 160.0,62.2 185.0,56.3 210.0,44.0 235.0,42.5 260.0,32.5 285.0,30.2 310.0,28.0 335.0,25.7 360.0,23.5 385.0,21.2 410.0,19.0 435.0,16.7 460.0,14.5 485.0,12.2 510.0,10.0" />
+</svg>
+<h4>Day 3</h4>
+<svg width="520" height="140" viewBox="0 0 520 140" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="520" height="140" fill="#fff"/>
+  <line x1="35" y1="115" x2="510" y2="115" stroke="#999" stroke-width="1"/>
+  <line x1="35" y1="10" x2="35" y2="115" stroke="#999" stroke-width="1"/>
+  <text x="35" y="8" font-size="10" fill="#555">P_prefix</text>
+  <text x="510" y="129" font-size="10" fill="#555" text-anchor="end">step</text>
+  <text x="29" y="18" font-size="10" fill="#555" text-anchor="end">1432</text>
+  <polyline fill="none" stroke="#2a7" stroke-width="2" points="35.0,109.1 60.0,105.0 85.0,90.4 110.0,79.4 135.0,67.2 160.0,49.0 185.0,47.5 210.0,38.6 235.0,32.2 260.0,28.3 285.0,26.5 310.0,24.7 335.0,22.8 360.0,21.0 385.0,19.2 410.0,17.3 435.0,15.5 460.0,13.7 485.0,11.8 510.0,10.0" />
+</svg>
+<h4>Day 4</h4>
+<svg width="520" height="140" viewBox="0 0 520 140" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="520" height="140" fill="#fff"/>
+  <line x1="35" y1="115" x2="510" y2="115" stroke="#999" stroke-width="1"/>
+  <line x1="35" y1="10" x2="35" y2="115" stroke="#999" stroke-width="1"/>
+  <text x="35" y="8" font-size="10" fill="#555">P_prefix</text>
+  <text x="510" y="129" font-size="10" fill="#555" text-anchor="end">step</text>
+  <text x="29" y="18" font-size="10" fill="#555" text-anchor="end">1450</text>
+  <polyline fill="none" stroke="#2a7" stroke-width="2" points="35.0,109.9 60.0,103.9 85.0,96.2 110.0,85.6 135.0,81.8 160.0,79.2 185.0,76.0 210.0,68.4 235.0,48.2 260.0,28.1 285.0,26.3 310.0,24.5 335.0,22.7 360.0,20.9 385.0,19.1 410.0,17.2 435.0,15.4 460.0,13.6 485.0,11.8 510.0,10.0" />
+</svg>
+<h4>Day 5</h4>
+<svg width="520" height="140" viewBox="0 0 520 140" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="520" height="140" fill="#fff"/>
+  <line x1="35" y1="115" x2="510" y2="115" stroke="#999" stroke-width="1"/>
+  <line x1="35" y1="10" x2="35" y2="115" stroke="#999" stroke-width="1"/>
+  <text x="35" y="8" font-size="10" fill="#555">P_prefix</text>
+  <text x="510" y="129" font-size="10" fill="#555" text-anchor="end">step</text>
+  <text x="29" y="18" font-size="10" fill="#555" text-anchor="end">1905</text>
+  <polyline fill="none" stroke="#2a7" stroke-width="2" points="35.0,103.4 60.0,98.0 85.0,85.1 110.0,62.2 135.0,57.7 160.0,53.6 185.0,51.9 210.0,36.2 235.0,27.1 260.0,23.8 285.0,22.4 310.0,21.0 335.0,19.6 360.0,18.3 385.0,16.9 410.0,15.5 435.0,14.1 460.0,12.8 485.0,11.4 510.0,10.0" />
+</svg>
+<h4>Day 6</h4>
+<svg width="520" height="140" viewBox="0 0 520 140" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="520" height="140" fill="#fff"/>
+  <line x1="35" y1="115" x2="510" y2="115" stroke="#999" stroke-width="1"/>
+  <line x1="35" y1="10" x2="35" y2="115" stroke="#999" stroke-width="1"/>
+  <text x="35" y="8" font-size="10" fill="#555">P_prefix</text>
+  <text x="510" y="129" font-size="10" fill="#555" text-anchor="end">step</text>
+  <text x="29" y="18" font-size="10" fill="#555" text-anchor="end">1479</text>
+  <polyline fill="none" stroke="#2a7" stroke-width="2" points="35.0,107.8 60.0,84.8 85.0,80.9 110.0,74.2 135.0,71.4 160.0,59.3 185.0,48.9 210.0,40.5 235.0,33.1 260.0,27.7 285.0,26.0 310.0,24.2 335.0,22.4 360.0,20.6 385.0,18.9 410.0,17.1 435.0,15.3 460.0,13.5 485.0,11.8 510.0,10.0" />
+</svg>
+<h4>Day 7</h4>
+<svg width="520" height="140" viewBox="0 0 520 140" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="520" height="140" fill="#fff"/>
+  <line x1="35" y1="115" x2="510" y2="115" stroke="#999" stroke-width="1"/>
+  <line x1="35" y1="10" x2="35" y2="115" stroke="#999" stroke-width="1"/>
+  <text x="35" y="8" font-size="10" fill="#555">P_prefix</text>
+  <text x="510" y="129" font-size="10" fill="#555" text-anchor="end">step</text>
+  <text x="29" y="18" font-size="10" fill="#555" text-anchor="end">1377</text>
+  <polyline fill="none" stroke="#2a7" stroke-width="2" points="35.0,102.6 60.0,101.8 85.0,89.5 110.0,84.8 135.0,68.9 160.0,65.8 185.0,57.7 210.0,45.8 235.0,43.6 260.0,29.1 285.0,27.2 310.0,25.3 335.0,23.3 360.0,21.4 385.0,19.5 410.0,17.6 435.0,15.7 460.0,13.8 485.0,11.9 510.0,10.0" />
+</svg>
+<h4>Day 8</h4>
+<svg width="520" height="140" viewBox="0 0 520 140" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="520" height="140" fill="#fff"/>
+  <line x1="35" y1="115" x2="510" y2="115" stroke="#999" stroke-width="1"/>
+  <line x1="35" y1="10" x2="35" y2="115" stroke="#999" stroke-width="1"/>
+  <text x="35" y="8" font-size="10" fill="#555">P_prefix</text>
+  <text x="510" y="129" font-size="10" fill="#555" text-anchor="end">step</text>
+  <text x="29" y="18" font-size="10" fill="#555" text-anchor="end">1256</text>
+  <polyline fill="none" stroke="#2a7" stroke-width="2" points="35.0,111.1 60.0,109.1 85.0,93.5 110.0,83.9 135.0,71.9 160.0,62.7 185.0,58.2 210.0,45.3 235.0,34.2 260.0,30.9 285.0,28.8 310.0,26.7 335.0,24.6 360.0,22.5 385.0,20.4 410.0,18.4 435.0,16.3 460.0,14.2 485.0,12.1 510.0,10.0" />
+</svg>
+<h4>Day 9</h4>
+<svg width="520" height="140" viewBox="0 0 520 140" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="520" height="140" fill="#fff"/>
+  <line x1="35" y1="115" x2="510" y2="115" stroke="#999" stroke-width="1"/>
+  <line x1="35" y1="10" x2="35" y2="115" stroke="#999" stroke-width="1"/>
+  <text x="35" y="8" font-size="10" fill="#555">P_prefix</text>
+  <text x="510" y="129" font-size="10" fill="#555" text-anchor="end">step</text>
+  <text x="29" y="18" font-size="10" fill="#555" text-anchor="end">1835</text>
+  <polyline fill="none" stroke="#2a7" stroke-width="2" points="35.0,109.6 60.0,104.1 85.0,98.8 110.0,90.9 135.0,84.6 160.0,77.2 185.0,70.3 210.0,65.4 235.0,32.2 260.0,24.3 285.0,22.9 310.0,21.4 335.0,20.0 360.0,18.6 385.0,17.2 410.0,15.7 435.0,14.3 460.0,12.9 485.0,11.4 510.0,10.0" />
+</svg>
+<h4>Day 10</h4>
+<svg width="520" height="140" viewBox="0 0 520 140" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="520" height="140" fill="#fff"/>
+  <line x1="35" y1="115" x2="510" y2="115" stroke="#999" stroke-width="1"/>
+  <line x1="35" y1="10" x2="35" y2="115" stroke="#999" stroke-width="1"/>
+  <text x="35" y="8" font-size="10" fill="#555">P_prefix</text>
+  <text x="510" y="129" font-size="10" fill="#555" text-anchor="end">step</text>
+  <text x="29" y="18" font-size="10" fill="#555" text-anchor="end">1673</text>
+  <polyline fill="none" stroke="#2a7" stroke-width="2" points="35.0,107.8 60.0,95.2 85.0,89.3 110.0,85.9 135.0,81.6 160.0,66.2 185.0,60.8 210.0,54.2 235.0,44.4 260.0,25.7 285.0,24.1 310.0,22.6 335.0,21.0 360.0,19.4 385.0,17.8 410.0,16.3 435.0,14.7 460.0,13.1 485.0,11.6 510.0,10.0" />
+</svg>
+
+  </section>
+
+  <section>
+    <h2>Metric Explanations</h2>
+    
+<dl>
+  <dt>Total dues S_t</dt>
+  <dd>Sum of payment obligations maturing on day t.</dd>
+  <dt>Min net liquidity ̅M_t</dt>
+  <dd>Minimum system net liquidity needed if obligations are perfectly offset; equals sum of debtor shortfalls max(0, F_i - I_i).</dd>
+  <dt>Start-of-day money M_t</dt>
+  <dd>System means-of-payment available at the start of day t (cash, deposits, reserves).</dd>
+  <dt>Liquidity gap G_t</dt>
+  <dd>Shortfall at the start of the day: max(0, ̅M_t - M_t).</dd>
+  <dt>Netting potential α_t</dt>
+  <dd>Share of dues that can be cleared by circulation/netting: 1 - ̅M_t / S_t.</dd>
+  <dt>Operational peak M^peak_t</dt>
+  <dd>Peak amount of money simultaneously out in circuit when replaying realized settlement sequence.</dd>
+  <dt>Gross settled</dt>
+  <dd>Total value actually settled on day t.</dd>
+  <dt>Intraday velocity v_t</dt>
+  <dd>How intensively money is reused intraday: gross settled / operational peak.</dd>
+  <dt>On-time settlement φ_t</dt>
+  <dd>Share of dues with due_day=t that settle on day t.</dd>
+  <dt>Deferral/default δ_t</dt>
+  <dd>1 - φ_t (portion not settled on time; may reflect deferrals or defaults).</dd>
+  <dt>Creditor HHI^+</dt>
+  <dd>Concentration of net creditor positions among those with n_i > 0.</dd>
+  <dt>Debtor shortfall shares DS_t(i)</dt>
+  <dd>Each net debtor's share of ̅M_t, indicating who needs liquidity.</dd>
+</dl>
+
+  </section>
+</body>
+</html>
