@@ -55,7 +55,10 @@ def run_scenario(
     export: Optional[Dict[str, str]] = None,
     html_output: Optional[Path] = None,
     t_account: bool = False,
-    default_handling: Optional[str] = None
+    default_handling: Optional[str] = None,
+    detailed_dealer_logging: bool = False,
+    run_id: str = "",
+    regime: str = "",
 ) -> None:
     """Run a Bilancio simulation scenario.
     
@@ -227,6 +230,45 @@ def run_scenario(
             with dealer_metrics_path.open('w') as f:
                 json.dump(dealer_summary, f, indent=2)
             console.print(f"[green]✓[/green] Exported dealer metrics to {dealer_metrics_path}")
+
+            # Plan 022: Export detailed dealer CSV logs if enabled
+            if detailed_dealer_logging:
+                metrics = system.state.dealer_subsystem.metrics
+                # Set run context on metrics and propagate to all records
+                metrics.run_id = run_id
+                metrics.regime = regime
+
+                # Propagate run_id/regime to all trade records
+                for trade in metrics.trades:
+                    trade.run_id = run_id
+                    trade.regime = regime
+
+                # Propagate to dealer snapshots
+                for snap in metrics.dealer_snapshots:
+                    snap.run_id = run_id
+                    snap.regime = regime
+
+                # Propagate to system state snapshots
+                for snap in metrics.system_state_snapshots:
+                    snap.run_id = run_id
+                    snap.regime = regime
+
+                out_dir = dealer_metrics_path.parent
+
+                # trades.csv
+                trades_path = out_dir / "trades.csv"
+                metrics.to_trade_log_csv(str(trades_path))
+                console.print(f"[green]✓[/green] Exported trades to {trades_path}")
+
+                # inventory_timeseries.csv (uses dealer_snapshots with new fields)
+                inventory_path = out_dir / "inventory_timeseries.csv"
+                metrics.to_inventory_timeseries_csv(str(inventory_path))
+                console.print(f"[green]✓[/green] Exported inventory timeseries to {inventory_path}")
+
+                # system_state_timeseries.csv
+                system_state_path = out_dir / "system_state_timeseries.csv"
+                metrics.to_system_state_csv(str(system_state_path))
+                console.print(f"[green]✓[/green] Exported system state timeseries to {system_state_path}")
 
     # Export to HTML if requested (semantic HTML for readability)
     if html_output:

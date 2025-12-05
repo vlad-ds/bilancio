@@ -1,0 +1,214 @@
+1. Extra instrumentation in the existing simulation
+1.1 Trade‑level logging (dealers, VBTs, traders)
+
+Add an optional "detailed logging" mode that writes a trades.csv (or similar) per run.
+
+For each executed trade log at least:
+
+run id + regime (passive / active)
+
+time step
+
+buyer id, seller id, and their types (trader / dealer / VBT)
+
+maturity bucket of the security
+
+quantity and price
+
+outside mid at that time
+
+dealer mid at that time (for that maturity)
+
+dealer inventory before and after the trade for that maturity
+
+whether the trade was triggered because the dealer hit an inventory limit and had to use the VBT
+
+This gives us exactly what we need to see:
+
+how much traders actually trade with the dealer,
+
+how often VBTs are used because the dealer is at its limit,
+
+how sensitive dealer prices are to inventory.
+
+If file size is a concern, this can be behind a config flag and/or only enabled for selected parameter sets.
+
+1.2 Link trades to debt repayments / defaults
+
+For each trader and each of their liabilities, we want a summary of how they tried to manage it.
+
+Proposed new output: repayment_events.csv with one row per (trader, liability).
+
+Per row:
+
+run id + regime
+
+trader id
+
+liability id, maturity date, face value
+
+outcome: repaid / defaulted
+
+number of trades with the dealer before maturity:
+
+buys (investing in claims)
+
+sells (raising cash)
+
+net cash P&L from trading with the dealer up to that maturity
+
+whether they ever held a security that matures exactly when their own debt is due
+
+This lets us answer questions like:
+
+"How often does buying from the dealer and holding to maturity actually help repay your own debt?"
+
+"How often do traders try strategy 2 (buy then sell back to dealer) and does it work?"
+
+We can then classify, for each liability, whether the trader followed:
+
+Buy & hold to maturity (and then repay),
+
+Buy then sell before maturity (liquidity strategy),
+
+No trade with dealer, or
+
+Many round‑trips / day‑trading.
+
+Even a very coarse classification is already useful.
+
+1.3 Dealer / VBT capacity and "emptying out"
+
+To understand the "dealer gets emptied and stops servicing the system" story, let's log a simple per‑time‑step summary:
+
+New output: inventory_timeseries.csv
+
+Per (run, regime, time step, maturity bucket):
+
+dealer inventory
+
+dealer max capacity
+
+% of capacity used
+
+flag: is dealer at 0 inventory?
+
+flag: did dealer hit its capacity and have to use VBT at this step?
+
+outstanding total face value of that maturity in the whole system
+
+share of that maturity held by dealers/VBT vs traders
+
+From that we can compute:
+
+how quickly each dealer bucket empties,
+
+fraction of the horizon in which dealers are "inactive" simply because they have nothing left,
+
+how the shrinking stock of debt over time interacts with dealer capacity.
+
+1.4 System‑level debt stock over time
+
+To see how the overall stock of debt shrinking over time affects things, add a run‑level time series:
+
+New output: system_state_timeseries.csv
+
+Per time step:
+
+total face value of outstanding debt (all maturities)
+
+same, split by maturity bucket
+
+total cash in the system
+
+total debt / total money ratio measured at each time
+
+We already set κ in config, but this will show the actual path of debt/money and how quickly the system "winds down."
+
+1.5 Outside‑mid ratio as a parameter
+
+Right now outside_mid_ratio is fixed at 0.75. I'd like to see how the results change when the outside mid is less punitive / more generous.
+
+Coding changes:
+
+Allow outside_mid_ratios to be a list like [0.9, 0.8, 0.7].
+
+Extend the sweep so this becomes another dimension (like κ, concentration, μ).
+
+Include outside_mid_ratio as a column in all outputs (trades, repayment events, inventory time series, comparison CSV, etc.).
+
+This would give us three comparable slices:
+
+0.9 (very "fair" prices),
+
+0.8,
+
+0.7 (current, more punitive baseline).
+
+Then we can see whether the dealer's effectiveness is highly sensitive to this parameter.
+
+then we can do:
+
+2. Analysis / post‑processing we can do once logs exist
+
+These are mostly Python/notebook tasks on top of the CSVs:
+
+Explain the "no difference" cases
+
+For the 108 pairs where active/passive are identical:
+
+Check total dealer‑trader volume.
+
+Check how many defaulting traders ever traded with the dealer.
+
+Check how often dealers are fully empty or never used.
+
+Hypotheses we can confirm or reject:
+
+There's simply very little trading.
+
+Traders who default don't interact with dealers.
+
+Dealers/VBTs are active, but mostly trading with "healthy" traders.
+
+Quantify at what horizons the dealer matters
+
+Plot dealer inventory vs. remaining stock of debt.
+
+See whether improvements mostly occur in parameter regions where dealer remains active until later maturities.
+
+Characterize trading strategies
+
+Use repayment_events.csv to assign each (trader, liability) into:
+
+hold‑to‑maturity,
+
+sell‑before‑maturity,
+
+many round‑trips,
+
+no trade.
+
+Compare success rates (repayment vs default) by strategy type.
+
+Relate strategies to initial conditions
+
+Bucket traders by initial:
+
+cash/debt ratio,
+
+initial amount of claims,
+
+maturity mismatch.
+
+For each bucket, measure:
+
+how often they use the dealer,
+
+what strategy mix they use,
+
+default rates with vs without dealer.
+
+This should give us a more "micro" picture: who actually uses the dealer, how, and with what outcomes.
+
+let me know if this works (I think we have some of this already done)

@@ -98,6 +98,12 @@ class BalancedComparisonConfig(BaseModel):
     name_prefix: str = Field(default="Balanced Comparison", description="Scenario name prefix")
     default_handling: str = Field(default="fail-fast", description="Default handling mode")
 
+    # Detailed logging (Plan 022)
+    detailed_logging: bool = Field(
+        default=False,
+        description="Enable detailed CSV logging (trades.csv, inventory_timeseries.csv, system_state_timeseries.csv)"
+    )
+
     # Grid parameters
     kappas: List[Decimal] = Field(
         default_factory=lambda: [Decimal("0.25"), Decimal("0.5"), Decimal("1"), Decimal("2"), Decimal("4")]
@@ -208,6 +214,7 @@ class BalancedComparisonRunner:
             face_value=self.config.face_value,
             outside_mid_ratio=outside_mid_ratio,
             big_entity_share=self.config.big_entity_share,
+            detailed_dealer_logging=self.config.detailed_logging,  # Plan 022
         )
 
     def _get_active_runner(self, outside_mid_ratio: Decimal) -> RingSweepRunner:
@@ -235,6 +242,7 @@ class BalancedComparisonRunner:
             face_value=self.config.face_value,
             outside_mid_ratio=outside_mid_ratio,
             big_entity_share=self.config.big_entity_share,
+            detailed_dealer_logging=self.config.detailed_logging,  # Plan 022
         )
 
     def run_all(self) -> List[BalancedComparisonResult]:

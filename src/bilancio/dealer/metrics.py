@@ -36,6 +36,10 @@ class TradeRecord:
     - Dealer state before/after
     - Trader safety margin before/after (Section 8.4)
     - Liquidity-driven flag (Section 8.3)
+
+    Plan 022 extensions:
+    - run_id/regime for experiment tracking
+    - hit_inventory_limit flag for VBT routing analysis
     """
     # Core trade identifiers
     day: int
@@ -51,6 +55,12 @@ class TradeRecord:
     price: Decimal
     unit_price: Decimal  # price / face_value
     is_passthrough: bool
+
+    # === Fields with defaults below ===
+
+    # Run context (Plan 022 - Phase 1)
+    run_id: str = ""              # e.g., "grid_abc123"
+    regime: str = ""              # "passive" or "active"
 
     # Pre-trade state
     dealer_inventory_before: int = 0
@@ -73,9 +83,20 @@ class TradeRecord:
     is_liquidity_driven: bool = False  # Seller had shortfall (Section 8.3)
     reduces_margin_below_zero: bool = False  # BUY reduced margin < 0 (Section 8.4)
 
+    # VBT routing analysis (Plan 022 - Phase 1)
+    # hit_inventory_limit is different from is_passthrough:
+    # - is_passthrough=True means trade went to VBT
+    # - hit_inventory_limit=True means VBT was used *because* dealer was at capacity
+    #   (side=SELL and dealer at max_capacity, or side=BUY and dealer at 0 inventory)
+    hit_inventory_limit: bool = False
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary with serialized Decimals."""
         return {
+            # Run context (Plan 022)
+            "run_id": self.run_id,
+            "regime": self.regime,
+            # Core trade identifiers
             "day": self.day,
             "bucket": self.bucket,
             "side": self.side,
@@ -102,6 +123,8 @@ class TradeRecord:
             "trader_safety_margin_after": str(self.trader_safety_margin_after),
             "is_liquidity_driven": self.is_liquidity_driven,
             "reduces_margin_below_zero": self.reduces_margin_below_zero,
+            # VBT routing analysis (Plan 022)
+            "hit_inventory_limit": self.hit_inventory_limit,
         }
 
 
@@ -115,6 +138,11 @@ class DealerSnapshot:
     - Outside mid M_t^(b), spread O_t^(b)
     - Bid/ask quotes
     - Mark-to-mid equity E_t^(b) = C_t^(b) + M_t^(b) * a_t^(b) * S
+
+    Plan 022 extensions (Phase 3 - inventory timeseries):
+    - max_capacity, capacity_pct for utilization tracking
+    - is_at_zero, hit_vbt_this_step for VBT routing analysis
+    - total_system_face, dealer_share_pct for system-level context
     """
     day: int
     bucket: str
@@ -127,6 +155,15 @@ class DealerSnapshot:
     vbt_spread: Decimal  # O_t^(b)
     ticket_size: Decimal  # S
 
+    # Plan 022 - Phase 3: Inventory timeseries fields
+    run_id: str = ""              # Run identifier for tracking
+    regime: str = ""              # "passive" or "active"
+    max_capacity: int = 0         # K* - max dealer inventory capacity
+    is_at_zero: bool = False      # inventory == 0?
+    hit_vbt_this_step: bool = False  # Did we route to VBT this step?
+    total_system_face: Decimal = Decimal(0)  # Total face value in system for this bucket
+    dealer_share_pct: Decimal = Decimal(0)   # % of bucket's face held by dealer
+
     @property
     def mark_to_mid_equity(self) -> Decimal:
         """
@@ -135,6 +172,17 @@ class DealerSnapshot:
         This is the equity valuation using VBT mid price.
         """
         return self.cash + self.vbt_mid * self.inventory * self.ticket_size
+
+    @property
+    def capacity_pct(self) -> Decimal:
+        """
+        Capacity utilization as percentage (Plan 022).
+
+        inventory / max_capacity * 100, or 0 if max_capacity is 0.
+        """
+        if self.max_capacity == 0:
+            return Decimal(0)
+        return (Decimal(self.inventory) / Decimal(self.max_capacity)) * 100
 
     @property
     def spread(self) -> Decimal:
@@ -181,6 +229,10 @@ class DealerSnapshot:
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary with serialized Decimals."""
         return {
+            # Run context (Plan 022)
+            "run_id": self.run_id,
+            "regime": self.regime,
+            # Core fields
             "day": self.day,
             "bucket": self.bucket,
             "inventory": self.inventory,
@@ -195,6 +247,13 @@ class DealerSnapshot:
             "spread": str(self.spread),
             "dealer_premium_pct": str(self.dealer_premium_pct),
             "vbt_premium_pct": str(self.vbt_premium_pct),
+            # Plan 022 - Phase 3: Inventory timeseries
+            "max_capacity": self.max_capacity,
+            "capacity_pct": str(self.capacity_pct),
+            "is_at_zero": self.is_at_zero,
+            "hit_vbt_this_step": self.hit_vbt_this_step,
+            "total_system_face": str(self.total_system_face),
+            "dealer_share_pct": str(self.dealer_share_pct),
         }
 
 
@@ -326,6 +385,57 @@ class TicketOutcome:
 
 
 @dataclass
+class SystemStateSnapshot:
+    """
+    System-level state at a point in time (Plan 022 - Phase 4).
+
+    Tracks how total debt/money evolves over time to understand
+    the "winding down" dynamics of the system.
+
+    Fields:
+    - run_id, regime: Run context for experiment tracking
+    - day: Simulation day
+    - total_face_value: Sum of all outstanding ticket face values
+    - face_by_bucket: Face value breakdown by maturity bucket
+    - total_cash: Sum of all agent cash holdings
+    - debt_to_money: Current debt/money ratio
+    """
+    run_id: str
+    regime: str
+    day: int
+
+    # Total face value outstanding
+    total_face_value: Decimal        # All maturities
+    face_bucket_short: Decimal = Decimal(0)
+    face_bucket_mid: Decimal = Decimal(0)
+    face_bucket_long: Decimal = Decimal(0)
+
+    # Total cash in system
+    total_cash: Decimal = Decimal(0)
+
+    @property
+    def debt_to_money(self) -> Decimal:
+        """Current debt-to-money ratio."""
+        if self.total_cash > 0:
+            return self.total_face_value / self.total_cash
+        return Decimal(0)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary with serialized Decimals."""
+        return {
+            "run_id": self.run_id,
+            "regime": self.regime,
+            "day": self.day,
+            "total_face_value": str(self.total_face_value),
+            "face_bucket_short": str(self.face_bucket_short),
+            "face_bucket_mid": str(self.face_bucket_mid),
+            "face_bucket_long": str(self.face_bucket_long),
+            "total_cash": str(self.total_cash),
+            "debt_to_money": str(self.debt_to_money),
+        }
+
+
+@dataclass
 class RunMetrics:
     """
     All metrics for a single simulation run.
@@ -347,6 +457,9 @@ class RunMetrics:
     dealer_snapshots: List[DealerSnapshot] = field(default_factory=list)
     trader_snapshots: List[TraderSnapshot] = field(default_factory=list)
 
+    # System state timeseries (Plan 022 - Phase 4)
+    system_state_snapshots: List[SystemStateSnapshot] = field(default_factory=list)
+
     # Ticket outcomes (Section 8.3)
     ticket_outcomes: Dict[str, TicketOutcome] = field(default_factory=dict)
 
@@ -356,6 +469,10 @@ class RunMetrics:
     # System-level initial state (debt-to-money ratio control variable)
     initial_total_debt: Decimal = Decimal(0)    # Sum of all payable amounts at t=0
     initial_total_money: Decimal = Decimal(0)   # Sum of all cash holdings at t=0
+
+    # Run context (Plan 022 - for tracking)
+    run_id: str = ""
+    regime: str = ""
 
     @property
     def debt_to_money_ratio(self) -> Decimal:
@@ -837,6 +954,73 @@ class RunMetrics:
                     "dealer_premium_pct": str(snap.dealer_premium_pct),
                     "vbt_premium_pct": str(snap.vbt_premium_pct),
                 })
+
+    def to_inventory_timeseries_csv(self, path: str) -> None:
+        """
+        Export inventory timeseries to CSV (Plan 022 - Phase 3).
+
+        Tracks dealer capacity utilization over time.
+
+        Columns: run_id, regime, day, bucket, dealer_inventory, max_capacity,
+                 capacity_pct, is_at_zero, hit_vbt_this_step, total_system_face,
+                 dealer_share_pct
+        """
+        import csv
+        path_obj = Path(path)
+        path_obj.parent.mkdir(parents=True, exist_ok=True)
+
+        if not self.dealer_snapshots:
+            return
+
+        fieldnames = [
+            "run_id", "regime", "day", "bucket",
+            "dealer_inventory", "max_capacity", "capacity_pct",
+            "is_at_zero", "hit_vbt_this_step",
+            "total_system_face", "dealer_share_pct"
+        ]
+
+        with open(path_obj, "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            for snap in sorted(self.dealer_snapshots, key=lambda s: (s.day, s.bucket)):
+                writer.writerow({
+                    "run_id": snap.run_id,
+                    "regime": snap.regime,
+                    "day": snap.day,
+                    "bucket": snap.bucket,
+                    "dealer_inventory": snap.inventory,
+                    "max_capacity": snap.max_capacity,
+                    "capacity_pct": str(snap.capacity_pct),
+                    "is_at_zero": snap.is_at_zero,
+                    "hit_vbt_this_step": snap.hit_vbt_this_step,
+                    "total_system_face": str(snap.total_system_face),
+                    "dealer_share_pct": str(snap.dealer_share_pct),
+                })
+
+    def to_system_state_csv(self, path: str) -> None:
+        """
+        Export system state timeseries to CSV (Plan 022 - Phase 4).
+
+        Tracks how total debt/money evolves over time.
+
+        Columns: run_id, regime, day, total_face_value, face_bucket_short,
+                 face_bucket_mid, face_bucket_long, total_cash, debt_to_money
+        """
+        import csv
+        path_obj = Path(path)
+        path_obj.parent.mkdir(parents=True, exist_ok=True)
+
+        if not self.system_state_snapshots:
+            return
+
+        with open(path_obj, "w", newline="") as f:
+            writer = csv.DictWriter(
+                f,
+                fieldnames=self.system_state_snapshots[0].to_dict().keys()
+            )
+            writer.writeheader()
+            for snapshot in sorted(self.system_state_snapshots, key=lambda s: s.day):
+                writer.writerow(snapshot.to_dict())
 
 
 # =============================================================================

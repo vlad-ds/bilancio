@@ -26,7 +26,8 @@ from bilancio.analysis.report import (
 )
 from bilancio.config.models import RingExplorerGeneratorConfig
 from bilancio.scenarios.generators.ring_explorer import compile_ring_explorer
-from bilancio.ui.run import run_scenario
+
+# Note: run_scenario imported lazily in _execute_run to avoid circular import
 
 
 @dataclass
@@ -239,6 +240,7 @@ class RingSweepRunner:
         face_value: Optional[Decimal] = None,
         outside_mid_ratio: Optional[Decimal] = None,
         big_entity_share: Optional[Decimal] = None,
+        detailed_dealer_logging: bool = False,  # Plan 022
     ) -> None:
         self.base_dir = out_dir
         self.registry_dir = self.base_dir / "registry"
@@ -258,6 +260,7 @@ class RingSweepRunner:
         self.face_value = face_value or Decimal("20")
         self.outside_mid_ratio = outside_mid_ratio or Decimal("0.75")
         self.big_entity_share = big_entity_share or Decimal("0.25")
+        self.detailed_dealer_logging = detailed_dealer_logging  # Plan 022
         self.registry_rows: List[Dict[str, Any]] = []
 
         self.registry_dir.mkdir(parents=True, exist_ok=True)
@@ -561,6 +564,12 @@ class RingSweepRunner:
             if "mint_cash" in action:
                 L0 += action["mint_cash"]["amount"]
 
+        # Determine regime for logging (Plan 022)
+        regime = "active" if self.dealer_enabled else "passive"
+
+        # Lazy import to avoid circular import
+        from bilancio.ui.run import run_scenario
+
         try:
             run_scenario(
                 path=scenario_path,
@@ -577,6 +586,9 @@ class RingSweepRunner:
                 html_output=run_html_path,
                 t_account=False,
                 default_handling=self.default_handling,
+                detailed_dealer_logging=self.detailed_dealer_logging,  # Plan 022
+                run_id=run_id,  # Plan 022
+                regime=regime,  # Plan 022
             )
         except Exception as exc:
             registry_entry.update({

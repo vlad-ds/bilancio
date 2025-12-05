@@ -50,6 +50,7 @@ from bilancio.dealer.metrics import (
     DealerSnapshot,
     TraderSnapshot,
     TicketOutcome,
+    SystemStateSnapshot,  # Plan 022
     compute_safety_margin,
     compute_saleable_value,
 )
@@ -757,6 +758,7 @@ def run_dealer_trading_phase(
     # Capture daily snapshots for metrics (Section 8.1)
     _capture_dealer_snapshots(subsystem, current_day)
     _capture_trader_snapshots(subsystem, current_day)
+    _capture_system_state_snapshot(subsystem, current_day)  # Plan 022
 
     # Phase 3: Build eligibility sets (simplified)
     # Traders who need cash (have shortfall coming in next few days)
@@ -1129,9 +1131,35 @@ def _capture_dealer_snapshots(
     Capture dealer state snapshots for metrics (Section 8.1).
 
     Records inventory, cash, quotes, and mark-to-mid equity for each bucket.
+
+    Plan 022 extensions:
+    - max_capacity, is_at_zero for capacity tracking
+    - hit_vbt_this_step from trade records
+    - total_system_face, dealer_share_pct for system context
     """
+    # Check if any VBT trades happened this step (for hit_vbt_this_step flag)
+    # Look at trades from today that are passthroughs
+    vbt_used_buckets = set()
+    for trade in subsystem.metrics.trades:
+        if trade.day == current_day and trade.is_passthrough:
+            vbt_used_buckets.add(trade.bucket)
+
     for bucket_id, dealer in subsystem.dealers.items():
         vbt = subsystem.vbts[bucket_id]
+
+        # Calculate total system face value for this bucket
+        total_face = Decimal(0)
+        dealer_face = Decimal(0)
+        for trader in subsystem.traders.values():
+            for ticket in trader.tickets_owned:
+                if ticket.bucket_id == bucket_id:
+                    total_face += subsystem.params.S
+        # Dealer inventory contribution
+        dealer_face = Decimal(dealer.a) * subsystem.params.S
+
+        # Dealer share percentage
+        dealer_share = (dealer_face / total_face * 100) if total_face > 0 else Decimal(0)
+
         snapshot = DealerSnapshot(
             day=current_day,
             bucket=bucket_id,
@@ -1143,6 +1171,12 @@ def _capture_dealer_snapshots(
             vbt_mid=vbt.M,
             vbt_spread=vbt.O,
             ticket_size=subsystem.params.S,
+            # Plan 022 extensions
+            max_capacity=dealer.X_star,
+            is_at_zero=(dealer.a == 0),
+            hit_vbt_this_step=(bucket_id in vbt_used_buckets),
+            total_system_face=total_face,
+            dealer_share_pct=dealer_share,
         )
         subsystem.metrics.dealer_snapshots.append(snapshot)
 
@@ -1185,6 +1219,59 @@ def _capture_trader_snapshots(
             defaulted=trader.defaulted,
         )
         subsystem.metrics.trader_snapshots.append(snapshot)
+
+
+def _capture_system_state_snapshot(
+    subsystem: DealerSubsystem,
+    current_day: int
+) -> None:
+    """
+    Capture system-level state snapshot for metrics (Plan 022 - Phase 4).
+
+    Records total face value, cash, and debt-to-money ratio across the system.
+    """
+    # Calculate total face value by bucket
+    face_by_bucket: Dict[str, Decimal] = {}
+    total_face = Decimal(0)
+
+    for bucket_id in subsystem.dealers.keys():
+        face_by_bucket[bucket_id] = Decimal(0)
+
+    # Sum face value from all tickets held by traders
+    for trader in subsystem.traders.values():
+        for ticket in trader.tickets_owned:
+            bucket = ticket.bucket_id
+            face = subsystem.params.S
+            face_by_bucket[bucket] = face_by_bucket.get(bucket, Decimal(0)) + face
+            total_face += face
+
+    # Also add dealer inventory
+    for bucket_id, dealer in subsystem.dealers.items():
+        dealer_face = Decimal(dealer.a) * subsystem.params.S
+        face_by_bucket[bucket_id] = face_by_bucket.get(bucket_id, Decimal(0)) + dealer_face
+        total_face += dealer_face
+
+    # Calculate total cash in system
+    total_cash = Decimal(0)
+    for trader in subsystem.traders.values():
+        total_cash += trader.cash
+    for dealer in subsystem.dealers.values():
+        total_cash += dealer.cash
+    for vbt in subsystem.vbts.values():
+        total_cash += vbt.cash
+
+    # Create snapshot
+    snapshot = SystemStateSnapshot(
+        run_id="",  # Will be set at export time
+        regime="",  # Will be set at export time
+        day=current_day,
+        total_face_value=total_face,
+        face_bucket_short=face_by_bucket.get("short", Decimal(0)),
+        face_bucket_mid=face_by_bucket.get("mid", Decimal(0)),
+        face_bucket_long=face_by_bucket.get("long", Decimal(0)),
+        total_cash=total_cash,
+    )
+    subsystem.metrics.system_state_snapshots.append(snapshot)
 
 
 def _compute_trader_safety_margin(
