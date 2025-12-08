@@ -1,0 +1,120 @@
+{"kind": "CashMinted", "day": 0, "phase": "setup", "to": "H1", "amount": 5000, "instr_id": "C_4412f67ef64c", "alias": "LIQ_H1"}
+{"kind": "CashMinted", "day": 0, "phase": "setup", "to": "H2", "amount": 5000, "instr_id": "C_2d5179dac1e3", "alias": "LIQ_H2"}
+{"kind": "CashMinted", "day": 0, "phase": "setup", "to": "H3", "amount": 5000, "instr_id": "C_1c18dab31cc5", "alias": "LIQ_H3"}
+{"kind": "CashMinted", "day": 0, "phase": "setup", "to": "H4", "amount": 5000, "instr_id": "C_e2909ce21571", "alias": "LIQ_H4"}
+{"kind": "CashMinted", "day": 0, "phase": "setup", "to": "H5", "amount": 5000, "instr_id": "C_b8cf5c932b53", "alias": "LIQ_H5"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H1", "creditor": "H2", "amount": 1650, "due_day": 7, "payable_id": "PAY_f3be800ecb48", "alias": "P_H1_H2"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H2", "creditor": "H3", "amount": 3651, "due_day": 1, "payable_id": "PAY_75db8a1e9503", "alias": "P_H2_H3"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H3", "creditor": "H4", "amount": 3013, "due_day": 5, "payable_id": "PAY_e1f45573d749", "alias": "P_H3_H4"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H4", "creditor": "H5", "amount": 1287, "due_day": 9, "payable_id": "PAY_c5a4631ee9d4", "alias": "P_H4_H5"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H5", "creditor": "H1", "amount": 2897, "due_day": 3, "payable_id": "PAY_f87d33e4b55e", "alias": "P_H5_H1"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H1", "creditor": "big_short", "amount": 500, "due_day": 7, "payable_id": "PAY_beffb79e2ddc", "alias": "P_H1_big_short_big"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H2", "creditor": "big_mid", "amount": 500, "due_day": 1, "payable_id": "PAY_0376e9092546", "alias": "P_H2_big_mid_big"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H3", "creditor": "big_long", "amount": 500, "due_day": 5, "payable_id": "PAY_b16dbbf03e77", "alias": "P_H3_big_long_big"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H4", "creditor": "big_short", "amount": 500, "due_day": 9, "payable_id": "PAY_8c3ec296b17d", "alias": "P_H4_big_short_big"}
+{"kind": "PayableCreated", "day": 0, "phase": "setup", "debtor": "H5", "creditor": "big_mid", "amount": 500, "due_day": 3, "payable_id": "PAY_fa60fbbad399", "alias": "P_H5_big_mid_big"}
+{"kind": "CashMinted", "day": 0, "phase": "setup", "to": "big_short", "amount": "666.6666666666666", "instr_id": "C_bc4f06c4cb71", "alias": "LIQ_big_short"}
+{"kind": "CashMinted", "day": 0, "phase": "setup", "to": "big_mid", "amount": "666.6666666666666", "instr_id": "C_cf8fe4e6ada3", "alias": "LIQ_big_mid"}
+{"kind": "CashMinted", "day": 0, "phase": "setup", "to": "big_long", "amount": "666.6666666666666", "instr_id": "C_0b798c495321", "alias": "LIQ_big_long"}
+{"kind": "PhaseA", "day": 0, "phase": "simulation"}
+{"kind": "PhaseB", "day": 0, "phase": "simulation"}
+{"kind": "SubphaseB1", "day": 0, "phase": "simulation"}
+{"kind": "SubphaseB_Dealer", "day": 0, "phase": "simulation"}
+{"kind": "SubphaseB2", "day": 0, "phase": "simulation"}
+{"kind": "PhaseC", "day": 0, "phase": "simulation"}
+{"kind": "PhaseA", "day": 1, "phase": "simulation"}
+{"kind": "PhaseB", "day": 1, "phase": "simulation"}
+{"kind": "SubphaseB1", "day": 1, "phase": "simulation"}
+{"kind": "SubphaseB_Dealer", "day": 1, "phase": "simulation"}
+{"kind": "SubphaseB2", "day": 1, "phase": "simulation"}
+{"kind": "CashTransferred", "day": 1, "phase": "simulation", "frm": "H2", "to": "H3", "amount": 3651, "instr_id": "C_31bbb19e6a3e"}
+{"kind": "InstrumentMerged", "day": 1, "phase": "simulation", "keep": "C_1c18dab31cc5", "removed": "C_31bbb19e6a3e"}
+{"kind": "PayableSettled", "day": 1, "phase": "simulation", "pid": "PAY_75db8a1e9503", "contract_id": "PAY_75db8a1e9503", "alias": "P_H2_H3", "debtor": "H2", "creditor": "H3", "amount": 3651}
+{"kind": "CashTransferred", "day": 1, "phase": "simulation", "frm": "H2", "to": "big_mid", "amount": 500, "instr_id": "C_6f9c736bff2a"}
+{"kind": "InstrumentMerged", "day": 1, "phase": "simulation", "keep": "C_cf8fe4e6ada3", "removed": "C_6f9c736bff2a"}
+{"kind": "PayableSettled", "day": 1, "phase": "simulation", "pid": "PAY_0376e9092546", "contract_id": "PAY_0376e9092546", "alias": "P_H2_big_mid_big", "debtor": "H2", "creditor": "big_mid", "amount": 500}
+{"kind": "PhaseC", "day": 1, "phase": "simulation"}
+{"kind": "PhaseA", "day": 2, "phase": "simulation"}
+{"kind": "PhaseB", "day": 2, "phase": "simulation"}
+{"kind": "SubphaseB1", "day": 2, "phase": "simulation"}
+{"kind": "SubphaseB_Dealer", "day": 2, "phase": "simulation"}
+{"kind": "SubphaseB2", "day": 2, "phase": "simulation"}
+{"kind": "PhaseC", "day": 2, "phase": "simulation"}
+{"kind": "PhaseA", "day": 3, "phase": "simulation"}
+{"kind": "PhaseB", "day": 3, "phase": "simulation"}
+{"kind": "SubphaseB1", "day": 3, "phase": "simulation"}
+{"kind": "SubphaseB_Dealer", "day": 3, "phase": "simulation"}
+{"kind": "SubphaseB2", "day": 3, "phase": "simulation"}
+{"kind": "CashTransferred", "day": 3, "phase": "simulation", "frm": "H5", "to": "H1", "amount": 2897, "instr_id": "C_ee25d9c3b5fa"}
+{"kind": "InstrumentMerged", "day": 3, "phase": "simulation", "keep": "C_4412f67ef64c", "removed": "C_ee25d9c3b5fa"}
+{"kind": "PayableSettled", "day": 3, "phase": "simulation", "pid": "PAY_f87d33e4b55e", "contract_id": "PAY_f87d33e4b55e", "alias": "P_H5_H1", "debtor": "H5", "creditor": "H1", "amount": 2897}
+{"kind": "CashTransferred", "day": 3, "phase": "simulation", "frm": "H5", "to": "big_mid", "amount": 500, "instr_id": "C_22ecf2216a43"}
+{"kind": "InstrumentMerged", "day": 3, "phase": "simulation", "keep": "C_cf8fe4e6ada3", "removed": "C_22ecf2216a43"}
+{"kind": "PayableSettled", "day": 3, "phase": "simulation", "pid": "PAY_fa60fbbad399", "contract_id": "PAY_fa60fbbad399", "alias": "P_H5_big_mid_big", "debtor": "H5", "creditor": "big_mid", "amount": 500}
+{"kind": "PhaseC", "day": 3, "phase": "simulation"}
+{"kind": "PhaseA", "day": 4, "phase": "simulation"}
+{"kind": "PhaseB", "day": 4, "phase": "simulation"}
+{"kind": "SubphaseB1", "day": 4, "phase": "simulation"}
+{"kind": "SubphaseB_Dealer", "day": 4, "phase": "simulation"}
+{"kind": "SubphaseB2", "day": 4, "phase": "simulation"}
+{"kind": "PhaseC", "day": 4, "phase": "simulation"}
+{"kind": "PhaseA", "day": 5, "phase": "simulation"}
+{"kind": "PhaseB", "day": 5, "phase": "simulation"}
+{"kind": "SubphaseB1", "day": 5, "phase": "simulation"}
+{"kind": "SubphaseB_Dealer", "day": 5, "phase": "simulation"}
+{"kind": "SubphaseB2", "day": 5, "phase": "simulation"}
+{"kind": "CashTransferred", "day": 5, "phase": "simulation", "frm": "H3", "to": "H4", "amount": 3013, "instr_id": "C_b2254e7651f0"}
+{"kind": "InstrumentMerged", "day": 5, "phase": "simulation", "keep": "C_e2909ce21571", "removed": "C_b2254e7651f0"}
+{"kind": "PayableSettled", "day": 5, "phase": "simulation", "pid": "PAY_e1f45573d749", "contract_id": "PAY_e1f45573d749", "alias": "P_H3_H4", "debtor": "H3", "creditor": "H4", "amount": 3013}
+{"kind": "CashTransferred", "day": 5, "phase": "simulation", "frm": "H3", "to": "big_long", "amount": 500, "instr_id": "C_83e2323b7892"}
+{"kind": "InstrumentMerged", "day": 5, "phase": "simulation", "keep": "C_0b798c495321", "removed": "C_83e2323b7892"}
+{"kind": "PayableSettled", "day": 5, "phase": "simulation", "pid": "PAY_b16dbbf03e77", "contract_id": "PAY_b16dbbf03e77", "alias": "P_H3_big_long_big", "debtor": "H3", "creditor": "big_long", "amount": 500}
+{"kind": "PhaseC", "day": 5, "phase": "simulation"}
+{"kind": "PhaseA", "day": 6, "phase": "simulation"}
+{"kind": "PhaseB", "day": 6, "phase": "simulation"}
+{"kind": "SubphaseB1", "day": 6, "phase": "simulation"}
+{"kind": "SubphaseB_Dealer", "day": 6, "phase": "simulation"}
+{"kind": "SubphaseB2", "day": 6, "phase": "simulation"}
+{"kind": "PhaseC", "day": 6, "phase": "simulation"}
+{"kind": "PhaseA", "day": 7, "phase": "simulation"}
+{"kind": "PhaseB", "day": 7, "phase": "simulation"}
+{"kind": "SubphaseB1", "day": 7, "phase": "simulation"}
+{"kind": "SubphaseB_Dealer", "day": 7, "phase": "simulation"}
+{"kind": "SubphaseB2", "day": 7, "phase": "simulation"}
+{"kind": "CashTransferred", "day": 7, "phase": "simulation", "frm": "H1", "to": "H2", "amount": 1650, "instr_id": "C_fe16f5c84a91"}
+{"kind": "InstrumentMerged", "day": 7, "phase": "simulation", "keep": "C_2d5179dac1e3", "removed": "C_fe16f5c84a91"}
+{"kind": "PayableSettled", "day": 7, "phase": "simulation", "pid": "PAY_f3be800ecb48", "contract_id": "PAY_f3be800ecb48", "alias": "P_H1_H2", "debtor": "H1", "creditor": "H2", "amount": 1650}
+{"kind": "CashTransferred", "day": 7, "phase": "simulation", "frm": "H1", "to": "big_short", "amount": 500, "instr_id": "C_4d20d7af1ebf"}
+{"kind": "InstrumentMerged", "day": 7, "phase": "simulation", "keep": "C_bc4f06c4cb71", "removed": "C_4d20d7af1ebf"}
+{"kind": "PayableSettled", "day": 7, "phase": "simulation", "pid": "PAY_beffb79e2ddc", "contract_id": "PAY_beffb79e2ddc", "alias": "P_H1_big_short_big", "debtor": "H1", "creditor": "big_short", "amount": 500}
+{"kind": "PhaseC", "day": 7, "phase": "simulation"}
+{"kind": "PhaseA", "day": 8, "phase": "simulation"}
+{"kind": "PhaseB", "day": 8, "phase": "simulation"}
+{"kind": "SubphaseB1", "day": 8, "phase": "simulation"}
+{"kind": "SubphaseB_Dealer", "day": 8, "phase": "simulation"}
+{"kind": "SubphaseB2", "day": 8, "phase": "simulation"}
+{"kind": "PhaseC", "day": 8, "phase": "simulation"}
+{"kind": "PhaseA", "day": 9, "phase": "simulation"}
+{"kind": "PhaseB", "day": 9, "phase": "simulation"}
+{"kind": "SubphaseB1", "day": 9, "phase": "simulation"}
+{"kind": "SubphaseB_Dealer", "day": 9, "phase": "simulation"}
+{"kind": "SubphaseB2", "day": 9, "phase": "simulation"}
+{"kind": "CashTransferred", "day": 9, "phase": "simulation", "frm": "H4", "to": "H5", "amount": 1287, "instr_id": "C_ee86076c5350"}
+{"kind": "InstrumentMerged", "day": 9, "phase": "simulation", "keep": "C_b8cf5c932b53", "removed": "C_ee86076c5350"}
+{"kind": "PayableSettled", "day": 9, "phase": "simulation", "pid": "PAY_c5a4631ee9d4", "contract_id": "PAY_c5a4631ee9d4", "alias": "P_H4_H5", "debtor": "H4", "creditor": "H5", "amount": 1287}
+{"kind": "CashTransferred", "day": 9, "phase": "simulation", "frm": "H4", "to": "big_short", "amount": 500, "instr_id": "C_d604d03c0496"}
+{"kind": "InstrumentMerged", "day": 9, "phase": "simulation", "keep": "C_bc4f06c4cb71", "removed": "C_d604d03c0496"}
+{"kind": "PayableSettled", "day": 9, "phase": "simulation", "pid": "PAY_8c3ec296b17d", "contract_id": "PAY_8c3ec296b17d", "alias": "P_H4_big_short_big", "debtor": "H4", "creditor": "big_short", "amount": 500}
+{"kind": "PhaseC", "day": 9, "phase": "simulation"}
+{"kind": "PhaseA", "day": 10, "phase": "simulation"}
+{"kind": "PhaseB", "day": 10, "phase": "simulation"}
+{"kind": "SubphaseB1", "day": 10, "phase": "simulation"}
+{"kind": "SubphaseB_Dealer", "day": 10, "phase": "simulation"}
+{"kind": "SubphaseB2", "day": 10, "phase": "simulation"}
+{"kind": "PhaseC", "day": 10, "phase": "simulation"}
+{"kind": "PhaseA", "day": 11, "phase": "simulation"}
+{"kind": "PhaseB", "day": 11, "phase": "simulation"}
+{"kind": "SubphaseB1", "day": 11, "phase": "simulation"}
+{"kind": "SubphaseB_Dealer", "day": 11, "phase": "simulation"}
+{"kind": "SubphaseB2", "day": 11, "phase": "simulation"}
+{"kind": "PhaseC", "day": 11, "phase": "simulation"}
