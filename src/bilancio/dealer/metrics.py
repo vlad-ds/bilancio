@@ -1193,7 +1193,134 @@ def compute_saleable_value(
 
 
 # =============================================================================
-# Repayment Event Builder (Plan 022 - Phase 2)
+# Liability Tracking (Plan 023 - Default-Aware Instrumentation)
+# =============================================================================
+
+@dataclass
+class LiabilityInfo:
+    """
+    Information about a single liability from events.jsonl.
+
+    Used by build_liability_map() to track all created payables
+    and their settlement status.
+    """
+    trader_id: str          # Debtor agent ID
+    liability_id: str       # Payable ID (e.g., "PAY_xyz789")
+    maturity_day: int       # Due day of the liability
+    face_value: Decimal     # Amount owed
+    settled: bool = False   # Whether it was settled
+    settled_day: Optional[int] = None  # Day it was settled (if settled)
+
+
+def build_liability_map(events: List[Dict[str, Any]]) -> tuple[Dict[str, LiabilityInfo], int]:
+    """
+    Build a map of all liabilities and their settlement status.
+
+    Scans events for:
+    - PayableCreated: Register liability with debtor, maturity, face value
+    - PayableSettled: Mark liability as settled
+
+    This approach captures ALL liabilities, including those that default
+    without an explicit ObligationDefaulted event.
+
+    Args:
+        events: List of event dictionaries from system.state.events or events.jsonl
+
+    Returns:
+        (liabilities_map, final_day) where:
+        - liabilities_map: {liability_id -> LiabilityInfo}
+        - final_day: Last day seen in events
+    """
+    liabilities: Dict[str, LiabilityInfo] = {}
+    final_day = 0
+
+    for event in events:
+        day = event.get("day", 0)
+        final_day = max(final_day, day)
+        kind = event.get("kind", "") or event.get("event", "")
+
+        if kind == "PayableCreated":
+            lid = event.get("payable_id", "")
+            if lid:
+                liabilities[lid] = LiabilityInfo(
+                    trader_id=event.get("debtor", ""),
+                    liability_id=lid,
+                    maturity_day=event.get("due_day", 0),
+                    face_value=Decimal(str(event.get("amount", 0))),
+                )
+        elif kind == "PayableSettled":
+            # Try multiple field names for the payable ID
+            lid = event.get("pid") or event.get("contract_id") or event.get("payable_id", "")
+            if lid and lid in liabilities:
+                liabilities[lid].settled = True
+                liabilities[lid].settled_day = day
+
+    return liabilities, final_day
+
+
+def compute_trading_stats_by_trader(
+    trades: List[TradeRecord]
+) -> Dict[str, List[Dict[str, Any]]]:
+    """
+    Group trades by trader_id with trade details.
+
+    Args:
+        trades: List of TradeRecord objects
+
+    Returns:
+        {trader_id: [{"day": d, "side": s, "price": p}, ...]}
+    """
+    by_trader: Dict[str, List[Dict[str, Any]]] = {}
+
+    for trade in trades:
+        trader_id = trade.trader_id
+        if trader_id not in by_trader:
+            by_trader[trader_id] = []
+        by_trader[trader_id].append({
+            "day": trade.day,
+            "side": trade.side,
+            "price": trade.price,
+        })
+
+    return by_trader
+
+
+def get_trades_before_day(
+    trader_trades: List[Dict[str, Any]],
+    maturity_day: int
+) -> Dict[str, Any]:
+    """
+    Compute trading stats for trades BEFORE a given maturity day.
+
+    Args:
+        trader_trades: List of trade dicts from compute_trading_stats_by_trader()
+        maturity_day: The maturity day to filter against
+
+    Returns:
+        {"buy_count": N, "sell_count": N, "net_cash_pnl": Decimal}
+    """
+    buy_count = 0
+    sell_count = 0
+    net_cash_pnl = Decimal(0)
+
+    for t in trader_trades:
+        if t["day"] < maturity_day:
+            if t["side"] == "BUY":
+                buy_count += 1
+                net_cash_pnl -= Decimal(str(t["price"]))
+            elif t["side"] == "SELL":
+                sell_count += 1
+                net_cash_pnl += Decimal(str(t["price"]))
+
+    return {
+        "buy_count": buy_count,
+        "sell_count": sell_count,
+        "net_cash_pnl": net_cash_pnl,
+    }
+
+
+# =============================================================================
+# Repayment Event Builder (Plan 022 - Phase 2, enhanced by Plan 023)
 # =============================================================================
 
 def build_repayment_events(
@@ -1203,96 +1330,67 @@ def build_repayment_events(
     regime: str = "",
 ) -> List[RepaymentEvent]:
     """
-    Build RepaymentEvent objects from the simulation event log and trade records.
+    Build RepaymentEvent objects for ALL liabilities that matured.
 
-    Scans the event log for "PayableSettled" and "ObligationDefaulted" events,
-    then for each settlement event:
-    1. Looks up the trader's trades before that maturity day
-    2. Counts buys/sells and calculates net cash P&L
-    3. Classifies the trading strategy
-    4. Creates a RepaymentEvent
+    Plan 023 enhancement: Uses liability map approach to capture BOTH
+    repaid AND defaulted liabilities, even when no explicit default event exists.
+
+    Algorithm:
+    1. Build map of all PayableCreated liabilities
+    2. Mark settled liabilities from PayableSettled events
+    3. For each liability that matured by final_day:
+       - Compute trading stats from trades
+       - Classify strategy
+       - Set outcome based on settled status
 
     Args:
-        event_log: List of event dictionaries from system.events
+        event_log: List of event dictionaries from system.events or events.jsonl
         trades: List of TradeRecord objects from metrics.trades
         run_id: Run identifier for tracking
         regime: "passive" or "active"
 
     Returns:
-        List of RepaymentEvent objects
+        List of RepaymentEvent objects (one per matured liability)
     """
+    # Build liability map from events
+    liabilities, final_day = build_liability_map(event_log)
+
+    # Build trading stats indexed by trader
+    trading_stats = compute_trading_stats_by_trader(trades)
+
     repayment_events: List[RepaymentEvent] = []
 
-    # Index trades by trader_id for fast lookup
-    trades_by_trader: Dict[str, List[TradeRecord]] = {}
-    for trade in trades:
-        trader_id = trade.trader_id
-        if trader_id not in trades_by_trader:
-            trades_by_trader[trader_id] = []
-        trades_by_trader[trader_id].append(trade)
-
-    # Scan event log for settlement events
-    # Note: Events use "kind" field (from events.jsonl) or "event" field (from system.events)
-    for event in event_log:
-        event_type = event.get("kind") or event.get("event")
-
-        if event_type == "PayableSettled":
-            outcome = "repaid"
-            trader_id = event.get("debtor", "")
-            liability_id = event.get("contract_id", "")
-            face_value = Decimal(str(event.get("amount", 0)))
-            # PayableSettled doesn't have maturity_day directly, but we can infer it
-            # from the day field (settlement happens on maturity day)
-            maturity_day = event.get("day", 0)
-
-        elif event_type == "ObligationDefaulted" or event_type == "Default":
-            # Only count payable defaults, not delivery obligations
-            contract_kind = event.get("contract_kind", "") or event.get("kind", "")
-            if contract_kind != "payable":
-                continue
-
-            outcome = "defaulted"
-            trader_id = event.get("debtor", "")
-            liability_id = event.get("contract_id", "")
-            face_value = Decimal(str(event.get("original_amount", event.get("amount", 0))))
-            maturity_day = event.get("day", 0)
-
-        else:
+    for lid, info in liabilities.items():
+        # Only include liabilities that have matured by the final simulation day
+        if info.maturity_day > final_day:
             continue
 
-        # Skip if we don't have trader_id
-        if not trader_id:
+        # Skip if we don't have a valid trader_id
+        if not info.trader_id:
             continue
 
-        # Get trader's trades BEFORE this maturity day
-        trader_trades = trades_by_trader.get(trader_id, [])
-        trades_before_maturity = [t for t in trader_trades if t.day < maturity_day]
+        # Get trading stats for this trader BEFORE this maturity
+        trader_trades = trading_stats.get(info.trader_id, [])
+        stats = get_trades_before_day(trader_trades, info.maturity_day)
 
-        # Count buys and sells
-        buy_count = sum(1 for t in trades_before_maturity if t.side == "BUY")
-        sell_count = sum(1 for t in trades_before_maturity if t.side == "SELL")
-
-        # Calculate net cash P&L from trading
-        # SELL = trader receives cash (positive)
-        # BUY = trader pays cash (negative)
-        net_cash_pnl = Decimal(0)
-        for t in trades_before_maturity:
-            if t.side == "SELL":
-                net_cash_pnl += t.price
-            elif t.side == "BUY":
-                net_cash_pnl -= t.price
+        buy_count = stats["buy_count"]
+        sell_count = stats["sell_count"]
+        net_cash_pnl = stats["net_cash_pnl"]
 
         # Classify strategy
         strategy = classify_trading_strategy(buy_count, sell_count)
+
+        # Determine outcome: settled = repaid, not settled = defaulted
+        outcome = "repaid" if info.settled else "defaulted"
 
         # Create RepaymentEvent
         repayment_event = RepaymentEvent(
             run_id=run_id,
             regime=regime,
-            trader_id=trader_id,
-            liability_id=liability_id,
-            maturity_day=maturity_day,
-            face_value=face_value,
+            trader_id=info.trader_id,
+            liability_id=lid,
+            maturity_day=info.maturity_day,
+            face_value=info.face_value,
             outcome=outcome,
             buy_count=buy_count,
             sell_count=sell_count,

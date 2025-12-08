@@ -494,6 +494,68 @@ def sweep_balanced(
     click.echo(f"\nResults at: {out_dir / 'aggregate' / 'comparison.csv'}")
 
 
+@sweep.command("strategy-outcomes")
+@click.option('--experiment', type=click.Path(exists=True, path_type=Path), required=True,
+              help='Path to experiment directory (containing aggregate/comparison.csv)')
+@click.option('-v', '--verbose', is_flag=True, help='Enable verbose logging')
+def sweep_strategy_outcomes(experiment: Path, verbose: bool):
+    """Analyze trading strategy outcomes across experiment runs.
+
+    Reads repayment_events.csv files and computes per-strategy metrics:
+    - Count and face value per strategy
+    - Default count and face value per strategy
+    - Default rate per strategy
+
+    Outputs:
+    - aggregate/strategy_outcomes_by_run.csv
+    - aggregate/strategy_outcomes_overall.csv
+    """
+    import logging
+    from bilancio.analysis.strategy_outcomes import run_strategy_analysis
+
+    logging.basicConfig(
+        level=logging.DEBUG if verbose else logging.INFO,
+        format="%(levelname)s: %(message)s",
+    )
+
+    by_run_path, overall_path = run_strategy_analysis(experiment)
+
+    if by_run_path and by_run_path.exists():
+        click.echo(f"[green]✓[/green] Strategy outcomes by run: {by_run_path}")
+        click.echo(f"[green]✓[/green] Strategy outcomes overall: {overall_path}")
+    else:
+        click.echo("[yellow]No output generated - check that repayment_events.csv files exist[/yellow]")
+
+
+@sweep.command("dealer-usage")
+@click.option('--experiment', type=click.Path(exists=True, path_type=Path), required=True,
+              help='Path to experiment directory (containing aggregate/comparison.csv)')
+@click.option('-v', '--verbose', is_flag=True, help='Enable verbose logging')
+def sweep_dealer_usage(experiment: Path, verbose: bool):
+    """Analyze dealer usage patterns across experiment runs.
+
+    Reads trades.csv, inventory_timeseries.csv, system_state_timeseries.csv,
+    and repayment_events.csv to explain why dealers have or don't have an effect.
+
+    Outputs:
+    - aggregate/dealer_usage_by_run.csv
+    """
+    import logging
+    from bilancio.analysis.dealer_usage_summary import run_dealer_usage_analysis
+
+    logging.basicConfig(
+        level=logging.DEBUG if verbose else logging.INFO,
+        format="%(levelname)s: %(message)s",
+    )
+
+    output_path = run_dealer_usage_analysis(experiment)
+
+    if output_path and output_path.exists():
+        click.echo(f"[green]✓[/green] Dealer usage summary: {output_path}")
+    else:
+        click.echo("[yellow]No output generated - check that required CSV files exist[/yellow]")
+
+
 @cli.command()
 @click.argument('scenario_file', type=click.Path(exists=True, path_type=Path))
 @click.option('--mode', type=click.Choice(['step', 'until-stable']), 
