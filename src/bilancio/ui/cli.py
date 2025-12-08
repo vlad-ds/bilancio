@@ -432,6 +432,11 @@ def sweep_comparison(
     default="fail-fast",
     help="Default handling mode",
 )
+@click.option(
+    "--detailed-logging/--no-detailed-logging",
+    default=True,
+    help="Enable detailed CSV logging (trades.csv, repayment_events.csv, etc.)",
+)
 def sweep_balanced(
     out_dir: Path,
     n_agents: int,
@@ -445,6 +450,7 @@ def sweep_balanced(
     outside_mid_ratios: str,
     big_entity_share: Decimal,
     default_handling: str,
+    detailed_logging: bool,
 ) -> None:
     """
     Run balanced C vs D comparison experiments.
@@ -478,6 +484,7 @@ def sweep_balanced(
         outside_mid_ratios=_decimal_list(outside_mid_ratios),
         big_entity_share=big_entity_share,
         default_handling=default_handling,
+        detailed_logging=detailed_logging,
     )
 
     runner = BalancedComparisonRunner(config, out_dir)
