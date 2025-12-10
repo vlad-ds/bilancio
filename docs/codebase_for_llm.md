@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2025-12-10 19:36:20 UTC | Branch: main | Commit: 86898626
+Generated: 2025-12-10 19:42:26 UTC | Branch: main | Commit: a06e5bcd
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -33517,6 +33517,15 @@ Complete git history from oldest to newest:
   - Skip already-completed parameter combinations
   - Use fixed output directory for resumption (out/experiments/plan024_sweep)
   This allows long-running sweeps to be interrupted and resumed.
+
+- **d187fb9c** (2025-12-10) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **a06e5bcd** (2025-12-10) by vladgheorghe
+  fix(scripts): suppress verbose output, only show progress
+  - Filter stdout to only show progress lines and key messages
+  - Log full verbose output to sweep.log for debugging
+  - Clean terminal output shows only: progress, ETA, completion stats
 
 ---
 
