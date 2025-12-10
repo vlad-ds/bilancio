@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2025-12-10 19:42:26 UTC | Branch: main | Commit: a06e5bcd
+Generated: 2025-12-10 20:05:42 UTC | Branch: main | Commit: 48183454
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -33527,6 +33527,21 @@ Complete git history from oldest to newest:
   - Log full verbose output to sweep.log for debugging
   - Clean terminal output shows only: progress, ETA, completion stats
 
+- **ff8a2545** (2025-12-10) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **48183454** (2025-12-10) by vladgheorghe
+  feat(experiments): add day-by-day progress tracking for sweeps
+  - Add progress_callback parameter to run_scenario() and run_until_stable_mode()
+  - Pass progress callback through ring.py _execute_run() to run_scenario()
+  - Create _make_progress_callback() in balanced_comparison.py for day tracking
+  - Update QuietStdout filter to show passive/active day progress lines
+  - Shows elapsed time per simulation: "passive: day 5/15 (elapsed: 30s)"
+  This gives visibility into long-running simulations instead of waiting
+  with no feedback.
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
 ---
 
 ## Source Code (src/bilancio)
@@ -48768,7 +48783,7 @@ import time
 from dataclasses import dataclass, field
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence, Set, Tuple
+from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Tuple
 
 from pydantic import BaseModel, Field
 
@@ -49162,6 +49177,13 @@ class BalancedComparisonRunner:
         logger.info("Balanced comparison sweep complete. Results at: %s", self.aggregate_dir)
         return self.comparison_results
 
+    def _make_progress_callback(self, run_type: str) -> Callable[[int, int], None]:
+        """Create a progress callback that prints day-by-day progress."""
+        def callback(current_day: int, max_days: int) -> None:
+            elapsed = time.time() - self._start_time
+            print(f"    {run_type}: day {current_day}/{max_days} (elapsed: {self._format_time(elapsed)})", flush=True)
+        return callback
+
     def _run_pair(
         self,
         kappa: Decimal,
@@ -49179,6 +49201,7 @@ class BalancedComparisonRunner:
 
         # Run passive (no trading)
         logger.info("  Running passive (no trading)...")
+        print("  Passive run:", flush=True)
         passive_result = passive_runner._execute_run(
             phase="balanced_passive",
             kappa=kappa,
@@ -49186,10 +49209,12 @@ class BalancedComparisonRunner:
             mu=mu,
             monotonicity=monotonicity,
             seed=seed,
+            progress_callback=self._make_progress_callback("passive"),
         )
 
         # Run active (with trading)
         logger.info("  Running active (with trading)...")
+        print("  Active run:", flush=True)
         active_result = active_runner._execute_run(
             phase="balanced_active",
             kappa=kappa,
@@ -49197,6 +49222,7 @@ class BalancedComparisonRunner:
             mu=mu,
             monotonicity=monotonicity,
             seed=seed,
+            progress_callback=self._make_progress_callback("active"),
         )
 
         # Extract dealer metrics from active result
@@ -49956,7 +49982,7 @@ import uuid
 from dataclasses import dataclass
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
 import random
 
@@ -50413,6 +50439,7 @@ class RingSweepRunner:
         seed: int,
         *,
         label: Optional[str] = None,
+        progress_callback: Optional[Callable[[int, int], None]] = None,
     ) -> RingRunSummary:
         run_uuid = uuid.uuid4().hex[:12]
         run_id = f"{phase}_{label}_{run_uuid}" if label else f"{phase}_{run_uuid}"
@@ -50547,6 +50574,7 @@ class RingSweepRunner:
                 detailed_dealer_logging=self.detailed_dealer_logging,  # Plan 022
                 run_id=run_id,  # Plan 022
                 regime=regime,  # Plan 022
+                progress_callback=progress_callback,
             )
         except Exception as exc:
             registry_entry.update({
@@ -54654,7 +54682,7 @@ def convert_raw_events_to_day_view(raw_events: List[Dict[str, Any]], day: int) -
 """Orchestration logic for running Bilancio simulations."""
 
 from pathlib import Path
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Callable
 import sys
 
 from rich.console import Console
@@ -54712,9 +54740,10 @@ def run_scenario(
     detailed_dealer_logging: bool = False,
     run_id: str = "",
     regime: str = "",
+    progress_callback: Optional[Callable[[int, int], None]] = None,
 ) -> None:
     """Run a Bilancio simulation scenario.
-    
+
     Args:
         path: Path to scenario YAML file
         mode: "step" or "until_stable"
@@ -54725,6 +54754,7 @@ def run_scenario(
         check_invariants: "setup", "daily", or "none"
         export: Dictionary with export paths (balances_csv, events_jsonl)
         html_output: Optional path to export HTML with colored output
+        progress_callback: Optional callback(current_day, max_days) for progress tracking
     """
     # Load configuration
     console.print("[dim]Loading scenario...[/dim]")
@@ -54856,7 +54886,8 @@ def run_scenario(
             check_invariants=check_invariants,
             scenario_name=config.name,
             t_account=t_account,
-            enable_dealer=enable_dealer
+            enable_dealer=enable_dealer,
+            progress_callback=progress_callback,
         )
     
     # Export results if requested
@@ -55125,7 +55156,8 @@ def run_until_stable_mode(
     check_invariants: str,
     scenario_name: str,
     t_account: bool = False,
-    enable_dealer: bool = False
+    enable_dealer: bool = False,
+    progress_callback: Optional[Callable[[int, int], None]] = None,
 ) -> List[Dict[str, Any]]:
     """Run simulation until stable state is reached.
 
@@ -55138,6 +55170,7 @@ def run_until_stable_mode(
         check_invariants: Invariant checking mode
         scenario_name: Name of the scenario for error context
         enable_dealer: If True, run dealer trading phase each day
+        progress_callback: Optional callback(current_day, max_days) for progress tracking
 
     Returns:
         List of day data dictionaries
@@ -55158,6 +55191,10 @@ def run_until_stable_mode(
             day_before = system.state.day
             run_day(system, enable_dealer=enable_dealer)
             impacted = _impacted_today(system, day_before)
+
+            # Call progress callback if provided
+            if progress_callback:
+                progress_callback(day_before + 1, max_days)
             
             # Create report
             from bilancio.engines.simulation import DayReport
