@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2025-12-08 06:10:25 UTC | Branch: main | Commit: f492bc42
+Generated: 2025-12-10 18:34:55 UTC | Branch: main | Commit: fa65efd9
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -2317,7 +2317,8 @@ This document contains the complete codebase structure and content for LLM inges
 │   │   │   └── 20251205.txt
 │   │   ├── dealer_examples.pdf
 │   │   ├── dealer_implementation_readiness.pdf
-│   │   └── dealer_specification.pdf
+│   │   ├── dealer_specification.pdf
+│   │   └── stojanovic_et_al_2025_liquidity_internal_debt_dealer_simulation.pdf
 │   ├── exercises_scenarios.md
 │   ├── guides
 │   │   └── kalecki_ring_sweep.md
@@ -31832,7 +31833,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-6848 directories, 24974 files
+6848 directories, 24975 files
 
 ```
 
@@ -33451,6 +33452,17 @@ Complete git history from oldest to newest:
   - Buy/sell counts and cash P&L per trader
   - Strategy-specific default rates
   - Dealer usage patterns by run
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **e8b3435e** (2025-12-08) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **fa65efd9** (2025-12-08) by vladgheorghe
+  docs: add Stojanovic et al. (2025) dealer simulation paper
+  Add academic paper "Liquidity and internal debt: Instrument level
+  dealer based simulation" documenting the Bilancio simulator framework
+  and the Kalecki ring internal debt experiments.
   🤖 Generated with [Claude Code](https://claude.com/claude-code)
   Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 
