@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2025-12-10 18:34:55 UTC | Branch: main | Commit: fa65efd9
+Generated: 2025-12-10 19:11:35 UTC | Branch: main | Commit: ac1cb8f9
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -2305,6 +2305,7 @@ This document contains the complete codebase structure and content for LLM inges
 │   │   └── 016_dealer_comparison_analysis.md
 │   ├── codebase_for_llm.md
 │   ├── dealer_ring
+│   │   ├── Instructions_for_simulation.pdf
 │   │   ├── Instructions_on_instrumentation_improvement.pdf
 │   │   ├── New_Kalecki_ring_with_dealers.pdf
 │   │   ├── conversations
@@ -31833,7 +31834,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-6848 directories, 24975 files
+6848 directories, 24976 files
 
 ```
 
@@ -33463,6 +33464,45 @@ Complete git history from oldest to newest:
   Add academic paper "Liquidity and internal debt: Instrument level
   dealer based simulation" documenting the Bilancio simulator framework
   and the Kalecki ring internal debt experiments.
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **4d61f384** (2025-12-10) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **ac1cb8f9** (2025-12-10) by vladgheorghe
+  feat(dealer): Implement Plan 024 balanced dealer/VBT initialization with rollover
+  Major changes to improve dealer ring simulation based on PDF specification:
+  1. Balanced VBT/Dealer initialization per maturity bucket:
+     - VBT holds 25% of claims per bucket (short/mid/long) + matching cash
+     - Dealer holds 12.5% of claims per bucket + matching cash
+     - Traders keep remaining 62.5%
+  2. Continuous rollover of settled claims:
+     - New maturity_distance field on Payable instruments
+     - When a payable is settled, create new payable with same ΔT
+     - Cash flows back from creditor to debtor on rollover
+     - rollover_enabled flag in system state and config
+  3. Updated scenario generator (ring_explorer.py):
+     - compile_ring_explorer_balanced() now properly allocates per bucket
+     - Creates vbt_short, vbt_mid, vbt_long entities
+     - Creates dealer_short, dealer_mid, dealer_long entities
+     - Distributes claims based on maturity (1-3: short, 4-8: mid, 9+: long)
+  4. Updated experiment runners:
+     - BalancedComparisonConfig with vbt_share_per_bucket, dealer_share_per_bucket
+     - RingSweepRunner with rollover_enabled parameter
+     - Stability checks account for rollover mode (no open obligations check)
+  Files modified:
+  - config/models.py: Added VBT/Dealer share params, rollover_enabled to RunConfig
+  - domain/instruments/credit.py: Added maturity_distance field
+  - config/apply.py: Handle maturity_distance in create_payable
+  - engines/settlement.py: Track settled payables, rollover function
+  - engines/simulation.py: Rollover phase in run_day, stability check update
+  - engines/system.py: rollover_enabled in State
+  - engines/dealer_integration.py: Balanced initialization
+  - scenarios/generators/ring_explorer.py: Per-bucket allocation
+  - experiments/balanced_comparison.py: New parameters
+  - experiments/ring.py: rollover_enabled parameter
+  - ui/run.py: Apply rollover from config, stability check
   🤖 Generated with [Claude Code](https://claude.com/claude-code)
   Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 
@@ -38219,6 +38259,12 @@ def apply_action(system: System, action_dict: Dict[str, Any], agents: Dict[str, 
             # Note: amount should be in minor units (e.g., cents)
             # If the input is in major units (e.g., dollars), multiply by 100
             # For now, we assume the YAML amounts are already in minor units
+
+            # Plan 024: maturity_distance for rollover - defaults to due_day if not set
+            maturity_distance = getattr(action, 'maturity_distance', None)
+            if maturity_distance is None:
+                maturity_distance = action.due_day
+
             payable = Payable(
                 id=system.new_contract_id("PAY"),
                 kind="payable",  # Will be set by __post_init__ but required by dataclass
@@ -38226,7 +38272,8 @@ def apply_action(system: System, action_dict: Dict[str, Any], agents: Dict[str, 
                 denom="X",  # Default denomination - could be made configurable
                 asset_holder_id=action.to_agent,  # creditor holds the asset
                 liability_issuer_id=action.from_agent,  # debtor issues the liability
-                due_day=action.due_day
+                due_day=action.due_day,
+                maturity_distance=maturity_distance,  # Plan 024: for continuous rollover
             )
             system.add_contract(payable)
             # optional alias capture
@@ -38235,13 +38282,14 @@ def apply_action(system: System, action_dict: Dict[str, Any], agents: Dict[str, 
                 if alias in system.state.aliases:
                     raise ValueError(f"Alias already exists: {alias}")
                 system.state.aliases[alias] = payable.id
-            
+
             # Log the event
             system.log("PayableCreated",
                 debtor=action.from_agent,
                 creditor=action.to_agent,
                 amount=int(action.amount),
                 due_day=action.due_day,
+                maturity_distance=maturity_distance,
                 payable_id=payable.id,
                 alias=getattr(action, 'alias', None)
             )
@@ -38872,14 +38920,18 @@ class CreatePayable(BaseModel):
         None,
         description="Optional alias to reference the created payable later"
     )
-    
+    maturity_distance: Optional[int] = Field(
+        None,
+        description="Original maturity distance (ΔT) for rollover. If not set, defaults to due_day."
+    )
+
     @field_validator("amount")
     @classmethod
     def amount_positive(cls, v):
         if v <= 0:
             raise ValueError("Amount must be positive")
         return v
-    
+
     @field_validator("due_day")
     @classmethod
     def due_day_non_negative(cls, v):
@@ -38978,6 +39030,10 @@ class RunConfig(BaseModel):
     default_handling: Literal["fail-fast", "expel-agent"] = Field(
         "fail-fast",
         description="How the engine reacts when an agent defaults"
+    )
+    rollover_enabled: bool = Field(
+        False,
+        description="Enable continuous rollover of settled payables (Plan 024)"
     )
     show: ShowConfig = Field(default_factory=ShowConfig)
     export: ExportConfig = Field(default_factory=ExportConfig)
@@ -39140,8 +39196,13 @@ class BalancedDealerConfig(BaseModel):
     Key concepts:
     - face_value (S): Cashflow at maturity, default 20
     - outside_mid_ratio (ρ): M/S ratio where M is the outside mid price
-    - big_entity_share (β): Fraction of trader debt allocated to big entities
+    - vbt_share_per_bucket: VBT holds 25% of claims per maturity bucket
+    - dealer_share_per_bucket: Dealer holds 12.5% of claims per maturity bucket
     - mode: "passive" for mimics (C), "active" for dealers (D)
+
+    Per PDF specification (Plan 024):
+    - VBT-like passive holder: ~25% of total claims per maturity + equal cash
+    - Dealer-like passive holder: ~12.5% of total claims per maturity + equal cash
     """
 
     enabled: bool = Field(default=False, description="Whether balanced mode is active")
@@ -39155,7 +39216,19 @@ class BalancedDealerConfig(BaseModel):
     )
     big_entity_share: Decimal = Field(
         default=Decimal("0.25"),
-        description="Fraction of trader debt allocated to big entities (β)"
+        description="Fraction of trader debt allocated to big entities (β) - DEPRECATED, use vbt/dealer shares"
+    )
+    vbt_share_per_bucket: Decimal = Field(
+        default=Decimal("0.25"),
+        description="VBT holds 25% of claims per maturity bucket"
+    )
+    dealer_share_per_bucket: Decimal = Field(
+        default=Decimal("0.125"),
+        description="Dealer holds 12.5% of claims per maturity bucket"
+    )
+    rollover_enabled: bool = Field(
+        default=True,
+        description="Enable continuous rollover of matured claims"
     )
     mode: Literal["passive", "active"] = Field(
         default="active",
@@ -39181,6 +39254,20 @@ class BalancedDealerConfig(BaseModel):
     def big_entity_share_valid(cls, v):
         if not (Decimal("0") < v < Decimal("1")):
             raise ValueError("big_entity_share must be between 0 and 1 (exclusive)")
+        return v
+
+    @field_validator("vbt_share_per_bucket")
+    @classmethod
+    def vbt_share_valid(cls, v):
+        if not (Decimal("0") < v < Decimal("1")):
+            raise ValueError("vbt_share_per_bucket must be between 0 and 1 (exclusive)")
+        return v
+
+    @field_validator("dealer_share_per_bucket")
+    @classmethod
+    def dealer_share_valid(cls, v):
+        if not (Decimal("0") < v < Decimal("1")):
+            raise ValueError("dealer_share_per_bucket must be between 0 and 1 (exclusive)")
         return v
 
 
@@ -45426,6 +45513,8 @@ class Payable(Instrument):
         holder_id: Optional secondary market holder. If set, this agent currently
                    holds the payable and should receive settlement payment.
                    If None, the original creditor (asset_holder_id) receives payment.
+        maturity_distance: Original maturity distance (ΔT) in days. Used for rollover
+                          to create new payables with same ΔT after settlement.
 
     Properties:
         effective_creditor: Returns the agent ID who should receive settlement
@@ -45434,6 +45523,7 @@ class Payable(Instrument):
     """
     due_day: int | None = None
     holder_id: str | None = None
+    maturity_distance: int | None = None  # Plan 024: for continuous rollover
 
     @property
     def effective_creditor(self) -> str:
@@ -46135,30 +46225,38 @@ def initialize_balanced_dealer_subsystem(
     dealer_config: DealerRingConfig,
     face_value: Decimal = Decimal("20"),
     outside_mid_ratio: Decimal = Decimal("0.75"),
-    big_entity_share: Decimal = Decimal("0.25"),
+    big_entity_share: Decimal = Decimal("0.25"),  # DEPRECATED
+    vbt_share_per_bucket: Decimal = Decimal("0.25"),
+    dealer_share_per_bucket: Decimal = Decimal("0.125"),
     mode: str = "active",
     current_day: int = 0
 ) -> DealerSubsystem:
     """
     Initialize dealer subsystem for balanced scenarios (C vs D comparison).
 
-    Unlike standard initialization where dealers start empty:
-    - Big entities (dealers) START with securities (claims on traders)
-    - Big entities have cash = market value of their securities (balanced position)
-    - For mode="passive": trading is disabled (big entities just hold)
+    Per PDF specification (Plan 024):
+    - VBT agents START with 25% of claims per maturity bucket + matching cash
+    - Dealer agents START with 12.5% of claims per maturity bucket + matching cash
+    - For mode="passive": trading is disabled (entities just hold)
     - For mode="active": trading is enabled as normal
 
-    Key differences from initialize_dealer_subsystem():
-    1. Big entities have initial inventory based on payables held
-    2. Cash is pre-calculated to match market value
-    3. Passive mode flag controls whether trading occurs
+    The scenario generator (compile_ring_explorer_balanced) creates payables to:
+    - vbt_short, vbt_mid, vbt_long agents
+    - dealer_short, dealer_mid, dealer_long agents
+
+    This function:
+    1. Converts those payables to tickets
+    2. Assigns tickets to VBT/Dealer inventory based on who holds them
+    3. Sets up proper cash balances (already minted in scenario)
 
     Args:
         system: Main System instance with agents and contracts
         dealer_config: Configuration for dealer subsystem
         face_value: Face value S (cashflow at maturity)
         outside_mid_ratio: M/S ratio (outside mid as fraction of face)
-        big_entity_share: Fraction of debt held by big entities (for reference)
+        big_entity_share: DEPRECATED - use vbt_share_per_bucket and dealer_share_per_bucket
+        vbt_share_per_bucket: VBT holds 25% of claims per maturity bucket
+        dealer_share_per_bucket: Dealer holds 12.5% of claims per maturity bucket
         mode: "passive" (no trading) or "active" (trading enabled)
         current_day: Current simulation day
 
@@ -46178,7 +46276,7 @@ def initialize_balanced_dealer_subsystem(
         enabled=(mode == "active"),  # Disable trading for passive mode
     )
 
-    # Step 0: Create dealer/VBT agents in main system (same as standard init)
+    # Step 0: Ensure dealer/VBT agents exist in main system
     for bucket_config in dealer_config.buckets:
         bucket_id = bucket_config.name
         dealer_agent_id = f"dealer_{bucket_id}"
@@ -46201,9 +46299,10 @@ def initialize_balanced_dealer_subsystem(
     # Initialize trade executor
     subsystem.executor = TradeExecutor(subsystem.params, subsystem.rng)
 
-    # Step 1: Convert Payables to Tickets and identify big entity holdings
+    # Step 1: Convert Payables to Tickets and categorize by holder
     serial_counter = 0
-    big_entity_tickets: Dict[str, List[Ticket]] = {bc.name: [] for bc in dealer_config.buckets}
+    vbt_tickets: Dict[str, List[Ticket]] = {bc.name: [] for bc in dealer_config.buckets}
+    dealer_tickets: Dict[str, List[Ticket]] = {bc.name: [] for bc in dealer_config.buckets}
     trader_tickets: Dict[str, List[Ticket]] = {}
 
     for contract_id, contract in system.state.contracts.items():
@@ -46231,58 +46330,49 @@ def initialize_balanced_dealer_subsystem(
         subsystem.ticket_to_payable[ticket_id] = contract_id
         subsystem.payable_to_ticket[contract_id] = ticket_id
 
-        # Check if this ticket is held by a big entity
+        # Categorize by holder
         owner = ticket.owner_id
-        if owner.startswith("big_"):
-            # Map big_short -> short, etc.
+        if owner.startswith("vbt_"):
+            # VBT holds this ticket - extract bucket from agent id (vbt_short -> short)
+            bucket_name = owner.replace("vbt_", "")
+            if bucket_name in vbt_tickets:
+                vbt_tickets[bucket_name].append(ticket)
+        elif owner.startswith("dealer_"):
+            # Dealer holds this ticket
+            bucket_name = owner.replace("dealer_", "")
+            if bucket_name in dealer_tickets:
+                dealer_tickets[bucket_name].append(ticket)
+        elif owner.startswith("big_"):
+            # DEPRECATED: old big_ entities - assign to dealer
             bucket_name = owner.replace("big_", "")
-            if bucket_name in big_entity_tickets:
-                big_entity_tickets[bucket_name].append(ticket)
+            if bucket_name in dealer_tickets:
+                dealer_tickets[bucket_name].append(ticket)
         else:
+            # Regular trader holds this ticket
             if owner not in trader_tickets:
                 trader_tickets[owner] = []
             trader_tickets[owner].append(ticket)
 
-    # Step 2: Calculate total system cash (excluding big entities)
-    total_system_cash = Decimal(0)
-    for agent_id, agent in system.state.agents.items():
-        if agent.kind in ("dealer", "vbt") or agent_id.startswith("big_"):
-            continue
-        total_system_cash += _get_agent_cash(system, agent_id)
-
-    # Step 3: Initialize market makers with pre-existing inventory
-    num_buckets = len(subsystem.bucket_configs)
-
+    # Step 2: Initialize VBT and Dealer states per bucket
     for bucket_config in subsystem.bucket_configs:
         bucket_id = bucket_config.name
 
-        # Get the tickets held by big entity for this bucket
-        bucket_tickets = big_entity_tickets.get(bucket_id, [])
+        # Get VBT's tickets for this bucket
+        vbt_bucket_tickets = vbt_tickets.get(bucket_id, [])
+        vbt_face_value = sum(t.face for t in vbt_bucket_tickets)
 
-        # Calculate market value of big entity holdings
-        big_entity_face_value = sum(t.face for t in bucket_tickets)
-        big_entity_market_value = big_entity_face_value * outside_mid_ratio
+        # Get Dealer's tickets for this bucket
+        dealer_bucket_tickets = dealer_tickets.get(bucket_id, [])
+        dealer_face_value = sum(t.face for t in dealer_bucket_tickets)
 
-        # Dealer gets the tickets and matching cash
-        # Note: In balanced mode, dealer starts WITH inventory
-        dealer = DealerState(
-            bucket_id=bucket_id,
-            agent_id=f"dealer_{bucket_id}",
-            inventory=list(bucket_tickets),  # Pre-populated with big entity holdings!
-            cash=big_entity_market_value,     # Cash = market value (balanced)
-        )
-        subsystem.dealers[bucket_id] = dealer
+        # Get cash for VBT and Dealer from main system
+        vbt_cash = _get_agent_cash(system, f"vbt_{bucket_id}")
+        dealer_cash = _get_agent_cash(system, f"dealer_{bucket_id}")
 
-        # Update ticket ownership to dealer
-        for ticket in bucket_tickets:
-            ticket.owner_id = f"dealer_{bucket_id}"
-
-        # VBT with anchors based on outside_mid
-        M = outside_mid  # Use calculated outside mid
+        # Create VBT state WITH inventory
+        # VBT anchors based on outside_mid
+        M = outside_mid
         O = Decimal("0.30")  # Default spread
-
-        # VBT gets some capital but no inventory
-        vbt_capital = (total_system_cash * dealer_config.vbt_share) / num_buckets
 
         vbt = VBTState(
             bucket_id=bucket_id,
@@ -46292,25 +46382,35 @@ def initialize_balanced_dealer_subsystem(
             phi_M=dealer_config.phi_M,
             phi_O=dealer_config.phi_O,
             clip_nonneg_B=dealer_config.clip_nonneg_B,
-            inventory=[],
-            cash=vbt_capital,
+            inventory=list(vbt_bucket_tickets),  # VBT starts WITH inventory!
+            cash=vbt_cash,
         )
         vbt.recompute_quotes()
         subsystem.vbts[bucket_id] = vbt
 
+        # Create Dealer state WITH inventory
+        dealer = DealerState(
+            bucket_id=bucket_id,
+            agent_id=f"dealer_{bucket_id}",
+            inventory=list(dealer_bucket_tickets),  # Dealer starts WITH inventory!
+            cash=dealer_cash,
+        )
+        subsystem.dealers[bucket_id] = dealer
+
         # Compute dealer quotes
         recompute_dealer_state(dealer, vbt, subsystem.params)
 
-        # Capture initial equity
+        # Capture initial equity (dealer cash + VBT mid × dealer inventory × S)
         initial_equity = dealer.cash + vbt.M * dealer.a * subsystem.params.S
         subsystem.metrics.initial_equity_by_bucket[bucket_id] = initial_equity
 
-    # Step 4: Initialize traders (same as standard init)
+    # Step 3: Initialize traders (regular household agents)
     for agent_id, agent in system.state.agents.items():
         if agent.kind != "household":
             continue
-        if agent_id.startswith("big_"):
-            continue  # Skip big entity agents
+        # Skip VBT/Dealer/big entity agents
+        if agent_id.startswith("vbt_") or agent_id.startswith("dealer_") or agent_id.startswith("big_"):
+            continue
 
         trader_cash = _get_agent_cash(system, agent_id)
 
@@ -46322,27 +46422,33 @@ def initialize_balanced_dealer_subsystem(
             asset_issuer_id=None,
         )
 
-        # Link trader to their tickets
+        # Link trader to their tickets (tickets they own as assets)
         for ticket in subsystem.tickets.values():
             if ticket.owner_id == agent_id:
                 trader.tickets_owned.append(ticket)
                 if trader.asset_issuer_id is None:
                     trader.asset_issuer_id = ticket.issuer_id
 
+            # Tickets where trader is the debtor
             if ticket.issuer_id == agent_id:
                 trader.obligations.append(ticket)
 
         subsystem.traders[agent_id] = trader
 
-    # Step 5: Capture initial debt-to-money ratio
+    # Step 4: Capture initial debt-to-money ratio
     total_debt = Decimal(0)
     for contract in system.state.contracts.values():
         if isinstance(contract, Payable):
             total_debt += Decimal(contract.amount)
 
+    # Total money held by traders only (not VBT/Dealer)
     total_money = Decimal(0)
     for agent_id_iter, agent in system.state.agents.items():
-        if agent.kind not in ("dealer", "vbt") and not agent_id_iter.startswith("big_"):
+        if agent.kind == "household" and not (
+            agent_id_iter.startswith("vbt_") or
+            agent_id_iter.startswith("dealer_") or
+            agent_id_iter.startswith("big_")
+        ):
             total_money += _get_agent_cash(system, agent_id_iter)
 
     subsystem.metrics.initial_total_debt = total_debt
@@ -47108,6 +47214,8 @@ def _assign_bucket(remaining_tau: int, bucket_configs: List[BucketConfig]) -> st
 
 from __future__ import annotations
 
+from typing import List, Tuple
+
 from bilancio.core.atomic_tx import atomic
 from bilancio.core.errors import DefaultError, ValidationError
 from bilancio.ops.banking import client_payment
@@ -47115,6 +47223,10 @@ from bilancio.ops.aliases import get_alias_for_id
 
 DEFAULT_MODE_FAIL_FAST = "fail-fast"
 DEFAULT_MODE_EXPEL = "expel-agent"
+
+# Plan 024: Track settled payables for rollover
+_settled_payables_for_rollover: List[Tuple[str, str, int, int, int]] = []
+# List of (debtor_id, creditor_id, amount, maturity_distance, current_day)
 
 _ACTION_AGENT_FIELDS = {
     "mint_reserves": ("to",),
@@ -47558,8 +47670,19 @@ def settle_due_delivery_obligations(system, day: int):
             )
 
 
-def settle_due(system, day: int):
-    """Settle all obligations due today (payables and delivery obligations)."""
+def settle_due(system, day: int, *, rollover_enabled: bool = False):
+    """Settle all obligations due today (payables and delivery obligations).
+
+    Args:
+        system: The system to settle
+        day: Current simulation day
+        rollover_enabled: If True, create new payables for successfully settled ones (Plan 024)
+
+    Returns:
+        List of settled payable info for rollover: [(debtor_id, creditor_id, amount, maturity_distance)]
+    """
+    settled_for_rollover = []
+
     for payable in list(due_payables(system, day)):
         if payable.id not in system.state.contracts:
             continue
@@ -47576,6 +47699,11 @@ def settle_due(system, day: int):
 
         remaining = payable.amount
         payments_summary: list[dict] = []
+
+        # Save payable info before potential removal
+        payable_amount = payable.amount
+        payable_maturity_distance = getattr(payable, 'maturity_distance', None)
+        original_creditor = payable.asset_holder_id  # Original creditor for rollover
 
         with atomic(system):
             for method in order:
@@ -47643,6 +47771,7 @@ def settle_due(system, day: int):
                     cancelled_contract_ids=cancelled_contract_ids,
                     cancelled_aliases=cancelled_aliases,
                 )
+                # Defaulted - no rollover
                 continue
 
             _remove_contract(system, payable.id)
@@ -47654,10 +47783,92 @@ def settle_due(system, day: int):
                 alias=alias,
                 debtor=debtor.id,
                 creditor=creditor.id,
-                amount=payable.amount,
+                amount=payable_amount,
             )
 
+            # Plan 024: Track for rollover (only if successfully settled AND rollover enabled)
+            if rollover_enabled and payable_maturity_distance is not None:
+                # Use original creditor for rollover, not secondary market holder
+                settled_for_rollover.append((
+                    debtor.id,
+                    original_creditor,
+                    payable_amount,
+                    payable_maturity_distance,
+                ))
+
     settle_due_delivery_obligations(system, day)
+
+    return settled_for_rollover
+
+
+def rollover_settled_payables(system, day: int, settled_payables: list):
+    """Create new payables for successfully settled ones (continuous issuance via rollover).
+
+    Per PDF specification (Plan 024):
+    - Each liability records its original maturity distance ΔT
+    - When a claim is repaid, borrower immediately issues new claim of same size/ΔT
+    - Due date = current_day + ΔT
+    - Cash moves from lender (creditor) to borrower (debtor) as part of new issuance
+
+    Args:
+        system: The system
+        day: Current simulation day
+        settled_payables: List of (debtor_id, creditor_id, amount, maturity_distance)
+    """
+    from bilancio.domain.instruments.credit import Payable
+
+    for debtor_id, creditor_id, amount, maturity_distance in settled_payables:
+        # Skip if either party has defaulted
+        debtor = system.state.agents.get(debtor_id)
+        creditor = system.state.agents.get(creditor_id)
+
+        if debtor is None or getattr(debtor, "defaulted", False):
+            continue
+        if creditor is None or getattr(creditor, "defaulted", False):
+            continue
+
+        new_due_day = day + maturity_distance
+
+        with atomic(system):
+            # 1. Create new payable with same amount and ΔT
+            new_payable = Payable(
+                id=system.new_contract_id("PAY"),
+                kind="payable",
+                amount=amount,
+                denom="X",
+                asset_holder_id=creditor_id,  # creditor holds the asset
+                liability_issuer_id=debtor_id,  # debtor issues the liability
+                due_day=new_due_day,
+                maturity_distance=maturity_distance,
+            )
+            system.add_contract(new_payable)
+
+            # 2. Transfer cash from creditor to debtor (new issuance)
+            # This represents the creditor re-lending the money they just received
+            cash_transferred = _pay_with_cash(system, creditor_id, debtor_id, amount)
+
+            if cash_transferred != amount:
+                # Creditor doesn't have enough cash - this shouldn't happen in normal rollover
+                # but handle gracefully
+                system.log(
+                    "RolloverPartial",
+                    debtor=debtor_id,
+                    creditor=creditor_id,
+                    amount=amount,
+                    cash_transferred=cash_transferred,
+                    new_due_day=new_due_day,
+                    payable_id=new_payable.id,
+                )
+            else:
+                system.log(
+                    "PayableRolledOver",
+                    debtor=debtor_id,
+                    creditor=creditor_id,
+                    amount=amount,
+                    new_due_day=new_due_day,
+                    maturity_distance=maturity_distance,
+                    payable_id=new_payable.id,
+                )
 
 ```
 
@@ -47673,7 +47884,7 @@ from dataclasses import dataclass
 from typing import Any, Protocol
 
 from bilancio.engines.clearing import settle_intraday_nets
-from bilancio.engines.settlement import settle_due
+from bilancio.engines.settlement import settle_due, rollover_settled_payables
 
 
 IMPACT_EVENTS = {
@@ -47804,8 +48015,11 @@ def run_day(system, enable_dealer: bool = False):
     Args:
         system: System instance to run the day for
         enable_dealer: If True, run dealer trading phase between scheduled actions and settlements
+
+    Note: Rollover is controlled by system.state.rollover_enabled (Plan 024)
     """
     current_day = system.state.day
+    rollover_enabled = getattr(system.state, 'rollover_enabled', False)
 
     # Phase A: Log PhaseA event (reserved)
     system.log("PhaseA")
@@ -47842,7 +48056,12 @@ def run_day(system, enable_dealer: bool = False):
 
     # B2: Automated settlements due today
     system.log("SubphaseB2")
-    settle_due(system, current_day)
+    settled_for_rollover = settle_due(system, current_day, rollover_enabled=rollover_enabled)
+
+    # Plan 024: Rollover - create new payables for settled ones
+    if rollover_enabled and settled_for_rollover:
+        system.log("SubphaseB_Rollover")
+        rollover_settled_payables(system, current_day, settled_for_rollover)
 
     # Phase C: Clear intraday nets for the current day
     system.log("PhaseC")  # optional: helps timeline
@@ -47863,10 +48082,13 @@ def run_until_stable(system, max_days: int = 365, quiet_days: int = 2, enable_de
         max_days: Maximum number of days to run
         quiet_days: Number of consecutive quiet days needed for stability
         enable_dealer: If True, run dealer trading phase each day
+
+    Note: Rollover is controlled by system.state.rollover_enabled (Plan 024)
     """
     reports = []
     consecutive_quiet = 0
     start_day = system.state.day
+    rollover_enabled = getattr(system.state, 'rollover_enabled', False)
 
     for _ in range(max_days):
         day_before = system.state.day
@@ -47879,7 +48101,13 @@ def run_until_stable(system, max_days: int = 365, quiet_days: int = 2, enable_de
         else:
             consecutive_quiet = 0
 
-        if consecutive_quiet >= quiet_days and not _has_open_obligations(system):
+        # With rollover enabled, we can never have no open obligations - always have debt rolling
+        # So we only check for stability without obligations when rollover is disabled
+        stability_condition = consecutive_quiet >= quiet_days
+        if not rollover_enabled:
+            stability_condition = stability_condition and not _has_open_obligations(system)
+
+        if stability_condition:
             break
 
     return reports
@@ -47926,6 +48154,8 @@ class State:
     scheduled_actions_by_day: dict[int, list[dict]] = field(default_factory=dict)
     # Track agents that have defaulted and been expelled from future activity
     defaulted_agent_ids: set[AgentId] = field(default_factory=set)
+    # Plan 024: Enable continuous rollover of settled payables
+    rollover_enabled: bool = False
 
 class System:
     def __init__(self, policy: PolicyEngine | None = None, default_mode: str = "fail-fast"):
@@ -48539,7 +48769,7 @@ class BalancedComparisonResult:
     # Balanced mode parameters
     face_value: Decimal
     outside_mid_ratio: Decimal
-    big_entity_share: Decimal
+    big_entity_share: Decimal  # DEPRECATED
 
     # C (Passive) metrics
     delta_passive: Optional[Decimal]
@@ -48552,6 +48782,10 @@ class BalancedComparisonResult:
     phi_active: Optional[Decimal]
     active_run_id: str
     active_status: str
+
+    # Balanced mode parameters with defaults (Plan 024)
+    vbt_share_per_bucket: Decimal = Decimal("0.25")
+    dealer_share_per_bucket: Decimal = Decimal("0.125")
 
     # Dealer metrics from active run
     dealer_total_pnl: Optional[float] = None
@@ -48613,13 +48847,25 @@ class BalancedComparisonConfig(BaseModel):
     )
     monotonicities: List[Decimal] = Field(default_factory=lambda: [Decimal("0")])
 
-    # Balanced dealer parameters
+    # Balanced dealer parameters (Plan 024)
     face_value: Decimal = Field(default=Decimal("20"), description="Face value S (cashflow at maturity)")
     outside_mid_ratios: List[Decimal] = Field(
         default_factory=lambda: [Decimal("1.0"), Decimal("0.9"), Decimal("0.8"), Decimal("0.75"), Decimal("0.5")],
         description="M/S ratios to sweep"
     )
-    big_entity_share: Decimal = Field(default=Decimal("0.25"), description="Fraction of debt held by big entities")
+    big_entity_share: Decimal = Field(default=Decimal("0.25"), description="DEPRECATED - use vbt/dealer shares")
+    vbt_share_per_bucket: Decimal = Field(
+        default=Decimal("0.25"),
+        description="VBT holds 25% of claims per maturity bucket"
+    )
+    dealer_share_per_bucket: Decimal = Field(
+        default=Decimal("0.125"),
+        description="Dealer holds 12.5% of claims per maturity bucket"
+    )
+    rollover_enabled: bool = Field(
+        default=True,
+        description="Enable continuous rollover of matured claims"
+    )
 
     # VBT configuration (for active mode)
     vbt_share: Decimal = Field(default=Decimal("0.50"), description="VBT capital as fraction of system cash")
@@ -48693,7 +48939,7 @@ class BalancedComparisonRunner:
     def _get_passive_runner(self, outside_mid_ratio: Decimal) -> RingSweepRunner:
         """Get or create passive runner (no dealer trading)."""
         # For passive mode, we use the balanced scenario but with dealers disabled
-        # In balanced mode, big entities have inventory but don't trade
+        # In balanced mode, VBT/Dealer have inventory but don't trade
         return RingSweepRunner(
             out_dir=self.passive_dir,
             name_prefix=f"{self.config.name_prefix} (Passive)",
@@ -48706,11 +48952,14 @@ class BalancedComparisonRunner:
             default_handling=self.config.default_handling,
             dealer_enabled=False,  # No dealer trading in passive mode
             dealer_config=None,
-            # Pass balanced mode config
+            # Pass balanced mode config (Plan 024)
             balanced_mode=True,
             face_value=self.config.face_value,
             outside_mid_ratio=outside_mid_ratio,
-            big_entity_share=self.config.big_entity_share,
+            big_entity_share=self.config.big_entity_share,  # DEPRECATED
+            vbt_share_per_bucket=self.config.vbt_share_per_bucket,
+            dealer_share_per_bucket=self.config.dealer_share_per_bucket,
+            rollover_enabled=self.config.rollover_enabled,
             detailed_dealer_logging=self.config.detailed_logging,  # Plan 022
         )
 
@@ -48718,7 +48967,7 @@ class BalancedComparisonRunner:
         """Get or create active runner (with dealer trading)."""
         dealer_config = {
             "ticket_size": int(self.config.face_value),
-            "dealer_share": str(Decimal("0")),  # Dealers already have inventory
+            "dealer_share": str(Decimal("0")),  # Dealers already have inventory from scenario
             "vbt_share": str(self.config.vbt_share),
         }
 
@@ -48734,11 +48983,14 @@ class BalancedComparisonRunner:
             default_handling=self.config.default_handling,
             dealer_enabled=True,  # Dealer trading enabled
             dealer_config=dealer_config,
-            # Pass balanced mode config
+            # Pass balanced mode config (Plan 024)
             balanced_mode=True,
             face_value=self.config.face_value,
             outside_mid_ratio=outside_mid_ratio,
-            big_entity_share=self.config.big_entity_share,
+            big_entity_share=self.config.big_entity_share,  # DEPRECATED
+            vbt_share_per_bucket=self.config.vbt_share_per_bucket,
+            dealer_share_per_bucket=self.config.dealer_share_per_bucket,
+            rollover_enabled=self.config.rollover_enabled,
             detailed_dealer_logging=self.config.detailed_logging,  # Plan 022
         )
 
@@ -48840,7 +49092,9 @@ class BalancedComparisonRunner:
             seed=seed,
             face_value=self.config.face_value,
             outside_mid_ratio=outside_mid_ratio,
-            big_entity_share=self.config.big_entity_share,
+            big_entity_share=self.config.big_entity_share,  # DEPRECATED
+            vbt_share_per_bucket=self.config.vbt_share_per_bucket,
+            dealer_share_per_bucket=self.config.dealer_share_per_bucket,
             delta_passive=passive_result.delta_total,
             phi_passive=passive_result.phi_total,
             passive_run_id=passive_result.run_id,
@@ -48942,7 +49196,10 @@ class BalancedComparisonRunner:
                 "Q_total": str(self.config.Q_total),
                 "base_seed": self.config.base_seed,
                 "face_value": str(self.config.face_value),
-                "big_entity_share": str(self.config.big_entity_share),
+                "big_entity_share": str(self.config.big_entity_share),  # DEPRECATED
+                "vbt_share_per_bucket": str(self.config.vbt_share_per_bucket),
+                "dealer_share_per_bucket": str(self.config.dealer_share_per_bucket),
+                "rollover_enabled": self.config.rollover_enabled,
                 "kappas": [str(k) for k in self.config.kappas],
                 "concentrations": [str(c) for c in self.config.concentrations],
                 "mus": [str(m) for m in self.config.mus],
@@ -49813,7 +50070,10 @@ class RingSweepRunner:
         balanced_mode: bool = False,
         face_value: Optional[Decimal] = None,
         outside_mid_ratio: Optional[Decimal] = None,
-        big_entity_share: Optional[Decimal] = None,
+        big_entity_share: Optional[Decimal] = None,  # DEPRECATED
+        vbt_share_per_bucket: Optional[Decimal] = None,
+        dealer_share_per_bucket: Optional[Decimal] = None,
+        rollover_enabled: bool = True,
         detailed_dealer_logging: bool = False,  # Plan 022
     ) -> None:
         self.base_dir = out_dir
@@ -49833,7 +50093,10 @@ class RingSweepRunner:
         self.balanced_mode = balanced_mode
         self.face_value = face_value or Decimal("20")
         self.outside_mid_ratio = outside_mid_ratio or Decimal("0.75")
-        self.big_entity_share = big_entity_share or Decimal("0.25")
+        self.big_entity_share = big_entity_share or Decimal("0.25")  # DEPRECATED
+        self.vbt_share_per_bucket = vbt_share_per_bucket or Decimal("0.25")
+        self.dealer_share_per_bucket = dealer_share_per_bucket or Decimal("0.125")
+        self.rollover_enabled = rollover_enabled
         self.detailed_dealer_logging = detailed_dealer_logging  # Plan 022
         self.registry_rows: List[Dict[str, Any]] = []
 
@@ -50096,14 +50359,17 @@ class RingSweepRunner:
         generator_config = RingExplorerGeneratorConfig.model_validate(generator_data)
 
         if self.balanced_mode:
-            # Use balanced generator for C vs D comparison scenarios
+            # Use balanced generator for C vs D comparison scenarios (Plan 024)
             from bilancio.scenarios.generators.ring_explorer import compile_ring_explorer_balanced
             scenario = compile_ring_explorer_balanced(
                 generator_config,
                 face_value=self.face_value,
                 outside_mid_ratio=self.outside_mid_ratio,
-                big_entity_share=self.big_entity_share,
+                big_entity_share=self.big_entity_share,  # DEPRECATED
+                vbt_share_per_bucket=self.vbt_share_per_bucket,
+                dealer_share_per_bucket=self.dealer_share_per_bucket,
                 mode="active" if self.dealer_enabled else "passive",
+                rollover_enabled=self.rollover_enabled,
                 source_path=None,
             )
         else:
@@ -51210,33 +51476,57 @@ def compile_ring_explorer_balanced(
     config: RingExplorerGeneratorConfig,
     face_value: Decimal = Decimal("20"),
     outside_mid_ratio: Decimal = Decimal("0.75"),
-    big_entity_share: Decimal = Decimal("0.25"),
+    big_entity_share: Decimal = Decimal("0.25"),  # DEPRECATED
+    vbt_share_per_bucket: Decimal = Decimal("0.25"),
+    dealer_share_per_bucket: Decimal = Decimal("0.125"),
     mode: str = "active",
+    rollover_enabled: bool = True,
     *,
     source_path: Optional[Path] = None,
 ) -> Dict[str, Any]:
     """
-    Generate a ring scenario with balanced big entities (C or D).
+    Generate a ring scenario with balanced VBT and Dealer entities per maturity bucket.
 
-    The scenario augments the base ring with:
-    1. Additional debt per trader (held by big entities)
-    2. Additional cash per trader (preserves cash/debt ratio)
-    3. Big entities initialized with securities + matching cash
+    Per PDF specification (Plan 024):
+    - VBT-like passive holder: 25% of total claims per maturity bucket + equal cash
+    - Dealer-like passive holder: 12.5% of total claims per maturity bucket + equal cash
+    - Traders keep remaining 62.5% of claims
+
+    The scenario creates:
+    1. N traders in a ring structure with payables
+    2. For each maturity bucket (short/mid/long):
+       - VBT agent with vbt_share_per_bucket (25%) of that bucket's claims + matching cash
+       - Dealer agent with dealer_share_per_bucket (12.5%) of that bucket's claims + matching cash
+    3. Traders receive additional cash to fund their obligations to VBT/Dealer
 
     Args:
         config: Base ring explorer configuration
         face_value: Face value S (cashflow at maturity), default 20
         outside_mid_ratio: M/S ratio (0.5 to 1.0), default 0.75
-        big_entity_share: Fraction of trader debt for big entities (β), default 0.25
+        big_entity_share: DEPRECATED - use vbt_share_per_bucket and dealer_share_per_bucket
+        vbt_share_per_bucket: VBT holds 25% of claims per maturity bucket
+        dealer_share_per_bucket: Dealer holds 12.5% of claims per maturity bucket
         mode: "passive" (mimics) or "active" (dealers)
+        rollover_enabled: Whether to enable continuous rollover of matured claims
         source_path: Optional path for YAML output
 
     Returns:
-        Complete scenario dictionary with balanced big entities
+        Complete scenario dictionary with balanced VBT/Dealer per bucket
     """
     params = RingExplorerParams.from_model(config.params)
 
-    # Get base payable amounts (this is the original debt distribution)
+    # Define maturity buckets (matching dealer module defaults)
+    BUCKET_BOUNDS = {
+        "short": (1, 3),    # days 1-3
+        "mid": (4, 8),      # days 4-8
+        "long": (9, 999),   # days 9+
+    }
+    BUCKETS = ["short", "mid", "long"]
+
+    # Total share going to big entities per bucket
+    big_share = vbt_share_per_bucket + dealer_share_per_bucket  # 0.375 total
+
+    # Get base payable amounts
     base_payable_amounts = _draw_payables(
         params.n_agents,
         params.inequality.concentration,
@@ -51245,64 +51535,90 @@ def compile_ring_explorer_balanced(
         params.seed,
     )
 
-    # Scale up payable amounts by (1 + big_entity_share)
-    scale_factor = Decimal("1") + big_entity_share
-    scaled_payable_amounts = [amt * scale_factor for amt in base_payable_amounts]
-
-    # Get base liquidity amounts and scale up
-    base_liquidity = params.liquidity.total
-    scaled_liquidity_total = base_liquidity * scale_factor
-
-    # Recalculate liquidity allocation with scaled total
-    scaled_params = RingExplorerParams(
-        n_agents=params.n_agents,
-        seed=params.seed,
-        kappa=params.kappa,
-        Q_total=params.Q_total * scale_factor,
-        liquidity=LiquiditySpec(
-            total=scaled_liquidity_total,
-            mode=params.liquidity.mode,
-            agent=params.liquidity.agent,
-            vector=params.liquidity.vector,
-        ),
-        inequality=params.inequality,
-        maturity=params.maturity,
-        currency=params.currency,
-        policy_overrides=params.policy_overrides,
-    )
-    scaled_liquidity_amounts = _allocate_liquidity(scaled_params)
-
+    # Get due days for the ring
     due_days = _build_due_days(params.n_agents, params.maturity.days, params.maturity.mu)
 
+    # Assign each payable to a maturity bucket
+    def _get_bucket(due_day: int) -> str:
+        for bucket, (lo, hi) in BUCKET_BOUNDS.items():
+            if lo <= due_day <= hi:
+                return bucket
+        return "long"  # Default to long for very long maturities
+
+    payable_buckets = [_get_bucket(d) for d in due_days]
+
+    # Calculate total face value per bucket (from trader-to-trader ring)
+    bucket_totals = {b: Decimal("0") for b in BUCKETS}
+    for idx, amount in enumerate(base_payable_amounts):
+        bucket = payable_buckets[idx]
+        bucket_totals[bucket] += amount
+
+    # Calculate big entity holdings per bucket
+    # VBT gets vbt_share_per_bucket of each bucket, Dealer gets dealer_share_per_bucket
+    vbt_holdings = {b: bucket_totals[b] * vbt_share_per_bucket for b in BUCKETS}
+    dealer_holdings = {b: bucket_totals[b] * dealer_share_per_bucket for b in BUCKETS}
+
+    # Calculate additional debt per trader to VBT/Dealer
+    # Each trader contributes proportionally to their original debt
+    trader_to_vbt = []
+    trader_to_dealer = []
+    for idx, amount in enumerate(base_payable_amounts):
+        bucket = payable_buckets[idx]
+        bucket_total = bucket_totals[bucket]
+        if bucket_total > 0:
+            # This trader's share of the bucket
+            share = amount / bucket_total
+            # Their contribution to VBT/Dealer for this bucket
+            trader_to_vbt.append((vbt_holdings[bucket] * share, bucket, due_days[idx]))
+            trader_to_dealer.append((dealer_holdings[bucket] * share, bucket, due_days[idx]))
+        else:
+            trader_to_vbt.append((Decimal("0"), bucket, due_days[idx]))
+            trader_to_dealer.append((Decimal("0"), bucket, due_days[idx]))
+
+    # Total additional cash needed by traders to pay VBT/Dealer
+    total_additional_debt = sum(vbt_holdings.values()) + sum(dealer_holdings.values())
+
+    # Allocate base liquidity
+    base_liquidity = params.liquidity.total
+    base_liquidity_amounts = _allocate_liquidity(params)
+
+    # Scale up liquidity to fund additional obligations
+    # Traders need cash to pay their obligations to VBT/Dealer
+    additional_cash_per_trader = total_additional_debt / Decimal(params.n_agents)
+
+    # Build agents
     agents = _build_agents(params.n_agents)
 
-    # Add big entity agents (one per bucket: short, mid, long)
-    big_entity_buckets = ["short", "mid", "long"]
-    for bucket in big_entity_buckets:
-        agent_id = f"big_{bucket}"
+    # Add VBT and Dealer agents per bucket
+    for bucket in BUCKETS:
         agents.append({
-            "id": agent_id,
-            "kind": "household",  # Use household for now
-            "name": f"Big Entity ({bucket})",
+            "id": f"vbt_{bucket}",
+            "kind": "household",
+            "name": f"VBT ({bucket})",
+        })
+        agents.append({
+            "id": f"dealer_{bucket}",
+            "kind": "household",
+            "name": f"Dealer ({bucket})",
         })
 
     initial_actions = []
 
-    # Seed cash liquidity to traders (scaled amounts)
-    for idx, amount in enumerate(scaled_liquidity_amounts):
-        if amount <= 0:
-            continue
+    # Seed cash liquidity to traders (base + additional for VBT/Dealer obligations)
+    for idx, base_amount in enumerate(base_liquidity_amounts):
         agent_id = f"H{idx + 1}"
-        initial_actions.append({
-            "mint_cash": {
-                "to": agent_id,
-                "amount": amount,
-                "alias": f"LIQ_{agent_id}",
-            }
-        })
+        total_amount = base_amount + additional_cash_per_trader
+        if total_amount > 0:
+            initial_actions.append({
+                "mint_cash": {
+                    "to": agent_id,
+                    "amount": total_amount,
+                    "alias": f"LIQ_{agent_id}",
+                }
+            })
 
-    # Create ring payables (scaled amounts - original debt structure preserved)
-    for idx, amount in enumerate(scaled_payable_amounts):
+    # Create ring payables (trader-to-trader, original structure)
+    for idx, amount in enumerate(base_payable_amounts):
         from_agent = f"H{idx + 1}"
         to_agent = f"H{(idx + 1) % params.n_agents + 1}"
         due_day = due_days[idx]
@@ -51313,54 +51629,78 @@ def compile_ring_explorer_balanced(
                 "amount": amount,
                 "due_day": due_day,
                 "alias": f"P_{from_agent}_{to_agent}",
+                "maturity_distance": due_day,  # Plan 024: for rollover
             }
         })
 
-    # Create additional payables from traders to big entities
-    # These represent the debt held by big entities
-    # Distribute across buckets based on maturity
-    outside_mid = outside_mid_ratio * face_value
-    total_big_entity_debt = params.Q_total * big_entity_share
-
-    # Split debt across buckets (for simplicity, equal distribution)
-    debt_per_bucket = total_big_entity_debt / Decimal(len(big_entity_buckets))
-
-    # Create payables to big entities (spread across traders)
-    debt_per_trader_to_big = total_big_entity_debt / Decimal(params.n_agents)
+    # Create payables from traders to VBT (per bucket)
     for idx in range(params.n_agents):
-        from_agent = f"H{idx + 1}"
-        # Assign to bucket based on maturity structure
-        bucket_idx = idx % len(big_entity_buckets)
-        to_agent = f"big_{big_entity_buckets[bucket_idx]}"
-        due_day = due_days[idx]
-        initial_actions.append({
-            "create_payable": {
-                "from": from_agent,
-                "to": to_agent,
-                "amount": debt_per_trader_to_big,
-                "due_day": due_day,
-                "alias": f"P_{from_agent}_{to_agent}_big",
-            }
-        })
+        vbt_amount, bucket, due_day = trader_to_vbt[idx]
+        if vbt_amount > Decimal("0.01"):  # Skip tiny amounts
+            from_agent = f"H{idx + 1}"
+            to_agent = f"vbt_{bucket}"
+            initial_actions.append({
+                "create_payable": {
+                    "from": from_agent,
+                    "to": to_agent,
+                    "amount": vbt_amount,
+                    "due_day": due_day,
+                    "alias": f"P_{from_agent}_{to_agent}",
+                    "maturity_distance": due_day,  # Plan 024: for rollover
+                }
+            })
 
-    # Mint cash to big entities (market value of securities = balanced position)
-    # Each big entity gets cash = market value of their securities
+    # Create payables from traders to Dealer (per bucket)
+    for idx in range(params.n_agents):
+        dealer_amount, bucket, due_day = trader_to_dealer[idx]
+        if dealer_amount > Decimal("0.01"):  # Skip tiny amounts
+            from_agent = f"H{idx + 1}"
+            to_agent = f"dealer_{bucket}"
+            initial_actions.append({
+                "create_payable": {
+                    "from": from_agent,
+                    "to": to_agent,
+                    "amount": dealer_amount,
+                    "due_day": due_day,
+                    "alias": f"P_{from_agent}_{to_agent}",
+                    "maturity_distance": due_day,  # Plan 024: for rollover
+                }
+            })
+
+    # Mint cash to VBT and Dealer (market value of their holdings = balanced position)
     # Market value = face_value_held × outside_mid_ratio
-    cash_per_bucket = debt_per_bucket * outside_mid_ratio
-    for bucket in big_entity_buckets:
-        agent_id = f"big_{bucket}"
-        initial_actions.append({
-            "mint_cash": {
-                "to": agent_id,
-                "amount": cash_per_bucket,
-                "alias": f"LIQ_{agent_id}",
-            }
-        })
+    for bucket in BUCKETS:
+        # VBT cash
+        vbt_cash = vbt_holdings[bucket] * outside_mid_ratio
+        if vbt_cash > 0:
+            initial_actions.append({
+                "mint_cash": {
+                    "to": f"vbt_{bucket}",
+                    "amount": vbt_cash,
+                    "alias": f"LIQ_vbt_{bucket}",
+                }
+            })
+
+        # Dealer cash
+        dealer_cash = dealer_holdings[bucket] * outside_mid_ratio
+        if dealer_cash > 0:
+            initial_actions.append({
+                "mint_cash": {
+                    "to": f"dealer_{bucket}",
+                    "amount": dealer_cash,
+                    "alias": f"LIQ_dealer_{bucket}",
+                }
+            })
 
     scenario_name = _render_scenario_name(config.name_prefix, params)
     scenario_name = f"{scenario_name} [Balanced {mode}]"
     description = _render_description(params)
-    description = f"{description}; balanced mode={mode}, β={_fmt_decimal(big_entity_share)}, ρ={_fmt_decimal(outside_mid_ratio)}"
+    description = (
+        f"{description}; balanced mode={mode}, "
+        f"VBT={_fmt_decimal(vbt_share_per_bucket)}, "
+        f"Dealer={_fmt_decimal(dealer_share_per_bucket)}, "
+        f"ρ={_fmt_decimal(outside_mid_ratio)}"
+    )
 
     scenario: Dict[str, Any] = {
         "version": 1,
@@ -51374,6 +51714,7 @@ def compile_ring_explorer_balanced(
             "mode": "until_stable",
             "max_days": max(30, params.maturity.days + 5),
             "quiet_days": 2,
+            "rollover_enabled": rollover_enabled,  # Plan 024: continuous rollover
             "show": {
                 "balances": [agent["id"] for agent in agents],
                 "events": "detailed",
@@ -51387,8 +51728,10 @@ def compile_ring_explorer_balanced(
         "_balanced_config": {
             "face_value": float(face_value),
             "outside_mid_ratio": float(outside_mid_ratio),
-            "big_entity_share": float(big_entity_share),
+            "vbt_share_per_bucket": float(vbt_share_per_bucket),
+            "dealer_share_per_bucket": float(dealer_share_per_bucket),
             "mode": mode,
+            "rollover_enabled": rollover_enabled,
         },
     }
 
@@ -54305,6 +54648,9 @@ def run_scenario(
         )
         sys.exit(1)
     
+    # Plan 024: Enable rollover if configured
+    system.state.rollover_enabled = config.run.rollover_enabled
+
     # Stage scheduled actions into system state (Phase B1 execution by day)
     try:
         if getattr(config, 'scheduled_actions', None):
@@ -54737,9 +55083,12 @@ def run_until_stable_mode(
                 # Collect day data for HTML export
                 # We want simulation events from the day that was just displayed
                 # show_day_summary was called with day=day_before
-                day_events = [e for e in system.state.events 
+                day_events = [e for e in system.state.events
                              if e.get("day") == day_before and e.get("phase") == "simulation"]
-                is_stable = consecutive_quiet >= quiet_days and not _has_open_obligations(system)
+                # Plan 024: stability check accounts for rollover mode
+                is_stable = consecutive_quiet >= quiet_days
+                if not system.state.rollover_enabled:
+                    is_stable = is_stable and not _has_open_obligations(system)
                 
                 # Capture current balance state for this day
                 day_balances: Dict[str, Any] = {}
@@ -54792,8 +55141,14 @@ def run_until_stable_mode(
                 consecutive_quiet += 1
             else:
                 consecutive_quiet = 0
-            
-            if consecutive_quiet >= quiet_days and not _has_open_obligations(system):
+
+            # Plan 024: With rollover, we can never have "no open obligations"
+            # because debt continuously rolls over. Check stability based on quiet days only.
+            stability_condition = consecutive_quiet >= quiet_days
+            if not system.state.rollover_enabled:
+                stability_condition = stability_condition and not _has_open_obligations(system)
+
+            if stability_condition:
                 console.print("[green]✓[/green] System reached stable state")
                 break
         
