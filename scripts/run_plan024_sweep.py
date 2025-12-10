@@ -3,21 +3,62 @@
 
 This script is resumable - if interrupted, just run it again and it will
 pick up where it left off.
+
+Output is quiet - only progress is shown. Full logs go to the output directory.
 """
 
 from decimal import Decimal
 from pathlib import Path
 from datetime import datetime
 import sys
+import os
+import io
 
-from bilancio.experiments.balanced_comparison import BalancedComparisonRunner, BalancedComparisonConfig
+# Redirect stdout to suppress verbose simulation output
+# Progress will be written to stderr which the user sees
+class QuietStdout:
+    def __init__(self, log_file):
+        self.log_file = log_file
+        self.original_stdout = sys.stdout
+
+    def write(self, text):
+        # Write everything to log file
+        self.log_file.write(text)
+        # Only show our progress lines (they start with [ or contain specific keywords)
+        if text.strip() and (
+            text.strip().startswith('[') or
+            text.strip().startswith('Resuming:') or
+            text.strip().startswith('Completed') or
+            text.strip().startswith('Output directory') or
+            text.strip().startswith('Starting') or
+            text.strip().startswith('Total') or
+            text.strip().startswith('Sweep complete') or
+            text.strip().startswith('Results at') or
+            text.strip().startswith('Scenarios') or
+            text.strip().startswith('SWEEP_') or
+            text.strip().startswith('ERROR')
+        ):
+            self.original_stdout.write(text)
+            self.original_stdout.flush()
+
+    def flush(self):
+        self.log_file.flush()
+        self.original_stdout.flush()
 
 # Fixed output directory for resumption (no timestamp)
 out_dir = Path('out/experiments/plan024_sweep')
 out_dir.mkdir(parents=True, exist_ok=True)
 
+# Setup logging
+log_path = out_dir / 'sweep.log'
+log_file = open(log_path, 'a')
+sys.stdout = QuietStdout(log_file)
+
 print(f'Output directory: {out_dir}', flush=True)
 print(f'Starting Plan 024 balanced sweep (resumable)...', flush=True)
+print(f'Full output logged to: {log_path}', flush=True)
+
+from bilancio.experiments.balanced_comparison import BalancedComparisonRunner, BalancedComparisonConfig
 
 # Full sweep config matching Plan 023 but with Plan 024 improvements
 config = BalancedComparisonConfig(
@@ -60,8 +101,7 @@ print(f'Total runs (passive + active): {total_combos * 2}', flush=True)
 
 # Run sweep
 runner = BalancedComparisonRunner(config, out_dir)
-print('\nStarting sweep (this will take a while)...', flush=True)
-sys.stdout.flush()
+print('\nStarting sweep...', flush=True)
 
 try:
     results = runner.run_all()
@@ -95,3 +135,5 @@ except Exception as e:
     import traceback
     traceback.print_exc()
     sys.exit(1)
+finally:
+    log_file.close()
