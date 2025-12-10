@@ -1,0 +1,2263 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Bilancio Simulation - Balanced Comparison (Active) (n=5, kappa=0.25, c=0.5, mu=0.75) [Balanced active]</title><style>*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;line-height:1.6;color:#333;background:#f5f5f5}
+.container{max-width:1400px;margin:0 auto;padding:20px}
+header{background:#fff;border-radius:8px;padding:24px;margin-bottom:24px;box-shadow:0 2px 4px rgba(0,0,0,0.1)}
+h1{color:#2563eb;font-size:28px;margin-bottom:8px}
+h2{color:#475569;font-size:20px;margin-bottom:16px}
+h3{color:#334155;font-size:18px;margin-bottom:12px}
+h4{color:#475569;font-size:16px;margin:8px 0;font-weight:600}
+.description{color:#64748b;font-style:italic;margin-bottom:16px}
+.meta{display:flex;gap:24px;color:#64748b;font-size:14px}
+.meta span{display:inline-block}
+.t-account{background:#fff;border-radius:8px;padding:20px;margin-bottom:20px;box-shadow:0 2px 4px rgba(0,0,0,0.1)}
+.t-account .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.t-account table.side{width:100%;border-collapse:collapse;font-size:14px}
+.t-account th,.t-account td{border-bottom:1px solid #e5e7eb;border-right:1px solid #eef2f7;padding:8px;text-align:left}
+.t-account th:last-child,.t-account td:last-child{border-right:none}
+.t-account tbody tr:nth-child(even){background:#fafafa}
+.t-account th{background:#f9fafb;font-weight:600;color:#374151}
+.t-account td.qty,.t-account td.val,.t-account td.mat{text-align:right;white-space:nowrap}
+.t-account td.name{font-weight:500}
+.t-account td.empty{text-align:center;color:#9ca3af}
+.assets-side h4{color:#16a34a}
+.liabilities-side h4{color:#dc2626}
+.events-table{background:#fff;border-radius:8px;padding:20px;margin-bottom:24px;box-shadow:0 2px 4px rgba(0,0,0,0.1)}
+.events-table table{width:100%;border-collapse:collapse;font-size:14px}
+.events-table th,.events-table td{border-bottom:1px solid #e5e7eb;border-right:1px solid #eef2f7;padding:8px;text-align:left}
+.events-table th:last-child,.events-table td:last-child{border-right:none}
+.events-table tbody tr:nth-child(even){background:#f7f9fc}
+.events-table th{background:#f9fafb;font-weight:600;color:#374151}
+.events-table td.qty,.events-table td.amount{text-align:center;white-space:nowrap}
+.events-table td.event-kind{font-weight:500;color:#3b82f6}
+.events-table td.notes{font-size:13px;color:#64748b}
+.agents>h2{margin-bottom:20px;padding:0 20px}
+.day-section{margin-bottom:40px;padding-bottom:40px;border-bottom:2px solid #e5e7eb}
+.day-section:last-child{border-bottom:none}
+.day-header{color:#1f2937;font-size:24px;margin-bottom:24px;padding:12px 0;border-bottom:1px solid #e5e7eb}
+.events-section{margin-bottom:24px}
+.balances-section{margin-top:24px}
+.balances-section>h3{margin-bottom:20px;color:#374151;font-size:20px}
+footer{text-align:center;color:#9ca3af;font-size:14px;margin-top:40px;padding:20px}
+@media (max-width:768px){.t-account .grid{grid-template-columns:1fr}.meta{flex-direction:column;gap:8px}}
+
+</style></head><body><div class="container"><header><h1>Bilancio Simulation</h1><h2>Balanced Comparison (Active) (n=5, kappa=0.25, c=0.5, mu=0.75) [Balanced active]</h2><p class="description">Ring of 5 agents with total dues S1=10000; initial liquidity L0=40000 (kappa=0.25); Dirichlet concentration c=0.5; maturity mu=0.75 over 10 day horizon; balanced mode=active, β=0.375, ρ=0.75</p><div class="meta"><span>Final Day: 8</span><span>Total Events: 235</span><span>Active Agents: 12</span><span>Active Contracts: 26</span><span>Status: Stopped without convergence (max_days = 30)</span></div></header><main><section class="agents"><h2>Agents</h2><section class="events-table"><table><thead><tr><th>ID</th><th>Name</th><th>Type</th></tr></thead><tbody><tr><td>CB</td><td>Central Bank</td><td>central_bank</td></tr><tr><td>H1</td><td>Agent 1</td><td>household</td></tr><tr><td>H2</td><td>Agent 2</td><td>household</td></tr><tr><td>H3</td><td>Agent 3</td><td>household</td></tr><tr><td>H4</td><td>Agent 4</td><td>household</td></tr><tr><td>H5</td><td>Agent 5</td><td>household</td></tr><tr><td>dealer_short</td><td>Dealer (short)</td><td>household</td></tr><tr><td>vbt_short</td><td>VBT (short)</td><td>household</td></tr><tr><td>dealer_mid</td><td>Dealer (mid)</td><td>household</td></tr><tr><td>vbt_mid</td><td>VBT (mid)</td><td>household</td></tr><tr><td>dealer_long</td><td>Dealer (long)</td><td>household</td></tr><tr><td>vbt_long</td><td>VBT (long)</td><td>household</td></tr></tbody></table></section></section><section class="day-section"><h2 class="day-header">📅 Day 0 (Setup)</h2><div class="events-section"><h3>Setup Events</h3>
+<section class="events-table">
+  <h4>Setup</h4>
+  <table>
+    <thead>
+      <tr><th>Kind</th><th>ID/Alias</th><th>From</th><th>To</th><th>SKU/Instr</th><th>Qty</th><th>Amount</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="event-kind">CashMinted</td><td class="event-id">LIQ_H1</td><td>—</td><td>H1</td><td>—</td><td class="qty">—</td><td class="amount">11,000</td><td class="notes"></td></tr><tr><td class="event-kind">CashMinted</td><td class="event-id">LIQ_H2</td><td>—</td><td>H2</td><td>—</td><td class="qty">—</td><td class="amount">11,000</td><td class="notes"></td></tr><tr><td class="event-kind">CashMinted</td><td class="event-id">LIQ_H3</td><td>—</td><td>H3</td><td>—</td><td class="qty">—</td><td class="amount">11,000</td><td class="notes"></td></tr><tr><td class="event-kind">CashMinted</td><td class="event-id">LIQ_H4</td><td>—</td><td>H4</td><td>—</td><td class="qty">—</td><td class="amount">11,000</td><td class="notes"></td></tr><tr><td class="event-kind">CashMinted</td><td class="event-id">LIQ_H5</td><td>—</td><td>H5</td><td>—</td><td class="qty">—</td><td class="amount">11,000</td><td class="notes"></td></tr><tr><td class="event-kind">PayableCreated</td><td class="event-id">P_H1_H2</td><td>H1</td><td>H2</td><td>—</td><td class="qty">—</td><td class="amount">5,891</td><td class="notes"></td></tr><tr><td class="event-kind">PayableCreated</td><td class="event-id">P_H2_H3</td><td>H2</td><td>H3</td><td>—</td><td class="qty">—</td><td class="amount">112</td><td class="notes"></td></tr><tr><td class="event-kind">PayableCreated</td><td class="event-id">P_H3_H4</td><td>H3</td><td>H4</td><td>—</td><td class="qty">—</td><td class="amount">1,720</td><td class="notes"></td></tr><tr><td class="event-kind">PayableCreated</td><td class="event-id">P_H4_H5</td><td>H4</td><td>H5</td><td>—</td><td class="qty">—</td><td class="amount">5,938</td><td class="notes"></td></tr><tr><td class="event-kind">PayableCreated</td><td class="event-id">P_H5_H1</td><td>H5</td><td>H1</td><td>—</td><td class="qty">—</td><td class="amount">86</td><td class="notes"></td></tr><tr><td class="event-kind">PayableCreated</td><td class="event-id">P_H1_dealer_short</td><td>H1</td><td>dealer_short</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">PayableCreated</td><td class="event-id">P_H2_dealer_mid</td><td>H2</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">PayableCreated</td><td class="event-id">P_H3_dealer_long</td><td>H3</td><td>dealer_long</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">PayableCreated</td><td class="event-id">P_H4_dealer_short</td><td>H4</td><td>dealer_short</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">PayableCreated</td><td class="event-id">P_H5_dealer_mid</td><td>H5</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">PayableCreated</td><td class="event-id">P_H1_vbt_short</td><td>H1</td><td>vbt_short</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">PayableCreated</td><td class="event-id">P_H2_vbt_mid</td><td>H2</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">PayableCreated</td><td class="event-id">P_H3_vbt_long</td><td>H3</td><td>vbt_long</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">PayableCreated</td><td class="event-id">P_H4_vbt_short</td><td>H4</td><td>vbt_short</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">PayableCreated</td><td class="event-id">P_H5_vbt_mid</td><td>H5</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">CashMinted</td><td class="event-id">LIQ_dealer_short</td><td>—</td><td>dealer_short</td><td>—</td><td class="qty">—</td><td class="amount">312</td><td class="notes"></td></tr><tr><td class="event-kind">CashMinted</td><td class="event-id">LIQ_dealer_mid</td><td>—</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">312</td><td class="notes"></td></tr><tr><td class="event-kind">CashMinted</td><td class="event-id">LIQ_dealer_long</td><td>—</td><td>dealer_long</td><td>—</td><td class="qty">—</td><td class="amount">312</td><td class="notes"></td></tr><tr><td class="event-kind">CashMinted</td><td class="event-id">LIQ_vbt_short</td><td>—</td><td>vbt_short</td><td>—</td><td class="qty">—</td><td class="amount">625</td><td class="notes"></td></tr><tr><td class="event-kind">CashMinted</td><td class="event-id">LIQ_vbt_mid</td><td>—</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">625</td><td class="notes"></td></tr><tr><td class="event-kind">CashMinted</td><td class="event-id">LIQ_vbt_long</td><td>—</td><td>vbt_long</td><td>—</td><td class="qty">—</td><td class="amount">625</td><td class="notes"></td></tr>
+    </tbody>
+  </table>
+</section>
+</div><div class="balances-section"><h3>Balances</h3>
+<section class="t-account">
+  <h3>Central Bank [CB] (central_bank)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H1</td><td class="qty">—</td><td class="val">11,000</td><td class="cpty">Agent 1 [H1]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H2</td><td class="qty">—</td><td class="val">11,000</td><td class="cpty">Agent 2 [H2]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H3</td><td class="qty">—</td><td class="val">11,000</td><td class="cpty">Agent 3 [H3]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H4</td><td class="qty">—</td><td class="val">11,000</td><td class="cpty">Agent 4 [H4]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H5</td><td class="qty">—</td><td class="val">11,000</td><td class="cpty">Agent 5 [H5]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_dealer_short</td><td class="qty">—</td><td class="val">312</td><td class="cpty">Dealer (short) [dealer_short]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_dealer_mid</td><td class="qty">—</td><td class="val">312</td><td class="cpty">Dealer (mid) [dealer_mid]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_dealer_long</td><td class="qty">—</td><td class="val">312</td><td class="cpty">Dealer (long) [dealer_long]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_vbt_short</td><td class="qty">—</td><td class="val">625</td><td class="cpty">VBT (short) [vbt_short]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_vbt_mid</td><td class="qty">—</td><td class="val">625</td><td class="cpty">VBT (mid) [vbt_mid]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_vbt_long</td><td class="qty">—</td><td class="val">625</td><td class="cpty">VBT (long) [vbt_long]</td><td class="mat">on-demand</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 1 [H1] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H1</td><td class="qty">—</td><td class="val">11,000</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H5_H1</td><td class="qty">—</td><td class="val">86</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 2</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">P_H1_H2</td><td class="qty">—</td><td class="val">5,891</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 4</td></tr><tr><td class="name">payable</td><td class="id">P_H1_dealer_short</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (short) [dealer_short]</td><td class="mat">Day 4</td></tr><tr><td class="name">payable</td><td class="id">P_H1_vbt_short</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (short) [vbt_short]</td><td class="mat">Day 4</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 2 [H2] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H2</td><td class="qty">—</td><td class="val">11,000</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H1_H2</td><td class="qty">—</td><td class="val">5,891</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 4</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">P_H2_H3</td><td class="qty">—</td><td class="val">112</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 1</td></tr><tr><td class="name">payable</td><td class="id">P_H2_dealer_mid</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (mid) [dealer_mid]</td><td class="mat">Day 1</td></tr><tr><td class="name">payable</td><td class="id">P_H2_vbt_mid</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (mid) [vbt_mid]</td><td class="mat">Day 1</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 3 [H3] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H3</td><td class="qty">—</td><td class="val">11,000</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H2_H3</td><td class="qty">—</td><td class="val">112</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 1</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">P_H3_H4</td><td class="qty">—</td><td class="val">1,720</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">P_H3_dealer_long</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (long) [dealer_long]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">P_H3_vbt_long</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (long) [vbt_long]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 4 [H4] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H4</td><td class="qty">—</td><td class="val">11,000</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H3_H4</td><td class="qty">—</td><td class="val">1,720</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">P_H4_H5</td><td class="qty">—</td><td class="val">5,938</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 5</td></tr><tr><td class="name">payable</td><td class="id">P_H4_dealer_short</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (short) [dealer_short]</td><td class="mat">Day 5</td></tr><tr><td class="name">payable</td><td class="id">P_H4_vbt_short</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (short) [vbt_short]</td><td class="mat">Day 5</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 5 [H5] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H5</td><td class="qty">—</td><td class="val">11,000</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H4_H5</td><td class="qty">—</td><td class="val">5,938</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 5</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">P_H5_H1</td><td class="qty">—</td><td class="val">86</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 2</td></tr><tr><td class="name">payable</td><td class="id">P_H5_dealer_mid</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (mid) [dealer_mid]</td><td class="mat">Day 2</td></tr><tr><td class="name">payable</td><td class="id">P_H5_vbt_mid</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (mid) [vbt_mid]</td><td class="mat">Day 2</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Dealer (short) [dealer_short] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_dealer_short</td><td class="qty">—</td><td class="val">312</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H1_dealer_short</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 4</td></tr><tr><td class="name">payable</td><td class="id">P_H4_dealer_short</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 5</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>VBT (short) [vbt_short] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_vbt_short</td><td class="qty">—</td><td class="val">625</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H1_vbt_short</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 4</td></tr><tr><td class="name">payable</td><td class="id">P_H4_vbt_short</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 5</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Dealer (mid) [dealer_mid] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_dealer_mid</td><td class="qty">—</td><td class="val">312</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H2_dealer_mid</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 1</td></tr><tr><td class="name">payable</td><td class="id">P_H5_dealer_mid</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 2</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>VBT (mid) [vbt_mid] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_vbt_mid</td><td class="qty">—</td><td class="val">625</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H2_vbt_mid</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 1</td></tr><tr><td class="name">payable</td><td class="id">P_H5_vbt_mid</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 2</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Dealer (long) [dealer_long] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_dealer_long</td><td class="qty">—</td><td class="val">312</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H3_dealer_long</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>VBT (long) [vbt_long] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_vbt_long</td><td class="qty">—</td><td class="val">625</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H3_vbt_long</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+</div></section><section class="day-section"><h2 class="day-header">📅 Day 0</h2><div class="events-section">
+<section class="events-table">
+  <h4>Phase B1 — Scheduled Actions</h4>
+  <table>
+    <thead>
+      <tr><th>Kind</th><th>ID/Alias</th><th>From</th><th>To</th><th>SKU/Instr</th><th>Qty</th><th>Amount</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="7" class="notes">No events</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="events-table">
+  <h4>Phase B2 — Settlement</h4>
+  <table>
+    <thead>
+      <tr><th>Kind</th><th>ID/Alias</th><th>From</th><th>To</th><th>SKU/Instr</th><th>Qty</th><th>Amount</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="7" class="notes">No events</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="events-table">
+  <h4>Phase C — Clearing</h4>
+  <table>
+    <thead>
+      <tr><th>Kind</th><th>ID/Alias</th><th>From</th><th>To</th><th>SKU/Instr</th><th>Qty</th><th>Amount</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="7" class="notes">No events</td></tr>
+    </tbody>
+  </table>
+</section>
+</div></section><section class="day-section"><h2 class="day-header">📅 Day 1</h2><div class="events-section">
+<section class="events-table">
+  <h4>Phase B1 — Scheduled Actions</h4>
+  <table>
+    <thead>
+      <tr><th>Kind</th><th>ID/Alias</th><th>From</th><th>To</th><th>SKU/Instr</th><th>Qty</th><th>Amount</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="7" class="notes">No events</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="events-table">
+  <h4>Phase B2 — Settlement</h4>
+  <table>
+    <thead>
+      <tr><th>Kind</th><th>ID/Alias</th><th>From</th><th>To</th><th>SKU/Instr</th><th>Qty</th><th>Amount</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="event-kind">CashTransferred</td><td class="event-id">C_56a6291c7bfc</td><td>H2</td><td>H3</td><td>—</td><td class="qty">—</td><td class="amount">112</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">P_H2_H3</td><td>H2</td><td>H3</td><td>—</td><td class="qty">—</td><td class="amount">112</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H2</td><td>H3</td><td>—</td><td class="qty">—</td><td class="amount">112</td><td class="notes"></td></tr><tr><td class="event-kind">CashTransferred</td><td class="event-id">C_bbe94273fb70</td><td>H2</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">P_H2_dealer_mid</td><td>H2</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H2</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">CashTransferred</td><td class="event-id">C_8308ba0992cf</td><td>H2</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">P_H2_vbt_mid</td><td>H2</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H2</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="events-table">
+  <h4>Phase C — Clearing</h4>
+  <table>
+    <thead>
+      <tr><th>Kind</th><th>ID/Alias</th><th>From</th><th>To</th><th>SKU/Instr</th><th>Qty</th><th>Amount</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="7" class="notes">No events</td></tr>
+    </tbody>
+  </table>
+</section>
+</div><div class="balances-section"><h3>Balances</h3>
+<section class="t-account">
+  <h3>Central Bank [CB] (central_bank)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H1</td><td class="qty">—</td><td class="val">11,000</td><td class="cpty">Agent 1 [H1]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H2</td><td class="qty">—</td><td class="val">10,138</td><td class="cpty">Agent 2 [H2]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H3</td><td class="qty">—</td><td class="val">11,112</td><td class="cpty">Agent 3 [H3]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H4</td><td class="qty">—</td><td class="val">11,000</td><td class="cpty">Agent 4 [H4]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H5</td><td class="qty">—</td><td class="val">11,000</td><td class="cpty">Agent 5 [H5]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_dealer_short</td><td class="qty">—</td><td class="val">312</td><td class="cpty">Dealer (short) [dealer_short]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_dealer_mid</td><td class="qty">—</td><td class="val">562</td><td class="cpty">Dealer (mid) [dealer_mid]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_dealer_long</td><td class="qty">—</td><td class="val">312</td><td class="cpty">Dealer (long) [dealer_long]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_vbt_short</td><td class="qty">—</td><td class="val">625</td><td class="cpty">VBT (short) [vbt_short]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_vbt_mid</td><td class="qty">—</td><td class="val">1,125</td><td class="cpty">VBT (mid) [vbt_mid]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_vbt_long</td><td class="qty">—</td><td class="val">625</td><td class="cpty">VBT (long) [vbt_long]</td><td class="mat">on-demand</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 1 [H1] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H1</td><td class="qty">—</td><td class="val">11,000</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H5_H1</td><td class="qty">—</td><td class="val">86</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 2</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">P_H1_H2</td><td class="qty">—</td><td class="val">5,891</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 4</td></tr><tr><td class="name">payable</td><td class="id">P_H1_dealer_short</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (short) [dealer_short]</td><td class="mat">Day 4</td></tr><tr><td class="name">payable</td><td class="id">P_H1_vbt_short</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (short) [vbt_short]</td><td class="mat">Day 4</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 2 [H2] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H2</td><td class="qty">—</td><td class="val">10,138</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H1_H2</td><td class="qty">—</td><td class="val">5,891</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 4</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">PAY_fec8f0bcf755</td><td class="qty">—</td><td class="val">112</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 2</td></tr><tr><td class="name">payable</td><td class="id">PAY_77c1244fafa5</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (mid) [dealer_mid]</td><td class="mat">Day 2</td></tr><tr><td class="name">payable</td><td class="id">PAY_851366ce30b9</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (mid) [vbt_mid]</td><td class="mat">Day 2</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 3 [H3] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H3</td><td class="qty">—</td><td class="val">11,112</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_fec8f0bcf755</td><td class="qty">—</td><td class="val">112</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 2</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">P_H3_H4</td><td class="qty">—</td><td class="val">1,720</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">P_H3_dealer_long</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (long) [dealer_long]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">P_H3_vbt_long</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (long) [vbt_long]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 4 [H4] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H4</td><td class="qty">—</td><td class="val">11,000</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H3_H4</td><td class="qty">—</td><td class="val">1,720</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">P_H4_H5</td><td class="qty">—</td><td class="val">5,938</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 5</td></tr><tr><td class="name">payable</td><td class="id">P_H4_dealer_short</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (short) [dealer_short]</td><td class="mat">Day 5</td></tr><tr><td class="name">payable</td><td class="id">P_H4_vbt_short</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (short) [vbt_short]</td><td class="mat">Day 5</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 5 [H5] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H5</td><td class="qty">—</td><td class="val">11,000</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H4_H5</td><td class="qty">—</td><td class="val">5,938</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 5</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">P_H5_H1</td><td class="qty">—</td><td class="val">86</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 2</td></tr><tr><td class="name">payable</td><td class="id">P_H5_dealer_mid</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (mid) [dealer_mid]</td><td class="mat">Day 2</td></tr><tr><td class="name">payable</td><td class="id">P_H5_vbt_mid</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (mid) [vbt_mid]</td><td class="mat">Day 2</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Dealer (short) [dealer_short] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_dealer_short</td><td class="qty">—</td><td class="val">312</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H1_dealer_short</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 4</td></tr><tr><td class="name">payable</td><td class="id">P_H4_dealer_short</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 5</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>VBT (short) [vbt_short] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_vbt_short</td><td class="qty">—</td><td class="val">625</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H1_vbt_short</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 4</td></tr><tr><td class="name">payable</td><td class="id">P_H4_vbt_short</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 5</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Dealer (mid) [dealer_mid] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_dealer_mid</td><td class="qty">—</td><td class="val">562</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H5_dealer_mid</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 2</td></tr><tr><td class="name">payable</td><td class="id">PAY_77c1244fafa5</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 2</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>VBT (mid) [vbt_mid] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_vbt_mid</td><td class="qty">—</td><td class="val">1,125</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H5_vbt_mid</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 2</td></tr><tr><td class="name">payable</td><td class="id">PAY_851366ce30b9</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 2</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Dealer (long) [dealer_long] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_dealer_long</td><td class="qty">—</td><td class="val">312</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H3_dealer_long</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>VBT (long) [vbt_long] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_vbt_long</td><td class="qty">—</td><td class="val">625</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H3_vbt_long</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+</div></section><section class="day-section"><h2 class="day-header">📅 Day 2</h2><div class="events-section">
+<section class="events-table">
+  <h4>Phase B1 — Scheduled Actions</h4>
+  <table>
+    <thead>
+      <tr><th>Kind</th><th>ID/Alias</th><th>From</th><th>To</th><th>SKU/Instr</th><th>Qty</th><th>Amount</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="7" class="notes">No events</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="events-table">
+  <h4>Phase B2 — Settlement</h4>
+  <table>
+    <thead>
+      <tr><th>Kind</th><th>ID/Alias</th><th>From</th><th>To</th><th>SKU/Instr</th><th>Qty</th><th>Amount</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="event-kind">CashTransferred</td><td class="event-id">C_b221b7c9466d</td><td>H5</td><td>H1</td><td>—</td><td class="qty">—</td><td class="amount">86</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">P_H5_H1</td><td>H5</td><td>H1</td><td>—</td><td class="qty">—</td><td class="amount">86</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H5</td><td>H1</td><td>—</td><td class="qty">—</td><td class="amount">86</td><td class="notes"></td></tr><tr><td class="event-kind">CashTransferred</td><td class="event-id">C_136d918258a7</td><td>H5</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">P_H5_dealer_mid</td><td>H5</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H5</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">CashTransferred</td><td class="event-id">C_3d15438bd35c</td><td>H5</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">P_H5_vbt_mid</td><td>H5</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H5</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">CashTransferred</td><td class="event-id">C_2f2b78468932</td><td>H2</td><td>H3</td><td>—</td><td class="qty">—</td><td class="amount">112</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">PAY_fec8f0bcf755</td><td>H2</td><td>H3</td><td>—</td><td class="qty">—</td><td class="amount">112</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H2</td><td>H3</td><td>—</td><td class="qty">—</td><td class="amount">112</td><td class="notes"></td></tr><tr><td class="event-kind">CashTransferred</td><td class="event-id">C_b542bac3eb20</td><td>H2</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">PAY_77c1244fafa5</td><td>H2</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H2</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">CashTransferred</td><td class="event-id">C_52790b02e0df</td><td>H2</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">PAY_851366ce30b9</td><td>H2</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H2</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="events-table">
+  <h4>Phase C — Clearing</h4>
+  <table>
+    <thead>
+      <tr><th>Kind</th><th>ID/Alias</th><th>From</th><th>To</th><th>SKU/Instr</th><th>Qty</th><th>Amount</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="7" class="notes">No events</td></tr>
+    </tbody>
+  </table>
+</section>
+</div><div class="balances-section"><h3>Balances</h3>
+<section class="t-account">
+  <h3>Central Bank [CB] (central_bank)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H1</td><td class="qty">—</td><td class="val">11,086</td><td class="cpty">Agent 1 [H1]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H2</td><td class="qty">—</td><td class="val">9,276</td><td class="cpty">Agent 2 [H2]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H3</td><td class="qty">—</td><td class="val">11,224</td><td class="cpty">Agent 3 [H3]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H4</td><td class="qty">—</td><td class="val">11,000</td><td class="cpty">Agent 4 [H4]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H5</td><td class="qty">—</td><td class="val">10,164</td><td class="cpty">Agent 5 [H5]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_dealer_short</td><td class="qty">—</td><td class="val">312</td><td class="cpty">Dealer (short) [dealer_short]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_dealer_mid</td><td class="qty">—</td><td class="val">1,062</td><td class="cpty">Dealer (mid) [dealer_mid]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_dealer_long</td><td class="qty">—</td><td class="val">312</td><td class="cpty">Dealer (long) [dealer_long]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_vbt_short</td><td class="qty">—</td><td class="val">625</td><td class="cpty">VBT (short) [vbt_short]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_vbt_mid</td><td class="qty">—</td><td class="val">2,125</td><td class="cpty">VBT (mid) [vbt_mid]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_vbt_long</td><td class="qty">—</td><td class="val">625</td><td class="cpty">VBT (long) [vbt_long]</td><td class="mat">on-demand</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 1 [H1] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H1</td><td class="qty">—</td><td class="val">11,086</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_ca56430a68fb</td><td class="qty">—</td><td class="val">86</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 4</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">P_H1_H2</td><td class="qty">—</td><td class="val">5,891</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 4</td></tr><tr><td class="name">payable</td><td class="id">P_H1_dealer_short</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (short) [dealer_short]</td><td class="mat">Day 4</td></tr><tr><td class="name">payable</td><td class="id">P_H1_vbt_short</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (short) [vbt_short]</td><td class="mat">Day 4</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 2 [H2] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H2</td><td class="qty">—</td><td class="val">9,276</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H1_H2</td><td class="qty">—</td><td class="val">5,891</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 4</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">PAY_7a289ec1785d</td><td class="qty">—</td><td class="val">112</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 3</td></tr><tr><td class="name">payable</td><td class="id">PAY_ed7f9cf11d06</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (mid) [dealer_mid]</td><td class="mat">Day 3</td></tr><tr><td class="name">payable</td><td class="id">PAY_ecb8bfe4e526</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (mid) [vbt_mid]</td><td class="mat">Day 3</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 3 [H3] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H3</td><td class="qty">—</td><td class="val">11,224</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_7a289ec1785d</td><td class="qty">—</td><td class="val">112</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 3</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">P_H3_H4</td><td class="qty">—</td><td class="val">1,720</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">P_H3_dealer_long</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (long) [dealer_long]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">P_H3_vbt_long</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (long) [vbt_long]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 4 [H4] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H4</td><td class="qty">—</td><td class="val">11,000</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H3_H4</td><td class="qty">—</td><td class="val">1,720</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">P_H4_H5</td><td class="qty">—</td><td class="val">5,938</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 5</td></tr><tr><td class="name">payable</td><td class="id">P_H4_dealer_short</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (short) [dealer_short]</td><td class="mat">Day 5</td></tr><tr><td class="name">payable</td><td class="id">P_H4_vbt_short</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (short) [vbt_short]</td><td class="mat">Day 5</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 5 [H5] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H5</td><td class="qty">—</td><td class="val">10,164</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H4_H5</td><td class="qty">—</td><td class="val">5,938</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 5</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">PAY_ca56430a68fb</td><td class="qty">—</td><td class="val">86</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 4</td></tr><tr><td class="name">payable</td><td class="id">PAY_97010b815f0b</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (mid) [dealer_mid]</td><td class="mat">Day 4</td></tr><tr><td class="name">payable</td><td class="id">PAY_cd6a1b8b2a6d</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (mid) [vbt_mid]</td><td class="mat">Day 4</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Dealer (short) [dealer_short] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_dealer_short</td><td class="qty">—</td><td class="val">312</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H1_dealer_short</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 4</td></tr><tr><td class="name">payable</td><td class="id">P_H4_dealer_short</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 5</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>VBT (short) [vbt_short] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_vbt_short</td><td class="qty">—</td><td class="val">625</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H1_vbt_short</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 4</td></tr><tr><td class="name">payable</td><td class="id">P_H4_vbt_short</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 5</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Dealer (mid) [dealer_mid] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_dealer_mid</td><td class="qty">—</td><td class="val">1,062</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_97010b815f0b</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 4</td></tr><tr><td class="name">payable</td><td class="id">PAY_ed7f9cf11d06</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 3</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>VBT (mid) [vbt_mid] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_vbt_mid</td><td class="qty">—</td><td class="val">2,125</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_cd6a1b8b2a6d</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 4</td></tr><tr><td class="name">payable</td><td class="id">PAY_ecb8bfe4e526</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 3</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Dealer (long) [dealer_long] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_dealer_long</td><td class="qty">—</td><td class="val">312</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H3_dealer_long</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>VBT (long) [vbt_long] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_vbt_long</td><td class="qty">—</td><td class="val">625</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H3_vbt_long</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+</div></section><section class="day-section"><h2 class="day-header">📅 Day 3</h2><div class="events-section">
+<section class="events-table">
+  <h4>Phase B1 — Scheduled Actions</h4>
+  <table>
+    <thead>
+      <tr><th>Kind</th><th>ID/Alias</th><th>From</th><th>To</th><th>SKU/Instr</th><th>Qty</th><th>Amount</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="7" class="notes">No events</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="events-table">
+  <h4>Phase B2 — Settlement</h4>
+  <table>
+    <thead>
+      <tr><th>Kind</th><th>ID/Alias</th><th>From</th><th>To</th><th>SKU/Instr</th><th>Qty</th><th>Amount</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="event-kind">CashTransferred</td><td class="event-id">C_8ee1a772c2ea</td><td>H2</td><td>H3</td><td>—</td><td class="qty">—</td><td class="amount">112</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">PAY_7a289ec1785d</td><td>H2</td><td>H3</td><td>—</td><td class="qty">—</td><td class="amount">112</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H2</td><td>H3</td><td>—</td><td class="qty">—</td><td class="amount">112</td><td class="notes"></td></tr><tr><td class="event-kind">CashTransferred</td><td class="event-id">C_90d75438c1ba</td><td>H2</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">PAY_ed7f9cf11d06</td><td>H2</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H2</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">CashTransferred</td><td class="event-id">C_8f528686828a</td><td>H2</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">PAY_ecb8bfe4e526</td><td>H2</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H2</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="events-table">
+  <h4>Phase C — Clearing</h4>
+  <table>
+    <thead>
+      <tr><th>Kind</th><th>ID/Alias</th><th>From</th><th>To</th><th>SKU/Instr</th><th>Qty</th><th>Amount</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="7" class="notes">No events</td></tr>
+    </tbody>
+  </table>
+</section>
+</div><div class="balances-section"><h3>Balances</h3>
+<section class="t-account">
+  <h3>Central Bank [CB] (central_bank)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H1</td><td class="qty">—</td><td class="val">11,086</td><td class="cpty">Agent 1 [H1]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H2</td><td class="qty">—</td><td class="val">8,414</td><td class="cpty">Agent 2 [H2]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H3</td><td class="qty">—</td><td class="val">11,336</td><td class="cpty">Agent 3 [H3]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H4</td><td class="qty">—</td><td class="val">11,000</td><td class="cpty">Agent 4 [H4]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H5</td><td class="qty">—</td><td class="val">10,164</td><td class="cpty">Agent 5 [H5]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_dealer_short</td><td class="qty">—</td><td class="val">312</td><td class="cpty">Dealer (short) [dealer_short]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_dealer_mid</td><td class="qty">—</td><td class="val">1,312</td><td class="cpty">Dealer (mid) [dealer_mid]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_dealer_long</td><td class="qty">—</td><td class="val">312</td><td class="cpty">Dealer (long) [dealer_long]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_vbt_short</td><td class="qty">—</td><td class="val">625</td><td class="cpty">VBT (short) [vbt_short]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_vbt_mid</td><td class="qty">—</td><td class="val">2,625</td><td class="cpty">VBT (mid) [vbt_mid]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_vbt_long</td><td class="qty">—</td><td class="val">625</td><td class="cpty">VBT (long) [vbt_long]</td><td class="mat">on-demand</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 1 [H1] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H1</td><td class="qty">—</td><td class="val">11,086</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_ca56430a68fb</td><td class="qty">—</td><td class="val">86</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 4</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">P_H1_H2</td><td class="qty">—</td><td class="val">5,891</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 4</td></tr><tr><td class="name">payable</td><td class="id">P_H1_dealer_short</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (short) [dealer_short]</td><td class="mat">Day 4</td></tr><tr><td class="name">payable</td><td class="id">P_H1_vbt_short</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (short) [vbt_short]</td><td class="mat">Day 4</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 2 [H2] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H2</td><td class="qty">—</td><td class="val">8,414</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H1_H2</td><td class="qty">—</td><td class="val">5,891</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 4</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">PAY_2cf1c1f13e84</td><td class="qty">—</td><td class="val">112</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 4</td></tr><tr><td class="name">payable</td><td class="id">PAY_ef335c737fcd</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (mid) [dealer_mid]</td><td class="mat">Day 4</td></tr><tr><td class="name">payable</td><td class="id">PAY_69e4fa067abc</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (mid) [vbt_mid]</td><td class="mat">Day 4</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 3 [H3] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H3</td><td class="qty">—</td><td class="val">11,336</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_2cf1c1f13e84</td><td class="qty">—</td><td class="val">112</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 4</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">P_H3_H4</td><td class="qty">—</td><td class="val">1,720</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">P_H3_dealer_long</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (long) [dealer_long]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">P_H3_vbt_long</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (long) [vbt_long]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 4 [H4] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H4</td><td class="qty">—</td><td class="val">11,000</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H3_H4</td><td class="qty">—</td><td class="val">1,720</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">P_H4_H5</td><td class="qty">—</td><td class="val">5,938</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 5</td></tr><tr><td class="name">payable</td><td class="id">P_H4_dealer_short</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (short) [dealer_short]</td><td class="mat">Day 5</td></tr><tr><td class="name">payable</td><td class="id">P_H4_vbt_short</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (short) [vbt_short]</td><td class="mat">Day 5</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 5 [H5] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H5</td><td class="qty">—</td><td class="val">10,164</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H4_H5</td><td class="qty">—</td><td class="val">5,938</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 5</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">PAY_ca56430a68fb</td><td class="qty">—</td><td class="val">86</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 4</td></tr><tr><td class="name">payable</td><td class="id">PAY_97010b815f0b</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (mid) [dealer_mid]</td><td class="mat">Day 4</td></tr><tr><td class="name">payable</td><td class="id">PAY_cd6a1b8b2a6d</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (mid) [vbt_mid]</td><td class="mat">Day 4</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Dealer (short) [dealer_short] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_dealer_short</td><td class="qty">—</td><td class="val">312</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H1_dealer_short</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 4</td></tr><tr><td class="name">payable</td><td class="id">P_H4_dealer_short</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 5</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>VBT (short) [vbt_short] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_vbt_short</td><td class="qty">—</td><td class="val">625</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H1_vbt_short</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 4</td></tr><tr><td class="name">payable</td><td class="id">P_H4_vbt_short</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 5</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Dealer (mid) [dealer_mid] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_dealer_mid</td><td class="qty">—</td><td class="val">1,312</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_97010b815f0b</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 4</td></tr><tr><td class="name">payable</td><td class="id">PAY_ef335c737fcd</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 4</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>VBT (mid) [vbt_mid] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_vbt_mid</td><td class="qty">—</td><td class="val">2,625</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_cd6a1b8b2a6d</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 4</td></tr><tr><td class="name">payable</td><td class="id">PAY_69e4fa067abc</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 4</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Dealer (long) [dealer_long] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_dealer_long</td><td class="qty">—</td><td class="val">312</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H3_dealer_long</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>VBT (long) [vbt_long] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_vbt_long</td><td class="qty">—</td><td class="val">625</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H3_vbt_long</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+</div></section><section class="day-section"><h2 class="day-header">📅 Day 4</h2><div class="events-section">
+<section class="events-table">
+  <h4>Phase B1 — Scheduled Actions</h4>
+  <table>
+    <thead>
+      <tr><th>Kind</th><th>ID/Alias</th><th>From</th><th>To</th><th>SKU/Instr</th><th>Qty</th><th>Amount</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="7" class="notes">No events</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="events-table">
+  <h4>Phase B2 — Settlement</h4>
+  <table>
+    <thead>
+      <tr><th>Kind</th><th>ID/Alias</th><th>From</th><th>To</th><th>SKU/Instr</th><th>Qty</th><th>Amount</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="event-kind">CashTransferred</td><td class="event-id">C_8ca71f024f10</td><td>H1</td><td>H2</td><td>—</td><td class="qty">—</td><td class="amount">5,891</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">P_H1_H2</td><td>H1</td><td>H2</td><td>—</td><td class="qty">—</td><td class="amount">5,891</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H1</td><td>H2</td><td>—</td><td class="qty">—</td><td class="amount">5,891</td><td class="notes"></td></tr><tr><td class="event-kind">CashTransferred</td><td class="event-id">C_c52a67330837</td><td>H1</td><td>dealer_short</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">P_H1_dealer_short</td><td>H1</td><td>dealer_short</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H1</td><td>dealer_short</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">CashTransferred</td><td class="event-id">C_09330e12b7cf</td><td>H1</td><td>vbt_short</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">P_H1_vbt_short</td><td>H1</td><td>vbt_short</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H1</td><td>vbt_short</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">CashTransferred</td><td class="event-id">C_c528b4247118</td><td>H5</td><td>H1</td><td>—</td><td class="qty">—</td><td class="amount">86</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">PAY_ca56430a68fb</td><td>H5</td><td>H1</td><td>—</td><td class="qty">—</td><td class="amount">86</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H5</td><td>H1</td><td>—</td><td class="qty">—</td><td class="amount">86</td><td class="notes"></td></tr><tr><td class="event-kind">CashTransferred</td><td class="event-id">C_87ea43686edd</td><td>H5</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">PAY_97010b815f0b</td><td>H5</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H5</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">CashTransferred</td><td class="event-id">C_6b321b68ed1e</td><td>H5</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">PAY_cd6a1b8b2a6d</td><td>H5</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H5</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">CashTransferred</td><td class="event-id">C_afc283d2ed47</td><td>H2</td><td>H3</td><td>—</td><td class="qty">—</td><td class="amount">112</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">PAY_2cf1c1f13e84</td><td>H2</td><td>H3</td><td>—</td><td class="qty">—</td><td class="amount">112</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H2</td><td>H3</td><td>—</td><td class="qty">—</td><td class="amount">112</td><td class="notes"></td></tr><tr><td class="event-kind">CashTransferred</td><td class="event-id">C_f297ef5f125b</td><td>H2</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">PAY_ef335c737fcd</td><td>H2</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H2</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">CashTransferred</td><td class="event-id">C_281e14259d81</td><td>H2</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">PAY_69e4fa067abc</td><td>H2</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H2</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="events-table">
+  <h4>Phase C — Clearing</h4>
+  <table>
+    <thead>
+      <tr><th>Kind</th><th>ID/Alias</th><th>From</th><th>To</th><th>SKU/Instr</th><th>Qty</th><th>Amount</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="7" class="notes">No events</td></tr>
+    </tbody>
+  </table>
+</section>
+</div><div class="balances-section"><h3>Balances</h3>
+<section class="t-account">
+  <h3>Central Bank [CB] (central_bank)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H1</td><td class="qty">—</td><td class="val">4,531</td><td class="cpty">Agent 1 [H1]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H2</td><td class="qty">—</td><td class="val">13,443</td><td class="cpty">Agent 2 [H2]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H3</td><td class="qty">—</td><td class="val">11,448</td><td class="cpty">Agent 3 [H3]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H4</td><td class="qty">—</td><td class="val">11,000</td><td class="cpty">Agent 4 [H4]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H5</td><td class="qty">—</td><td class="val">9,328</td><td class="cpty">Agent 5 [H5]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_dealer_short</td><td class="qty">—</td><td class="val">562</td><td class="cpty">Dealer (short) [dealer_short]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_dealer_mid</td><td class="qty">—</td><td class="val">1,812</td><td class="cpty">Dealer (mid) [dealer_mid]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_dealer_long</td><td class="qty">—</td><td class="val">312</td><td class="cpty">Dealer (long) [dealer_long]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_vbt_short</td><td class="qty">—</td><td class="val">1,125</td><td class="cpty">VBT (short) [vbt_short]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_vbt_mid</td><td class="qty">—</td><td class="val">3,625</td><td class="cpty">VBT (mid) [vbt_mid]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_vbt_long</td><td class="qty">—</td><td class="val">625</td><td class="cpty">VBT (long) [vbt_long]</td><td class="mat">on-demand</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 1 [H1] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H1</td><td class="qty">—</td><td class="val">4,531</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_b4547e4488db</td><td class="qty">—</td><td class="val">86</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 6</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">PAY_a1ac9d317b2f</td><td class="qty">—</td><td class="val">5,891</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">PAY_da29b0c2bb8f</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (short) [dealer_short]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">PAY_d234218dc128</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (short) [vbt_short]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 2 [H2] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H2</td><td class="qty">—</td><td class="val">13,443</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_a1ac9d317b2f</td><td class="qty">—</td><td class="val">5,891</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">PAY_a1963dfaa00b</td><td class="qty">—</td><td class="val">112</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 5</td></tr><tr><td class="name">payable</td><td class="id">PAY_98768322e691</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (mid) [dealer_mid]</td><td class="mat">Day 5</td></tr><tr><td class="name">payable</td><td class="id">PAY_1b47e97878bb</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (mid) [vbt_mid]</td><td class="mat">Day 5</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 3 [H3] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H3</td><td class="qty">—</td><td class="val">11,448</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_a1963dfaa00b</td><td class="qty">—</td><td class="val">112</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 5</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">P_H3_H4</td><td class="qty">—</td><td class="val">1,720</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">P_H3_dealer_long</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (long) [dealer_long]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">P_H3_vbt_long</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (long) [vbt_long]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 4 [H4] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H4</td><td class="qty">—</td><td class="val">11,000</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H3_H4</td><td class="qty">—</td><td class="val">1,720</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">P_H4_H5</td><td class="qty">—</td><td class="val">5,938</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 5</td></tr><tr><td class="name">payable</td><td class="id">P_H4_dealer_short</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (short) [dealer_short]</td><td class="mat">Day 5</td></tr><tr><td class="name">payable</td><td class="id">P_H4_vbt_short</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (short) [vbt_short]</td><td class="mat">Day 5</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 5 [H5] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H5</td><td class="qty">—</td><td class="val">9,328</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H4_H5</td><td class="qty">—</td><td class="val">5,938</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 5</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">PAY_b4547e4488db</td><td class="qty">—</td><td class="val">86</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 6</td></tr><tr><td class="name">payable</td><td class="id">PAY_0c7a57be1cf1</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (mid) [dealer_mid]</td><td class="mat">Day 6</td></tr><tr><td class="name">payable</td><td class="id">PAY_bd68aa8476ad</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (mid) [vbt_mid]</td><td class="mat">Day 6</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Dealer (short) [dealer_short] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_dealer_short</td><td class="qty">—</td><td class="val">562</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H4_dealer_short</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 5</td></tr><tr><td class="name">payable</td><td class="id">PAY_da29b0c2bb8f</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>VBT (short) [vbt_short] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_vbt_short</td><td class="qty">—</td><td class="val">1,125</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H4_vbt_short</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 5</td></tr><tr><td class="name">payable</td><td class="id">PAY_d234218dc128</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Dealer (mid) [dealer_mid] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_dealer_mid</td><td class="qty">—</td><td class="val">1,812</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_0c7a57be1cf1</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 6</td></tr><tr><td class="name">payable</td><td class="id">PAY_98768322e691</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 5</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>VBT (mid) [vbt_mid] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_vbt_mid</td><td class="qty">—</td><td class="val">3,625</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_bd68aa8476ad</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 6</td></tr><tr><td class="name">payable</td><td class="id">PAY_1b47e97878bb</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 5</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Dealer (long) [dealer_long] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_dealer_long</td><td class="qty">—</td><td class="val">312</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H3_dealer_long</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>VBT (long) [vbt_long] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_vbt_long</td><td class="qty">—</td><td class="val">625</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H3_vbt_long</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+</div></section><section class="day-section"><h2 class="day-header">📅 Day 5</h2><div class="events-section">
+<section class="events-table">
+  <h4>Phase B1 — Scheduled Actions</h4>
+  <table>
+    <thead>
+      <tr><th>Kind</th><th>ID/Alias</th><th>From</th><th>To</th><th>SKU/Instr</th><th>Qty</th><th>Amount</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="7" class="notes">No events</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="events-table">
+  <h4>Phase B2 — Settlement</h4>
+  <table>
+    <thead>
+      <tr><th>Kind</th><th>ID/Alias</th><th>From</th><th>To</th><th>SKU/Instr</th><th>Qty</th><th>Amount</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="event-kind">CashTransferred</td><td class="event-id">C_b3430a06678b</td><td>H4</td><td>H5</td><td>—</td><td class="qty">—</td><td class="amount">5,938</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">P_H4_H5</td><td>H4</td><td>H5</td><td>—</td><td class="qty">—</td><td class="amount">5,938</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H4</td><td>H5</td><td>—</td><td class="qty">—</td><td class="amount">5,938</td><td class="notes"></td></tr><tr><td class="event-kind">CashTransferred</td><td class="event-id">C_8fac59922cf9</td><td>H4</td><td>dealer_short</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">P_H4_dealer_short</td><td>H4</td><td>dealer_short</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H4</td><td>dealer_short</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">CashTransferred</td><td class="event-id">C_50a7695fb3c4</td><td>H4</td><td>vbt_short</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">P_H4_vbt_short</td><td>H4</td><td>vbt_short</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H4</td><td>vbt_short</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">CashTransferred</td><td class="event-id">C_c60ddbf0908f</td><td>H2</td><td>H3</td><td>—</td><td class="qty">—</td><td class="amount">112</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">PAY_a1963dfaa00b</td><td>H2</td><td>H3</td><td>—</td><td class="qty">—</td><td class="amount">112</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H2</td><td>H3</td><td>—</td><td class="qty">—</td><td class="amount">112</td><td class="notes"></td></tr><tr><td class="event-kind">CashTransferred</td><td class="event-id">C_2a7ced644c3c</td><td>H2</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">PAY_98768322e691</td><td>H2</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H2</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">CashTransferred</td><td class="event-id">C_d2559344432f</td><td>H2</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">PAY_1b47e97878bb</td><td>H2</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H2</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="events-table">
+  <h4>Phase C — Clearing</h4>
+  <table>
+    <thead>
+      <tr><th>Kind</th><th>ID/Alias</th><th>From</th><th>To</th><th>SKU/Instr</th><th>Qty</th><th>Amount</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="7" class="notes">No events</td></tr>
+    </tbody>
+  </table>
+</section>
+</div><div class="balances-section"><h3>Balances</h3>
+<section class="t-account">
+  <h3>Central Bank [CB] (central_bank)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H1</td><td class="qty">—</td><td class="val">4,531</td><td class="cpty">Agent 1 [H1]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H2</td><td class="qty">—</td><td class="val">12,581</td><td class="cpty">Agent 2 [H2]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H3</td><td class="qty">—</td><td class="val">11,560</td><td class="cpty">Agent 3 [H3]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H4</td><td class="qty">—</td><td class="val">4,312</td><td class="cpty">Agent 4 [H4]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H5</td><td class="qty">—</td><td class="val">15,266</td><td class="cpty">Agent 5 [H5]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_dealer_short</td><td class="qty">—</td><td class="val">812</td><td class="cpty">Dealer (short) [dealer_short]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_dealer_mid</td><td class="qty">—</td><td class="val">2,062</td><td class="cpty">Dealer (mid) [dealer_mid]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_dealer_long</td><td class="qty">—</td><td class="val">312</td><td class="cpty">Dealer (long) [dealer_long]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_vbt_short</td><td class="qty">—</td><td class="val">1,625</td><td class="cpty">VBT (short) [vbt_short]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_vbt_mid</td><td class="qty">—</td><td class="val">4,125</td><td class="cpty">VBT (mid) [vbt_mid]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_vbt_long</td><td class="qty">—</td><td class="val">625</td><td class="cpty">VBT (long) [vbt_long]</td><td class="mat">on-demand</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 1 [H1] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H1</td><td class="qty">—</td><td class="val">4,531</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_b4547e4488db</td><td class="qty">—</td><td class="val">86</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 6</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">PAY_a1ac9d317b2f</td><td class="qty">—</td><td class="val">5,891</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">PAY_da29b0c2bb8f</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (short) [dealer_short]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">PAY_d234218dc128</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (short) [vbt_short]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 2 [H2] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H2</td><td class="qty">—</td><td class="val">12,581</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_a1ac9d317b2f</td><td class="qty">—</td><td class="val">5,891</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">PAY_7f2bbc82e6b8</td><td class="qty">—</td><td class="val">112</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 6</td></tr><tr><td class="name">payable</td><td class="id">PAY_48cdc444a67a</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (mid) [dealer_mid]</td><td class="mat">Day 6</td></tr><tr><td class="name">payable</td><td class="id">PAY_abd3b4d0d906</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (mid) [vbt_mid]</td><td class="mat">Day 6</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 3 [H3] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H3</td><td class="qty">—</td><td class="val">11,560</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_7f2bbc82e6b8</td><td class="qty">—</td><td class="val">112</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 6</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">P_H3_H4</td><td class="qty">—</td><td class="val">1,720</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">P_H3_dealer_long</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (long) [dealer_long]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">P_H3_vbt_long</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (long) [vbt_long]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 4 [H4] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H4</td><td class="qty">—</td><td class="val">4,312</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H3_H4</td><td class="qty">—</td><td class="val">1,720</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">PAY_9a0c23590c6d</td><td class="qty">—</td><td class="val">5,938</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 10</td></tr><tr><td class="name">payable</td><td class="id">PAY_cc167fd5492e</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (short) [dealer_short]</td><td class="mat">Day 10</td></tr><tr><td class="name">payable</td><td class="id">PAY_e67804ee27f7</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (short) [vbt_short]</td><td class="mat">Day 10</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 5 [H5] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H5</td><td class="qty">—</td><td class="val">15,266</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_9a0c23590c6d</td><td class="qty">—</td><td class="val">5,938</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 10</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">PAY_b4547e4488db</td><td class="qty">—</td><td class="val">86</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 6</td></tr><tr><td class="name">payable</td><td class="id">PAY_0c7a57be1cf1</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (mid) [dealer_mid]</td><td class="mat">Day 6</td></tr><tr><td class="name">payable</td><td class="id">PAY_bd68aa8476ad</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (mid) [vbt_mid]</td><td class="mat">Day 6</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Dealer (short) [dealer_short] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_dealer_short</td><td class="qty">—</td><td class="val">812</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_da29b0c2bb8f</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">PAY_cc167fd5492e</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 10</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>VBT (short) [vbt_short] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_vbt_short</td><td class="qty">—</td><td class="val">1,625</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_d234218dc128</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">PAY_e67804ee27f7</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 10</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Dealer (mid) [dealer_mid] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_dealer_mid</td><td class="qty">—</td><td class="val">2,062</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_0c7a57be1cf1</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 6</td></tr><tr><td class="name">payable</td><td class="id">PAY_48cdc444a67a</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 6</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>VBT (mid) [vbt_mid] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_vbt_mid</td><td class="qty">—</td><td class="val">4,125</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_bd68aa8476ad</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 6</td></tr><tr><td class="name">payable</td><td class="id">PAY_abd3b4d0d906</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 6</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Dealer (long) [dealer_long] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_dealer_long</td><td class="qty">—</td><td class="val">312</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H3_dealer_long</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>VBT (long) [vbt_long] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_vbt_long</td><td class="qty">—</td><td class="val">625</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H3_vbt_long</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+</div></section><section class="day-section"><h2 class="day-header">📅 Day 6</h2><div class="events-section">
+<section class="events-table">
+  <h4>Phase B1 — Scheduled Actions</h4>
+  <table>
+    <thead>
+      <tr><th>Kind</th><th>ID/Alias</th><th>From</th><th>To</th><th>SKU/Instr</th><th>Qty</th><th>Amount</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="7" class="notes">No events</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="events-table">
+  <h4>Phase B2 — Settlement</h4>
+  <table>
+    <thead>
+      <tr><th>Kind</th><th>ID/Alias</th><th>From</th><th>To</th><th>SKU/Instr</th><th>Qty</th><th>Amount</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="event-kind">CashTransferred</td><td class="event-id">C_5f67807a7dc6</td><td>H5</td><td>H1</td><td>—</td><td class="qty">—</td><td class="amount">86</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">PAY_b4547e4488db</td><td>H5</td><td>H1</td><td>—</td><td class="qty">—</td><td class="amount">86</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H5</td><td>H1</td><td>—</td><td class="qty">—</td><td class="amount">86</td><td class="notes"></td></tr><tr><td class="event-kind">CashTransferred</td><td class="event-id">C_53f5249f3d90</td><td>H5</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">PAY_0c7a57be1cf1</td><td>H5</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H5</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">CashTransferred</td><td class="event-id">C_6d0a3a99c773</td><td>H5</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">PAY_bd68aa8476ad</td><td>H5</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H5</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">CashTransferred</td><td class="event-id">C_09f101cf6336</td><td>H2</td><td>H3</td><td>—</td><td class="qty">—</td><td class="amount">112</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">PAY_7f2bbc82e6b8</td><td>H2</td><td>H3</td><td>—</td><td class="qty">—</td><td class="amount">112</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H2</td><td>H3</td><td>—</td><td class="qty">—</td><td class="amount">112</td><td class="notes"></td></tr><tr><td class="event-kind">CashTransferred</td><td class="event-id">C_d1287ae5af2e</td><td>H2</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">PAY_48cdc444a67a</td><td>H2</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H2</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">CashTransferred</td><td class="event-id">C_d87648267c8e</td><td>H2</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">PAY_abd3b4d0d906</td><td>H2</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H2</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="events-table">
+  <h4>Phase C — Clearing</h4>
+  <table>
+    <thead>
+      <tr><th>Kind</th><th>ID/Alias</th><th>From</th><th>To</th><th>SKU/Instr</th><th>Qty</th><th>Amount</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="7" class="notes">No events</td></tr>
+    </tbody>
+  </table>
+</section>
+</div><div class="balances-section"><h3>Balances</h3>
+<section class="t-account">
+  <h3>Central Bank [CB] (central_bank)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H1</td><td class="qty">—</td><td class="val">4,617</td><td class="cpty">Agent 1 [H1]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H2</td><td class="qty">—</td><td class="val">11,719</td><td class="cpty">Agent 2 [H2]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H3</td><td class="qty">—</td><td class="val">11,672</td><td class="cpty">Agent 3 [H3]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H4</td><td class="qty">—</td><td class="val">4,312</td><td class="cpty">Agent 4 [H4]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H5</td><td class="qty">—</td><td class="val">14,430</td><td class="cpty">Agent 5 [H5]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_dealer_short</td><td class="qty">—</td><td class="val">812</td><td class="cpty">Dealer (short) [dealer_short]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_dealer_mid</td><td class="qty">—</td><td class="val">2,562</td><td class="cpty">Dealer (mid) [dealer_mid]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_dealer_long</td><td class="qty">—</td><td class="val">312</td><td class="cpty">Dealer (long) [dealer_long]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_vbt_short</td><td class="qty">—</td><td class="val">1,625</td><td class="cpty">VBT (short) [vbt_short]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_vbt_mid</td><td class="qty">—</td><td class="val">5,125</td><td class="cpty">VBT (mid) [vbt_mid]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_vbt_long</td><td class="qty">—</td><td class="val">625</td><td class="cpty">VBT (long) [vbt_long]</td><td class="mat">on-demand</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 1 [H1] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H1</td><td class="qty">—</td><td class="val">4,617</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_e6b561473e79</td><td class="qty">—</td><td class="val">86</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">PAY_a1ac9d317b2f</td><td class="qty">—</td><td class="val">5,891</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">PAY_da29b0c2bb8f</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (short) [dealer_short]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">PAY_d234218dc128</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (short) [vbt_short]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 2 [H2] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H2</td><td class="qty">—</td><td class="val">11,719</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_a1ac9d317b2f</td><td class="qty">—</td><td class="val">5,891</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">PAY_c74a8ca1bac8</td><td class="qty">—</td><td class="val">112</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 7</td></tr><tr><td class="name">payable</td><td class="id">PAY_ca589efcb519</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (mid) [dealer_mid]</td><td class="mat">Day 7</td></tr><tr><td class="name">payable</td><td class="id">PAY_77d548635d98</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (mid) [vbt_mid]</td><td class="mat">Day 7</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 3 [H3] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H3</td><td class="qty">—</td><td class="val">11,672</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_c74a8ca1bac8</td><td class="qty">—</td><td class="val">112</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 7</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">P_H3_H4</td><td class="qty">—</td><td class="val">1,720</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">P_H3_dealer_long</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (long) [dealer_long]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">P_H3_vbt_long</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (long) [vbt_long]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 4 [H4] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H4</td><td class="qty">—</td><td class="val">4,312</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H3_H4</td><td class="qty">—</td><td class="val">1,720</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">PAY_9a0c23590c6d</td><td class="qty">—</td><td class="val">5,938</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 10</td></tr><tr><td class="name">payable</td><td class="id">PAY_cc167fd5492e</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (short) [dealer_short]</td><td class="mat">Day 10</td></tr><tr><td class="name">payable</td><td class="id">PAY_e67804ee27f7</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (short) [vbt_short]</td><td class="mat">Day 10</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 5 [H5] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H5</td><td class="qty">—</td><td class="val">14,430</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_9a0c23590c6d</td><td class="qty">—</td><td class="val">5,938</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 10</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">PAY_e6b561473e79</td><td class="qty">—</td><td class="val">86</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">PAY_f2b3a54c60c7</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (mid) [dealer_mid]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">PAY_d8118d05555e</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (mid) [vbt_mid]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Dealer (short) [dealer_short] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_dealer_short</td><td class="qty">—</td><td class="val">812</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_da29b0c2bb8f</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">PAY_cc167fd5492e</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 10</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>VBT (short) [vbt_short] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_vbt_short</td><td class="qty">—</td><td class="val">1,625</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_d234218dc128</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">PAY_e67804ee27f7</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 10</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Dealer (mid) [dealer_mid] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_dealer_mid</td><td class="qty">—</td><td class="val">2,562</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_f2b3a54c60c7</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">PAY_ca589efcb519</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 7</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>VBT (mid) [vbt_mid] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_vbt_mid</td><td class="qty">—</td><td class="val">5,125</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_d8118d05555e</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">PAY_77d548635d98</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 7</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Dealer (long) [dealer_long] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_dealer_long</td><td class="qty">—</td><td class="val">312</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H3_dealer_long</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>VBT (long) [vbt_long] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_vbt_long</td><td class="qty">—</td><td class="val">625</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H3_vbt_long</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+</div></section><section class="day-section"><h2 class="day-header">📅 Day 7</h2><div class="events-section">
+<section class="events-table">
+  <h4>Phase B1 — Scheduled Actions</h4>
+  <table>
+    <thead>
+      <tr><th>Kind</th><th>ID/Alias</th><th>From</th><th>To</th><th>SKU/Instr</th><th>Qty</th><th>Amount</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="7" class="notes">No events</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="events-table">
+  <h4>Phase B2 — Settlement</h4>
+  <table>
+    <thead>
+      <tr><th>Kind</th><th>ID/Alias</th><th>From</th><th>To</th><th>SKU/Instr</th><th>Qty</th><th>Amount</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="event-kind">CashTransferred</td><td class="event-id">C_1b7edc9b66a5</td><td>H2</td><td>H3</td><td>—</td><td class="qty">—</td><td class="amount">112</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">PAY_c74a8ca1bac8</td><td>H2</td><td>H3</td><td>—</td><td class="qty">—</td><td class="amount">112</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H2</td><td>H3</td><td>—</td><td class="qty">—</td><td class="amount">112</td><td class="notes"></td></tr><tr><td class="event-kind">CashTransferred</td><td class="event-id">C_a4e7a347c69a</td><td>H2</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">PAY_ca589efcb519</td><td>H2</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H2</td><td>dealer_mid</td><td>—</td><td class="qty">—</td><td class="amount">250</td><td class="notes"></td></tr><tr><td class="event-kind">CashTransferred</td><td class="event-id">C_b56a9dfd5dc0</td><td>H2</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">InstrumentMerged</td><td class="event-id">—</td><td>—</td><td>—</td><td>—</td><td class="qty">—</td><td class="amount">—</td><td class="notes"></td></tr><tr><td class="event-kind">PayableSettled</td><td class="event-id">PAY_77d548635d98</td><td>H2</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr><tr><td class="event-kind">PayableRolledOver</td><td class="event-id">—</td><td>H2</td><td>vbt_mid</td><td>—</td><td class="qty">—</td><td class="amount">500</td><td class="notes"></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="events-table">
+  <h4>Phase C — Clearing</h4>
+  <table>
+    <thead>
+      <tr><th>Kind</th><th>ID/Alias</th><th>From</th><th>To</th><th>SKU/Instr</th><th>Qty</th><th>Amount</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="7" class="notes">No events</td></tr>
+    </tbody>
+  </table>
+</section>
+</div><div class="balances-section"><h3>Balances</h3>
+<section class="t-account">
+  <h3>Central Bank [CB] (central_bank)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H1</td><td class="qty">—</td><td class="val">4,617</td><td class="cpty">Agent 1 [H1]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H2</td><td class="qty">—</td><td class="val">10,857</td><td class="cpty">Agent 2 [H2]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H3</td><td class="qty">—</td><td class="val">11,784</td><td class="cpty">Agent 3 [H3]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H4</td><td class="qty">—</td><td class="val">4,312</td><td class="cpty">Agent 4 [H4]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_H5</td><td class="qty">—</td><td class="val">14,430</td><td class="cpty">Agent 5 [H5]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_dealer_short</td><td class="qty">—</td><td class="val">812</td><td class="cpty">Dealer (short) [dealer_short]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_dealer_mid</td><td class="qty">—</td><td class="val">2,812</td><td class="cpty">Dealer (mid) [dealer_mid]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_dealer_long</td><td class="qty">—</td><td class="val">312</td><td class="cpty">Dealer (long) [dealer_long]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_vbt_short</td><td class="qty">—</td><td class="val">1,625</td><td class="cpty">VBT (short) [vbt_short]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_vbt_mid</td><td class="qty">—</td><td class="val">5,625</td><td class="cpty">VBT (mid) [vbt_mid]</td><td class="mat">on-demand</td></tr><tr><td class="name">cash</td><td class="id">LIQ_vbt_long</td><td class="qty">—</td><td class="val">625</td><td class="cpty">VBT (long) [vbt_long]</td><td class="mat">on-demand</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 1 [H1] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H1</td><td class="qty">—</td><td class="val">4,617</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_e6b561473e79</td><td class="qty">—</td><td class="val">86</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">PAY_a1ac9d317b2f</td><td class="qty">—</td><td class="val">5,891</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">PAY_da29b0c2bb8f</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (short) [dealer_short]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">PAY_d234218dc128</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (short) [vbt_short]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 2 [H2] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H2</td><td class="qty">—</td><td class="val">10,857</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_a1ac9d317b2f</td><td class="qty">—</td><td class="val">5,891</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">PAY_101171ea10b9</td><td class="qty">—</td><td class="val">112</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">PAY_feb461c74eb9</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (mid) [dealer_mid]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">PAY_6d7ef50f69ae</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (mid) [vbt_mid]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 3 [H3] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H3</td><td class="qty">—</td><td class="val">11,784</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_101171ea10b9</td><td class="qty">—</td><td class="val">112</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">P_H3_H4</td><td class="qty">—</td><td class="val">1,720</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">P_H3_dealer_long</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (long) [dealer_long]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">P_H3_vbt_long</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (long) [vbt_long]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 4 [H4] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H4</td><td class="qty">—</td><td class="val">4,312</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H3_H4</td><td class="qty">—</td><td class="val">1,720</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">PAY_9a0c23590c6d</td><td class="qty">—</td><td class="val">5,938</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 10</td></tr><tr><td class="name">payable</td><td class="id">PAY_cc167fd5492e</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (short) [dealer_short]</td><td class="mat">Day 10</td></tr><tr><td class="name">payable</td><td class="id">PAY_e67804ee27f7</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (short) [vbt_short]</td><td class="mat">Day 10</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Agent 5 [H5] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_H5</td><td class="qty">—</td><td class="val">14,430</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_9a0c23590c6d</td><td class="qty">—</td><td class="val">5,938</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 10</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">payable</td><td class="id">PAY_e6b561473e79</td><td class="qty">—</td><td class="val">86</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">PAY_f2b3a54c60c7</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Dealer (mid) [dealer_mid]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">PAY_d8118d05555e</td><td class="qty">—</td><td class="val">500</td><td class="cpty">VBT (mid) [vbt_mid]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Dealer (short) [dealer_short] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_dealer_short</td><td class="qty">—</td><td class="val">812</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_da29b0c2bb8f</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">PAY_cc167fd5492e</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 10</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>VBT (short) [vbt_short] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_vbt_short</td><td class="qty">—</td><td class="val">1,625</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_d234218dc128</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 1 [H1]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">PAY_e67804ee27f7</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 4 [H4]</td><td class="mat">Day 10</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Dealer (mid) [dealer_mid] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_dealer_mid</td><td class="qty">—</td><td class="val">2,812</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_f2b3a54c60c7</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">PAY_feb461c74eb9</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>VBT (mid) [vbt_mid] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_vbt_mid</td><td class="qty">—</td><td class="val">5,625</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">PAY_d8118d05555e</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 5 [H5]</td><td class="mat">Day 8</td></tr><tr><td class="name">payable</td><td class="id">PAY_6d7ef50f69ae</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 2 [H2]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>Dealer (long) [dealer_long] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_dealer_long</td><td class="qty">—</td><td class="val">312</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H3_dealer_long</td><td class="qty">—</td><td class="val">250</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="t-account">
+  <h3>VBT (long) [vbt_long] (household)</h3>
+  <div class="grid">
+    <div class="assets-side">
+      <h4>Assets</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="name">cash</td><td class="id">LIQ_vbt_long</td><td class="qty">—</td><td class="val">625</td><td class="cpty">—</td><td class="mat">on-demand</td></tr><tr><td class="name">payable</td><td class="id">P_H3_vbt_long</td><td class="qty">—</td><td class="val">500</td><td class="cpty">Agent 3 [H3]</td><td class="mat">Day 8</td></tr></tbody>
+      </table>
+    </div>
+    <div class="liabilities-side">
+      <h4>Liabilities</h4>
+      <table class="side">
+        <thead><tr><th>Name</th><th>ID/Alias</th><th>Qty</th><th>Value</th><th>Counterparty</th><th>Maturity</th></tr></thead>
+        <tbody><tr><td class="empty" colspan="6">—</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+</div></section><section class="events-table"><h3>Simulation End</h3><p>Stopped without convergence (max_days = 30). Consider increasing max days or reviewing outstanding obligations.</p></section></main><footer>Generated by Bilancio</footer></div></body></html>

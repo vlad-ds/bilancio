@@ -1,0 +1,223 @@
+version: 1
+name: Balanced Comparison (Passive) (n=5, kappa=4, c=0.2, mu=0.5) [Balanced passive]
+description: "Ring of 5 agents with total dues S1=10000; initial liquidity L0=2500\
+  \ (kappa=4); Dirichlet concentration c=0.2; maturity mu=0.5 over 10 day horizon;\
+  \ balanced mode=passive, \u03B2=0.375, \u03C1=1"
+agents:
+- id: CB
+  kind: central_bank
+  name: Central Bank
+- id: H1
+  kind: household
+  name: Agent 1
+- id: H2
+  kind: household
+  name: Agent 2
+- id: H3
+  kind: household
+  name: Agent 3
+- id: H4
+  kind: household
+  name: Agent 4
+- id: H5
+  kind: household
+  name: Agent 5
+- id: dealer_short
+  kind: household
+  name: Dealer (short)
+- id: vbt_short
+  kind: household
+  name: VBT (short)
+- id: dealer_mid
+  kind: household
+  name: Dealer (mid)
+- id: vbt_mid
+  kind: household
+  name: VBT (mid)
+- id: dealer_long
+  kind: household
+  name: Dealer (long)
+- id: vbt_long
+  kind: household
+  name: VBT (long)
+initial_actions:
+- mint_cash:
+    to: H1
+    amount: 687.5
+    alias: LIQ_H1
+- mint_cash:
+    to: H2
+    amount: 687.5
+    alias: LIQ_H2
+- mint_cash:
+    to: H3
+    amount: 687.5
+    alias: LIQ_H3
+- mint_cash:
+    to: H4
+    amount: 687.5
+    alias: LIQ_H4
+- mint_cash:
+    to: H5
+    amount: 687.5
+    alias: LIQ_H5
+- create_payable:
+    from: H1
+    to: H2
+    amount: 198.5466723975555
+    due_day: 7
+    original_maturity_distance: 7
+    alias: P_H1_H2
+- create_payable:
+    from: H2
+    to: H3
+    amount: 9362.153420023904
+    due_day: 1
+    original_maturity_distance: 1
+    alias: P_H2_H3
+- create_payable:
+    from: H3
+    to: H4
+    amount: 3822.7749123152403
+    due_day: 5
+    original_maturity_distance: 5
+    alias: P_H3_H4
+- create_payable:
+    from: H4
+    to: H5
+    amount: 126.48809222051337
+    due_day: 9
+    original_maturity_distance: 9
+    alias: P_H4_H5
+- create_payable:
+    from: H5
+    to: H1
+    amount: 240.036903042787
+    due_day: 3
+    original_maturity_distance: 3
+    alias: P_H5_H1
+- create_payable:
+    from: H1
+    to: dealer_short
+    amount: 250
+    due_day: 7
+    original_maturity_distance: 7
+    alias: P_H1_dealer_short
+- create_payable:
+    from: H2
+    to: dealer_mid
+    amount: 250
+    due_day: 1
+    original_maturity_distance: 1
+    alias: P_H2_dealer_mid
+- create_payable:
+    from: H3
+    to: dealer_long
+    amount: 250
+    due_day: 5
+    original_maturity_distance: 5
+    alias: P_H3_dealer_long
+- create_payable:
+    from: H4
+    to: dealer_short
+    amount: 250
+    due_day: 9
+    original_maturity_distance: 9
+    alias: P_H4_dealer_short
+- create_payable:
+    from: H5
+    to: dealer_mid
+    amount: 250
+    due_day: 3
+    original_maturity_distance: 3
+    alias: P_H5_dealer_mid
+- create_payable:
+    from: H1
+    to: vbt_short
+    amount: 500
+    due_day: 7
+    original_maturity_distance: 7
+    alias: P_H1_vbt_short
+- create_payable:
+    from: H2
+    to: vbt_mid
+    amount: 500
+    due_day: 1
+    original_maturity_distance: 1
+    alias: P_H2_vbt_mid
+- create_payable:
+    from: H3
+    to: vbt_long
+    amount: 500
+    due_day: 5
+    original_maturity_distance: 5
+    alias: P_H3_vbt_long
+- create_payable:
+    from: H4
+    to: vbt_short
+    amount: 500
+    due_day: 9
+    original_maturity_distance: 9
+    alias: P_H4_vbt_short
+- create_payable:
+    from: H5
+    to: vbt_mid
+    amount: 500
+    due_day: 3
+    original_maturity_distance: 3
+    alias: P_H5_vbt_mid
+- mint_cash:
+    to: dealer_short
+    amount: 416.6666666666667
+    alias: LIQ_dealer_short
+- mint_cash:
+    to: dealer_mid
+    amount: 416.6666666666667
+    alias: LIQ_dealer_mid
+- mint_cash:
+    to: dealer_long
+    amount: 416.6666666666667
+    alias: LIQ_dealer_long
+- mint_cash:
+    to: vbt_short
+    amount: 833.3333333333334
+    alias: LIQ_vbt_short
+- mint_cash:
+    to: vbt_mid
+    amount: 833.3333333333334
+    alias: LIQ_vbt_mid
+- mint_cash:
+    to: vbt_long
+    amount: 833.3333333333334
+    alias: LIQ_vbt_long
+scheduled_actions: []
+run:
+  mode: until_stable
+  max_days: 30
+  quiet_days: 2
+  show:
+    balances:
+    - CB
+    - H1
+    - H2
+    - H3
+    - H4
+    - H5
+    - dealer_short
+    - vbt_short
+    - dealer_mid
+    - vbt_mid
+    - dealer_long
+    - vbt_long
+    events: detailed
+  export:
+    balances_csv: out/balances.csv
+    events_jsonl: out/events.jsonl
+  default_handling: fail-fast
+_balanced_config:
+  face_value: 20.0
+  outside_mid_ratio: 1.0
+  big_entity_share: 0.375
+  dealer_share: 0.125
+  vbt_share: 0.25
+  mode: passive
