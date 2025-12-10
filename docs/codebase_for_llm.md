@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2025-12-10 19:11:35 UTC | Branch: main | Commit: ac1cb8f9
+Generated: 2025-12-10 19:36:20 UTC | Branch: main | Commit: 86898626
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -31681,7 +31681,8 @@ This document contains the complete codebase structure and content for LLM inges
 │   └── kalecki_ring_baseline_metrics.html
 ├── pyproject.toml
 ├── scripts
-│   └── generate_codebase_markdown.py
+│   ├── generate_codebase_markdown.py
+│   └── run_plan024_sweep.py
 ├── src
 │   └── bilancio
 │       ├── __init__.py
@@ -31834,7 +31835,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-6848 directories, 24976 files
+6848 directories, 24977 files
 
 ```
 
@@ -33505,6 +33506,17 @@ Complete git history from oldest to newest:
   - ui/run.py: Apply rollover from config, stability check
   🤖 Generated with [Claude Code](https://claude.com/claude-code)
   Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **0b886cba** (2025-12-10) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **86898626** (2025-12-10) by vladgheorghe
+  feat(experiments): add progress tracking and resumption to balanced sweep
+  - Show [X/Y] progress and ETA based on average time per pair
+  - Load existing results from comparison.csv on startup
+  - Skip already-completed parameter combinations
+  - Use fixed output directory for resumption (out/experiments/plan024_sweep)
+  This allows long-running sweeps to be interrupted and resumed.
 
 ---
 
@@ -48743,10 +48755,11 @@ from __future__ import annotations
 import csv
 import json
 import logging
+import time
 from dataclasses import dataclass, field
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any, Dict, List, Optional, Sequence, Set, Tuple
 
 from pydantic import BaseModel, Field
 
@@ -48930,6 +48943,68 @@ class BalancedComparisonRunner:
         self._active_runner: Optional[RingSweepRunner] = None
         self.seed_counter = config.base_seed
 
+        # For progress tracking
+        self._start_time: Optional[float] = None
+        self._completed_keys: Set[Tuple[str, str, str, str, str]] = set()
+
+        # Load existing results for resumption
+        self._load_existing_results()
+
+    def _load_existing_results(self) -> None:
+        """Load existing results from CSV for resumption."""
+        if not self.comparison_path.exists():
+            return
+
+        try:
+            with self.comparison_path.open("r") as fh:
+                reader = csv.DictReader(fh)
+                for row in reader:
+                    # Create key from parameters
+                    key = (
+                        row["kappa"],
+                        row["concentration"],
+                        row["mu"],
+                        row["monotonicity"],
+                        row["outside_mid_ratio"],
+                    )
+                    self._completed_keys.add(key)
+
+                    # Also track the seed to resume from correct position
+                    seed = int(row["seed"])
+                    if seed >= self.seed_counter:
+                        self.seed_counter = seed + 1
+
+            if self._completed_keys:
+                logger.info(
+                    "Resuming sweep: found %d completed pairs, starting from seed %d",
+                    len(self._completed_keys),
+                    self.seed_counter,
+                )
+        except Exception as e:
+            logger.warning("Could not load existing results: %s", e)
+
+    def _make_key(
+        self,
+        kappa: Decimal,
+        concentration: Decimal,
+        mu: Decimal,
+        monotonicity: Decimal,
+        outside_mid_ratio: Decimal,
+    ) -> Tuple[str, str, str, str, str]:
+        """Create a key for tracking completed pairs."""
+        return (str(kappa), str(concentration), str(mu), str(monotonicity), str(outside_mid_ratio))
+
+    def _format_time(self, seconds: float) -> str:
+        """Format seconds as human-readable time."""
+        if seconds < 60:
+            return f"{seconds:.0f}s"
+        elif seconds < 3600:
+            return f"{seconds / 60:.1f}m"
+        else:
+            hours = int(seconds // 3600)
+            minutes = int((seconds % 3600) // 60)
+            return f"{hours}h {minutes}m"
+
     def _next_seed(self) -> int:
         """Get next seed and increment counter."""
         seed = self.seed_counter
@@ -49004,6 +49079,9 @@ class BalancedComparisonRunner:
             * len(self.config.outside_mid_ratios)
         )
 
+        skipped = len(self._completed_keys)
+        remaining = total_pairs - skipped
+
         logger.info(
             "Starting balanced comparison sweep: %d kappas × %d concentrations × %d mus × %d ρ = %d pairs",
             len(self.config.kappas),
@@ -49013,7 +49091,12 @@ class BalancedComparisonRunner:
             total_pairs,
         )
 
+        if skipped > 0:
+            print(f"Resuming: {skipped} pairs already completed, {remaining} remaining", flush=True)
+
+        self._start_time = time.time()
         pair_idx = 0
+        completed_this_run = 0
 
         for outside_mid_ratio in self.config.outside_mid_ratios:
             for kappa in self.config.kappas:
@@ -49021,25 +49104,51 @@ class BalancedComparisonRunner:
                     for mu in self.config.mus:
                         for monotonicity in self.config.monotonicities:
                             pair_idx += 1
-                            logger.info(
-                                "[%d/%d] Running pair: κ=%s, c=%s, μ=%s, ρ=%s",
-                                pair_idx,
-                                total_pairs,
-                                kappa,
-                                concentration,
-                                mu,
-                                outside_mid_ratio,
+
+                            # Check if already completed
+                            key = self._make_key(kappa, concentration, mu, monotonicity, outside_mid_ratio)
+                            if key in self._completed_keys:
+                                continue
+
+                            # Progress and ETA
+                            if completed_this_run > 0:
+                                elapsed = time.time() - self._start_time
+                                avg_time = elapsed / completed_this_run
+                                eta = avg_time * (remaining - completed_this_run)
+                                progress_str = f"[{pair_idx}/{total_pairs}] ({completed_this_run}/{remaining} this run) ETA: {self._format_time(eta)}"
+                            else:
+                                progress_str = f"[{pair_idx}/{total_pairs}]"
+
+                            print(
+                                f"{progress_str} Running: κ={kappa}, c={concentration}, μ={mu}, ρ={outside_mid_ratio}",
+                                flush=True,
                             )
+
                             result = self._run_pair(
                                 kappa, concentration, mu, monotonicity, outside_mid_ratio
                             )
                             self.comparison_results.append(result)
+                            self._completed_keys.add(key)
+                            completed_this_run += 1
 
                             # Write incremental results
                             self._write_comparison_csv()
 
+                            # Log completion with timing
+                            elapsed = time.time() - self._start_time
+                            print(
+                                f"  Completed in {self._format_time(elapsed / completed_this_run)} avg | "
+                                f"δ_passive={result.delta_passive:.3f}, δ_active={result.delta_active:.3f}, "
+                                f"effect={result.trading_effect:.3f}",
+                                flush=True,
+                            )
+
         # Write final summary
         self._write_summary_json()
+
+        total_time = time.time() - self._start_time
+        print(f"\nSweep complete! {completed_this_run} pairs in {self._format_time(total_time)}", flush=True)
+        print(f"Results at: {self.aggregate_dir}", flush=True)
 
         logger.info("Balanced comparison sweep complete. Results at: %s", self.aggregate_dir)
         return self.comparison_results
