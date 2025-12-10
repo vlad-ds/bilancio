@@ -1,0 +1,102 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bilancio Analytics Report</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 24px; color: #222; }
+    h1 { margin: 0 0 4px; font-size: 22px; }
+    h2 { margin-top: 28px; font-size: 18px; }
+    h3 { margin-top: 18px; font-size: 16px; }
+    h4 { margin-top: 12px; font-size: 14px; }
+    p.small { color: #555; margin-top: 4px; }
+    table.grid { border-collapse: collapse; width: 100%; margin-top: 8px; }
+    table.grid th, table.grid td { border: 1px solid #ddd; padding: 6px 8px; font-size: 13px; }
+    table.grid thead th { background: #f8f8f8; text-align: left; }
+    .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; margin-top: 8px; }
+    .card { border: 1px solid #eee; padding: 10px; border-radius: 6px; background: #fcfcfc; }
+    .muted { color: #666; }
+    dl { display: grid; grid-template-columns: max-content 1fr; grid-gap: 4px 16px; font-size: 13px; }
+    dt { font-weight: 600; }
+    dd { margin: 0 0 8px 0; color: #333; }
+  </style>
+  <meta name="generator" content="Bilancio Analytics" />
+  <meta name="description" content="Kalecki-style payment microstructure metrics" />
+  <meta name="robots" content="noindex" />
+</head>
+<body>
+  <header>
+    <h1>Bilancio Analytics Report</h1>
+    
+  </header>
+
+  <section>
+    <h2>Summary Across Days</h2>
+    <div class="summary">
+      <div class="card"><div class="muted">Days analyzed</div><div><strong>5</strong></div></div>
+      <div class="card"><div class="muted">Total dues ∑ S_t</div><div><strong>17392</strong></div></div>
+      <div class="card"><div class="muted">Gross settled total</div><div><strong>0</strong></div></div>
+      <div class="card"><div class="muted">Max operational peak</div><div><strong>0</strong></div></div>
+      <div class="card"><div class="muted">Avg velocity</div><div><strong>—</strong></div></div>
+      <div class="card"><div class="muted">Weighted on-time φ</div><div><strong>0</strong></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Day-by-Day Metrics</h2>
+    <table class="grid">
+      <thead>
+        <tr><th>Day</th><th>Total dues S_t</th><th>Min net liquidity ̅M_t</th><th>Start-of-day money M_t</th><th>Liquidity gap G_t</th><th>Netting potential α_t</th><th>Operational peak M^peak_t</th><th>Gross settled</th><th>Intraday velocity v_t</th><th>On-time settlement φ_t</th><th>Deferral/default δ_t</th><th># debtors</th><th># creditors</th><th>Creditor HHI^+</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>3411</td><td>3411</td><td>13295</td><td>0</td><td>0</td><td>0</td><td>0</td><td>—</td><td>0</td><td>1</td><td>20</td><td>26</td><td>0.059272</td><td></td></tr><tr><td>3</td><td>4472</td><td>4472</td><td>13295</td><td>0</td><td>0</td><td>0</td><td>0</td><td>—</td><td>0</td><td>1</td><td>20</td><td>26</td><td>0.06189</td><td></td></tr><tr><td>5</td><td>2471</td><td>2471</td><td>13295</td><td>0</td><td>0</td><td>0</td><td>0</td><td>—</td><td>0</td><td>1</td><td>20</td><td>26</td><td>0.062991</td><td></td></tr><tr><td>7</td><td>3882</td><td>3882</td><td>13295</td><td>0</td><td>0</td><td>0</td><td>0</td><td>—</td><td>0</td><td>1</td><td>20</td><td>26</td><td>0.068196</td><td></td></tr><tr><td>9</td><td>3156</td><td>3156</td><td>13295</td><td>0</td><td>0</td><td>0</td><td>0</td><td>—</td><td>0</td><td>1</td><td>20</td><td>26</td><td>0.070829</td><td></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Debtor Shortfall Shares DS_t(i)</h2>
+    <h4>Day 1</h4><table class="grid"><thead><tr><th>Agent</th><th>H12</th><th>H13</th><th>H17</th><th>H18</th><th>H2</th><th>H22</th><th>H23</th><th>H27</th><th>H28</th><th>H3</th><th>H32</th><th>H33</th><th>H37</th><th>H38</th><th>H42</th><th>H43</th><th>H47</th><th>H48</th><th>H52</th><th>H53</th><th>H57</th><th>H58</th><th>H62</th><th>H63</th><th>H67</th><th>H68</th><th>H7</th><th>H72</th><th>H73</th><th>H77</th><th>H78</th><th>H8</th><th>H82</th><th>H83</th><th>H87</th><th>H88</th><th>H92</th><th>H93</th><th>H97</th><th>H98</th><th>dealer_long</th><th>dealer_mid</th><th>dealer_short</th><th>vbt_long</th><th>vbt_mid</th><th>vbt_short</th></tr></thead><tbody><tr><th>DS_t</th><td>0.018176</td><td>0</td><td>0.077103</td><td>0</td><td>0.087951</td><td>0.026092</td><td>0</td><td>0.024626</td><td>0</td><td>0</td><td>0.059807</td><td>0</td><td>0.106127</td><td>0</td><td>0.019349</td><td>0</td><td>0.124304</td><td>0</td><td>0.066256</td><td>0</td><td>0.01114</td><td>0</td><td>0.015245</td><td>0</td><td>0.033714</td><td>0</td><td>0.061272</td><td>0.034594</td><td>0</td><td>0.02404</td><td>0</td><td>0</td><td>0.069774</td><td>0</td><td>0.022867</td><td>0</td><td>0.065084</td><td>0</td><td>0.052477</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr></tbody></table><h4>Day 3</h4><table class="grid"><thead><tr><th>Agent</th><th>H1</th><th>H10</th><th>H100</th><th>H11</th><th>H15</th><th>H16</th><th>H20</th><th>H21</th><th>H25</th><th>H26</th><th>H30</th><th>H31</th><th>H35</th><th>H36</th><th>H40</th><th>H41</th><th>H45</th><th>H46</th><th>H5</th><th>H50</th><th>H51</th><th>H55</th><th>H56</th><th>H6</th><th>H60</th><th>H61</th><th>H65</th><th>H66</th><th>H70</th><th>H71</th><th>H75</th><th>H76</th><th>H80</th><th>H81</th><th>H85</th><th>H86</th><th>H90</th><th>H91</th><th>H95</th><th>H96</th><th>dealer_long</th><th>dealer_mid</th><th>dealer_short</th><th>vbt_long</th><th>vbt_mid</th><th>vbt_short</th></tr></thead><tbody><tr><th>DS_t</th><td>0</td><td>0.012746</td><td>0.019007</td><td>0</td><td>0.067084</td><td>0</td><td>0.012522</td><td>0</td><td>0.113596</td><td>0</td><td>0.033766</td><td>0</td><td>0.033542</td><td>0</td><td>0.014311</td><td>0</td><td>0.061047</td><td>0</td><td>0.093023</td><td>0.023479</td><td>0</td><td>0.051655</td><td>0</td><td>0</td><td>0.104651</td><td>0</td><td>0.016547</td><td>0</td><td>0.035778</td><td>0</td><td>0.083855</td><td>0</td><td>0.026386</td><td>0</td><td>0.106887</td><td>0</td><td>0.049642</td><td>0</td><td>0.040474</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr></tbody></table><h4>Day 5</h4><table class="grid"><thead><tr><th>Agent</th><th>H13</th><th>H14</th><th>H18</th><th>H19</th><th>H23</th><th>H24</th><th>H28</th><th>H29</th><th>H3</th><th>H33</th><th>H34</th><th>H38</th><th>H39</th><th>H4</th><th>H43</th><th>H44</th><th>H48</th><th>H49</th><th>H53</th><th>H54</th><th>H58</th><th>H59</th><th>H63</th><th>H64</th><th>H68</th><th>H69</th><th>H73</th><th>H74</th><th>H78</th><th>H79</th><th>H8</th><th>H83</th><th>H84</th><th>H88</th><th>H89</th><th>H9</th><th>H93</th><th>H94</th><th>H98</th><th>H99</th><th>dealer_long</th><th>dealer_mid</th><th>dealer_short</th><th>vbt_long</th><th>vbt_mid</th><th>vbt_short</th></tr></thead><tbody><tr><th>DS_t</th><td>0.123432</td><td>0</td><td>0.12586</td><td>0</td><td>0.106435</td><td>0</td><td>0.028329</td><td>0</td><td>0.036827</td><td>0.042493</td><td>0</td><td>0.022258</td><td>0</td><td>0</td><td>0.056253</td><td>0</td><td>0.046945</td><td>0</td><td>0.06637</td><td>0</td><td>0.02671</td><td>0</td><td>0.083367</td><td>0</td><td>0.028329</td><td>0</td><td>0.036018</td><td>0</td><td>0.031161</td><td>0</td><td>0.042898</td><td>0.029543</td><td>0</td><td>0.023472</td><td>0</td><td>0</td><td>0.023068</td><td>0</td><td>0.020235</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr></tbody></table><h4>Day 7</h4><table class="grid"><thead><tr><th>Agent</th><th>H1</th><th>H11</th><th>H12</th><th>H16</th><th>H17</th><th>H2</th><th>H21</th><th>H22</th><th>H26</th><th>H27</th><th>H31</th><th>H32</th><th>H36</th><th>H37</th><th>H41</th><th>H42</th><th>H46</th><th>H47</th><th>H51</th><th>H52</th><th>H56</th><th>H57</th><th>H6</th><th>H61</th><th>H62</th><th>H66</th><th>H67</th><th>H7</th><th>H71</th><th>H72</th><th>H76</th><th>H77</th><th>H81</th><th>H82</th><th>H86</th><th>H87</th><th>H91</th><th>H92</th><th>H96</th><th>H97</th><th>dealer_long</th><th>dealer_mid</th><th>dealer_short</th><th>vbt_long</th><th>vbt_mid</th><th>vbt_short</th></tr></thead><tbody><tr><th>DS_t</th><td>0.048686</td><td>0.044822</td><td>0</td><td>0.015971</td><td>0</td><td>0</td><td>0.01288</td><td>0</td><td>0.034003</td><td>0</td><td>0.01185</td><td>0</td><td>0.05255</td><td>0</td><td>0.118238</td><td>0</td><td>0.028078</td><td>0</td><td>0.028851</td><td>0</td><td>0.071613</td><td>0</td><td>0.147862</td><td>0.044049</td><td>0</td><td>0.130603</td><td>0</td><td>0</td><td>0.046625</td><td>0</td><td>0.026018</td><td>0</td><td>0.048429</td><td>0</td><td>0.038125</td><td>0</td><td>0.014941</td><td>0</td><td>0.035806</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr></tbody></table><h4>Day 9</h4><table class="grid"><thead><tr><th>Agent</th><th>H10</th><th>H100</th><th>H14</th><th>H15</th><th>H19</th><th>H20</th><th>H24</th><th>H25</th><th>H29</th><th>H30</th><th>H34</th><th>H35</th><th>H39</th><th>H4</th><th>H40</th><th>H44</th><th>H45</th><th>H49</th><th>H5</th><th>H50</th><th>H54</th><th>H55</th><th>H59</th><th>H60</th><th>H64</th><th>H65</th><th>H69</th><th>H70</th><th>H74</th><th>H75</th><th>H79</th><th>H80</th><th>H84</th><th>H85</th><th>H89</th><th>H9</th><th>H90</th><th>H94</th><th>H95</th><th>H99</th><th>dealer_long</th><th>dealer_mid</th><th>dealer_short</th><th>vbt_long</th><th>vbt_mid</th><th>vbt_short</th></tr></thead><tbody><tr><th>DS_t</th><td>0</td><td>0</td><td>0.057351</td><td>0</td><td>0.019328</td><td>0</td><td>0.016793</td><td>0</td><td>0.01711</td><td>0</td><td>0.020279</td><td>0</td><td>0.050063</td><td>0.129911</td><td>0</td><td>0.06654</td><td>0</td><td>0.145754</td><td>0</td><td>0</td><td>0.038023</td><td>0</td><td>0.028517</td><td>0</td><td>0.020913</td><td>0</td><td>0.020279</td><td>0</td><td>0.038023</td><td>0</td><td>0.012674</td><td>0</td><td>0.044043</td><td>0</td><td>0.106781</td><td>0.10583</td><td>0</td><td>0.043409</td><td>0</td><td>0.018378</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr></tbody></table>
+  </section>
+
+  <section>
+    <h2>Intraday Diagnostics: Prefix Liquidity P(s)</h2>
+    <p class="small muted">For each settlement sequence on day t, P(s) = ∑_i max(0, Δ_i(s)) and M^peak_t = max_s P(s).</p>
+    <p class="muted">No settlement steps found.</p>
+  </section>
+
+  <section>
+    <h2>Metric Explanations</h2>
+    
+<dl>
+  <dt>Total dues S_t</dt>
+  <dd>Sum of payment obligations maturing on day t.</dd>
+  <dt>Min net liquidity ̅M_t</dt>
+  <dd>Minimum system net liquidity needed if obligations are perfectly offset; equals sum of debtor shortfalls max(0, F_i - I_i).</dd>
+  <dt>Start-of-day money M_t</dt>
+  <dd>System means-of-payment available at the start of day t (cash, deposits, reserves).</dd>
+  <dt>Liquidity gap G_t</dt>
+  <dd>Shortfall at the start of the day: max(0, ̅M_t - M_t).</dd>
+  <dt>Netting potential α_t</dt>
+  <dd>Share of dues that can be cleared by circulation/netting: 1 - ̅M_t / S_t.</dd>
+  <dt>Operational peak M^peak_t</dt>
+  <dd>Peak amount of money simultaneously out in circuit when replaying realized settlement sequence.</dd>
+  <dt>Gross settled</dt>
+  <dd>Total value actually settled on day t.</dd>
+  <dt>Intraday velocity v_t</dt>
+  <dd>How intensively money is reused intraday: gross settled / operational peak.</dd>
+  <dt>On-time settlement φ_t</dt>
+  <dd>Share of dues with due_day=t that settle on day t.</dd>
+  <dt>Deferral/default δ_t</dt>
+  <dd>1 - φ_t (portion not settled on time; may reflect deferrals or defaults).</dd>
+  <dt>Creditor HHI^+</dt>
+  <dd>Concentration of net creditor positions among those with n_i > 0.</dd>
+  <dt>Debtor shortfall shares DS_t(i)</dt>
+  <dd>Each net debtor's share of ̅M_t, indicating who needs liquidity.</dd>
+</dl>
+
+  </section>
+</body>
+</html>

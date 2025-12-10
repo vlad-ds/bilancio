@@ -1,0 +1,112 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bilancio Analytics Report</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 24px; color: #222; }
+    h1 { margin: 0 0 4px; font-size: 22px; }
+    h2 { margin-top: 28px; font-size: 18px; }
+    h3 { margin-top: 18px; font-size: 16px; }
+    h4 { margin-top: 12px; font-size: 14px; }
+    p.small { color: #555; margin-top: 4px; }
+    table.grid { border-collapse: collapse; width: 100%; margin-top: 8px; }
+    table.grid th, table.grid td { border: 1px solid #ddd; padding: 6px 8px; font-size: 13px; }
+    table.grid thead th { background: #f8f8f8; text-align: left; }
+    .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; margin-top: 8px; }
+    .card { border: 1px solid #eee; padding: 10px; border-radius: 6px; background: #fcfcfc; }
+    .muted { color: #666; }
+    dl { display: grid; grid-template-columns: max-content 1fr; grid-gap: 4px 16px; font-size: 13px; }
+    dt { font-weight: 600; }
+    dd { margin: 0 0 8px 0; color: #333; }
+  </style>
+  <meta name="generator" content="Bilancio Analytics" />
+  <meta name="description" content="Kalecki-style payment microstructure metrics" />
+  <meta name="robots" content="noindex" />
+</head>
+<body>
+  <header>
+    <h1>Bilancio Analytics Report</h1>
+    
+  </header>
+
+  <section>
+    <h2>Summary Across Days</h2>
+    <div class="summary">
+      <div class="card"><div class="muted">Days analyzed</div><div><strong>1</strong></div></div>
+      <div class="card"><div class="muted">Total dues ∑ S_t</div><div><strong>17404</strong></div></div>
+      <div class="card"><div class="muted">Gross settled total</div><div><strong>17404</strong></div></div>
+      <div class="card"><div class="muted">Max operational peak</div><div><strong>6744</strong></div></div>
+      <div class="card"><div class="muted">Avg velocity</div><div><strong>2.580664</strong></div></div>
+      <div class="card"><div class="muted">Weighted on-time φ</div><div><strong>1</strong></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Day-by-Day Metrics</h2>
+    <table class="grid">
+      <thead>
+        <tr><th>Day</th><th>Total dues S_t</th><th>Min net liquidity ̅M_t</th><th>Start-of-day money M_t</th><th>Liquidity gap G_t</th><th>Netting potential α_t</th><th>Operational peak M^peak_t</th><th>Gross settled</th><th>Intraday velocity v_t</th><th>On-time settlement φ_t</th><th>Deferral/default δ_t</th><th># debtors</th><th># creditors</th><th>Creditor HHI^+</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>17404</td><td>6744</td><td>58750</td><td>0</td><td>0.612503</td><td>6744</td><td>17404</td><td>2.580664</td><td>1</td><td>0</td><td>67</td><td>39</td><td>0.067976</td><td></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Debtor Shortfall Shares DS_t(i)</h2>
+    <h4>Day 1</h4><table class="grid"><thead><tr><th>Agent</th><th>H1</th><th>H10</th><th>H100</th><th>H11</th><th>H12</th><th>H13</th><th>H14</th><th>H15</th><th>H16</th><th>H17</th><th>H18</th><th>H19</th><th>H2</th><th>H20</th><th>H21</th><th>H22</th><th>H23</th><th>H24</th><th>H25</th><th>H26</th><th>H27</th><th>H28</th><th>H29</th><th>H3</th><th>H30</th><th>H31</th><th>H32</th><th>H33</th><th>H34</th><th>H35</th><th>H36</th><th>H37</th><th>H38</th><th>H39</th><th>H4</th><th>H40</th><th>H41</th><th>H42</th><th>H43</th><th>H44</th><th>H45</th><th>H46</th><th>H47</th><th>H48</th><th>H49</th><th>H5</th><th>H50</th><th>H51</th><th>H52</th><th>H53</th><th>H54</th><th>H55</th><th>H56</th><th>H57</th><th>H58</th><th>H59</th><th>H6</th><th>H60</th><th>H61</th><th>H62</th><th>H63</th><th>H64</th><th>H65</th><th>H66</th><th>H67</th><th>H68</th><th>H69</th><th>H7</th><th>H70</th><th>H71</th><th>H72</th><th>H73</th><th>H74</th><th>H75</th><th>H76</th><th>H77</th><th>H78</th><th>H79</th><th>H8</th><th>H80</th><th>H81</th><th>H82</th><th>H83</th><th>H84</th><th>H85</th><th>H86</th><th>H87</th><th>H88</th><th>H89</th><th>H9</th><th>H90</th><th>H91</th><th>H92</th><th>H93</th><th>H94</th><th>H95</th><th>H96</th><th>H97</th><th>H98</th><th>H99</th><th>dealer_long</th><th>dealer_mid</th><th>dealer_short</th><th>vbt_long</th><th>vbt_mid</th><th>vbt_short</th></tr></thead><tbody><tr><th>DS_t</th><td>0.008007</td><td>0.015718</td><td>0</td><td>0.014087</td><td>0.001335</td><td>0</td><td>0.007711</td><td>0.005486</td><td>0</td><td>0.02417</td><td>0.002966</td><td>0</td><td>0.004152</td><td>0.007266</td><td>0.017497</td><td>0</td><td>0</td><td>0.013938</td><td>0.004745</td><td>0.001483</td><td>0.035587</td><td>0</td><td>0.035142</td><td>0.042705</td><td>0</td><td>0</td><td>0.004448</td><td>0.040184</td><td>0.05175</td><td>0</td><td>0.002521</td><td>0.007266</td><td>0.00519</td><td>0</td><td>0</td><td>0.005783</td><td>0.039591</td><td>0</td><td>0</td><td>0.008897</td><td>0.007117</td><td>0</td><td>0.012307</td><td>0.007414</td><td>0.01038</td><td>0.015866</td><td>0</td><td>0.001928</td><td>0.026246</td><td>0.013642</td><td>0.007414</td><td>0.011862</td><td>0.009193</td><td>0.0172</td><td>0</td><td>0.013197</td><td>0</td><td>0.008007</td><td>0</td><td>0</td><td>0.01379</td><td>0.028321</td><td>0</td><td>0.000297</td><td>0.005635</td><td>0</td><td>0.023428</td><td>0.009935</td><td>0</td><td>0.007859</td><td>0.008452</td><td>0.01468</td><td>0</td><td>0.03188</td><td>0</td><td>0.029063</td><td>0</td><td>0.016904</td><td>0</td><td>0</td><td>0.014828</td><td>0.008304</td><td>0.002817</td><td>0.001335</td><td>0.037367</td><td>0</td><td>0.001928</td><td>0.033066</td><td>0</td><td>0.006079</td><td>0.037218</td><td>0</td><td>0.015866</td><td>0</td><td>0.010973</td><td>0.036922</td><td>0.020018</td><td>0</td><td>0.010973</td><td>0.002669</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr></tbody></table>
+  </section>
+
+  <section>
+    <h2>Intraday Diagnostics: Prefix Liquidity P(s)</h2>
+    <p class="small muted">For each settlement sequence on day t, P(s) = ∑_i max(0, Δ_i(s)) and M^peak_t = max_s P(s).</p>
+    <h4>Day 1</h4>
+<svg width="520" height="140" viewBox="0 0 520 140" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="520" height="140" fill="#fff"/>
+  <line x1="35" y1="115" x2="510" y2="115" stroke="#999" stroke-width="1"/>
+  <line x1="35" y1="10" x2="35" y2="115" stroke="#999" stroke-width="1"/>
+  <text x="35" y="8" font-size="10" fill="#555">P_prefix</text>
+  <text x="510" y="129" font-size="10" fill="#555" text-anchor="end">step</text>
+  <text x="29" y="18" font-size="10" fill="#555" text-anchor="end">6744</text>
+  <polyline fill="none" stroke="#2a7" stroke-width="2" points="35.0,114.6 36.6,114.6 38.2,110.7 39.8,110.7 41.4,109.6 42.9,109.6 44.5,109.2 46.1,109.2 47.7,109.1 49.3,108.0 50.9,107.1 52.5,107.1 54.1,107.1 55.7,106.9 57.2,106.9 58.8,106.9 60.4,104.9 62.0,104.9 63.6,104.9 65.2,104.7 66.8,103.5 68.4,103.5 69.9,103.5 71.5,102.6 73.1,102.6 74.7,102.6 76.3,99.4 77.9,99.4 79.5,96.3 81.1,96.3 82.7,96.3 84.2,96.3 85.8,92.7 87.4,87.8 89.0,87.8 90.6,87.8 92.2,87.6 93.8,87.6 95.4,87.6 97.0,87.6 98.5,84.0 100.1,84.0 101.7,84.0 103.3,83.7 104.9,83.5 106.5,83.5 108.1,82.8 109.7,82.6 111.3,82.1 112.8,82.1 114.4,82.1 116.0,79.9 117.6,79.0 119.2,78.8 120.8,78.1 122.4,77.8 124.0,76.5 125.6,76.5 127.1,75.7 128.7,75.5 130.3,75.5 131.9,75.5 133.5,74.6 135.1,72.2 136.7,72.2 138.3,72.2 139.8,72.2 141.4,72.2 143.0,70.3 144.6,70.3 146.2,70.0 147.8,69.7 149.4,68.8 151.0,68.8 152.6,66.0 154.1,66.0 155.7,63.5 157.3,63.5 158.9,62.3 160.5,62.3 162.1,61.3 163.7,61.0 165.3,61.0 166.9,61.0 168.4,57.7 170.0,57.7 171.6,57.7 173.2,54.8 174.8,54.8 176.4,51.5 178.0,51.5 179.6,50.4 181.2,50.4 182.7,49.8 184.3,46.5 185.9,45.0 187.5,45.0 189.1,44.4 190.7,44.4 192.3,44.5 193.9,44.3 195.5,44.3 197.0,44.1 198.6,44.1 200.2,43.9 201.8,43.9 203.4,43.7 205.0,43.7 206.6,43.5 208.2,43.3 209.7,43.1 211.3,43.1 212.9,43.1 214.5,43.0 216.1,42.8 217.7,42.8 219.3,42.6 220.9,42.6 222.5,42.6 224.0,42.4 225.6,42.2 227.2,42.2 228.8,42.2 230.4,42.0 232.0,41.9 233.6,41.9 235.2,41.7 236.8,41.7 238.3,41.5 239.9,41.5 241.5,41.5 243.1,41.5 244.7,41.3 246.3,41.1 247.9,41.1 249.5,41.1 251.1,40.9 252.6,40.7 254.2,40.7 255.8,40.6 257.4,40.4 259.0,40.4 260.6,40.4 262.2,40.2 263.8,40.0 265.4,40.0 266.9,39.8 268.5,39.6 270.1,39.4 271.7,39.4 273.3,39.4 274.9,39.3 276.5,39.1 278.1,38.9 279.6,38.7 281.2,38.5 282.8,38.3 284.4,38.3 286.0,38.1 287.6,37.9 289.2,37.9 290.8,37.9 292.4,37.8 293.9,37.6 295.5,37.6 297.1,37.6 298.7,37.4 300.3,37.4 301.9,37.2 303.5,37.2 305.1,37.0 306.7,36.8 308.2,36.6 309.8,36.6 311.4,36.5 313.0,36.5 314.6,36.3 316.2,36.3 317.8,36.1 319.4,36.1 321.0,35.9 322.5,35.7 324.1,35.7 325.7,35.7 327.3,35.5 328.9,35.5 330.5,35.5 332.1,35.3 333.7,35.3 335.3,35.1 336.8,35.1 338.4,35.0 340.0,35.0 341.6,34.8 343.2,34.6 344.8,34.4 346.4,34.4 348.0,34.2 349.5,34.2 351.1,34.2 352.7,33.8 354.3,33.4 355.9,33.0 357.5,33.0 359.1,32.7 360.7,32.7 362.3,32.3 363.8,32.3 365.4,31.9 367.0,31.5 368.6,31.1 370.2,31.0 371.8,31.0 373.4,30.6 375.0,30.2 376.6,30.2 378.1,29.8 379.7,29.5 381.3,29.5 382.9,29.1 384.5,28.7 386.1,28.7 387.7,28.7 389.3,28.3 390.9,27.9 392.4,27.8 394.0,27.4 395.6,27.4 397.2,27.0 398.8,27.0 400.4,27.0 402.0,26.6 403.6,26.2 405.2,25.8 406.7,25.8 408.3,25.6 409.9,25.2 411.5,24.8 413.1,24.8 414.7,24.4 416.3,24.0 417.9,24.0 419.4,24.0 421.0,23.6 422.6,23.2 424.2,23.2 425.8,22.8 427.4,22.4 429.0,22.1 430.6,22.1 432.2,21.8 433.7,21.5 435.3,21.1 436.9,20.7 438.5,20.3 440.1,19.9 441.7,19.5 443.3,19.5 444.9,19.1 446.5,18.7 448.0,18.7 449.6,18.7 451.2,18.3 452.8,18.0 454.4,18.0 456.0,17.9 457.6,17.5 459.2,17.5 460.8,17.1 462.3,17.1 463.9,16.8 465.5,16.4 467.1,16.0 468.7,16.0 470.3,15.6 471.9,15.6 473.5,15.2 475.1,15.2 476.6,14.8 478.2,14.8 479.8,14.4 481.4,14.0 483.0,13.7 484.6,13.6 486.2,13.2 487.8,13.2 489.3,13.0 490.9,12.6 492.5,12.6 494.1,12.2 495.7,12.2 497.3,11.8 498.9,11.8 500.5,11.4 502.1,11.1 503.6,10.7 505.2,10.7 506.8,10.3 508.4,10.0 510.0,10.0" />
+</svg>
+
+  </section>
+
+  <section>
+    <h2>Metric Explanations</h2>
+    
+<dl>
+  <dt>Total dues S_t</dt>
+  <dd>Sum of payment obligations maturing on day t.</dd>
+  <dt>Min net liquidity ̅M_t</dt>
+  <dd>Minimum system net liquidity needed if obligations are perfectly offset; equals sum of debtor shortfalls max(0, F_i - I_i).</dd>
+  <dt>Start-of-day money M_t</dt>
+  <dd>System means-of-payment available at the start of day t (cash, deposits, reserves).</dd>
+  <dt>Liquidity gap G_t</dt>
+  <dd>Shortfall at the start of the day: max(0, ̅M_t - M_t).</dd>
+  <dt>Netting potential α_t</dt>
+  <dd>Share of dues that can be cleared by circulation/netting: 1 - ̅M_t / S_t.</dd>
+  <dt>Operational peak M^peak_t</dt>
+  <dd>Peak amount of money simultaneously out in circuit when replaying realized settlement sequence.</dd>
+  <dt>Gross settled</dt>
+  <dd>Total value actually settled on day t.</dd>
+  <dt>Intraday velocity v_t</dt>
+  <dd>How intensively money is reused intraday: gross settled / operational peak.</dd>
+  <dt>On-time settlement φ_t</dt>
+  <dd>Share of dues with due_day=t that settle on day t.</dd>
+  <dt>Deferral/default δ_t</dt>
+  <dd>1 - φ_t (portion not settled on time; may reflect deferrals or defaults).</dd>
+  <dt>Creditor HHI^+</dt>
+  <dd>Concentration of net creditor positions among those with n_i > 0.</dd>
+  <dt>Debtor shortfall shares DS_t(i)</dt>
+  <dd>Each net debtor's share of ̅M_t, indicating who needs liquidity.</dd>
+</dl>
+
+  </section>
+</body>
+</html>
