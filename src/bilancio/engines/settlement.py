@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import List, Tuple
+
 from bilancio.core.atomic_tx import atomic
 from bilancio.core.errors import DefaultError, ValidationError
 from bilancio.ops.banking import client_payment
@@ -9,6 +11,10 @@ from bilancio.ops.aliases import get_alias_for_id
 
 DEFAULT_MODE_FAIL_FAST = "fail-fast"
 DEFAULT_MODE_EXPEL = "expel-agent"
+
+# Plan 024: Track settled payables for rollover
+_settled_payables_for_rollover: List[Tuple[str, str, int, int, int]] = []
+# List of (debtor_id, creditor_id, amount, maturity_distance, current_day)
 
 _ACTION_AGENT_FIELDS = {
     "mint_reserves": ("to",),
@@ -452,8 +458,19 @@ def settle_due_delivery_obligations(system, day: int):
             )
 
 
-def settle_due(system, day: int):
-    """Settle all obligations due today (payables and delivery obligations)."""
+def settle_due(system, day: int, *, rollover_enabled: bool = False):
+    """Settle all obligations due today (payables and delivery obligations).
+
+    Args:
+        system: The system to settle
+        day: Current simulation day
+        rollover_enabled: If True, create new payables for successfully settled ones (Plan 024)
+
+    Returns:
+        List of settled payable info for rollover: [(debtor_id, creditor_id, amount, maturity_distance)]
+    """
+    settled_for_rollover = []
+
     for payable in list(due_payables(system, day)):
         if payable.id not in system.state.contracts:
             continue
@@ -470,6 +487,11 @@ def settle_due(system, day: int):
 
         remaining = payable.amount
         payments_summary: list[dict] = []
+
+        # Save payable info before potential removal
+        payable_amount = payable.amount
+        payable_maturity_distance = getattr(payable, 'maturity_distance', None)
+        original_creditor = payable.asset_holder_id  # Original creditor for rollover
 
         with atomic(system):
             for method in order:
@@ -537,6 +559,7 @@ def settle_due(system, day: int):
                     cancelled_contract_ids=cancelled_contract_ids,
                     cancelled_aliases=cancelled_aliases,
                 )
+                # Defaulted - no rollover
                 continue
 
             _remove_contract(system, payable.id)
@@ -548,7 +571,89 @@ def settle_due(system, day: int):
                 alias=alias,
                 debtor=debtor.id,
                 creditor=creditor.id,
-                amount=payable.amount,
+                amount=payable_amount,
             )
 
+            # Plan 024: Track for rollover (only if successfully settled AND rollover enabled)
+            if rollover_enabled and payable_maturity_distance is not None:
+                # Use original creditor for rollover, not secondary market holder
+                settled_for_rollover.append((
+                    debtor.id,
+                    original_creditor,
+                    payable_amount,
+                    payable_maturity_distance,
+                ))
+
     settle_due_delivery_obligations(system, day)
+
+    return settled_for_rollover
+
+
+def rollover_settled_payables(system, day: int, settled_payables: list):
+    """Create new payables for successfully settled ones (continuous issuance via rollover).
+
+    Per PDF specification (Plan 024):
+    - Each liability records its original maturity distance ΔT
+    - When a claim is repaid, borrower immediately issues new claim of same size/ΔT
+    - Due date = current_day + ΔT
+    - Cash moves from lender (creditor) to borrower (debtor) as part of new issuance
+
+    Args:
+        system: The system
+        day: Current simulation day
+        settled_payables: List of (debtor_id, creditor_id, amount, maturity_distance)
+    """
+    from bilancio.domain.instruments.credit import Payable
+
+    for debtor_id, creditor_id, amount, maturity_distance in settled_payables:
+        # Skip if either party has defaulted
+        debtor = system.state.agents.get(debtor_id)
+        creditor = system.state.agents.get(creditor_id)
+
+        if debtor is None or getattr(debtor, "defaulted", False):
+            continue
+        if creditor is None or getattr(creditor, "defaulted", False):
+            continue
+
+        new_due_day = day + maturity_distance
+
+        with atomic(system):
+            # 1. Create new payable with same amount and ΔT
+            new_payable = Payable(
+                id=system.new_contract_id("PAY"),
+                kind="payable",
+                amount=amount,
+                denom="X",
+                asset_holder_id=creditor_id,  # creditor holds the asset
+                liability_issuer_id=debtor_id,  # debtor issues the liability
+                due_day=new_due_day,
+                maturity_distance=maturity_distance,
+            )
+            system.add_contract(new_payable)
+
+            # 2. Transfer cash from creditor to debtor (new issuance)
+            # This represents the creditor re-lending the money they just received
+            cash_transferred = _pay_with_cash(system, creditor_id, debtor_id, amount)
+
+            if cash_transferred != amount:
+                # Creditor doesn't have enough cash - this shouldn't happen in normal rollover
+                # but handle gracefully
+                system.log(
+                    "RolloverPartial",
+                    debtor=debtor_id,
+                    creditor=creditor_id,
+                    amount=amount,
+                    cash_transferred=cash_transferred,
+                    new_due_day=new_due_day,
+                    payable_id=new_payable.id,
+                )
+            else:
+                system.log(
+                    "PayableRolledOver",
+                    debtor=debtor_id,
+                    creditor=creditor_id,
+                    amount=amount,
+                    new_due_day=new_due_day,
+                    maturity_distance=maturity_distance,
+                    payable_id=new_payable.id,
+                )

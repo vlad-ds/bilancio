@@ -33,6 +33,8 @@ class State:
     scheduled_actions_by_day: dict[int, list[dict]] = field(default_factory=dict)
     # Track agents that have defaulted and been expelled from future activity
     defaulted_agent_ids: set[AgentId] = field(default_factory=set)
+    # Plan 024: Enable continuous rollover of settled payables
+    rollover_enabled: bool = False
 
 class System:
     def __init__(self, policy: PolicyEngine | None = None, default_mode: str = "fail-fast"):

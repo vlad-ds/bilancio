@@ -12,6 +12,8 @@ class Payable(Instrument):
         holder_id: Optional secondary market holder. If set, this agent currently
                    holds the payable and should receive settlement payment.
                    If None, the original creditor (asset_holder_id) receives payment.
+        maturity_distance: Original maturity distance (ΔT) in days. Used for rollover
+                          to create new payables with same ΔT after settlement.
 
     Properties:
         effective_creditor: Returns the agent ID who should receive settlement
@@ -20,6 +22,7 @@ class Payable(Instrument):
     """
     due_day: int | None = None
     holder_id: str | None = None
+    maturity_distance: int | None = None  # Plan 024: for continuous rollover
 
     @property
     def effective_creditor(self) -> str:

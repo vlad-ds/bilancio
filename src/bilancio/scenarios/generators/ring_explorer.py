@@ -193,33 +193,57 @@ def compile_ring_explorer_balanced(
     config: RingExplorerGeneratorConfig,
     face_value: Decimal = Decimal("20"),
     outside_mid_ratio: Decimal = Decimal("0.75"),
-    big_entity_share: Decimal = Decimal("0.25"),
+    big_entity_share: Decimal = Decimal("0.25"),  # DEPRECATED
+    vbt_share_per_bucket: Decimal = Decimal("0.25"),
+    dealer_share_per_bucket: Decimal = Decimal("0.125"),
     mode: str = "active",
+    rollover_enabled: bool = True,
     *,
     source_path: Optional[Path] = None,
 ) -> Dict[str, Any]:
     """
-    Generate a ring scenario with balanced big entities (C or D).
+    Generate a ring scenario with balanced VBT and Dealer entities per maturity bucket.
 
-    The scenario augments the base ring with:
-    1. Additional debt per trader (held by big entities)
-    2. Additional cash per trader (preserves cash/debt ratio)
-    3. Big entities initialized with securities + matching cash
+    Per PDF specification (Plan 024):
+    - VBT-like passive holder: 25% of total claims per maturity bucket + equal cash
+    - Dealer-like passive holder: 12.5% of total claims per maturity bucket + equal cash
+    - Traders keep remaining 62.5% of claims
+
+    The scenario creates:
+    1. N traders in a ring structure with payables
+    2. For each maturity bucket (short/mid/long):
+       - VBT agent with vbt_share_per_bucket (25%) of that bucket's claims + matching cash
+       - Dealer agent with dealer_share_per_bucket (12.5%) of that bucket's claims + matching cash
+    3. Traders receive additional cash to fund their obligations to VBT/Dealer
 
     Args:
         config: Base ring explorer configuration
         face_value: Face value S (cashflow at maturity), default 20
         outside_mid_ratio: M/S ratio (0.5 to 1.0), default 0.75
-        big_entity_share: Fraction of trader debt for big entities (β), default 0.25
+        big_entity_share: DEPRECATED - use vbt_share_per_bucket and dealer_share_per_bucket
+        vbt_share_per_bucket: VBT holds 25% of claims per maturity bucket
+        dealer_share_per_bucket: Dealer holds 12.5% of claims per maturity bucket
         mode: "passive" (mimics) or "active" (dealers)
+        rollover_enabled: Whether to enable continuous rollover of matured claims
         source_path: Optional path for YAML output
 
     Returns:
-        Complete scenario dictionary with balanced big entities
+        Complete scenario dictionary with balanced VBT/Dealer per bucket
     """
     params = RingExplorerParams.from_model(config.params)
 
-    # Get base payable amounts (this is the original debt distribution)
+    # Define maturity buckets (matching dealer module defaults)
+    BUCKET_BOUNDS = {
+        "short": (1, 3),    # days 1-3
+        "mid": (4, 8),      # days 4-8
+        "long": (9, 999),   # days 9+
+    }
+    BUCKETS = ["short", "mid", "long"]
+
+    # Total share going to big entities per bucket
+    big_share = vbt_share_per_bucket + dealer_share_per_bucket  # 0.375 total
+
+    # Get base payable amounts
     base_payable_amounts = _draw_payables(
         params.n_agents,
         params.inequality.concentration,
@@ -228,64 +252,90 @@ def compile_ring_explorer_balanced(
         params.seed,
     )
 
-    # Scale up payable amounts by (1 + big_entity_share)
-    scale_factor = Decimal("1") + big_entity_share
-    scaled_payable_amounts = [amt * scale_factor for amt in base_payable_amounts]
-
-    # Get base liquidity amounts and scale up
-    base_liquidity = params.liquidity.total
-    scaled_liquidity_total = base_liquidity * scale_factor
-
-    # Recalculate liquidity allocation with scaled total
-    scaled_params = RingExplorerParams(
-        n_agents=params.n_agents,
-        seed=params.seed,
-        kappa=params.kappa,
-        Q_total=params.Q_total * scale_factor,
-        liquidity=LiquiditySpec(
-            total=scaled_liquidity_total,
-            mode=params.liquidity.mode,
-            agent=params.liquidity.agent,
-            vector=params.liquidity.vector,
-        ),
-        inequality=params.inequality,
-        maturity=params.maturity,
-        currency=params.currency,
-        policy_overrides=params.policy_overrides,
-    )
-    scaled_liquidity_amounts = _allocate_liquidity(scaled_params)
-
+    # Get due days for the ring
     due_days = _build_due_days(params.n_agents, params.maturity.days, params.maturity.mu)
 
+    # Assign each payable to a maturity bucket
+    def _get_bucket(due_day: int) -> str:
+        for bucket, (lo, hi) in BUCKET_BOUNDS.items():
+            if lo <= due_day <= hi:
+                return bucket
+        return "long"  # Default to long for very long maturities
+
+    payable_buckets = [_get_bucket(d) for d in due_days]
+
+    # Calculate total face value per bucket (from trader-to-trader ring)
+    bucket_totals = {b: Decimal("0") for b in BUCKETS}
+    for idx, amount in enumerate(base_payable_amounts):
+        bucket = payable_buckets[idx]
+        bucket_totals[bucket] += amount
+
+    # Calculate big entity holdings per bucket
+    # VBT gets vbt_share_per_bucket of each bucket, Dealer gets dealer_share_per_bucket
+    vbt_holdings = {b: bucket_totals[b] * vbt_share_per_bucket for b in BUCKETS}
+    dealer_holdings = {b: bucket_totals[b] * dealer_share_per_bucket for b in BUCKETS}
+
+    # Calculate additional debt per trader to VBT/Dealer
+    # Each trader contributes proportionally to their original debt
+    trader_to_vbt = []
+    trader_to_dealer = []
+    for idx, amount in enumerate(base_payable_amounts):
+        bucket = payable_buckets[idx]
+        bucket_total = bucket_totals[bucket]
+        if bucket_total > 0:
+            # This trader's share of the bucket
+            share = amount / bucket_total
+            # Their contribution to VBT/Dealer for this bucket
+            trader_to_vbt.append((vbt_holdings[bucket] * share, bucket, due_days[idx]))
+            trader_to_dealer.append((dealer_holdings[bucket] * share, bucket, due_days[idx]))
+        else:
+            trader_to_vbt.append((Decimal("0"), bucket, due_days[idx]))
+            trader_to_dealer.append((Decimal("0"), bucket, due_days[idx]))
+
+    # Total additional cash needed by traders to pay VBT/Dealer
+    total_additional_debt = sum(vbt_holdings.values()) + sum(dealer_holdings.values())
+
+    # Allocate base liquidity
+    base_liquidity = params.liquidity.total
+    base_liquidity_amounts = _allocate_liquidity(params)
+
+    # Scale up liquidity to fund additional obligations
+    # Traders need cash to pay their obligations to VBT/Dealer
+    additional_cash_per_trader = total_additional_debt / Decimal(params.n_agents)
+
+    # Build agents
     agents = _build_agents(params.n_agents)
 
-    # Add big entity agents (one per bucket: short, mid, long)
-    big_entity_buckets = ["short", "mid", "long"]
-    for bucket in big_entity_buckets:
-        agent_id = f"big_{bucket}"
+    # Add VBT and Dealer agents per bucket
+    for bucket in BUCKETS:
         agents.append({
-            "id": agent_id,
-            "kind": "household",  # Use household for now
-            "name": f"Big Entity ({bucket})",
+            "id": f"vbt_{bucket}",
+            "kind": "household",
+            "name": f"VBT ({bucket})",
+        })
+        agents.append({
+            "id": f"dealer_{bucket}",
+            "kind": "household",
+            "name": f"Dealer ({bucket})",
         })
 
     initial_actions = []
 
-    # Seed cash liquidity to traders (scaled amounts)
-    for idx, amount in enumerate(scaled_liquidity_amounts):
-        if amount <= 0:
-            continue
+    # Seed cash liquidity to traders (base + additional for VBT/Dealer obligations)
+    for idx, base_amount in enumerate(base_liquidity_amounts):
         agent_id = f"H{idx + 1}"
-        initial_actions.append({
-            "mint_cash": {
-                "to": agent_id,
-                "amount": amount,
-                "alias": f"LIQ_{agent_id}",
-            }
-        })
+        total_amount = base_amount + additional_cash_per_trader
+        if total_amount > 0:
+            initial_actions.append({
+                "mint_cash": {
+                    "to": agent_id,
+                    "amount": total_amount,
+                    "alias": f"LIQ_{agent_id}",
+                }
+            })
 
-    # Create ring payables (scaled amounts - original debt structure preserved)
-    for idx, amount in enumerate(scaled_payable_amounts):
+    # Create ring payables (trader-to-trader, original structure)
+    for idx, amount in enumerate(base_payable_amounts):
         from_agent = f"H{idx + 1}"
         to_agent = f"H{(idx + 1) % params.n_agents + 1}"
         due_day = due_days[idx]
@@ -296,54 +346,78 @@ def compile_ring_explorer_balanced(
                 "amount": amount,
                 "due_day": due_day,
                 "alias": f"P_{from_agent}_{to_agent}",
+                "maturity_distance": due_day,  # Plan 024: for rollover
             }
         })
 
-    # Create additional payables from traders to big entities
-    # These represent the debt held by big entities
-    # Distribute across buckets based on maturity
-    outside_mid = outside_mid_ratio * face_value
-    total_big_entity_debt = params.Q_total * big_entity_share
-
-    # Split debt across buckets (for simplicity, equal distribution)
-    debt_per_bucket = total_big_entity_debt / Decimal(len(big_entity_buckets))
-
-    # Create payables to big entities (spread across traders)
-    debt_per_trader_to_big = total_big_entity_debt / Decimal(params.n_agents)
+    # Create payables from traders to VBT (per bucket)
     for idx in range(params.n_agents):
-        from_agent = f"H{idx + 1}"
-        # Assign to bucket based on maturity structure
-        bucket_idx = idx % len(big_entity_buckets)
-        to_agent = f"big_{big_entity_buckets[bucket_idx]}"
-        due_day = due_days[idx]
-        initial_actions.append({
-            "create_payable": {
-                "from": from_agent,
-                "to": to_agent,
-                "amount": debt_per_trader_to_big,
-                "due_day": due_day,
-                "alias": f"P_{from_agent}_{to_agent}_big",
-            }
-        })
+        vbt_amount, bucket, due_day = trader_to_vbt[idx]
+        if vbt_amount > Decimal("0.01"):  # Skip tiny amounts
+            from_agent = f"H{idx + 1}"
+            to_agent = f"vbt_{bucket}"
+            initial_actions.append({
+                "create_payable": {
+                    "from": from_agent,
+                    "to": to_agent,
+                    "amount": vbt_amount,
+                    "due_day": due_day,
+                    "alias": f"P_{from_agent}_{to_agent}",
+                    "maturity_distance": due_day,  # Plan 024: for rollover
+                }
+            })
 
-    # Mint cash to big entities (market value of securities = balanced position)
-    # Each big entity gets cash = market value of their securities
+    # Create payables from traders to Dealer (per bucket)
+    for idx in range(params.n_agents):
+        dealer_amount, bucket, due_day = trader_to_dealer[idx]
+        if dealer_amount > Decimal("0.01"):  # Skip tiny amounts
+            from_agent = f"H{idx + 1}"
+            to_agent = f"dealer_{bucket}"
+            initial_actions.append({
+                "create_payable": {
+                    "from": from_agent,
+                    "to": to_agent,
+                    "amount": dealer_amount,
+                    "due_day": due_day,
+                    "alias": f"P_{from_agent}_{to_agent}",
+                    "maturity_distance": due_day,  # Plan 024: for rollover
+                }
+            })
+
+    # Mint cash to VBT and Dealer (market value of their holdings = balanced position)
     # Market value = face_value_held × outside_mid_ratio
-    cash_per_bucket = debt_per_bucket * outside_mid_ratio
-    for bucket in big_entity_buckets:
-        agent_id = f"big_{bucket}"
-        initial_actions.append({
-            "mint_cash": {
-                "to": agent_id,
-                "amount": cash_per_bucket,
-                "alias": f"LIQ_{agent_id}",
-            }
-        })
+    for bucket in BUCKETS:
+        # VBT cash
+        vbt_cash = vbt_holdings[bucket] * outside_mid_ratio
+        if vbt_cash > 0:
+            initial_actions.append({
+                "mint_cash": {
+                    "to": f"vbt_{bucket}",
+                    "amount": vbt_cash,
+                    "alias": f"LIQ_vbt_{bucket}",
+                }
+            })
+
+        # Dealer cash
+        dealer_cash = dealer_holdings[bucket] * outside_mid_ratio
+        if dealer_cash > 0:
+            initial_actions.append({
+                "mint_cash": {
+                    "to": f"dealer_{bucket}",
+                    "amount": dealer_cash,
+                    "alias": f"LIQ_dealer_{bucket}",
+                }
+            })
 
     scenario_name = _render_scenario_name(config.name_prefix, params)
     scenario_name = f"{scenario_name} [Balanced {mode}]"
     description = _render_description(params)
-    description = f"{description}; balanced mode={mode}, β={_fmt_decimal(big_entity_share)}, ρ={_fmt_decimal(outside_mid_ratio)}"
+    description = (
+        f"{description}; balanced mode={mode}, "
+        f"VBT={_fmt_decimal(vbt_share_per_bucket)}, "
+        f"Dealer={_fmt_decimal(dealer_share_per_bucket)}, "
+        f"ρ={_fmt_decimal(outside_mid_ratio)}"
+    )
 
     scenario: Dict[str, Any] = {
         "version": 1,
@@ -357,6 +431,7 @@ def compile_ring_explorer_balanced(
             "mode": "until_stable",
             "max_days": max(30, params.maturity.days + 5),
             "quiet_days": 2,
+            "rollover_enabled": rollover_enabled,  # Plan 024: continuous rollover
             "show": {
                 "balances": [agent["id"] for agent in agents],
                 "events": "detailed",
@@ -370,8 +445,10 @@ def compile_ring_explorer_balanced(
         "_balanced_config": {
             "face_value": float(face_value),
             "outside_mid_ratio": float(outside_mid_ratio),
-            "big_entity_share": float(big_entity_share),
+            "vbt_share_per_bucket": float(vbt_share_per_bucket),
+            "dealer_share_per_bucket": float(dealer_share_per_bucket),
             "mode": mode,
+            "rollover_enabled": rollover_enabled,
         },
     }
 

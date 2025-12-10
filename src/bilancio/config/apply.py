@@ -213,6 +213,12 @@ def apply_action(system: System, action_dict: Dict[str, Any], agents: Dict[str, 
             # Note: amount should be in minor units (e.g., cents)
             # If the input is in major units (e.g., dollars), multiply by 100
             # For now, we assume the YAML amounts are already in minor units
+
+            # Plan 024: maturity_distance for rollover - defaults to due_day if not set
+            maturity_distance = getattr(action, 'maturity_distance', None)
+            if maturity_distance is None:
+                maturity_distance = action.due_day
+
             payable = Payable(
                 id=system.new_contract_id("PAY"),
                 kind="payable",  # Will be set by __post_init__ but required by dataclass
@@ -220,7 +226,8 @@ def apply_action(system: System, action_dict: Dict[str, Any], agents: Dict[str, 
                 denom="X",  # Default denomination - could be made configurable
                 asset_holder_id=action.to_agent,  # creditor holds the asset
                 liability_issuer_id=action.from_agent,  # debtor issues the liability
-                due_day=action.due_day
+                due_day=action.due_day,
+                maturity_distance=maturity_distance,  # Plan 024: for continuous rollover
             )
             system.add_contract(payable)
             # optional alias capture
@@ -229,13 +236,14 @@ def apply_action(system: System, action_dict: Dict[str, Any], agents: Dict[str, 
                 if alias in system.state.aliases:
                     raise ValueError(f"Alias already exists: {alias}")
                 system.state.aliases[alias] = payable.id
-            
+
             # Log the event
             system.log("PayableCreated",
                 debtor=action.from_agent,
                 creditor=action.to_agent,
                 amount=int(action.amount),
                 due_day=action.due_day,
+                maturity_distance=maturity_distance,
                 payable_id=payable.id,
                 alias=getattr(action, 'alias', None)
             )

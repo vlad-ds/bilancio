@@ -42,7 +42,7 @@ class BalancedComparisonResult:
     # Balanced mode parameters
     face_value: Decimal
     outside_mid_ratio: Decimal
-    big_entity_share: Decimal
+    big_entity_share: Decimal  # DEPRECATED
 
     # C (Passive) metrics
     delta_passive: Optional[Decimal]
@@ -55,6 +55,10 @@ class BalancedComparisonResult:
     phi_active: Optional[Decimal]
     active_run_id: str
     active_status: str
+
+    # Balanced mode parameters with defaults (Plan 024)
+    vbt_share_per_bucket: Decimal = Decimal("0.25")
+    dealer_share_per_bucket: Decimal = Decimal("0.125")
 
     # Dealer metrics from active run
     dealer_total_pnl: Optional[float] = None
@@ -116,13 +120,25 @@ class BalancedComparisonConfig(BaseModel):
     )
     monotonicities: List[Decimal] = Field(default_factory=lambda: [Decimal("0")])
 
-    # Balanced dealer parameters
+    # Balanced dealer parameters (Plan 024)
     face_value: Decimal = Field(default=Decimal("20"), description="Face value S (cashflow at maturity)")
     outside_mid_ratios: List[Decimal] = Field(
         default_factory=lambda: [Decimal("1.0"), Decimal("0.9"), Decimal("0.8"), Decimal("0.75"), Decimal("0.5")],
         description="M/S ratios to sweep"
     )
-    big_entity_share: Decimal = Field(default=Decimal("0.25"), description="Fraction of debt held by big entities")
+    big_entity_share: Decimal = Field(default=Decimal("0.25"), description="DEPRECATED - use vbt/dealer shares")
+    vbt_share_per_bucket: Decimal = Field(
+        default=Decimal("0.25"),
+        description="VBT holds 25% of claims per maturity bucket"
+    )
+    dealer_share_per_bucket: Decimal = Field(
+        default=Decimal("0.125"),
+        description="Dealer holds 12.5% of claims per maturity bucket"
+    )
+    rollover_enabled: bool = Field(
+        default=True,
+        description="Enable continuous rollover of matured claims"
+    )
 
     # VBT configuration (for active mode)
     vbt_share: Decimal = Field(default=Decimal("0.50"), description="VBT capital as fraction of system cash")
@@ -196,7 +212,7 @@ class BalancedComparisonRunner:
     def _get_passive_runner(self, outside_mid_ratio: Decimal) -> RingSweepRunner:
         """Get or create passive runner (no dealer trading)."""
         # For passive mode, we use the balanced scenario but with dealers disabled
-        # In balanced mode, big entities have inventory but don't trade
+        # In balanced mode, VBT/Dealer have inventory but don't trade
         return RingSweepRunner(
             out_dir=self.passive_dir,
             name_prefix=f"{self.config.name_prefix} (Passive)",
@@ -209,11 +225,14 @@ class BalancedComparisonRunner:
             default_handling=self.config.default_handling,
             dealer_enabled=False,  # No dealer trading in passive mode
             dealer_config=None,
-            # Pass balanced mode config
+            # Pass balanced mode config (Plan 024)
             balanced_mode=True,
             face_value=self.config.face_value,
             outside_mid_ratio=outside_mid_ratio,
-            big_entity_share=self.config.big_entity_share,
+            big_entity_share=self.config.big_entity_share,  # DEPRECATED
+            vbt_share_per_bucket=self.config.vbt_share_per_bucket,
+            dealer_share_per_bucket=self.config.dealer_share_per_bucket,
+            rollover_enabled=self.config.rollover_enabled,
             detailed_dealer_logging=self.config.detailed_logging,  # Plan 022
         )
 
@@ -221,7 +240,7 @@ class BalancedComparisonRunner:
         """Get or create active runner (with dealer trading)."""
         dealer_config = {
             "ticket_size": int(self.config.face_value),
-            "dealer_share": str(Decimal("0")),  # Dealers already have inventory
+            "dealer_share": str(Decimal("0")),  # Dealers already have inventory from scenario
             "vbt_share": str(self.config.vbt_share),
         }
 
@@ -237,11 +256,14 @@ class BalancedComparisonRunner:
             default_handling=self.config.default_handling,
             dealer_enabled=True,  # Dealer trading enabled
             dealer_config=dealer_config,
-            # Pass balanced mode config
+            # Pass balanced mode config (Plan 024)
             balanced_mode=True,
             face_value=self.config.face_value,
             outside_mid_ratio=outside_mid_ratio,
-            big_entity_share=self.config.big_entity_share,
+            big_entity_share=self.config.big_entity_share,  # DEPRECATED
+            vbt_share_per_bucket=self.config.vbt_share_per_bucket,
+            dealer_share_per_bucket=self.config.dealer_share_per_bucket,
+            rollover_enabled=self.config.rollover_enabled,
             detailed_dealer_logging=self.config.detailed_logging,  # Plan 022
         )
 
@@ -343,7 +365,9 @@ class BalancedComparisonRunner:
             seed=seed,
             face_value=self.config.face_value,
             outside_mid_ratio=outside_mid_ratio,
-            big_entity_share=self.config.big_entity_share,
+            big_entity_share=self.config.big_entity_share,  # DEPRECATED
+            vbt_share_per_bucket=self.config.vbt_share_per_bucket,
+            dealer_share_per_bucket=self.config.dealer_share_per_bucket,
             delta_passive=passive_result.delta_total,
             phi_passive=passive_result.phi_total,
             passive_run_id=passive_result.run_id,
@@ -445,7 +469,10 @@ class BalancedComparisonRunner:
                 "Q_total": str(self.config.Q_total),
                 "base_seed": self.config.base_seed,
                 "face_value": str(self.config.face_value),
-                "big_entity_share": str(self.config.big_entity_share),
+                "big_entity_share": str(self.config.big_entity_share),  # DEPRECATED
+                "vbt_share_per_bucket": str(self.config.vbt_share_per_bucket),
+                "dealer_share_per_bucket": str(self.config.dealer_share_per_bucket),
+                "rollover_enabled": self.config.rollover_enabled,
                 "kappas": [str(k) for k in self.config.kappas],
                 "concentrations": [str(c) for c in self.config.concentrations],
                 "mus": [str(m) for m in self.config.mus],

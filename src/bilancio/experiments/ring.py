@@ -239,7 +239,10 @@ class RingSweepRunner:
         balanced_mode: bool = False,
         face_value: Optional[Decimal] = None,
         outside_mid_ratio: Optional[Decimal] = None,
-        big_entity_share: Optional[Decimal] = None,
+        big_entity_share: Optional[Decimal] = None,  # DEPRECATED
+        vbt_share_per_bucket: Optional[Decimal] = None,
+        dealer_share_per_bucket: Optional[Decimal] = None,
+        rollover_enabled: bool = True,
         detailed_dealer_logging: bool = False,  # Plan 022
     ) -> None:
         self.base_dir = out_dir
@@ -259,7 +262,10 @@ class RingSweepRunner:
         self.balanced_mode = balanced_mode
         self.face_value = face_value or Decimal("20")
         self.outside_mid_ratio = outside_mid_ratio or Decimal("0.75")
-        self.big_entity_share = big_entity_share or Decimal("0.25")
+        self.big_entity_share = big_entity_share or Decimal("0.25")  # DEPRECATED
+        self.vbt_share_per_bucket = vbt_share_per_bucket or Decimal("0.25")
+        self.dealer_share_per_bucket = dealer_share_per_bucket or Decimal("0.125")
+        self.rollover_enabled = rollover_enabled
         self.detailed_dealer_logging = detailed_dealer_logging  # Plan 022
         self.registry_rows: List[Dict[str, Any]] = []
 
@@ -522,14 +528,17 @@ class RingSweepRunner:
         generator_config = RingExplorerGeneratorConfig.model_validate(generator_data)
 
         if self.balanced_mode:
-            # Use balanced generator for C vs D comparison scenarios
+            # Use balanced generator for C vs D comparison scenarios (Plan 024)
             from bilancio.scenarios.generators.ring_explorer import compile_ring_explorer_balanced
             scenario = compile_ring_explorer_balanced(
                 generator_config,
                 face_value=self.face_value,
                 outside_mid_ratio=self.outside_mid_ratio,
-                big_entity_share=self.big_entity_share,
+                big_entity_share=self.big_entity_share,  # DEPRECATED
+                vbt_share_per_bucket=self.vbt_share_per_bucket,
+                dealer_share_per_bucket=self.dealer_share_per_bucket,
                 mode="active" if self.dealer_enabled else "passive",
+                rollover_enabled=self.rollover_enabled,
                 source_path=None,
             )
         else:

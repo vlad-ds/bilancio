@@ -356,30 +356,38 @@ def initialize_balanced_dealer_subsystem(
     dealer_config: DealerRingConfig,
     face_value: Decimal = Decimal("20"),
     outside_mid_ratio: Decimal = Decimal("0.75"),
-    big_entity_share: Decimal = Decimal("0.25"),
+    big_entity_share: Decimal = Decimal("0.25"),  # DEPRECATED
+    vbt_share_per_bucket: Decimal = Decimal("0.25"),
+    dealer_share_per_bucket: Decimal = Decimal("0.125"),
     mode: str = "active",
     current_day: int = 0
 ) -> DealerSubsystem:
     """
     Initialize dealer subsystem for balanced scenarios (C vs D comparison).
 
-    Unlike standard initialization where dealers start empty:
-    - Big entities (dealers) START with securities (claims on traders)
-    - Big entities have cash = market value of their securities (balanced position)
-    - For mode="passive": trading is disabled (big entities just hold)
+    Per PDF specification (Plan 024):
+    - VBT agents START with 25% of claims per maturity bucket + matching cash
+    - Dealer agents START with 12.5% of claims per maturity bucket + matching cash
+    - For mode="passive": trading is disabled (entities just hold)
     - For mode="active": trading is enabled as normal
 
-    Key differences from initialize_dealer_subsystem():
-    1. Big entities have initial inventory based on payables held
-    2. Cash is pre-calculated to match market value
-    3. Passive mode flag controls whether trading occurs
+    The scenario generator (compile_ring_explorer_balanced) creates payables to:
+    - vbt_short, vbt_mid, vbt_long agents
+    - dealer_short, dealer_mid, dealer_long agents
+
+    This function:
+    1. Converts those payables to tickets
+    2. Assigns tickets to VBT/Dealer inventory based on who holds them
+    3. Sets up proper cash balances (already minted in scenario)
 
     Args:
         system: Main System instance with agents and contracts
         dealer_config: Configuration for dealer subsystem
         face_value: Face value S (cashflow at maturity)
         outside_mid_ratio: M/S ratio (outside mid as fraction of face)
-        big_entity_share: Fraction of debt held by big entities (for reference)
+        big_entity_share: DEPRECATED - use vbt_share_per_bucket and dealer_share_per_bucket
+        vbt_share_per_bucket: VBT holds 25% of claims per maturity bucket
+        dealer_share_per_bucket: Dealer holds 12.5% of claims per maturity bucket
         mode: "passive" (no trading) or "active" (trading enabled)
         current_day: Current simulation day
 
@@ -399,7 +407,7 @@ def initialize_balanced_dealer_subsystem(
         enabled=(mode == "active"),  # Disable trading for passive mode
     )
 
-    # Step 0: Create dealer/VBT agents in main system (same as standard init)
+    # Step 0: Ensure dealer/VBT agents exist in main system
     for bucket_config in dealer_config.buckets:
         bucket_id = bucket_config.name
         dealer_agent_id = f"dealer_{bucket_id}"
@@ -422,9 +430,10 @@ def initialize_balanced_dealer_subsystem(
     # Initialize trade executor
     subsystem.executor = TradeExecutor(subsystem.params, subsystem.rng)
 
-    # Step 1: Convert Payables to Tickets and identify big entity holdings
+    # Step 1: Convert Payables to Tickets and categorize by holder
     serial_counter = 0
-    big_entity_tickets: Dict[str, List[Ticket]] = {bc.name: [] for bc in dealer_config.buckets}
+    vbt_tickets: Dict[str, List[Ticket]] = {bc.name: [] for bc in dealer_config.buckets}
+    dealer_tickets: Dict[str, List[Ticket]] = {bc.name: [] for bc in dealer_config.buckets}
     trader_tickets: Dict[str, List[Ticket]] = {}
 
     for contract_id, contract in system.state.contracts.items():
@@ -452,58 +461,49 @@ def initialize_balanced_dealer_subsystem(
         subsystem.ticket_to_payable[ticket_id] = contract_id
         subsystem.payable_to_ticket[contract_id] = ticket_id
 
-        # Check if this ticket is held by a big entity
+        # Categorize by holder
         owner = ticket.owner_id
-        if owner.startswith("big_"):
-            # Map big_short -> short, etc.
+        if owner.startswith("vbt_"):
+            # VBT holds this ticket - extract bucket from agent id (vbt_short -> short)
+            bucket_name = owner.replace("vbt_", "")
+            if bucket_name in vbt_tickets:
+                vbt_tickets[bucket_name].append(ticket)
+        elif owner.startswith("dealer_"):
+            # Dealer holds this ticket
+            bucket_name = owner.replace("dealer_", "")
+            if bucket_name in dealer_tickets:
+                dealer_tickets[bucket_name].append(ticket)
+        elif owner.startswith("big_"):
+            # DEPRECATED: old big_ entities - assign to dealer
             bucket_name = owner.replace("big_", "")
-            if bucket_name in big_entity_tickets:
-                big_entity_tickets[bucket_name].append(ticket)
+            if bucket_name in dealer_tickets:
+                dealer_tickets[bucket_name].append(ticket)
         else:
+            # Regular trader holds this ticket
             if owner not in trader_tickets:
                 trader_tickets[owner] = []
             trader_tickets[owner].append(ticket)
 
-    # Step 2: Calculate total system cash (excluding big entities)
-    total_system_cash = Decimal(0)
-    for agent_id, agent in system.state.agents.items():
-        if agent.kind in ("dealer", "vbt") or agent_id.startswith("big_"):
-            continue
-        total_system_cash += _get_agent_cash(system, agent_id)
-
-    # Step 3: Initialize market makers with pre-existing inventory
-    num_buckets = len(subsystem.bucket_configs)
-
+    # Step 2: Initialize VBT and Dealer states per bucket
     for bucket_config in subsystem.bucket_configs:
         bucket_id = bucket_config.name
 
-        # Get the tickets held by big entity for this bucket
-        bucket_tickets = big_entity_tickets.get(bucket_id, [])
+        # Get VBT's tickets for this bucket
+        vbt_bucket_tickets = vbt_tickets.get(bucket_id, [])
+        vbt_face_value = sum(t.face for t in vbt_bucket_tickets)
 
-        # Calculate market value of big entity holdings
-        big_entity_face_value = sum(t.face for t in bucket_tickets)
-        big_entity_market_value = big_entity_face_value * outside_mid_ratio
+        # Get Dealer's tickets for this bucket
+        dealer_bucket_tickets = dealer_tickets.get(bucket_id, [])
+        dealer_face_value = sum(t.face for t in dealer_bucket_tickets)
 
-        # Dealer gets the tickets and matching cash
-        # Note: In balanced mode, dealer starts WITH inventory
-        dealer = DealerState(
-            bucket_id=bucket_id,
-            agent_id=f"dealer_{bucket_id}",
-            inventory=list(bucket_tickets),  # Pre-populated with big entity holdings!
-            cash=big_entity_market_value,     # Cash = market value (balanced)
-        )
-        subsystem.dealers[bucket_id] = dealer
+        # Get cash for VBT and Dealer from main system
+        vbt_cash = _get_agent_cash(system, f"vbt_{bucket_id}")
+        dealer_cash = _get_agent_cash(system, f"dealer_{bucket_id}")
 
-        # Update ticket ownership to dealer
-        for ticket in bucket_tickets:
-            ticket.owner_id = f"dealer_{bucket_id}"
-
-        # VBT with anchors based on outside_mid
-        M = outside_mid  # Use calculated outside mid
+        # Create VBT state WITH inventory
+        # VBT anchors based on outside_mid
+        M = outside_mid
         O = Decimal("0.30")  # Default spread
-
-        # VBT gets some capital but no inventory
-        vbt_capital = (total_system_cash * dealer_config.vbt_share) / num_buckets
 
         vbt = VBTState(
             bucket_id=bucket_id,
@@ -513,25 +513,35 @@ def initialize_balanced_dealer_subsystem(
             phi_M=dealer_config.phi_M,
             phi_O=dealer_config.phi_O,
             clip_nonneg_B=dealer_config.clip_nonneg_B,
-            inventory=[],
-            cash=vbt_capital,
+            inventory=list(vbt_bucket_tickets),  # VBT starts WITH inventory!
+            cash=vbt_cash,
         )
         vbt.recompute_quotes()
         subsystem.vbts[bucket_id] = vbt
 
+        # Create Dealer state WITH inventory
+        dealer = DealerState(
+            bucket_id=bucket_id,
+            agent_id=f"dealer_{bucket_id}",
+            inventory=list(dealer_bucket_tickets),  # Dealer starts WITH inventory!
+            cash=dealer_cash,
+        )
+        subsystem.dealers[bucket_id] = dealer
+
         # Compute dealer quotes
         recompute_dealer_state(dealer, vbt, subsystem.params)
 
-        # Capture initial equity
+        # Capture initial equity (dealer cash + VBT mid × dealer inventory × S)
         initial_equity = dealer.cash + vbt.M * dealer.a * subsystem.params.S
         subsystem.metrics.initial_equity_by_bucket[bucket_id] = initial_equity
 
-    # Step 4: Initialize traders (same as standard init)
+    # Step 3: Initialize traders (regular household agents)
     for agent_id, agent in system.state.agents.items():
         if agent.kind != "household":
             continue
-        if agent_id.startswith("big_"):
-            continue  # Skip big entity agents
+        # Skip VBT/Dealer/big entity agents
+        if agent_id.startswith("vbt_") or agent_id.startswith("dealer_") or agent_id.startswith("big_"):
+            continue
 
         trader_cash = _get_agent_cash(system, agent_id)
 
@@ -543,27 +553,33 @@ def initialize_balanced_dealer_subsystem(
             asset_issuer_id=None,
         )
 
-        # Link trader to their tickets
+        # Link trader to their tickets (tickets they own as assets)
         for ticket in subsystem.tickets.values():
             if ticket.owner_id == agent_id:
                 trader.tickets_owned.append(ticket)
                 if trader.asset_issuer_id is None:
                     trader.asset_issuer_id = ticket.issuer_id
 
+            # Tickets where trader is the debtor
             if ticket.issuer_id == agent_id:
                 trader.obligations.append(ticket)
 
         subsystem.traders[agent_id] = trader
 
-    # Step 5: Capture initial debt-to-money ratio
+    # Step 4: Capture initial debt-to-money ratio
     total_debt = Decimal(0)
     for contract in system.state.contracts.values():
         if isinstance(contract, Payable):
             total_debt += Decimal(contract.amount)
 
+    # Total money held by traders only (not VBT/Dealer)
     total_money = Decimal(0)
     for agent_id_iter, agent in system.state.agents.items():
-        if agent.kind not in ("dealer", "vbt") and not agent_id_iter.startswith("big_"):
+        if agent.kind == "household" and not (
+            agent_id_iter.startswith("vbt_") or
+            agent_id_iter.startswith("dealer_") or
+            agent_id_iter.startswith("big_")
+        ):
             total_money += _get_agent_cash(system, agent_id_iter)
 
     subsystem.metrics.initial_total_debt = total_debt

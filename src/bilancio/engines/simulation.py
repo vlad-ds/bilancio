@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Any, Protocol
 
 from bilancio.engines.clearing import settle_intraday_nets
-from bilancio.engines.settlement import settle_due
+from bilancio.engines.settlement import settle_due, rollover_settled_payables
 
 
 IMPACT_EVENTS = {
@@ -136,8 +136,11 @@ def run_day(system, enable_dealer: bool = False):
     Args:
         system: System instance to run the day for
         enable_dealer: If True, run dealer trading phase between scheduled actions and settlements
+
+    Note: Rollover is controlled by system.state.rollover_enabled (Plan 024)
     """
     current_day = system.state.day
+    rollover_enabled = getattr(system.state, 'rollover_enabled', False)
 
     # Phase A: Log PhaseA event (reserved)
     system.log("PhaseA")
@@ -174,7 +177,12 @@ def run_day(system, enable_dealer: bool = False):
 
     # B2: Automated settlements due today
     system.log("SubphaseB2")
-    settle_due(system, current_day)
+    settled_for_rollover = settle_due(system, current_day, rollover_enabled=rollover_enabled)
+
+    # Plan 024: Rollover - create new payables for settled ones
+    if rollover_enabled and settled_for_rollover:
+        system.log("SubphaseB_Rollover")
+        rollover_settled_payables(system, current_day, settled_for_rollover)
 
     # Phase C: Clear intraday nets for the current day
     system.log("PhaseC")  # optional: helps timeline
@@ -195,10 +203,13 @@ def run_until_stable(system, max_days: int = 365, quiet_days: int = 2, enable_de
         max_days: Maximum number of days to run
         quiet_days: Number of consecutive quiet days needed for stability
         enable_dealer: If True, run dealer trading phase each day
+
+    Note: Rollover is controlled by system.state.rollover_enabled (Plan 024)
     """
     reports = []
     consecutive_quiet = 0
     start_day = system.state.day
+    rollover_enabled = getattr(system.state, 'rollover_enabled', False)
 
     for _ in range(max_days):
         day_before = system.state.day
@@ -211,7 +222,13 @@ def run_until_stable(system, max_days: int = 365, quiet_days: int = 2, enable_de
         else:
             consecutive_quiet = 0
 
-        if consecutive_quiet >= quiet_days and not _has_open_obligations(system):
+        # With rollover enabled, we can never have no open obligations - always have debt rolling
+        # So we only check for stability without obligations when rollover is disabled
+        stability_condition = consecutive_quiet >= quiet_days
+        if not rollover_enabled:
+            stability_condition = stability_condition and not _has_open_obligations(system)
+
+        if stability_condition:
             break
 
     return reports

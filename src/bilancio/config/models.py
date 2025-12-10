@@ -219,14 +219,18 @@ class CreatePayable(BaseModel):
         None,
         description="Optional alias to reference the created payable later"
     )
-    
+    maturity_distance: Optional[int] = Field(
+        None,
+        description="Original maturity distance (ΔT) for rollover. If not set, defaults to due_day."
+    )
+
     @field_validator("amount")
     @classmethod
     def amount_positive(cls, v):
         if v <= 0:
             raise ValueError("Amount must be positive")
         return v
-    
+
     @field_validator("due_day")
     @classmethod
     def due_day_non_negative(cls, v):
@@ -325,6 +329,10 @@ class RunConfig(BaseModel):
     default_handling: Literal["fail-fast", "expel-agent"] = Field(
         "fail-fast",
         description="How the engine reacts when an agent defaults"
+    )
+    rollover_enabled: bool = Field(
+        False,
+        description="Enable continuous rollover of settled payables (Plan 024)"
     )
     show: ShowConfig = Field(default_factory=ShowConfig)
     export: ExportConfig = Field(default_factory=ExportConfig)
@@ -487,8 +495,13 @@ class BalancedDealerConfig(BaseModel):
     Key concepts:
     - face_value (S): Cashflow at maturity, default 20
     - outside_mid_ratio (ρ): M/S ratio where M is the outside mid price
-    - big_entity_share (β): Fraction of trader debt allocated to big entities
+    - vbt_share_per_bucket: VBT holds 25% of claims per maturity bucket
+    - dealer_share_per_bucket: Dealer holds 12.5% of claims per maturity bucket
     - mode: "passive" for mimics (C), "active" for dealers (D)
+
+    Per PDF specification (Plan 024):
+    - VBT-like passive holder: ~25% of total claims per maturity + equal cash
+    - Dealer-like passive holder: ~12.5% of total claims per maturity + equal cash
     """
 
     enabled: bool = Field(default=False, description="Whether balanced mode is active")
@@ -502,7 +515,19 @@ class BalancedDealerConfig(BaseModel):
     )
     big_entity_share: Decimal = Field(
         default=Decimal("0.25"),
-        description="Fraction of trader debt allocated to big entities (β)"
+        description="Fraction of trader debt allocated to big entities (β) - DEPRECATED, use vbt/dealer shares"
+    )
+    vbt_share_per_bucket: Decimal = Field(
+        default=Decimal("0.25"),
+        description="VBT holds 25% of claims per maturity bucket"
+    )
+    dealer_share_per_bucket: Decimal = Field(
+        default=Decimal("0.125"),
+        description="Dealer holds 12.5% of claims per maturity bucket"
+    )
+    rollover_enabled: bool = Field(
+        default=True,
+        description="Enable continuous rollover of matured claims"
     )
     mode: Literal["passive", "active"] = Field(
         default="active",
@@ -528,6 +553,20 @@ class BalancedDealerConfig(BaseModel):
     def big_entity_share_valid(cls, v):
         if not (Decimal("0") < v < Decimal("1")):
             raise ValueError("big_entity_share must be between 0 and 1 (exclusive)")
+        return v
+
+    @field_validator("vbt_share_per_bucket")
+    @classmethod
+    def vbt_share_valid(cls, v):
+        if not (Decimal("0") < v < Decimal("1")):
+            raise ValueError("vbt_share_per_bucket must be between 0 and 1 (exclusive)")
+        return v
+
+    @field_validator("dealer_share_per_bucket")
+    @classmethod
+    def dealer_share_valid(cls, v):
+        if not (Decimal("0") < v < Decimal("1")):
+            raise ValueError("dealer_share_per_bucket must be between 0 and 1 (exclusive)")
         return v
 
 

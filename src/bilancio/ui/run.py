@@ -113,6 +113,9 @@ def run_scenario(
         )
         sys.exit(1)
     
+    # Plan 024: Enable rollover if configured
+    system.state.rollover_enabled = config.run.rollover_enabled
+
     # Stage scheduled actions into system state (Phase B1 execution by day)
     try:
         if getattr(config, 'scheduled_actions', None):
@@ -545,9 +548,12 @@ def run_until_stable_mode(
                 # Collect day data for HTML export
                 # We want simulation events from the day that was just displayed
                 # show_day_summary was called with day=day_before
-                day_events = [e for e in system.state.events 
+                day_events = [e for e in system.state.events
                              if e.get("day") == day_before and e.get("phase") == "simulation"]
-                is_stable = consecutive_quiet >= quiet_days and not _has_open_obligations(system)
+                # Plan 024: stability check accounts for rollover mode
+                is_stable = consecutive_quiet >= quiet_days
+                if not system.state.rollover_enabled:
+                    is_stable = is_stable and not _has_open_obligations(system)
                 
                 # Capture current balance state for this day
                 day_balances: Dict[str, Any] = {}
@@ -600,8 +606,14 @@ def run_until_stable_mode(
                 consecutive_quiet += 1
             else:
                 consecutive_quiet = 0
-            
-            if consecutive_quiet >= quiet_days and not _has_open_obligations(system):
+
+            # Plan 024: With rollover, we can never have "no open obligations"
+            # because debt continuously rolls over. Check stability based on quiet days only.
+            stability_condition = consecutive_quiet >= quiet_days
+            if not system.state.rollover_enabled:
+                stability_condition = stability_condition and not _has_open_obligations(system)
+
+            if stability_condition:
                 console.print("[green]✓[/green] System reached stable state")
                 break
         
