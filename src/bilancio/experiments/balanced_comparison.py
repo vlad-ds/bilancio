@@ -20,7 +20,7 @@ import time
 from dataclasses import dataclass, field
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence, Set, Tuple
+from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Tuple
 
 from pydantic import BaseModel, Field
 
@@ -414,6 +414,13 @@ class BalancedComparisonRunner:
         logger.info("Balanced comparison sweep complete. Results at: %s", self.aggregate_dir)
         return self.comparison_results
 
+    def _make_progress_callback(self, run_type: str) -> Callable[[int, int], None]:
+        """Create a progress callback that prints day-by-day progress."""
+        def callback(current_day: int, max_days: int) -> None:
+            elapsed = time.time() - self._start_time
+            print(f"    {run_type}: day {current_day}/{max_days} (elapsed: {self._format_time(elapsed)})", flush=True)
+        return callback
+
     def _run_pair(
         self,
         kappa: Decimal,
@@ -431,6 +438,7 @@ class BalancedComparisonRunner:
 
         # Run passive (no trading)
         logger.info("  Running passive (no trading)...")
+        print("  Passive run:", flush=True)
         passive_result = passive_runner._execute_run(
             phase="balanced_passive",
             kappa=kappa,
@@ -438,10 +446,12 @@ class BalancedComparisonRunner:
             mu=mu,
             monotonicity=monotonicity,
             seed=seed,
+            progress_callback=self._make_progress_callback("passive"),
         )
 
         # Run active (with trading)
         logger.info("  Running active (with trading)...")
+        print("  Active run:", flush=True)
         active_result = active_runner._execute_run(
             phase="balanced_active",
             kappa=kappa,
@@ -449,6 +459,7 @@ class BalancedComparisonRunner:
             mu=mu,
             monotonicity=monotonicity,
             seed=seed,
+            progress_callback=self._make_progress_callback("active"),
         )
 
         # Extract dealer metrics from active result

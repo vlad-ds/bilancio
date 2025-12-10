@@ -7,7 +7,7 @@ import uuid
 from dataclasses import dataclass
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
 import random
 
@@ -464,6 +464,7 @@ class RingSweepRunner:
         seed: int,
         *,
         label: Optional[str] = None,
+        progress_callback: Optional[Callable[[int, int], None]] = None,
     ) -> RingRunSummary:
         run_uuid = uuid.uuid4().hex[:12]
         run_id = f"{phase}_{label}_{run_uuid}" if label else f"{phase}_{run_uuid}"
@@ -598,6 +599,7 @@ class RingSweepRunner:
                 detailed_dealer_logging=self.detailed_dealer_logging,  # Plan 022
                 run_id=run_id,  # Plan 022
                 regime=regime,  # Plan 022
+                progress_callback=progress_callback,
             )
         except Exception as exc:
             registry_entry.update({

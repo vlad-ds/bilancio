@@ -1,7 +1,7 @@
 """Orchestration logic for running Bilancio simulations."""
 
 from pathlib import Path
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Callable
 import sys
 
 from rich.console import Console
@@ -59,9 +59,10 @@ def run_scenario(
     detailed_dealer_logging: bool = False,
     run_id: str = "",
     regime: str = "",
+    progress_callback: Optional[Callable[[int, int], None]] = None,
 ) -> None:
     """Run a Bilancio simulation scenario.
-    
+
     Args:
         path: Path to scenario YAML file
         mode: "step" or "until_stable"
@@ -72,6 +73,7 @@ def run_scenario(
         check_invariants: "setup", "daily", or "none"
         export: Dictionary with export paths (balances_csv, events_jsonl)
         html_output: Optional path to export HTML with colored output
+        progress_callback: Optional callback(current_day, max_days) for progress tracking
     """
     # Load configuration
     console.print("[dim]Loading scenario...[/dim]")
@@ -203,7 +205,8 @@ def run_scenario(
             check_invariants=check_invariants,
             scenario_name=config.name,
             t_account=t_account,
-            enable_dealer=enable_dealer
+            enable_dealer=enable_dealer,
+            progress_callback=progress_callback,
         )
     
     # Export results if requested
@@ -472,7 +475,8 @@ def run_until_stable_mode(
     check_invariants: str,
     scenario_name: str,
     t_account: bool = False,
-    enable_dealer: bool = False
+    enable_dealer: bool = False,
+    progress_callback: Optional[Callable[[int, int], None]] = None,
 ) -> List[Dict[str, Any]]:
     """Run simulation until stable state is reached.
 
@@ -485,6 +489,7 @@ def run_until_stable_mode(
         check_invariants: Invariant checking mode
         scenario_name: Name of the scenario for error context
         enable_dealer: If True, run dealer trading phase each day
+        progress_callback: Optional callback(current_day, max_days) for progress tracking
 
     Returns:
         List of day data dictionaries
@@ -505,6 +510,10 @@ def run_until_stable_mode(
             day_before = system.state.day
             run_day(system, enable_dealer=enable_dealer)
             impacted = _impacted_today(system, day_before)
+
+            # Call progress callback if provided
+            if progress_callback:
+                progress_callback(day_before + 1, max_days)
             
             # Create report
             from bilancio.engines.simulation import DayReport

@@ -25,18 +25,24 @@ class QuietStdout:
         # Write everything to log file
         self.log_file.write(text)
         # Only show our progress lines (they start with [ or contain specific keywords)
-        if text.strip() and (
-            text.strip().startswith('[') or
-            text.strip().startswith('Resuming:') or
-            text.strip().startswith('Completed') or
-            text.strip().startswith('Output directory') or
-            text.strip().startswith('Starting') or
-            text.strip().startswith('Total') or
-            text.strip().startswith('Sweep complete') or
-            text.strip().startswith('Results at') or
-            text.strip().startswith('Scenarios') or
-            text.strip().startswith('SWEEP_') or
-            text.strip().startswith('ERROR')
+        s = text.strip()
+        if s and (
+            s.startswith('[') or
+            s.startswith('Resuming:') or
+            s.startswith('Completed') or
+            s.startswith('Output directory') or
+            s.startswith('Starting') or
+            s.startswith('Total') or
+            s.startswith('Sweep complete') or
+            s.startswith('Results at') or
+            s.startswith('Scenarios') or
+            s.startswith('SWEEP_') or
+            s.startswith('ERROR') or
+            # Day-by-day progress within simulations
+            s.startswith('Passive run:') or
+            s.startswith('Active run:') or
+            s.startswith('passive: day') or
+            s.startswith('active: day')
         ):
             self.original_stdout.write(text)
             self.original_stdout.flush()
