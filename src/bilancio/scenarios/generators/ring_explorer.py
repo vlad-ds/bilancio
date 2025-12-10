@@ -194,6 +194,7 @@ def compile_ring_explorer_balanced(
     face_value: Decimal = Decimal("20"),
     outside_mid_ratio: Decimal = Decimal("0.75"),
     big_entity_share: Decimal = Decimal("0.25"),
+    dealer_share: Decimal = Decimal("0.125"),
     mode: str = "active",
     *,
     source_path: Optional[Path] = None,
@@ -259,14 +260,25 @@ def compile_ring_explorer_balanced(
 
     agents = _build_agents(params.n_agents)
 
-    # Add big entity agents (one per bucket: short, mid, long)
+    # Add dealer and VBT agents (separate entities per bucket: short, mid, long)
+    # Dealers get dealer_share of claims, VBTs get (big_entity_share - dealer_share)
     big_entity_buckets = ["short", "mid", "long"]
+    vbt_share = big_entity_share - dealer_share  # Remaining share goes to VBT
+
     for bucket in big_entity_buckets:
-        agent_id = f"big_{bucket}"
+        # Add dealer entity for this bucket
+        dealer_id = f"dealer_{bucket}"
         agents.append({
-            "id": agent_id,
-            "kind": "household",  # Use household for now
-            "name": f"Big Entity ({bucket})",
+            "id": dealer_id,
+            "kind": "household",
+            "name": f"Dealer ({bucket})",
+        })
+        # Add VBT entity for this bucket
+        vbt_id = f"vbt_{bucket}"
+        agents.append({
+            "id": vbt_id,
+            "kind": "household",
+            "name": f"VBT ({bucket})",
         })
 
     initial_actions = []
@@ -285,6 +297,7 @@ def compile_ring_explorer_balanced(
         })
 
     # Create ring payables (scaled amounts - original debt structure preserved)
+    # Include original_maturity_distance for rollover (since created on day 0, distance = due_day)
     for idx, amount in enumerate(scaled_payable_amounts):
         from_agent = f"H{idx + 1}"
         to_agent = f"H{(idx + 1) % params.n_agents + 1}"
@@ -295,47 +308,77 @@ def compile_ring_explorer_balanced(
                 "to": to_agent,
                 "amount": amount,
                 "due_day": due_day,
+                "original_maturity_distance": due_day,  # For rollover
                 "alias": f"P_{from_agent}_{to_agent}",
             }
         })
 
-    # Create additional payables from traders to big entities
-    # These represent the debt held by big entities
+    # Create additional payables from traders to dealer and VBT entities
+    # Dealers get dealer_share, VBTs get vbt_share (= big_entity_share - dealer_share)
     # Distribute across buckets based on maturity
-    outside_mid = outside_mid_ratio * face_value
-    total_big_entity_debt = params.Q_total * big_entity_share
+    total_dealer_debt = params.Q_total * dealer_share
+    total_vbt_debt = params.Q_total * vbt_share
 
-    # Split debt across buckets (for simplicity, equal distribution)
-    debt_per_bucket = total_big_entity_debt / Decimal(len(big_entity_buckets))
+    # Split debt across buckets (equal distribution per bucket type)
+    dealer_debt_per_bucket = total_dealer_debt / Decimal(len(big_entity_buckets))
+    vbt_debt_per_bucket = total_vbt_debt / Decimal(len(big_entity_buckets))
 
-    # Create payables to big entities (spread across traders)
-    debt_per_trader_to_big = total_big_entity_debt / Decimal(params.n_agents)
+    # Create payables to dealer entities (spread across traders)
+    dealer_debt_per_trader = total_dealer_debt / Decimal(params.n_agents)
     for idx in range(params.n_agents):
         from_agent = f"H{idx + 1}"
-        # Assign to bucket based on maturity structure
         bucket_idx = idx % len(big_entity_buckets)
-        to_agent = f"big_{big_entity_buckets[bucket_idx]}"
+        to_agent = f"dealer_{big_entity_buckets[bucket_idx]}"
         due_day = due_days[idx]
         initial_actions.append({
             "create_payable": {
                 "from": from_agent,
                 "to": to_agent,
-                "amount": debt_per_trader_to_big,
+                "amount": dealer_debt_per_trader,
                 "due_day": due_day,
-                "alias": f"P_{from_agent}_{to_agent}_big",
+                "original_maturity_distance": due_day,  # For rollover
+                "alias": f"P_{from_agent}_{to_agent}",
             }
         })
 
-    # Mint cash to big entities (market value of securities = balanced position)
-    # Each big entity gets cash = market value of their securities
-    # Market value = face_value_held × outside_mid_ratio
-    cash_per_bucket = debt_per_bucket * outside_mid_ratio
+    # Create payables to VBT entities (spread across traders)
+    vbt_debt_per_trader = total_vbt_debt / Decimal(params.n_agents)
+    for idx in range(params.n_agents):
+        from_agent = f"H{idx + 1}"
+        bucket_idx = idx % len(big_entity_buckets)
+        to_agent = f"vbt_{big_entity_buckets[bucket_idx]}"
+        due_day = due_days[idx]
+        initial_actions.append({
+            "create_payable": {
+                "from": from_agent,
+                "to": to_agent,
+                "amount": vbt_debt_per_trader,
+                "due_day": due_day,
+                "original_maturity_distance": due_day,  # For rollover
+                "alias": f"P_{from_agent}_{to_agent}",
+            }
+        })
+
+    # Mint cash to dealer entities (market value = face × outside_mid_ratio)
+    dealer_cash_per_bucket = dealer_debt_per_bucket * outside_mid_ratio
     for bucket in big_entity_buckets:
-        agent_id = f"big_{bucket}"
+        agent_id = f"dealer_{bucket}"
         initial_actions.append({
             "mint_cash": {
                 "to": agent_id,
-                "amount": cash_per_bucket,
+                "amount": dealer_cash_per_bucket,
+                "alias": f"LIQ_{agent_id}",
+            }
+        })
+
+    # Mint cash to VBT entities (market value = face × outside_mid_ratio)
+    vbt_cash_per_bucket = vbt_debt_per_bucket * outside_mid_ratio
+    for bucket in big_entity_buckets:
+        agent_id = f"vbt_{bucket}"
+        initial_actions.append({
+            "mint_cash": {
+                "to": agent_id,
+                "amount": vbt_cash_per_bucket,
                 "alias": f"LIQ_{agent_id}",
             }
         })
@@ -371,6 +414,8 @@ def compile_ring_explorer_balanced(
             "face_value": float(face_value),
             "outside_mid_ratio": float(outside_mid_ratio),
             "big_entity_share": float(big_entity_share),
+            "dealer_share": float(dealer_share),
+            "vbt_share": float(vbt_share),
             "mode": mode,
         },
     }

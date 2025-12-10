@@ -122,10 +122,11 @@ class BalancedComparisonConfig(BaseModel):
         default_factory=lambda: [Decimal("1.0"), Decimal("0.9"), Decimal("0.8"), Decimal("0.75"), Decimal("0.5")],
         description="M/S ratios to sweep"
     )
-    big_entity_share: Decimal = Field(default=Decimal("0.25"), description="Fraction of debt held by big entities")
+    big_entity_share: Decimal = Field(default=Decimal("0.375"), description="Fraction of debt held by big entities")
 
     # VBT configuration (for active mode)
-    vbt_share: Decimal = Field(default=Decimal("0.50"), description="VBT capital as fraction of system cash")
+    dealer_share: Decimal = Field(default=Decimal("0.125"), description="Dealer capital as fraction of bucket face value")
+    vbt_share: Decimal = Field(default=Decimal("0.25"), description="VBT capital as fraction of bucket face value")
 
 
 class BalancedComparisonRunner:
@@ -221,7 +222,7 @@ class BalancedComparisonRunner:
         """Get or create active runner (with dealer trading)."""
         dealer_config = {
             "ticket_size": int(self.config.face_value),
-            "dealer_share": str(Decimal("0")),  # Dealers already have inventory
+            "dealer_share": str(self.config.dealer_share),
             "vbt_share": str(self.config.vbt_share),
         }
 

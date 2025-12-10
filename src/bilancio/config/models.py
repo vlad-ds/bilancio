@@ -219,7 +219,11 @@ class CreatePayable(BaseModel):
         None,
         description="Optional alias to reference the created payable later"
     )
-    
+    original_maturity_distance: Optional[int] = Field(
+        None,
+        description="Original maturity distance (days) for rollover. If set, payable will be rolled over upon settlement."
+    )
+
     @field_validator("amount")
     @classmethod
     def amount_positive(cls, v):

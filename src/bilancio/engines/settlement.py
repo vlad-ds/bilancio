@@ -6,6 +6,7 @@ from bilancio.core.atomic_tx import atomic
 from bilancio.core.errors import DefaultError, ValidationError
 from bilancio.ops.banking import client_payment
 from bilancio.ops.aliases import get_alias_for_id
+from bilancio.domain.instruments.credit import Payable
 
 DEFAULT_MODE_FAIL_FAST = "fail-fast"
 DEFAULT_MODE_EXPEL = "expel-agent"
@@ -550,5 +551,33 @@ def settle_due(system, day: int):
                 creditor=creditor.id,
                 amount=payable.amount,
             )
+
+            # Rollover: if original_maturity_distance is set, create new payable
+            if getattr(payable, "original_maturity_distance", None) is not None:
+                new_due_day = day + payable.original_maturity_distance
+                # Use original creditor (asset_holder_id), not the secondary market holder
+                original_creditor_id = payable.asset_holder_id
+                new_payable_id = system.new_contract_id("PAY")
+                new_payable = Payable(
+                    id=new_payable_id,
+                    kind="payable",
+                    amount=payable.amount,
+                    denom=payable.denom,
+                    asset_holder_id=original_creditor_id,  # creditor holds the asset
+                    liability_issuer_id=debtor.id,  # debtor issues the liability
+                    due_day=new_due_day,
+                    original_maturity_distance=payable.original_maturity_distance,
+                )
+                system.add_contract(new_payable)
+                system.log(
+                    "PayableRolledOver",
+                    old_payable_id=payable.id,
+                    new_payable_id=new_payable_id,
+                    debtor=debtor.id,
+                    creditor=original_creditor_id,
+                    amount=payable.amount,
+                    new_due_day=new_due_day,
+                    original_maturity_distance=payable.original_maturity_distance,
+                )
 
     settle_due_delivery_obligations(system, day)

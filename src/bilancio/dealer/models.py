@@ -316,3 +316,41 @@ class TraderState:
             if ticket.maturity_day > after_day
         ]
         return min(future_days) if future_days else None
+
+    def forward_liquidity_gap(self, current_day: int, horizon: int) -> Decimal:
+        """
+        Compute forward-looking liquidity gap over a horizon.
+
+        The liquidity gap is the projected shortfall:
+        gap = (total obligations due within horizon) - (current cash + incoming maturities within horizon)
+
+        A positive gap means the trader will face a shortfall and needs to sell assets.
+
+        Args:
+            current_day: The current simulation day
+            horizon: Number of days to look ahead
+
+        Returns:
+            Projected liquidity gap (positive means shortfall expected)
+        """
+        end_day = current_day + horizon
+
+        # Total obligations coming due within horizon
+        total_obligations = sum(
+            ticket.face
+            for ticket in self.obligations
+            if current_day <= ticket.maturity_day <= end_day
+        )
+
+        # Incoming cash from tickets we own that mature within horizon
+        incoming_maturities = sum(
+            ticket.face
+            for ticket in self.tickets_owned
+            if current_day <= ticket.maturity_day <= end_day
+        )
+
+        # Projected available = current cash + incoming maturities
+        projected_available = self.cash + incoming_maturities
+
+        # Gap = what we owe - what we'll have
+        return total_obligations - projected_available

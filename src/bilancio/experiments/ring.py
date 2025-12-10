@@ -524,11 +524,16 @@ class RingSweepRunner:
         if self.balanced_mode:
             # Use balanced generator for C vs D comparison scenarios
             from bilancio.scenarios.generators.ring_explorer import compile_ring_explorer_balanced
+            # Extract dealer_share from dealer_config if available
+            dealer_share = Decimal("0.125")  # Default
+            if self.dealer_config and "dealer_share" in self.dealer_config:
+                dealer_share = Decimal(str(self.dealer_config["dealer_share"]))
             scenario = compile_ring_explorer_balanced(
                 generator_config,
                 face_value=self.face_value,
                 outside_mid_ratio=self.outside_mid_ratio,
                 big_entity_share=self.big_entity_share,
+                dealer_share=dealer_share,
                 mode="active" if self.dealer_enabled else "passive",
                 source_path=None,
             )

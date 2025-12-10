@@ -119,10 +119,12 @@ class DealerRingConfig:
     # Trader policies
     horizon_H: int = 3  # Min days to liability for investment
     buffer_B: Decimal = Decimal(1)  # Cash buffer for investment eligibility
+    forward_looking_horizon: int = 10  # Horizon for default-avoidance trading (Plan 024)
+    use_forward_looking_trading: bool = True  # Enable forward-looking liquidity gap trading
 
     # Initial allocation (for setup)
-    dealer_share: Decimal = Decimal("0.25")
-    vbt_share: Decimal = Decimal("0.50")
+    dealer_share: Decimal = Decimal("0.125")  # Plan 024: 12.5% dealer share
+    vbt_share: Decimal = Decimal("0.25")  # Plan 024: 25% VBT share
 
     # RNG
     seed: int = 42
@@ -703,10 +705,14 @@ class DealerRingSimulation:
 
     def _compute_sell_eligible(self) -> set[AgentId]:
         """
-        Traders with shortfall > 0 and at least one ticket owned.
+        Traders with projected liquidity shortfall and at least one ticket owned.
 
         Sell eligibility reflects liquidity pressure: traders who face
-        payment obligations today and own tickets they can sell.
+        payment obligations (either today or within forward-looking horizon)
+        and own tickets they can sell.
+
+        If use_forward_looking_trading is enabled (Plan 024), uses forward-looking
+        liquidity gap analysis. Otherwise falls back to same-day shortfall check.
 
         Returns:
             Set of agent IDs eligible to sell
@@ -714,26 +720,38 @@ class DealerRingSimulation:
         References:
             - Section 10.3: Sell eligibility rule
             - Section 11.3: Eligibility computation
+            - Plan 024: Default-avoidance trading
         """
         eligible = set()
         for trader in self.traders.values():
-            has_shortfall = trader.shortfall(self.day) > 0
             has_tickets = len(trader.tickets_owned) > 0
+            if not has_tickets:
+                continue
 
-            if has_shortfall and has_tickets:
+            if self.config.use_forward_looking_trading:
+                # Plan 024: Forward-looking liquidity gap analysis
+                liquidity_gap = trader.forward_liquidity_gap(
+                    self.day, self.config.forward_looking_horizon
+                )
+                has_shortfall = liquidity_gap > 0
+            else:
+                # Original behavior: same-day shortfall only
+                has_shortfall = trader.shortfall(self.day) > 0
+
+            if has_shortfall:
                 eligible.add(trader.agent_id)
 
         return eligible
 
     def _compute_buy_eligible(self) -> set[AgentId]:
         """
-        Traders with horizon >= H and cash > buffer.
+        Traders with no projected shortfall and sufficient cash buffer.
 
         Buy eligibility reflects investment capacity: traders with sufficient
-        cash buffer and distant enough liabilities to invest safely.
+        cash buffer, distant enough liabilities, and no projected shortfall.
 
-        The horizon H is defined as the number of days until the trader's
-        next liability. If no future liabilities exist, horizon is infinite.
+        If use_forward_looking_trading is enabled (Plan 024), traders with
+        any projected liquidity gap are NOT eligible to buy.
 
         Returns:
             Set of agent IDs eligible to buy
@@ -741,11 +759,14 @@ class DealerRingSimulation:
         References:
             - Section 10.4: Buy eligibility rule
             - Section 11.3: Eligibility computation
+            - Plan 024: Default-avoidance trading
         """
         eligible = set()
         for trader in self.traders.values():
             # Check cash buffer
             has_buffer = trader.cash > self.config.buffer_B
+            if not has_buffer:
+                continue
 
             # Check horizon (days to next liability)
             next_liability_day = trader.earliest_liability_day(self.day)
@@ -756,8 +777,18 @@ class DealerRingSimulation:
                 horizon = next_liability_day - self.day
                 has_horizon = horizon >= self.config.horizon_H
 
-            if has_buffer and has_horizon:
-                eligible.add(trader.agent_id)
+            if not has_horizon:
+                continue
+
+            # Plan 024: Don't buy if there's a projected liquidity gap
+            if self.config.use_forward_looking_trading:
+                liquidity_gap = trader.forward_liquidity_gap(
+                    self.day, self.config.forward_looking_horizon
+                )
+                if liquidity_gap > 0:
+                    continue  # Has projected shortfall, don't buy
+
+            eligible.add(trader.agent_id)
 
         return eligible
 
