@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2025-12-10 20:05:42 UTC | Branch: main | Commit: 48183454
+Generated: 2025-12-11 22:37:39 UTC | Branch: main | Commit: c47e85a7
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -2348,6 +2348,7 @@ This document contains the complete codebase structure and content for LLM inges
 │   │   ├── 021_balanced_dealer_comparison.md
 │   │   ├── 022_enhanced_instrumentation.md
 │   │   ├── 023_default_aware_instrumentation.md
+│   │   ├── 024_dealer_simulation_redesign.md
 │   │   └── Kalecki_debt_simulation (1).pdf
 │   ├── prompts
 │   │   ├── 015_expel_sweep_agent_prompt.md
@@ -24166,7516 +24167,7521 @@ This document contains the complete codebase structure and content for LLM inges
 │   │   │           │   └── metrics.html
 │   │   │           ├── run.html
 │   │   │           └── scenario.yaml
-│   │   └── plan023_sweep_20251208
-│   │       ├── active
-│   │       │   └── runs
-│   │       │       ├── balanced_active_01bcdbaff53e
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_029a6407b47b
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_03b04e6053f1
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_049137ad1564
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_04be49f25aa4
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_04f976ae2774
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_0574b3f139e2
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_058a2cfc9c22
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_06d0e2eaa7e7
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_072f344efb14
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_07544a19e9a1
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_07a61ab9abc7
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_08d462a6bd8b
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_09c93a21df78
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_0a26c1dfe103
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_0a399453aa2d
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_0a4e3eef6f4f
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_0aa2e8ef63b7
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_0ad17316fb62
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_0afc08037825
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_0c28b7facd48
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_0c8af724fde4
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_0cb9d742a687
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_0d33ef77f43a
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_0d7e7d017965
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_0d9db2eef42f
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_0db2bf1253d9
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_0de21dcc9f19
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_0ea8a8dee003
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_0eaa24918798
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_0ff9bb266122
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_106d5d7fa173
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_10b1115b990f
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_1132376c68b1
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_1149e9a293d0
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_119f1d131a41
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_11a163a52f2b
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_12ec9a490230
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_138046ca06f5
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_14c3860e6ccd
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_1522149a00fa
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_153b5f2c537a
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_15a033b37e8c
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_15c6be4c282e
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_166c81136995
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_16c027bc37b6
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_17016beef26c
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_1785dc6acd68
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_185e38a78b5a
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_18beb14e6dfb
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_1939de9f90c4
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_19a6bc80dea4
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_1a3f44d436ee
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_1ad4dd3dbf59
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_1b8475270159
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_1bf129819462
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_1c131b9c2309
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_1c8d262472a3
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_1fb2c220fa2e
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_2027d678a8a6
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_209cec27581a
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_21147ebc65a4
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_2132df2bc6dc
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_2141bb29cf32
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_21b918a8d636
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_21d384d4b002
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_228e523b2c50
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_232aefff4806
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_233ba0e1763b
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_23426d383d7d
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_23a96ecd39a8
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_23bfd8574324
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_23d0e79b8f72
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_23eca9e427d8
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_254ee0d5de58
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_25ae6555423f
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_25d2cf9e9ee2
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_26a6f416034c
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_26b9a3689d38
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_26dc6fd22f3e
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_272594dc71c6
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_27e973f6f645
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_27f2472d3f3b
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_27f8d66ebc67
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_282877bda9cb
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_28691b9f0e7b
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_286be0cf015c
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_293c9104a548
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_2948a0d48547
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_297cd8a63e9c
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_29d6b00be78e
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_29d8afcfd4c5
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_2a42402095cc
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_2a922a73bb55
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_2b284f5c319c
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_2b3b8d0a4a66
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_2c09e005503a
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_2c337bc73acb
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_2c8b815dbdad
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_2cfad8eb92e0
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_2db43a37a956
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_2dd9fbdf9830
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_2e17f82f78f4
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_2e4705213ec7
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_2e5a3bec5e6c
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_2e742bd1d282
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_2ef4b7de1093
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_2f0db0274d4b
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_2f2d6efc20dd
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_2f3091c76976
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_2f5607417de7
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_313066401427
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_313ca7a501f9
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_323160019ebd
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_32b34dc21047
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_32ff7884570d
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_334b3a98b17e
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_33ac03661c09
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_33d58d7f9630
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_3448860fa33b
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_34abfc857d0e
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_34dda91ffe36
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_34eea7c346a6
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_357713702635
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_35b8add343ec
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_362c0c1973bf
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_363f5a54f384
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_36d045c74362
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_37666a626433
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_3784c0f4e846
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_3815b89edfb6
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_382c1bb6a4c0
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_3861de21e2b1
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_388a1bab9887
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_38d852aafff2
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_3904cfe13971
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_39469b7f2bfe
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_3996b96d672d
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_39c06cac7aa2
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_39fc0bdeebd2
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_3afe1890a88f
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_3b0552e18d0b
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_3b419d87c7dd
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_3bc37749c1c0
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_3bd220b5f5f4
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_3c9df6fed53f
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_3d12009f5b75
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_3d37af9c8d69
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_3d3c31ab43c8
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_3d7e09920795
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_3d9fd300c9dc
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_3ec4e70b5520
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_3f112ed1c003
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_3fff1e73d047
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_402364c3f1a8
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_410cfe7ef29f
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_4149a4091975
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_43410f41f735
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_43df92ba1a43
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_442eaae7be8c
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_444161c2568e
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_446b507b8e32
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_44a0b646336a
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_4502d3c2a8b9
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_4591892d4df7
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_459f54014b1e
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_46f8485745a2
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_4711d4d6e8bd
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_479b52a04c08
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_47df0d5b8490
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_48015304a8ad
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_483c81bcb418
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_4896ddcfdde5
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_49563c802a46
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_495b5b7c7b01
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_49ab2938456e
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_49b25cd7f997
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_49f82993a4ac
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_4a07a99ac235
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_4a2d0377d17c
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_4a31b1a90194
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_4a32c592641a
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_4a8ec3997ddb
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_4b3c66968ebd
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_4b48e0bb8da6
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_4bd0e3b95a26
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_4c7e1bbc0b70
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_4dd1fe450f08
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_4e47a3afd2a4
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_4ed1e8122220
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_4f70e6b7dc26
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_4fcefa739cf1
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_4ff1e9b74f92
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_4ff385b1c8b6
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_50643b308179
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_50fe89bd5893
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_51146c02f524
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_5128702bb7cc
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_524b1e4741a6
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_527419c1f9ba
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_52a8deb886cd
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_5302a6b4a161
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_544e860ad3e0
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_544eb0617142
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_54535d0f3c12
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_54d69771c899
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_568a8ed711af
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_57f4a940bf1d
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_5846c2530f4e
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_584d23be3835
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_5879f75fc8d9
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_58e73f739e1e
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_5af01499582a
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_5b13fdf4ac70
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_5bdf94bbfca7
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_5c957c8288a6
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_5d028bc5185a
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_5e2d27c21285
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_5eaf77c8f4ac
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_5f138b261778
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_5fbfb18a7f3d
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_5fc52674d993
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_600f02cbed80
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_60122ebc3230
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_601f97f2c9ca
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_602c8ac4408d
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_605157517a33
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_6068270138c9
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_608308e06a65
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_616317ebfba2
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_617d15b3b6d4
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_619768e07fc7
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_619a3ba64276
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_62c666fa205e
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_62eaa311518d
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_62f8238a60fe
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_6320937451f4
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_636b4c28f8ca
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_64238347cddb
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_65309a45d41a
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_655716adfe95
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_65b6d0403c02
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_66f501887bb8
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_67458dcd4046
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_67fea621bbc3
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_680c2c5c4a14
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_683e9f2c9c7a
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_68954c3534dc
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_68a0fdefd347
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_692b257a8f57
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_698304480a33
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_69a435770bf5
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_69b47016b297
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_6a38e57b2a50
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_6a60b7a346fd
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_6ad41730247e
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_6b18de9032de
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_6c3419293827
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_6c55618d5818
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_6c6c4de4b221
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_6c99b2db3618
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_6d0efb6acfc8
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_6d2f715162eb
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_6d37f0bd9dd1
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_6d4a88f1c436
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_6e0948fa6b9b
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_6e8b8aef802d
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_6eaba7464add
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_6f675f23d030
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_6ff59943d40f
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_702b6ed8ff40
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_706c81ff11a8
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_70c0b88ccba4
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_71098cff6f0a
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_713327d6334c
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_7201284af609
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_728a7a209655
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_72ed24407ed4
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_732b075f7e46
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_7331328afc77
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_736ebf9ef2c8
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_73f61ac52d88
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_74cfcbbf78c3
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_74ef586c3417
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_75fdd8499c25
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_75ff99206c97
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_774260a652a5
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_77733a96faa1
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_786f5014c7d0
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_79d987836579
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_79f06127c0c3
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_7a36640a8f72
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_7a79768cf785
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_7aa278e9146e
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_7ac47e37f203
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_7b1d6640efd1
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_7b68fcc8fecd
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_7ba9059fcfd1
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_7c1aae5c94a2
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_7c4a44fe6f1a
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_7cca5b3a80e0
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_7d1a62d94c37
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_7d524c60e743
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_7d593154f70a
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_7d91df51e045
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_7dbc7697c658
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_7ddb039722ef
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_7e661603abcf
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_7ec256b4ef88
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_7f0f25fc444d
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_7f30e92bf40f
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_7f866ff40814
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_7f8fa2e5029e
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_7fb05d9fe7a9
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_7fd172fc96b0
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_7fd2299290c0
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_80cf2277f466
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_815126ddaad0
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_81ac7da48957
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_81f71d13c911
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_829030339a61
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_82f053c900a8
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_83085c6cf5cb
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_83180d680066
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_835f719aeb6f
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_83ed95eb83f0
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_8420d9b49257
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_8432c78c63f6
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_84e498f62eef
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_8559161e2955
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_859b1d02bb2c
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_85fcd54ce687
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_860f14e848e1
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_867bb3f4e6bb
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_86a0220fba98
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_86dbd4309d7a
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_873152eecb37
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_883b52beed95
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_8898f20f2ddc
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_88f3b905f602
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_890e4cdf8813
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_8940a5acc14a
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_89524a22f1ff
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_89e93dd7ec5b
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_8a5aa8a6ffa7
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_8a70708461fe
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_8af4a7cfc902
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_8b76c2cd3399
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_8b96efe499a3
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_8b97836f0e97
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_8bdc354857bb
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_8c0016950ce3
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_8da7b40bf5fe
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_8dc0d27860d4
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_8dc1c786a4e6
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_8e3cdf858923
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_8eda74156194
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_8f88620c45fd
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_8f94fed89a8c
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_8fa0f03ef7e2
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_902afeedb9f5
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_90660ce13b58
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_9118c587a3b0
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_912f62e550f7
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_916ef4ae334c
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_918afc6c43d2
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_926e7458ec7d
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_92c54b0d2c57
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_9352f82dd55a
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_9365d8a12529
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_939bf3f2c889
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_93ebd8119b5e
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_943eabee114a
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_94797e101a76
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_95f07c1c1380
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_96205949cb32
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_9627f695c7cc
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_96b07e03b3bf
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_96c4094569d1
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_97270195465d
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_97275b760915
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_97832e90e97c
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_97ac1a5ea18e
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_9834d2d4d939
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_989cf4796c26
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_98bd1c018b9f
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_994c46598df0
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_99a7c6b3b3a8
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_99f32c9baab3
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_9a3824ea7c1b
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_9abab0e49674
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_9b10e575f559
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_9b93d270eb32
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_9bd0e46969b5
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_9c313b20d9dd
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_9cea155619b6
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_9d01308939ca
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_9d11ae990090
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_9d42d2379c61
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_9d676aefee8f
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_9d7bbb2593e8
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_9f0218261cd7
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_9f59d5748ad8
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_9fc360ff9761
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_9fea3c967e76
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_a01e769e8815
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_a05d92c07397
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_a0b47d747868
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_a0d013c24aae
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_a12192b463c1
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_a161d3f7de61
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_a16b0d2ba07c
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_a16fea527943
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_a257d9d324a2
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_a2cdf8ed23b8
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_a5ca3902bc80
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_a5e72df20f69
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_a614a6e2ab55
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_a643c52f4792
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_a6f3750d4000
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_a76b1b3f6d41
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_a7b65165eff2
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_a7bf6b3e3f69
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_a7e282a9b974
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_a8308b364568
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_a91b27a30e91
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_a97788d1b0f5
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_a9849b93e82f
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_a98798c62863
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_a9f50e270b3d
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_aa22b8f1405e
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_aa5f4ebebb1f
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_ab43712116b6
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_ab4f2f80fed3
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_abe135938b38
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_ac0bb928a686
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_acb8ca325e73
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_ad29f99539f4
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_ad6ddfe40b1b
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_ad8239f49610
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_aefb9b6c9f4d
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_af17060f5dc2
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_af3b97d13b79
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_af7d32ca941a
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_af8663857a21
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_afeab3c0ad58
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_aff583da14aa
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_b166aa886510
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_b188d5e91147
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_b18c5a273ba7
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_b1d85268eb7d
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_b1ebd57b453c
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_b2bd1cf96fd8
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_b347aa4f1714
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_b4dad6417b38
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_b5073e72c810
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_b539ed2b0cdb
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_b5a859052b05
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_b63c66b73b5c
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_b65423251778
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_b6952baefe71
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_b78be3982600
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_b7fa87d97213
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_b85a6c5dfe46
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_b86191f3a062
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_b89fefeef3c8
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_b8b9039369bc
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_b8e70e432a43
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_b96f1a911877
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_b9b239c1f67c
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_bc1d3542dd9c
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_bc3ab76f0080
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_bdb35edf54f4
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_be4d22e2f1fd
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_bf81a5a47967
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_bfb4ed672b20
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_c005329edae3
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_c0401aff5ad1
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_c04dcb43015e
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_c06ad84c8211
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_c1910bf10cdc
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_c1af9b13ea7c
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_c2285c796306
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_c23256444b5f
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_c37a30284d99
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_c3a4128783f6
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_c3a8e4e4c9c3
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_c46834bbe94f
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_c5e714d5aa89
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_c619107e43f9
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_c64ac15f6223
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_c69c973ca870
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_c6def7c1c179
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_c6e356d6cc7c
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_c7b694b86159
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_c8ddb8744e6a
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_c926201dc988
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_c94b253b51e9
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_c9e8a7190e52
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_cb4030437091
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_cb5c161c7d5f
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_cb661e6b2725
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_cc7ee77ffc1f
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_ccd061608fbe
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_cd2777aae08e
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_cd29e736d841
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_cda938cf9225
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_cea4c9290fa1
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_ced09037defe
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_cef6a454c6f0
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_cf27d0091211
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_cfa135a3a0db
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_d01878da6b8b
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_d1d424dd9017
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_d1f3a2b04581
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_d22d1c81a7b5
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_d244d52c23a3
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_d2835f44c1eb
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_d2ba3e7932de
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_d2de2b87c95a
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_d36d861b9051
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_d3cd7ed0942c
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_d4203eb897cc
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_d50901755596
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_d5e0588294b4
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_d5edf9fc81e6
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_d633cd45ef8a
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_d673c3d9f9cd
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_d67efd221121
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_d68a53b53234
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_d6aa1204c059
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_d74f626147cc
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_d750615af8d9
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_d759762a17d1
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_d827c057ca20
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_d907837bb1ae
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_d99f04062690
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_d9a9f282f71c
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_dc1b39099a4d
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_dd9c3d931087
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_de0d015bc257
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_de1c030a6208
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_de638c5bbd7c
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_dedd7fcda513
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_df45f7db5413
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_df6ef7128056
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_dfb307ffba66
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_e014b11a3eff
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_e03a74844e59
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_e04ed25eb77e
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_e140d25a955d
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_e18232a578ab
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_e1879c803e7d
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_e19b185f1ff1
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_e1b090265265
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_e1e213833919
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_e2deffaa5377
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_e39a809706c3
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_e3c1006d2724
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_e3e4e43f8f89
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_e3ff178caeb0
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_e427bd30d511
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_e49b1ccf36be
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_e51af9df5a02
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_e5c3793dd034
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_e5f66530593d
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_e6821c0ceab4
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_e704b691aec9
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_e750f23c5761
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_e7951afe5eae
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_e8965e649bb3
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_e972e184d266
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_e999e25ec582
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_e9d5eba7df29
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_eb2453423dda
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_ebb6d946eb42
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_ec61ec345dba
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_ecb01f90a8dd
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_edbb9da01adc
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_ee08c62ffcf8
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_ee27f74444d3
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_eedad280eeb5
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_eef6b7f598ec
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_efacb720f54d
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_efd4ac19050b
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_efe0b90dd17b
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_f0b2aed1ee76
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_f0bcee2d13d2
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_f0d0d3f74132
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_f0fbb60bf732
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_f12efe26f85a
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_f13fb8f91fcb
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_f280789d62ee
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_f2e010b62d6f
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_f32804a67cf2
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_f341bb1aa78c
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_f43b6f86f21e
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_f47198a83693
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_f4fbaaadd0dc
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_f53492bc0d3e
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_f5aa40da2b8b
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_f5ff172ba9bb
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_f60fed3ccc5c
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_f66d40c39c99
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_f675984bd698
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_f67bd3952c6f
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_f6d876619f3e
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_f79e9b6b63a5
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_f8b45dda7494
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_f8d0343c7f46
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_f8d698abe2ce
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_f93d6913ff76
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_f94e25c668e2
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_f96288cacc39
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_f9cc63d8ed93
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_f9f7063cafa7
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_fa1f5e9f1075
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_fb0fa2ec9beb
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_fbbe9cfb9b0c
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_fbe36399e336
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_fc59c980e699
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_fd30e0fcc3df
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_fd84a78b2e3b
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       ├── balanced_active_fe6cdab1a332
-│   │       │       │   ├── out
-│   │       │       │   │   ├── events.jsonl
-│   │       │       │   │   └── metrics.html
-│   │       │       │   ├── run.html
-│   │       │       │   └── scenario.yaml
-│   │       │       └── balanced_active_ffb483a66a21
-│   │       │           ├── out
-│   │       │           │   ├── events.jsonl
-│   │       │           │   └── metrics.html
-│   │       │           ├── run.html
-│   │       │           └── scenario.yaml
-│   │       ├── aggregate
-│   │       │   ├── comparison.csv
-│   │       │   ├── dealer_usage_by_run.csv
-│   │       │   ├── strategy_outcomes_by_run.csv
-│   │       │   └── strategy_outcomes_overall.csv
-│   │       └── passive
-│   │           └── runs
-│   │               ├── balanced_passive_002e47d74710
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_01995670dd1d
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_01d31044e44f
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_028c6fc6ebd0
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_02ad9aa0b2a9
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_02b9a45adbd0
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_02fae9db1c36
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_035346391acc
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_0460f5967851
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_04ed9226960c
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_04fd54ae870d
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_05eb09a090ff
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_062b7df4ada1
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_06307ae42147
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_063b1c4f4748
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_0681be5eccf5
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_068a18c38243
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_074c5b644549
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_07e23a1c86bf
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_08635536df3f
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_0888ba6a83ec
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_08e5c778dc11
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_08e6a25168b7
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_09793b8c5f87
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_09ed733e3fbb
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_0b4c6130092d
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_0b7cbd285542
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_0c38281cae60
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_0c942d4871dc
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_0d7905953096
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_0ddc082adb0b
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_0de04e4e80f5
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_0df390816790
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_0f8f893ec3e1
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_10885f04f2bc
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_120ae6d54d30
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_132b1bf52f13
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_139c40a8c8f8
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_149781875326
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_149b760fa1c0
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_14f6ee4ec8a1
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_1521965af076
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_15aebecbe60f
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_16403aefda71
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_164b56a5f570
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_16999970da00
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_16d515817577
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_170a2b5798f6
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_1733a94ba145
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_173ab000a343
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_1751a477f859
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_175ece5e0550
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_184e65aa440b
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_188b43cd520c
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_189e6938fcb2
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_18ff1a5af076
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_1946d22ceaa7
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_197027d6f9bf
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_199ee84582a2
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_19c092fff12f
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_19ff565a5b83
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_1a0b78b2cfc9
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_1a1f2eab1fe8
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_1a4d8aba25fa
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_1a9f16311ef2
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_1adca1543792
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_1aeb3cea3232
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_1b8a52b0acda
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_1b8fc30178d2
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_1ba90c77bc00
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_1bd95d5a2f7e
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_1bf9efaed19f
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_1d23b77b764c
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_1d81b176df0f
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_1e107f45ac6c
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_1e6376280f9f
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_1e738141cfe8
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_1e7fda3e0e18
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_1ecff0129119
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_1f174a1f4db7
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_204d63dbe52a
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_20d86f23fd75
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_21514970a8b1
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_217e01fc8c38
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_21d253c3a204
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_225fff2fc8d8
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_227b35b4be90
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_230245349425
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_25190ee4d654
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_25862c7bdd77
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_26b624890c0a
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_26cd56c36650
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_27e7d07eb0d4
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_280288740a7a
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_283fefc4629d
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_28ce87db6427
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_2944c18d9369
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_29cdacc68f30
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_2bc42c08818b
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_2bd2547285ab
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_2c6dec737579
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_2c997351e2d8
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_2ca8f488a3b7
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_2d36be8b9946
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_2edb235b4d21
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_2ef564b252c5
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_2fdf540c6909
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_3023c1669b05
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_3039e33ab762
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_31120d15394e
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_31b795564d95
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_31c974f5d889
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_31dcb6d9d930
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_324e11e07e6b
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_3271933c8ed4
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_327c66cce727
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_3291c7dfed0b
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_330a0fc115c0
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_33ad99ea98c4
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_33dd96b2997e
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_33faf9157288
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_3522af727209
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_353ff1294693
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_3610e7449e44
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_3613b8561b50
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_364c1cb3fbba
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_37444b2cd03c
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_375b4e79bb06
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_378f167e5afb
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_37e00b71ea80
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_3846b6b7671b
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_385d89d9a38c
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_38fdbf47f249
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_3923fdf61b24
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_3a06a5b68780
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_3ae5916b2e9e
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_3b6854fdaaa4
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_3b89501dac3f
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_3bffbe031c84
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_3c4b36e34f15
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_3d237ec3e149
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_3d2a5e2baabc
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_3e5271f22c51
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_3e6e98a02be2
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_3e7213654744
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_3eaf64861d02
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_3ecb4b039d8e
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_3fdbd87bba53
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_406d4875fdb8
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_4105f9ffe052
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_417f1e2578ac
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_420981cad02c
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_427db0ee18c0
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_42b0f114fba3
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_4324a47d5c52
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_434ea04f2b5e
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_4430ea45da36
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_4482cbdc425c
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_4548eb4762e3
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_45511e26dd25
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_45cbf41a9bc8
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_45f98b1d8623
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_4666a706f551
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_4694f99441c4
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_46954d46b5ae
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_477ff7895dc9
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_47b54cc81813
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_4839739224c3
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_484a2fa92695
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_4891711742e5
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_48950b9dbebd
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_4895d6612c61
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_4948a738a9dd
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_49836588502b
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_4a55bbd2c69c
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_4a738833672c
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_4b9d10e19b42
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_4bcf66f243c2
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_4c7801502bc0
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_4c7956512772
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_4d7092623938
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_4d7cd1e385ae
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_4daeb4a76357
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_4dc772ce351c
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_4dde66e2f495
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_4eb143bcc8e9
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_5137a5779b27
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_519c019dc3a4
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_52289c498990
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_5246e0c666b8
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_525471ad1a33
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_52e5078f898b
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_52e5e819098f
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_546472d83ec2
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_556d26e0fe44
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_55d40fe92854
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_55d6cd8772c1
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_55da70d9d852
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_582fb30b8c56
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_5842c16b7057
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_584e0f00405a
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_58b537294faf
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_58c2bf8214fc
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_58c4c8157774
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_5948f790953f
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_59c016b34315
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_59f97ea5e2d4
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_5a12417cb8af
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_5a65e01e0070
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_5abe4f0c5bc4
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_5b93c23727a5
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_5c350b6ba588
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_5c92089fed2c
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_5d1a3386a5f6
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_5d62a82e56f2
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_5dd91100e968
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_5e98848c0a9f
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_5fb76f9589ab
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_6072267060bf
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_60796e8106ac
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_60b4f7df5e95
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_616004f91ea4
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_61b95a1753d8
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_62ae8db19fbb
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_62c156f0c64f
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_6306f4b72c5c
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_633786c685cb
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_636e6c168d36
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_63d9a178bf5e
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_64c5ab2e78d3
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_64dcdab4a1ab
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_64f9ac66b3c7
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_65598c29e72d
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_65ec37577f0d
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_6605e3dfa022
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_6703f968e315
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_678c57f8ffdf
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_67d81c32caed
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_683382892736
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_69112dc2dfd6
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_699d21fd7474
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_6a33dbbbdd1c
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_6aa1f154c86c
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_6b77a60da183
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_6bcbc482eca0
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_6c35cd6bbc14
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_6c70e6fc13bd
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_6cf4ee8e18df
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_6d03aa2db73f
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_6d3af32dd678
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_6d5eaa466633
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_6de3b960ee5b
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_6e3f20457c2a
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_6ec16bee02da
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_6ed4bfdb6017
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_6efbcf16675e
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_6f6b5dd4bd8f
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_6f86a9b0e5a1
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_6fcfc9f3e597
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_6ff117d32f43
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_701c1e318e06
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_70acb7223401
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_70b078d38ffd
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_71265df46bff
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_713d7cf039d6
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_7276cc09b02f
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_72a9788769a0
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_72e781d73c00
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_7315d7536fa4
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_7378ca3f7be0
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_738055cda457
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_742e0628bd49
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_743abdaea1d5
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_74499f1523d6
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_7449fc690319
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_75337d650416
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_76d25cc1ae49
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_770de51ba500
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_7731c8f3c524
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_7746fe395080
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_77d018eaffa7
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_784534737027
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_785330ccc14e
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_786536c07f85
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_79e2cdab8b7c
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_7a71c35c6064
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_7b1f29b27edb
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_7b27adec98b0
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_7b32b31eaf66
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_7bbe0b4b1b5f
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_7bff7e22c154
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_7c3d1e842905
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_7ca09181f390
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_7cef89f43dd1
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_7d0376b24d67
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_7d4038062662
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_7d47230ba9d0
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_7d9adcd6bd60
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_7e426ab9c149
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_7f32145d6692
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_80610f66d856
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_817299c603f8
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_819e38ec7a4f
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_81df330b6bd7
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_825dc3c972d8
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_831bf2cf2ea2
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_83fcea8038bc
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_840e42d7c2e2
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_84446da93692
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_8474dfddf8f0
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_849e2a069dc3
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_84d07bbf67b5
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_85d1abe09ec5
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_86e2c5e4b6fc
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_8707e3fcc82f
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_870a4fa75956
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_872a13ee4369
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_87592e7ebd6e
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_87a1ff3ed959
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_87c7e3560c10
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_8855e356f92f
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_88e85c2e1f48
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_898171d1eaea
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_8a86d3b28b23
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_8a8a0eacf69a
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_8a907d1f3b9b
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_8a9e083acb00
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_8b8370529095
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_8bdd56e28f4d
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_8c7b1953a2b4
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_8d67646708a2
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_8da0a06df7a1
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_8e021617a882
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_8ed092de3d92
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_8eef0b55be52
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_8f650aa0944c
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_8f8100b2e3ae
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_8fc186bd3a55
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_90406dee6730
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_909525fe964a
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_9095ad7a63d3
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_90b4a1f501aa
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_90ffd91bdced
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_91612cb180f7
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_91952c9fbda1
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_91ce465025e9
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_91f3f8aa7d6d
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_9214caebfdfb
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_92a379a60d0b
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_9337378b7e4e
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_936b6c52ed77
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_93e756e7ce8c
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_9415ae62972f
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_94d5ef2402e6
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_955370d97c13
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_956cb0326580
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_96428fe9de92
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_96565567745a
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_979b208fa30e
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_985825ee3039
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_9864fe2ca67a
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_986fae4ced89
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_988867565e98
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_988b86ab2ced
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_98bb26e79fb0
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_98e8168a536a
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_99295a5d4e68
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_996a93d0e6df
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_99f6c5778794
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_9a27f093f6aa
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_9a9bcfcb91b8
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_9abda58920d3
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_9ad188f1114f
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_9b07da6ff1e2
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_9b0a0bba2b8b
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_9b62e6613de0
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_9c2f3c707480
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_9d50ac61d9fa
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_9d561adb4073
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_9da502a70468
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_9db2a9273612
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_9e1274106f5e
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_9e5a55ef8085
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_9e8f360c3b33
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_9ea33a886266
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_9ec42878edb5
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_9ed58a777829
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_9f17de548b2a
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_9f24a03959a3
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_9f2c78bcc8fa
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_9f6e4f6ddc73
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_9f936d18646c
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_9ff153ff6e4a
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_9ffdf8d20976
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_a0e413be21a4
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_a12f8b94fd16
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_a26a1b898935
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_a26cfa68a7bb
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_a28903aa0d19
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_a2df14b09be1
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_a334ab736be6
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_a3ca3ddf1d3c
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_a402f29a35b4
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_a47d6ecee708
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_a4803e0945e3
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_a48d92dbb069
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_a4c94d012c12
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_a5291a6cace8
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_a56575555668
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_a66eaf8d1442
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_a7870c83ea1e
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_a7aa7d405a3c
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_a81206e4f214
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_a86da74ad836
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_a8a09a7ca238
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_a8bc5c4728e4
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_a905714e2707
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_a91ee24098a2
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_a98ec32e89a0
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_aaaf61e50ec7
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_ab3dc6399708
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_abb8fccdbe4e
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_ac35d624b3be
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_ac666c55ccd6
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_acbfb43cd23a
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_ad87fce74552
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_adc48cf20691
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_add71778fdee
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_addceb5051f1
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_ae264e795f63
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_ae7fd57f17f3
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_b00fe79c72e6
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_b16f27278c22
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_b25d27c93756
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_b2cb5a79d00c
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_b38221081731
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_b3aa1af1ac7b
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_b3ceda397e07
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_b486edf37106
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_b49a833914b5
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_b54eb59d9c12
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_b590d91e644f
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_b5a353c7c3fc
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_b5b77144522b
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_b64e5e29af77
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_b66e082d8c27
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_b6b04218e29b
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_b75776b1a3f3
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_b80d1692db83
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_b8d69d72c98d
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_b8e4c3034372
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_b93e5a75d9d9
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_b93eb6ee5ee7
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_b992bae9e737
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_ba4b8245f42b
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_bac73d0cb3fe
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_bad6f2f4bd9f
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_bb181993a1fb
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_bb217596d621
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_bb36cfaa28ca
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_bb4577592fba
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_bb90e84f8b45
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_bce9287a9b25
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_bde51efb2d0e
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_be1f67e7ac47
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_be774f707362
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_beaac8e615b1
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_bee088a78440
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_bef6cca2a28c
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_bf5bce0adf2b
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_bf625ed1615e
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_bfe66328a20e
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c13fce9918a1
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c1fe122cc169
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c221be82f8bb
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c27e289f7774
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c2931c06cbf5
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c2c5903758cb
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c34aa5d9e178
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c3e1e06e4155
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c4ca5167b070
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c4fef2c9c66d
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c53d94d836a6
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c5682010bbe4
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c59a228084a8
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c5a9a3e9db9f
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c6a3a3268b19
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c6cad82ffc45
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c6ddae135787
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c6fc27053587
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c723089fcfbe
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c803a18873e8
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c827263a3824
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c83b5648d192
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c8a8a4240df3
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c9032ce553e1
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c90b4175f39a
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c90b81403673
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c92b0472e109
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c947df21ff7b
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c968e534992d
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c9b193ae0011
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_c9fc92665dae
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_ca5df75056c0
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_ca82e756943b
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_cb0697d0bece
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_cb3e5c015881
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_cbd20ba16ec8
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_cbd23910be6e
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_cd9a40ac867c
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_cdbf163efb55
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_cdcb1cfd668e
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_cddb8e9879a7
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_ce22a89c657b
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_cead242fb2ad
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_ceee630b5232
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_cf8cc2fe14d8
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_d0b55b5f4cf3
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_d0f18df1dff6
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_d1080805dd37
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_d18dbecc058f
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_d1933ba0f0df
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_d2159ddeefe0
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_d26d7ffd1b0c
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_d274275d65e5
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_d3360dba268a
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_d35c0b70c861
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_d3b7e3d0973a
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_d4414536d383
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_d4b3b1937920
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_d4b556f353c8
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_d4e74d7eb13c
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_d51b3c03ed3a
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_d5c7a73e7eb0
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_d7413c324dee
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_d7d5fb52acb3
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_d8cc341bf6a2
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_d8f4e1213799
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_d98e2694a34f
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_d9972a7d3f34
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_d9b161d0900f
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_db787f0bdaa8
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_dc0b3badef59
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_dc62bd7f8a2a
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_dca824bbf2bd
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_dd37c293c180
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_dda3b97ad8d4
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_de111ed845aa
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_de21d0295edb
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_defa6f0d5e83
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_df2585429553
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_df5c6aa3af4b
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_df6b76fb9925
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_e062111f0e81
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_e0815f2ddfab
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_e0aebc408e88
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_e115cc4480d5
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_e12468556e31
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_e17f83097ccf
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_e224b9f5fceb
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_e2560877cfbe
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_e2e438fab032
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_e32889b943d3
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_e41c78f4e673
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_e42e152f6d24
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_e5136a183677
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_e590b5aa73d0
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_e59a79b1026f
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_e749f0d6fcae
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_e80757044aa3
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_e833f2cea693
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_e87cdd872688
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_e9149e6add17
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_e930ccfc289d
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_e9561145f2f1
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_e9c3666eaf11
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_e9f5f5bdb106
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_eac75c206f7b
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_ead5f017e562
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_eb3c32d1f3f7
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_eb6be7428481
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_eb9c41f90999
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_ee0ace73b403
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_eed0cdbdbae9
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_eee9807b818f
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_ef8d7005eaa4
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_efa23eeb90a7
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_f059d9068147
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_f0706710a664
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_f129f9bbfdef
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_f1a1d1e0d0b1
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_f25346cc4189
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_f28df42649e6
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_f29a988386c9
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_f2adc5dbbdd0
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_f2b32714b210
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_f364b0984c50
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_f3877fc01cc7
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_f40d7c8afa91
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_f4931a0db278
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_f4d87ba11b9e
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_f6b5e4731c97
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_f72989265edf
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_f748573f28a1
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_f7d2b5b875b1
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_f7db2accbc79
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_f7e2f7ded8e6
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_f82f60b13fd6
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_f8a5724e4582
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_f8a7b8aee1ed
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_f8fccc7f55cb
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_f914cb2afd0c
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_fa62a6e6e09f
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_fb55d98f1e85
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_fb882e532b62
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_fba1094788ce
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_fc212eb64bf3
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_fd15bec69dbe
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_fd5eb288576d
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_fd86029c4b3c
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_fe36ebe17820
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_fe5eb04fdd9d
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_fe74a44762ae
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               ├── balanced_passive_fee2c77db709
-│   │               │   ├── out
-│   │               │   │   ├── events.jsonl
-│   │               │   │   └── metrics.html
-│   │               │   ├── run.html
-│   │               │   └── scenario.yaml
-│   │               └── balanced_passive_ffbca323e9d5
-│   │                   ├── out
-│   │                   │   ├── events.jsonl
-│   │                   │   └── metrics.html
-│   │                   ├── run.html
-│   │                   └── scenario.yaml
+│   │   ├── plan023_sweep_20251208
+│   │   │   ├── active
+│   │   │   │   └── runs
+│   │   │   │       ├── balanced_active_01bcdbaff53e
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_029a6407b47b
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_03b04e6053f1
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_049137ad1564
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_04be49f25aa4
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_04f976ae2774
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_0574b3f139e2
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_058a2cfc9c22
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_06d0e2eaa7e7
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_072f344efb14
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_07544a19e9a1
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_07a61ab9abc7
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_08d462a6bd8b
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_09c93a21df78
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_0a26c1dfe103
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_0a399453aa2d
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_0a4e3eef6f4f
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_0aa2e8ef63b7
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_0ad17316fb62
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_0afc08037825
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_0c28b7facd48
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_0c8af724fde4
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_0cb9d742a687
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_0d33ef77f43a
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_0d7e7d017965
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_0d9db2eef42f
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_0db2bf1253d9
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_0de21dcc9f19
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_0ea8a8dee003
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_0eaa24918798
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_0ff9bb266122
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_106d5d7fa173
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_10b1115b990f
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_1132376c68b1
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_1149e9a293d0
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_119f1d131a41
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_11a163a52f2b
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_12ec9a490230
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_138046ca06f5
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_14c3860e6ccd
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_1522149a00fa
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_153b5f2c537a
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_15a033b37e8c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_15c6be4c282e
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_166c81136995
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_16c027bc37b6
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_17016beef26c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_1785dc6acd68
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_185e38a78b5a
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_18beb14e6dfb
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_1939de9f90c4
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_19a6bc80dea4
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_1a3f44d436ee
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_1ad4dd3dbf59
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_1b8475270159
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_1bf129819462
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_1c131b9c2309
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_1c8d262472a3
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_1fb2c220fa2e
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_2027d678a8a6
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_209cec27581a
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_21147ebc65a4
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_2132df2bc6dc
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_2141bb29cf32
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_21b918a8d636
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_21d384d4b002
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_228e523b2c50
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_232aefff4806
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_233ba0e1763b
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_23426d383d7d
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_23a96ecd39a8
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_23bfd8574324
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_23d0e79b8f72
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_23eca9e427d8
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_254ee0d5de58
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_25ae6555423f
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_25d2cf9e9ee2
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_26a6f416034c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_26b9a3689d38
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_26dc6fd22f3e
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_272594dc71c6
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_27e973f6f645
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_27f2472d3f3b
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_27f8d66ebc67
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_282877bda9cb
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_28691b9f0e7b
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_286be0cf015c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_293c9104a548
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_2948a0d48547
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_297cd8a63e9c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_29d6b00be78e
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_29d8afcfd4c5
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_2a42402095cc
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_2a922a73bb55
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_2b284f5c319c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_2b3b8d0a4a66
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_2c09e005503a
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_2c337bc73acb
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_2c8b815dbdad
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_2cfad8eb92e0
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_2db43a37a956
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_2dd9fbdf9830
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_2e17f82f78f4
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_2e4705213ec7
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_2e5a3bec5e6c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_2e742bd1d282
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_2ef4b7de1093
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_2f0db0274d4b
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_2f2d6efc20dd
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_2f3091c76976
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_2f5607417de7
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_313066401427
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_313ca7a501f9
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_323160019ebd
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_32b34dc21047
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_32ff7884570d
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_334b3a98b17e
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_33ac03661c09
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_33d58d7f9630
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_3448860fa33b
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_34abfc857d0e
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_34dda91ffe36
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_34eea7c346a6
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_357713702635
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_35b8add343ec
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_362c0c1973bf
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_363f5a54f384
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_36d045c74362
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_37666a626433
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_3784c0f4e846
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_3815b89edfb6
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_382c1bb6a4c0
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_3861de21e2b1
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_388a1bab9887
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_38d852aafff2
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_3904cfe13971
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_39469b7f2bfe
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_3996b96d672d
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_39c06cac7aa2
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_39fc0bdeebd2
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_3afe1890a88f
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_3b0552e18d0b
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_3b419d87c7dd
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_3bc37749c1c0
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_3bd220b5f5f4
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_3c9df6fed53f
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_3d12009f5b75
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_3d37af9c8d69
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_3d3c31ab43c8
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_3d7e09920795
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_3d9fd300c9dc
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_3ec4e70b5520
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_3f112ed1c003
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_3fff1e73d047
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_402364c3f1a8
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_410cfe7ef29f
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_4149a4091975
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_43410f41f735
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_43df92ba1a43
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_442eaae7be8c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_444161c2568e
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_446b507b8e32
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_44a0b646336a
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_4502d3c2a8b9
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_4591892d4df7
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_459f54014b1e
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_46f8485745a2
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_4711d4d6e8bd
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_479b52a04c08
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_47df0d5b8490
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_48015304a8ad
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_483c81bcb418
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_4896ddcfdde5
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_49563c802a46
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_495b5b7c7b01
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_49ab2938456e
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_49b25cd7f997
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_49f82993a4ac
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_4a07a99ac235
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_4a2d0377d17c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_4a31b1a90194
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_4a32c592641a
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_4a8ec3997ddb
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_4b3c66968ebd
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_4b48e0bb8da6
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_4bd0e3b95a26
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_4c7e1bbc0b70
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_4dd1fe450f08
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_4e47a3afd2a4
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_4ed1e8122220
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_4f70e6b7dc26
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_4fcefa739cf1
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_4ff1e9b74f92
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_4ff385b1c8b6
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_50643b308179
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_50fe89bd5893
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_51146c02f524
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_5128702bb7cc
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_524b1e4741a6
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_527419c1f9ba
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_52a8deb886cd
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_5302a6b4a161
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_544e860ad3e0
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_544eb0617142
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_54535d0f3c12
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_54d69771c899
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_568a8ed711af
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_57f4a940bf1d
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_5846c2530f4e
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_584d23be3835
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_5879f75fc8d9
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_58e73f739e1e
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_5af01499582a
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_5b13fdf4ac70
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_5bdf94bbfca7
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_5c957c8288a6
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_5d028bc5185a
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_5e2d27c21285
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_5eaf77c8f4ac
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_5f138b261778
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_5fbfb18a7f3d
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_5fc52674d993
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_600f02cbed80
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_60122ebc3230
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_601f97f2c9ca
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_602c8ac4408d
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_605157517a33
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_6068270138c9
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_608308e06a65
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_616317ebfba2
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_617d15b3b6d4
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_619768e07fc7
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_619a3ba64276
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_62c666fa205e
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_62eaa311518d
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_62f8238a60fe
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_6320937451f4
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_636b4c28f8ca
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_64238347cddb
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_65309a45d41a
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_655716adfe95
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_65b6d0403c02
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_66f501887bb8
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_67458dcd4046
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_67fea621bbc3
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_680c2c5c4a14
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_683e9f2c9c7a
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_68954c3534dc
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_68a0fdefd347
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_692b257a8f57
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_698304480a33
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_69a435770bf5
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_69b47016b297
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_6a38e57b2a50
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_6a60b7a346fd
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_6ad41730247e
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_6b18de9032de
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_6c3419293827
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_6c55618d5818
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_6c6c4de4b221
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_6c99b2db3618
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_6d0efb6acfc8
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_6d2f715162eb
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_6d37f0bd9dd1
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_6d4a88f1c436
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_6e0948fa6b9b
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_6e8b8aef802d
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_6eaba7464add
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_6f675f23d030
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_6ff59943d40f
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_702b6ed8ff40
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_706c81ff11a8
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_70c0b88ccba4
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_71098cff6f0a
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_713327d6334c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_7201284af609
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_728a7a209655
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_72ed24407ed4
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_732b075f7e46
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_7331328afc77
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_736ebf9ef2c8
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_73f61ac52d88
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_74cfcbbf78c3
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_74ef586c3417
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_75fdd8499c25
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_75ff99206c97
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_774260a652a5
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_77733a96faa1
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_786f5014c7d0
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_79d987836579
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_79f06127c0c3
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_7a36640a8f72
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_7a79768cf785
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_7aa278e9146e
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_7ac47e37f203
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_7b1d6640efd1
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_7b68fcc8fecd
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_7ba9059fcfd1
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_7c1aae5c94a2
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_7c4a44fe6f1a
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_7cca5b3a80e0
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_7d1a62d94c37
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_7d524c60e743
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_7d593154f70a
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_7d91df51e045
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_7dbc7697c658
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_7ddb039722ef
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_7e661603abcf
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_7ec256b4ef88
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_7f0f25fc444d
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_7f30e92bf40f
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_7f866ff40814
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_7f8fa2e5029e
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_7fb05d9fe7a9
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_7fd172fc96b0
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_7fd2299290c0
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_80cf2277f466
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_815126ddaad0
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_81ac7da48957
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_81f71d13c911
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_829030339a61
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_82f053c900a8
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_83085c6cf5cb
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_83180d680066
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_835f719aeb6f
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_83ed95eb83f0
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_8420d9b49257
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_8432c78c63f6
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_84e498f62eef
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_8559161e2955
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_859b1d02bb2c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_85fcd54ce687
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_860f14e848e1
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_867bb3f4e6bb
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_86a0220fba98
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_86dbd4309d7a
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_873152eecb37
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_883b52beed95
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_8898f20f2ddc
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_88f3b905f602
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_890e4cdf8813
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_8940a5acc14a
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_89524a22f1ff
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_89e93dd7ec5b
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_8a5aa8a6ffa7
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_8a70708461fe
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_8af4a7cfc902
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_8b76c2cd3399
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_8b96efe499a3
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_8b97836f0e97
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_8bdc354857bb
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_8c0016950ce3
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_8da7b40bf5fe
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_8dc0d27860d4
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_8dc1c786a4e6
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_8e3cdf858923
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_8eda74156194
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_8f88620c45fd
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_8f94fed89a8c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_8fa0f03ef7e2
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_902afeedb9f5
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_90660ce13b58
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_9118c587a3b0
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_912f62e550f7
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_916ef4ae334c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_918afc6c43d2
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_926e7458ec7d
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_92c54b0d2c57
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_9352f82dd55a
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_9365d8a12529
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_939bf3f2c889
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_93ebd8119b5e
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_943eabee114a
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_94797e101a76
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_95f07c1c1380
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_96205949cb32
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_9627f695c7cc
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_96b07e03b3bf
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_96c4094569d1
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_97270195465d
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_97275b760915
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_97832e90e97c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_97ac1a5ea18e
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_9834d2d4d939
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_989cf4796c26
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_98bd1c018b9f
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_994c46598df0
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_99a7c6b3b3a8
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_99f32c9baab3
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_9a3824ea7c1b
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_9abab0e49674
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_9b10e575f559
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_9b93d270eb32
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_9bd0e46969b5
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_9c313b20d9dd
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_9cea155619b6
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_9d01308939ca
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_9d11ae990090
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_9d42d2379c61
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_9d676aefee8f
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_9d7bbb2593e8
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_9f0218261cd7
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_9f59d5748ad8
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_9fc360ff9761
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_9fea3c967e76
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_a01e769e8815
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_a05d92c07397
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_a0b47d747868
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_a0d013c24aae
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_a12192b463c1
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_a161d3f7de61
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_a16b0d2ba07c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_a16fea527943
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_a257d9d324a2
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_a2cdf8ed23b8
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_a5ca3902bc80
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_a5e72df20f69
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_a614a6e2ab55
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_a643c52f4792
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_a6f3750d4000
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_a76b1b3f6d41
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_a7b65165eff2
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_a7bf6b3e3f69
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_a7e282a9b974
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_a8308b364568
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_a91b27a30e91
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_a97788d1b0f5
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_a9849b93e82f
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_a98798c62863
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_a9f50e270b3d
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_aa22b8f1405e
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_aa5f4ebebb1f
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_ab43712116b6
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_ab4f2f80fed3
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_abe135938b38
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_ac0bb928a686
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_acb8ca325e73
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_ad29f99539f4
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_ad6ddfe40b1b
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_ad8239f49610
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_aefb9b6c9f4d
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_af17060f5dc2
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_af3b97d13b79
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_af7d32ca941a
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_af8663857a21
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_afeab3c0ad58
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_aff583da14aa
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_b166aa886510
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_b188d5e91147
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_b18c5a273ba7
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_b1d85268eb7d
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_b1ebd57b453c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_b2bd1cf96fd8
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_b347aa4f1714
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_b4dad6417b38
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_b5073e72c810
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_b539ed2b0cdb
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_b5a859052b05
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_b63c66b73b5c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_b65423251778
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_b6952baefe71
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_b78be3982600
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_b7fa87d97213
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_b85a6c5dfe46
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_b86191f3a062
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_b89fefeef3c8
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_b8b9039369bc
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_b8e70e432a43
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_b96f1a911877
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_b9b239c1f67c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_bc1d3542dd9c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_bc3ab76f0080
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_bdb35edf54f4
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_be4d22e2f1fd
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_bf81a5a47967
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_bfb4ed672b20
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_c005329edae3
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_c0401aff5ad1
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_c04dcb43015e
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_c06ad84c8211
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_c1910bf10cdc
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_c1af9b13ea7c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_c2285c796306
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_c23256444b5f
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_c37a30284d99
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_c3a4128783f6
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_c3a8e4e4c9c3
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_c46834bbe94f
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_c5e714d5aa89
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_c619107e43f9
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_c64ac15f6223
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_c69c973ca870
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_c6def7c1c179
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_c6e356d6cc7c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_c7b694b86159
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_c8ddb8744e6a
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_c926201dc988
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_c94b253b51e9
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_c9e8a7190e52
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_cb4030437091
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_cb5c161c7d5f
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_cb661e6b2725
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_cc7ee77ffc1f
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_ccd061608fbe
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_cd2777aae08e
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_cd29e736d841
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_cda938cf9225
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_cea4c9290fa1
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_ced09037defe
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_cef6a454c6f0
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_cf27d0091211
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_cfa135a3a0db
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_d01878da6b8b
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_d1d424dd9017
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_d1f3a2b04581
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_d22d1c81a7b5
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_d244d52c23a3
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_d2835f44c1eb
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_d2ba3e7932de
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_d2de2b87c95a
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_d36d861b9051
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_d3cd7ed0942c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_d4203eb897cc
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_d50901755596
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_d5e0588294b4
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_d5edf9fc81e6
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_d633cd45ef8a
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_d673c3d9f9cd
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_d67efd221121
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_d68a53b53234
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_d6aa1204c059
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_d74f626147cc
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_d750615af8d9
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_d759762a17d1
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_d827c057ca20
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_d907837bb1ae
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_d99f04062690
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_d9a9f282f71c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_dc1b39099a4d
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_dd9c3d931087
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_de0d015bc257
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_de1c030a6208
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_de638c5bbd7c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_dedd7fcda513
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_df45f7db5413
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_df6ef7128056
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_dfb307ffba66
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e014b11a3eff
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e03a74844e59
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e04ed25eb77e
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e140d25a955d
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e18232a578ab
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e1879c803e7d
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e19b185f1ff1
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e1b090265265
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e1e213833919
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e2deffaa5377
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e39a809706c3
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e3c1006d2724
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e3e4e43f8f89
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e3ff178caeb0
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e427bd30d511
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e49b1ccf36be
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e51af9df5a02
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e5c3793dd034
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e5f66530593d
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e6821c0ceab4
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e704b691aec9
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e750f23c5761
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e7951afe5eae
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e8965e649bb3
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e972e184d266
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e999e25ec582
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_e9d5eba7df29
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_eb2453423dda
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_ebb6d946eb42
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_ec61ec345dba
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_ecb01f90a8dd
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_edbb9da01adc
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_ee08c62ffcf8
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_ee27f74444d3
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_eedad280eeb5
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_eef6b7f598ec
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_efacb720f54d
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_efd4ac19050b
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_efe0b90dd17b
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f0b2aed1ee76
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f0bcee2d13d2
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f0d0d3f74132
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f0fbb60bf732
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f12efe26f85a
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f13fb8f91fcb
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f280789d62ee
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f2e010b62d6f
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f32804a67cf2
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f341bb1aa78c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f43b6f86f21e
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f47198a83693
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f4fbaaadd0dc
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f53492bc0d3e
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f5aa40da2b8b
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f5ff172ba9bb
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f60fed3ccc5c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f66d40c39c99
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f675984bd698
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f67bd3952c6f
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f6d876619f3e
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f79e9b6b63a5
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f8b45dda7494
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f8d0343c7f46
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f8d698abe2ce
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f93d6913ff76
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f94e25c668e2
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f96288cacc39
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f9cc63d8ed93
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_f9f7063cafa7
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_fa1f5e9f1075
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_fb0fa2ec9beb
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_fbbe9cfb9b0c
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_fbe36399e336
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_fc59c980e699
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_fd30e0fcc3df
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_fd84a78b2e3b
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       ├── balanced_active_fe6cdab1a332
+│   │   │   │       │   ├── out
+│   │   │   │       │   │   ├── events.jsonl
+│   │   │   │       │   │   └── metrics.html
+│   │   │   │       │   ├── run.html
+│   │   │   │       │   └── scenario.yaml
+│   │   │   │       └── balanced_active_ffb483a66a21
+│   │   │   │           ├── out
+│   │   │   │           │   ├── events.jsonl
+│   │   │   │           │   └── metrics.html
+│   │   │   │           ├── run.html
+│   │   │   │           └── scenario.yaml
+│   │   │   ├── aggregate
+│   │   │   │   ├── comparison.csv
+│   │   │   │   ├── dealer_usage_by_run.csv
+│   │   │   │   ├── strategy_outcomes_by_run.csv
+│   │   │   │   └── strategy_outcomes_overall.csv
+│   │   │   └── passive
+│   │   │       └── runs
+│   │   │           ├── balanced_passive_002e47d74710
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_01995670dd1d
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_01d31044e44f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_028c6fc6ebd0
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_02ad9aa0b2a9
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_02b9a45adbd0
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_02fae9db1c36
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_035346391acc
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_0460f5967851
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_04ed9226960c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_04fd54ae870d
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_05eb09a090ff
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_062b7df4ada1
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_06307ae42147
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_063b1c4f4748
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_0681be5eccf5
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_068a18c38243
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_074c5b644549
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_07e23a1c86bf
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_08635536df3f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_0888ba6a83ec
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_08e5c778dc11
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_08e6a25168b7
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_09793b8c5f87
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_09ed733e3fbb
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_0b4c6130092d
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_0b7cbd285542
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_0c38281cae60
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_0c942d4871dc
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_0d7905953096
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_0ddc082adb0b
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_0de04e4e80f5
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_0df390816790
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_0f8f893ec3e1
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_10885f04f2bc
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_120ae6d54d30
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_132b1bf52f13
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_139c40a8c8f8
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_149781875326
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_149b760fa1c0
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_14f6ee4ec8a1
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_1521965af076
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_15aebecbe60f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_16403aefda71
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_164b56a5f570
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_16999970da00
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_16d515817577
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_170a2b5798f6
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_1733a94ba145
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_173ab000a343
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_1751a477f859
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_175ece5e0550
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_184e65aa440b
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_188b43cd520c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_189e6938fcb2
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_18ff1a5af076
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_1946d22ceaa7
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_197027d6f9bf
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_199ee84582a2
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_19c092fff12f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_19ff565a5b83
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_1a0b78b2cfc9
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_1a1f2eab1fe8
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_1a4d8aba25fa
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_1a9f16311ef2
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_1adca1543792
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_1aeb3cea3232
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_1b8a52b0acda
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_1b8fc30178d2
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_1ba90c77bc00
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_1bd95d5a2f7e
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_1bf9efaed19f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_1d23b77b764c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_1d81b176df0f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_1e107f45ac6c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_1e6376280f9f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_1e738141cfe8
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_1e7fda3e0e18
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_1ecff0129119
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_1f174a1f4db7
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_204d63dbe52a
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_20d86f23fd75
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_21514970a8b1
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_217e01fc8c38
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_21d253c3a204
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_225fff2fc8d8
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_227b35b4be90
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_230245349425
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_25190ee4d654
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_25862c7bdd77
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_26b624890c0a
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_26cd56c36650
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_27e7d07eb0d4
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_280288740a7a
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_283fefc4629d
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_28ce87db6427
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_2944c18d9369
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_29cdacc68f30
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_2bc42c08818b
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_2bd2547285ab
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_2c6dec737579
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_2c997351e2d8
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_2ca8f488a3b7
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_2d36be8b9946
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_2edb235b4d21
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_2ef564b252c5
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_2fdf540c6909
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_3023c1669b05
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_3039e33ab762
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_31120d15394e
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_31b795564d95
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_31c974f5d889
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_31dcb6d9d930
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_324e11e07e6b
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_3271933c8ed4
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_327c66cce727
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_3291c7dfed0b
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_330a0fc115c0
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_33ad99ea98c4
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_33dd96b2997e
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_33faf9157288
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_3522af727209
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_353ff1294693
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_3610e7449e44
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_3613b8561b50
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_364c1cb3fbba
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_37444b2cd03c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_375b4e79bb06
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_378f167e5afb
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_37e00b71ea80
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_3846b6b7671b
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_385d89d9a38c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_38fdbf47f249
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_3923fdf61b24
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_3a06a5b68780
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_3ae5916b2e9e
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_3b6854fdaaa4
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_3b89501dac3f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_3bffbe031c84
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_3c4b36e34f15
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_3d237ec3e149
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_3d2a5e2baabc
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_3e5271f22c51
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_3e6e98a02be2
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_3e7213654744
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_3eaf64861d02
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_3ecb4b039d8e
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_3fdbd87bba53
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_406d4875fdb8
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_4105f9ffe052
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_417f1e2578ac
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_420981cad02c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_427db0ee18c0
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_42b0f114fba3
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_4324a47d5c52
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_434ea04f2b5e
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_4430ea45da36
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_4482cbdc425c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_4548eb4762e3
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_45511e26dd25
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_45cbf41a9bc8
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_45f98b1d8623
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_4666a706f551
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_4694f99441c4
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_46954d46b5ae
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_477ff7895dc9
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_47b54cc81813
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_4839739224c3
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_484a2fa92695
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_4891711742e5
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_48950b9dbebd
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_4895d6612c61
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_4948a738a9dd
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_49836588502b
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_4a55bbd2c69c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_4a738833672c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_4b9d10e19b42
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_4bcf66f243c2
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_4c7801502bc0
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_4c7956512772
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_4d7092623938
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_4d7cd1e385ae
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_4daeb4a76357
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_4dc772ce351c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_4dde66e2f495
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_4eb143bcc8e9
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_5137a5779b27
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_519c019dc3a4
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_52289c498990
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_5246e0c666b8
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_525471ad1a33
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_52e5078f898b
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_52e5e819098f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_546472d83ec2
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_556d26e0fe44
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_55d40fe92854
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_55d6cd8772c1
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_55da70d9d852
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_582fb30b8c56
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_5842c16b7057
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_584e0f00405a
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_58b537294faf
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_58c2bf8214fc
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_58c4c8157774
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_5948f790953f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_59c016b34315
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_59f97ea5e2d4
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_5a12417cb8af
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_5a65e01e0070
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_5abe4f0c5bc4
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_5b93c23727a5
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_5c350b6ba588
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_5c92089fed2c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_5d1a3386a5f6
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_5d62a82e56f2
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_5dd91100e968
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_5e98848c0a9f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_5fb76f9589ab
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_6072267060bf
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_60796e8106ac
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_60b4f7df5e95
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_616004f91ea4
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_61b95a1753d8
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_62ae8db19fbb
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_62c156f0c64f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_6306f4b72c5c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_633786c685cb
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_636e6c168d36
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_63d9a178bf5e
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_64c5ab2e78d3
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_64dcdab4a1ab
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_64f9ac66b3c7
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_65598c29e72d
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_65ec37577f0d
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_6605e3dfa022
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_6703f968e315
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_678c57f8ffdf
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_67d81c32caed
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_683382892736
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_69112dc2dfd6
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_699d21fd7474
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_6a33dbbbdd1c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_6aa1f154c86c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_6b77a60da183
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_6bcbc482eca0
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_6c35cd6bbc14
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_6c70e6fc13bd
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_6cf4ee8e18df
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_6d03aa2db73f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_6d3af32dd678
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_6d5eaa466633
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_6de3b960ee5b
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_6e3f20457c2a
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_6ec16bee02da
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_6ed4bfdb6017
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_6efbcf16675e
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_6f6b5dd4bd8f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_6f86a9b0e5a1
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_6fcfc9f3e597
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_6ff117d32f43
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_701c1e318e06
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_70acb7223401
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_70b078d38ffd
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_71265df46bff
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_713d7cf039d6
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_7276cc09b02f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_72a9788769a0
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_72e781d73c00
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_7315d7536fa4
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_7378ca3f7be0
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_738055cda457
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_742e0628bd49
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_743abdaea1d5
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_74499f1523d6
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_7449fc690319
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_75337d650416
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_76d25cc1ae49
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_770de51ba500
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_7731c8f3c524
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_7746fe395080
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_77d018eaffa7
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_784534737027
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_785330ccc14e
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_786536c07f85
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_79e2cdab8b7c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_7a71c35c6064
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_7b1f29b27edb
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_7b27adec98b0
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_7b32b31eaf66
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_7bbe0b4b1b5f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_7bff7e22c154
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_7c3d1e842905
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_7ca09181f390
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_7cef89f43dd1
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_7d0376b24d67
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_7d4038062662
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_7d47230ba9d0
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_7d9adcd6bd60
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_7e426ab9c149
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_7f32145d6692
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_80610f66d856
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_817299c603f8
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_819e38ec7a4f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_81df330b6bd7
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_825dc3c972d8
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_831bf2cf2ea2
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_83fcea8038bc
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_840e42d7c2e2
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_84446da93692
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_8474dfddf8f0
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_849e2a069dc3
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_84d07bbf67b5
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_85d1abe09ec5
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_86e2c5e4b6fc
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_8707e3fcc82f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_870a4fa75956
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_872a13ee4369
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_87592e7ebd6e
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_87a1ff3ed959
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_87c7e3560c10
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_8855e356f92f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_88e85c2e1f48
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_898171d1eaea
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_8a86d3b28b23
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_8a8a0eacf69a
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_8a907d1f3b9b
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_8a9e083acb00
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_8b8370529095
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_8bdd56e28f4d
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_8c7b1953a2b4
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_8d67646708a2
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_8da0a06df7a1
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_8e021617a882
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_8ed092de3d92
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_8eef0b55be52
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_8f650aa0944c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_8f8100b2e3ae
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_8fc186bd3a55
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_90406dee6730
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_909525fe964a
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9095ad7a63d3
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_90b4a1f501aa
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_90ffd91bdced
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_91612cb180f7
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_91952c9fbda1
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_91ce465025e9
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_91f3f8aa7d6d
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9214caebfdfb
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_92a379a60d0b
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9337378b7e4e
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_936b6c52ed77
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_93e756e7ce8c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9415ae62972f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_94d5ef2402e6
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_955370d97c13
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_956cb0326580
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_96428fe9de92
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_96565567745a
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_979b208fa30e
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_985825ee3039
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9864fe2ca67a
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_986fae4ced89
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_988867565e98
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_988b86ab2ced
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_98bb26e79fb0
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_98e8168a536a
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_99295a5d4e68
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_996a93d0e6df
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_99f6c5778794
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9a27f093f6aa
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9a9bcfcb91b8
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9abda58920d3
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9ad188f1114f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9b07da6ff1e2
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9b0a0bba2b8b
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9b62e6613de0
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9c2f3c707480
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9d50ac61d9fa
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9d561adb4073
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9da502a70468
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9db2a9273612
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9e1274106f5e
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9e5a55ef8085
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9e8f360c3b33
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9ea33a886266
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9ec42878edb5
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9ed58a777829
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9f17de548b2a
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9f24a03959a3
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9f2c78bcc8fa
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9f6e4f6ddc73
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9f936d18646c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9ff153ff6e4a
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_9ffdf8d20976
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_a0e413be21a4
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_a12f8b94fd16
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_a26a1b898935
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_a26cfa68a7bb
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_a28903aa0d19
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_a2df14b09be1
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_a334ab736be6
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_a3ca3ddf1d3c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_a402f29a35b4
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_a47d6ecee708
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_a4803e0945e3
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_a48d92dbb069
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_a4c94d012c12
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_a5291a6cace8
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_a56575555668
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_a66eaf8d1442
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_a7870c83ea1e
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_a7aa7d405a3c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_a81206e4f214
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_a86da74ad836
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_a8a09a7ca238
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_a8bc5c4728e4
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_a905714e2707
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_a91ee24098a2
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_a98ec32e89a0
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_aaaf61e50ec7
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_ab3dc6399708
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_abb8fccdbe4e
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_ac35d624b3be
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_ac666c55ccd6
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_acbfb43cd23a
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_ad87fce74552
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_adc48cf20691
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_add71778fdee
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_addceb5051f1
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_ae264e795f63
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_ae7fd57f17f3
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_b00fe79c72e6
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_b16f27278c22
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_b25d27c93756
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_b2cb5a79d00c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_b38221081731
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_b3aa1af1ac7b
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_b3ceda397e07
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_b486edf37106
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_b49a833914b5
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_b54eb59d9c12
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_b590d91e644f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_b5a353c7c3fc
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_b5b77144522b
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_b64e5e29af77
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_b66e082d8c27
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_b6b04218e29b
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_b75776b1a3f3
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_b80d1692db83
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_b8d69d72c98d
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_b8e4c3034372
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_b93e5a75d9d9
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_b93eb6ee5ee7
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_b992bae9e737
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_ba4b8245f42b
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_bac73d0cb3fe
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_bad6f2f4bd9f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_bb181993a1fb
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_bb217596d621
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_bb36cfaa28ca
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_bb4577592fba
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_bb90e84f8b45
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_bce9287a9b25
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_bde51efb2d0e
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_be1f67e7ac47
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_be774f707362
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_beaac8e615b1
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_bee088a78440
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_bef6cca2a28c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_bf5bce0adf2b
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_bf625ed1615e
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_bfe66328a20e
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c13fce9918a1
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c1fe122cc169
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c221be82f8bb
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c27e289f7774
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c2931c06cbf5
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c2c5903758cb
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c34aa5d9e178
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c3e1e06e4155
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c4ca5167b070
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c4fef2c9c66d
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c53d94d836a6
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c5682010bbe4
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c59a228084a8
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c5a9a3e9db9f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c6a3a3268b19
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c6cad82ffc45
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c6ddae135787
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c6fc27053587
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c723089fcfbe
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c803a18873e8
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c827263a3824
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c83b5648d192
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c8a8a4240df3
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c9032ce553e1
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c90b4175f39a
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c90b81403673
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c92b0472e109
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c947df21ff7b
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c968e534992d
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c9b193ae0011
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_c9fc92665dae
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_ca5df75056c0
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_ca82e756943b
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_cb0697d0bece
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_cb3e5c015881
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_cbd20ba16ec8
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_cbd23910be6e
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_cd9a40ac867c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_cdbf163efb55
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_cdcb1cfd668e
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_cddb8e9879a7
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_ce22a89c657b
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_cead242fb2ad
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_ceee630b5232
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_cf8cc2fe14d8
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_d0b55b5f4cf3
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_d0f18df1dff6
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_d1080805dd37
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_d18dbecc058f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_d1933ba0f0df
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_d2159ddeefe0
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_d26d7ffd1b0c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_d274275d65e5
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_d3360dba268a
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_d35c0b70c861
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_d3b7e3d0973a
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_d4414536d383
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_d4b3b1937920
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_d4b556f353c8
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_d4e74d7eb13c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_d51b3c03ed3a
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_d5c7a73e7eb0
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_d7413c324dee
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_d7d5fb52acb3
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_d8cc341bf6a2
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_d8f4e1213799
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_d98e2694a34f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_d9972a7d3f34
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_d9b161d0900f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_db787f0bdaa8
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_dc0b3badef59
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_dc62bd7f8a2a
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_dca824bbf2bd
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_dd37c293c180
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_dda3b97ad8d4
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_de111ed845aa
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_de21d0295edb
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_defa6f0d5e83
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_df2585429553
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_df5c6aa3af4b
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_df6b76fb9925
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_e062111f0e81
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_e0815f2ddfab
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_e0aebc408e88
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_e115cc4480d5
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_e12468556e31
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_e17f83097ccf
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_e224b9f5fceb
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_e2560877cfbe
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_e2e438fab032
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_e32889b943d3
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_e41c78f4e673
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_e42e152f6d24
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_e5136a183677
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_e590b5aa73d0
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_e59a79b1026f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_e749f0d6fcae
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_e80757044aa3
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_e833f2cea693
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_e87cdd872688
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_e9149e6add17
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_e930ccfc289d
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_e9561145f2f1
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_e9c3666eaf11
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_e9f5f5bdb106
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_eac75c206f7b
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_ead5f017e562
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_eb3c32d1f3f7
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_eb6be7428481
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_eb9c41f90999
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_ee0ace73b403
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_eed0cdbdbae9
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_eee9807b818f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_ef8d7005eaa4
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_efa23eeb90a7
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f059d9068147
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f0706710a664
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f129f9bbfdef
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f1a1d1e0d0b1
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f25346cc4189
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f28df42649e6
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f29a988386c9
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f2adc5dbbdd0
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f2b32714b210
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f364b0984c50
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f3877fc01cc7
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f40d7c8afa91
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f4931a0db278
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f4d87ba11b9e
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f6b5e4731c97
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f72989265edf
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f748573f28a1
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f7d2b5b875b1
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f7db2accbc79
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f7e2f7ded8e6
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f82f60b13fd6
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f8a5724e4582
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f8a7b8aee1ed
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f8fccc7f55cb
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_f914cb2afd0c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_fa62a6e6e09f
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_fb55d98f1e85
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_fb882e532b62
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_fba1094788ce
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_fc212eb64bf3
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_fd15bec69dbe
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_fd5eb288576d
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_fd86029c4b3c
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_fe36ebe17820
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_fe5eb04fdd9d
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_fe74a44762ae
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           ├── balanced_passive_fee2c77db709
+│   │   │           │   ├── out
+│   │   │           │   │   ├── events.jsonl
+│   │   │           │   │   └── metrics.html
+│   │   │           │   ├── run.html
+│   │   │           │   └── scenario.yaml
+│   │   │           └── balanced_passive_ffbca323e9d5
+│   │   │               ├── out
+│   │   │               │   ├── events.jsonl
+│   │   │               │   └── metrics.html
+│   │   │               ├── run.html
+│   │   │               └── scenario.yaml
+│   │   └── plan024_sweep
+│   │       └── aggregate
+│   │           ├── comparison.csv
+│   │           ├── summary.json
+│   │           └── sweep_summary.txt
 │   ├── interbank_events.jsonl
 │   ├── kalecki_ring_baseline_events.jsonl
 │   └── kalecki_ring_baseline_metrics.html
@@ -31835,7 +31841,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-6848 directories, 24977 files
+6850 directories, 24981 files
 
 ```
 
@@ -33539,6 +33545,24 @@ Complete git history from oldest to newest:
   - Shows elapsed time per simulation: "passive: day 5/15 (elapsed: 30s)"
   This gives visibility into long-running simulations instead of waiting
   with no feedback.
+  🤖 Generated with [Claude Code](https://claude.com/claude-code)
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **d2be4503** (2025-12-10) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **c47e85a7** (2025-12-11) by vladgheorghe
+  feat(experiments): Plan 024 dealer simulation sweep results (125 pairs)
+  Complete parameter sweep comparing passive vs active dealer trading:
+  - 5 kappa values (0.25, 0.5, 1, 2, 4)
+  - 5 concentration values (0.2, 0.5, 1, 2, 5)
+  - 5 mu values (0, 0.25, 0.5, 0.75, 1)
+  - 100 traders per scenario, 15 days with rollover
+  Key findings:
+  - Trading reduces defaults in 84/125 scenarios (67%)
+  - Effect increases with leverage: κ=4 avg 9.5%, κ=0.25 avg 0.7%
+  - Best result: κ=4, c=5, μ=1 shows 51% reduction (100%→49%)
+  - Maturity mismatch (μ) is the key driver of trading benefits
   🤖 Generated with [Claude Code](https://claude.com/claude-code)
   Co-Authored-By: Claude <noreply@anthropic.com>
 
