@@ -268,10 +268,16 @@ def apply_action(system: System, action_dict: Dict[str, Any], agents: Dict[str, 
             if instr is None:
                 raise ValueError(f"Contract not found: {resolved_id}")
 
-            old_holder_id = instr.asset_holder_id
             new_holder_id = data.to_agent
 
-            # Perform reassignment atomically
+            # For Payables, use holder_id for secondary market transfers
+            # (keeps asset_holder_id as original creditor, consistent with dealer_integration.py)
+            # For other instruments (e.g., DeliveryObligation), update asset_holder_id directly
+            if isinstance(instr, Payable):
+                old_holder_id = instr.effective_creditor  # Could be holder_id or asset_holder_id
+            else:
+                old_holder_id = instr.asset_holder_id
+
             with atomic(system):
                 old_holder = system.state.agents[old_holder_id]
                 new_holder = system.state.agents[new_holder_id]
@@ -279,16 +285,20 @@ def apply_action(system: System, action_dict: Dict[str, Any], agents: Dict[str, 
                     raise ValueError(f"Contract {resolved_id} not in old holder's assets")
                 old_holder.asset_ids.remove(resolved_id)
                 new_holder.asset_ids.append(resolved_id)
-                instr.asset_holder_id = new_holder_id
-                system.log("ClaimTransferred",
-                           contract_id=resolved_id,
-                           frm=old_holder_id,
-                           to=new_holder_id,
-                           contract_kind=instr.kind,
-                           amount=getattr(instr, 'amount', None),
-                           due_day=getattr(instr, 'due_day', None),
-                           sku=getattr(instr, 'sku', None),
-                           alias=alias)
+                if isinstance(instr, Payable):
+                    instr.holder_id = new_holder_id  # Set secondary market holder
+                else:
+                    instr.asset_holder_id = new_holder_id
+
+            system.log("ClaimTransferred",
+                       contract_id=resolved_id,
+                       frm=old_holder_id,
+                       to=new_holder_id,
+                       contract_kind=instr.kind,
+                       amount=getattr(instr, 'amount', None),
+                       due_day=getattr(instr, 'due_day', None),
+                       sku=getattr(instr, 'sku', None),
+                       alias=alias)
             
         else:
             raise ValueError(f"Unknown action type: {action_type}")
