@@ -360,7 +360,7 @@ def _render_events_table(title: str, events: List[Dict[str, Any]]) -> str:
             f"</tr>"
         )
     if not rows_html:
-        rows_html.append("<tr><td colspan=\"7\" class=\"notes\">No events</td></tr>")
+        rows_html.append("<tr><td colspan=\"8\" class=\"notes\">No events</td></tr>")
     return f"""
 <section class="events-table">
   <h4>{_html_escape(title)}</h4>
