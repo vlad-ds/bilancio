@@ -106,6 +106,9 @@ celerybeat.pid
 
 # Environments
 .env
+
+# Modal credentials (safety - normally in ~/.modal.toml)
+.modal.toml
 .venv
 env/
 venv/
@@ -165,6 +168,12 @@ data/
 !out/experiments/**/aggregate/*.html
 !out/experiments/**/aggregate/*.json
 !out/experiments/**/aggregate/*.txt
+
+# Plan024 sweep - include run data but exclude HTML
+!out/experiments/plan024_sweep/
+!out/experiments/plan024_sweep/**
+out/experiments/plan024_sweep/**/*.html
+out/experiments/plan024_sweep/*.log
 
 # Temporary files
 *.tmp

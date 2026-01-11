@@ -30,6 +30,7 @@ def sweep():
 @sweep.command("ring")
 @click.option('--config', type=click.Path(path_type=Path), default=None, help='Path to sweep config YAML')
 @click.option('--out-dir', type=click.Path(path_type=Path), default=None, help='Base output directory')
+@click.option('--cloud', is_flag=True, help='Run simulations on Modal cloud')
 @click.option('--grid/--no-grid', default=True, help='Run coarse grid sweep')
 @click.option('--kappas', type=str, default="0.25,0.5,1,2,4", help='Comma list for grid kappa values')
 @click.option('--concentrations', type=str, default="0.2,0.5,1,2,5", help='Comma list for grid Dirichlet concentrations')
@@ -62,6 +63,7 @@ def sweep_ring(
     ctx,
     config: Optional[Path],
     out_dir: Optional[Path],
+    cloud: bool,
     grid: bool,
     kappas: str,
     concentrations: str,
@@ -186,6 +188,19 @@ def sweep_ring(
 
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    # Create executor based on --cloud flag
+    executor = None
+    if cloud:
+        from bilancio.runners import CloudExecutor
+
+        experiment_id = out_dir.name
+        executor = CloudExecutor(
+            experiment_id=experiment_id,
+            download_artifacts=True,
+            local_output_dir=out_dir,
+        )
+        console.print(f"[cyan]Cloud execution enabled[/cyan] (experiment: {experiment_id})")
+
     q_total_dec = Decimal(str(q_total))
     runner = RingSweepRunner(
         out_dir,
@@ -199,6 +214,7 @@ def sweep_ring(
         default_handling=default_handling,
         dealer_enabled=dealer_enabled,
         dealer_config=dealer_config,
+        executor=executor,
     )
 
     console.print(f"[dim]Output directory: {out_dir}[/dim]")
