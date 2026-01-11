@@ -3,22 +3,23 @@
 This module tests:
 - Basic execution and result handling
 - Output file creation
-- Metrics extraction
 - Error handling
-- Parameter extraction
 - Directory management
+
+Note: Metrics computation is NOT tested here because LocalExecutor
+no longer computes metrics. That's MetricsComputer's job.
 """
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Dict, Any
 
 import pytest
 
 from bilancio.runners.local_executor import LocalExecutor
-from bilancio.storage.models import RunResult, RunStatus, RunArtifacts
+from bilancio.runners.models import RunOptions, ExecutionResult
+from bilancio.storage.models import RunStatus
 
 
 # Minimal scenario configuration for testing
@@ -35,11 +36,11 @@ MINIMAL_SCENARIO: Dict[str, Any] = {
     "run": {"max_days": 5},
 }
 
-# Scenario with activity that produces metrics
+# Scenario with activity that produces events
 SCENARIO_WITH_ACTIVITY: Dict[str, Any] = {
     "version": 1,
     "name": "Activity Test Scenario",
-    "description": "Scenario with payment activity to generate metrics",
+    "description": "Scenario with payment activity to generate events",
     "agents": [
         {"id": "CB", "kind": "central_bank", "name": "Central Bank"},
         {"id": "bank", "kind": "bank", "name": "Test Bank"},
@@ -62,16 +63,17 @@ class TestLocalExecutorBasicExecution:
     """Tests for basic LocalExecutor.execute functionality."""
 
     @pytest.mark.slow
-    def test_execute_returns_run_result(self, tmp_path: Path):
-        """execute() returns a RunResult object."""
+    def test_execute_returns_execution_result(self, tmp_path: Path):
+        """execute() returns an ExecutionResult object."""
         executor = LocalExecutor()
         result = executor.execute(
             scenario_config=MINIMAL_SCENARIO,
             run_id="test_basic_001",
-            output_dir=str(tmp_path),
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
         )
 
-        assert isinstance(result, RunResult)
+        assert isinstance(result, ExecutionResult)
         assert result.run_id == "test_basic_001"
 
     @pytest.mark.slow
@@ -81,7 +83,8 @@ class TestLocalExecutorBasicExecution:
         result = executor.execute(
             scenario_config=MINIMAL_SCENARIO,
             run_id="test_completed_001",
-            output_dir=str(tmp_path),
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
         )
 
         assert result.status == RunStatus.COMPLETED
@@ -94,11 +97,38 @@ class TestLocalExecutorBasicExecution:
         result = executor.execute(
             scenario_config=MINIMAL_SCENARIO,
             run_id="test_time_001",
-            output_dir=str(tmp_path),
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
         )
 
         assert result.execution_time_ms is not None
         assert result.execution_time_ms > 0
+
+    @pytest.mark.slow
+    def test_execute_returns_local_storage_type(self, tmp_path: Path):
+        """execute() returns storage_type='local'."""
+        executor = LocalExecutor()
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_storage_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        assert result.storage_type == "local"
+
+    @pytest.mark.slow
+    def test_execute_returns_absolute_storage_base(self, tmp_path: Path):
+        """execute() returns absolute path as storage_base."""
+        executor = LocalExecutor()
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_storage_base_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        assert result.storage_base == str(tmp_path.resolve())
 
 
 class TestLocalExecutorOutputFiles:
@@ -111,12 +141,13 @@ class TestLocalExecutorOutputFiles:
         result = executor.execute(
             scenario_config=MINIMAL_SCENARIO,
             run_id="test_yaml_001",
-            output_dir=str(tmp_path),
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
         )
 
         scenario_path = tmp_path / "scenario.yaml"
         assert scenario_path.exists()
-        assert result.artifacts.scenario_yaml == str(scenario_path)
+        assert result.artifacts.get("scenario_yaml") == "scenario.yaml"
 
     @pytest.mark.slow
     def test_execute_creates_exports_directory(self, tmp_path: Path):
@@ -125,7 +156,8 @@ class TestLocalExecutorOutputFiles:
         executor.execute(
             scenario_config=MINIMAL_SCENARIO,
             run_id="test_exports_001",
-            output_dir=str(tmp_path),
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
         )
 
         exports_dir = tmp_path / "out"
@@ -139,12 +171,13 @@ class TestLocalExecutorOutputFiles:
         result = executor.execute(
             scenario_config=MINIMAL_SCENARIO,
             run_id="test_balances_001",
-            output_dir=str(tmp_path),
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
         )
 
         balances_path = tmp_path / "out" / "balances.csv"
         assert balances_path.exists()
-        assert result.artifacts.balances_csv == str(balances_path)
+        assert result.artifacts.get("balances_csv") == "out/balances.csv"
 
     @pytest.mark.slow
     def test_execute_creates_events_jsonl(self, tmp_path: Path):
@@ -153,40 +186,13 @@ class TestLocalExecutorOutputFiles:
         result = executor.execute(
             scenario_config=MINIMAL_SCENARIO,
             run_id="test_events_001",
-            output_dir=str(tmp_path),
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
         )
 
         events_path = tmp_path / "out" / "events.jsonl"
         assert events_path.exists()
-        assert result.artifacts.events_jsonl == str(events_path)
-
-    @pytest.mark.slow
-    def test_execute_creates_metrics_json(self, tmp_path: Path):
-        """execute() creates metrics.json file when scenario has activity."""
-        executor = LocalExecutor()
-        result = executor.execute(
-            scenario_config=SCENARIO_WITH_ACTIVITY,
-            run_id="test_metrics_json_001",
-            output_dir=str(tmp_path),
-        )
-
-        metrics_path = tmp_path / "out" / "metrics.json"
-        assert metrics_path.exists()
-        assert result.artifacts.metrics_json == str(metrics_path)
-
-    @pytest.mark.slow
-    def test_execute_creates_metrics_csv(self, tmp_path: Path):
-        """execute() creates metrics.csv file when scenario has activity."""
-        executor = LocalExecutor()
-        result = executor.execute(
-            scenario_config=SCENARIO_WITH_ACTIVITY,
-            run_id="test_metrics_csv_001",
-            output_dir=str(tmp_path),
-        )
-
-        metrics_path = tmp_path / "out" / "metrics.csv"
-        assert metrics_path.exists()
-        assert result.artifacts.metrics_csv == str(metrics_path)
+        assert result.artifacts.get("events_jsonl") == "out/events.jsonl"
 
     @pytest.mark.slow
     def test_execute_creates_run_html(self, tmp_path: Path):
@@ -195,50 +201,28 @@ class TestLocalExecutorOutputFiles:
         result = executor.execute(
             scenario_config=MINIMAL_SCENARIO,
             run_id="test_html_001",
-            output_dir=str(tmp_path),
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
         )
 
         html_path = tmp_path / "run.html"
         assert html_path.exists()
-        assert result.artifacts.run_html == str(html_path)
-
-
-class TestLocalExecutorMetrics:
-    """Tests for metrics extraction from simulation results."""
+        assert result.artifacts.get("run_html") == "run.html"
 
     @pytest.mark.slow
-    def test_execute_populates_metrics_from_simulation(self, tmp_path: Path):
-        """execute() extracts metrics from simulation output."""
+    def test_artifacts_are_relative_paths(self, tmp_path: Path):
+        """execute() returns artifacts as relative paths."""
         executor = LocalExecutor()
         result = executor.execute(
             scenario_config=MINIMAL_SCENARIO,
-            run_id="test_metrics_001",
-            output_dir=str(tmp_path),
+            run_id="test_relative_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
         )
 
-        # Metrics should be populated (may be None if simulation has no defaults)
-        assert isinstance(result.metrics, dict)
-        # The metrics dict should have the expected keys (may be None values)
-        assert "phi_total" in result.metrics or result.metrics == {}
-        assert "delta_total" in result.metrics or result.metrics == {}
-
-    @pytest.mark.slow
-    def test_execute_metrics_reflect_simulation_state(self, tmp_path: Path):
-        """execute() metrics should reflect actual simulation results."""
-        executor = LocalExecutor()
-        result = executor.execute(
-            scenario_config=MINIMAL_SCENARIO,
-            run_id="test_metrics_reflect_001",
-            output_dir=str(tmp_path),
-        )
-
-        # With a minimal scenario (no setup events), there should be no defaults
-        # phi_total and delta_total should be 0 or very small
-        if result.metrics:
-            if "phi_total" in result.metrics and result.metrics["phi_total"] is not None:
-                assert result.metrics["phi_total"] >= 0
-            if "delta_total" in result.metrics and result.metrics["delta_total"] is not None:
-                assert result.metrics["delta_total"] >= 0
+        # All artifact paths should be relative (not starting with /)
+        for key, path in result.artifacts.items():
+            assert not path.startswith("/"), f"Artifact {key} should be relative: {path}"
 
 
 class TestLocalExecutorErrorHandling:
@@ -258,7 +242,8 @@ class TestLocalExecutorErrorHandling:
         result = executor.execute(
             scenario_config=invalid_scenario,
             run_id="test_failed_001",
-            output_dir=str(tmp_path),
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
         )
 
         assert result.status == RunStatus.FAILED
@@ -277,7 +262,8 @@ class TestLocalExecutorErrorHandling:
         result = executor.execute(
             scenario_config=invalid_scenario,
             run_id="test_error_msg_001",
-            output_dir=str(tmp_path),
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
         )
 
         assert result.status == RunStatus.FAILED
@@ -297,115 +283,34 @@ class TestLocalExecutorErrorHandling:
         result = executor.execute(
             scenario_config=invalid_scenario,
             run_id="test_time_fail_001",
-            output_dir=str(tmp_path),
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
         )
 
         assert result.execution_time_ms is not None
         assert result.execution_time_ms >= 0
 
-
-class TestLocalExecutorParameterExtraction:
-    """Tests for _extract_parameters method."""
-
-    def test_extract_parameters_extracts_agent_count(self):
-        """_extract_parameters extracts n_agents from scenario config."""
+    @pytest.mark.slow
+    def test_failed_execution_still_includes_scenario_yaml(self, tmp_path: Path):
+        """execute() includes scenario_yaml artifact even on failure."""
         executor = LocalExecutor()
 
-        config: Dict[str, Any] = {
-            "agents": [
-                {"id": "a1", "kind": "bank"},
-                {"id": "a2", "kind": "firm"},
-                {"id": "a3", "kind": "firm"},
-                {"id": "a4", "kind": "household"},
-            ],
+        invalid_scenario: Dict[str, Any] = {
+            "agents": "invalid",
             "setup": [],
         }
 
-        params = executor._extract_parameters(config)
+        result = executor.execute(
+            scenario_config=invalid_scenario,
+            run_id="test_yaml_fail_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
 
-        assert params["n_agents"] == 4
-
-    def test_extract_parameters_extracts_dealer_enabled_true(self):
-        """_extract_parameters extracts dealer_enabled when true."""
-        executor = LocalExecutor()
-
-        config: Dict[str, Any] = {
-            "agents": [{"id": "bank", "kind": "bank"}],
-            "setup": [],
-            "dealer": {"enabled": True},
-        }
-
-        params = executor._extract_parameters(config)
-
-        assert params["dealer_enabled"] is True
-
-    def test_extract_parameters_extracts_dealer_enabled_false(self):
-        """_extract_parameters extracts dealer_enabled when false."""
-        executor = LocalExecutor()
-
-        config: Dict[str, Any] = {
-            "agents": [{"id": "bank", "kind": "bank"}],
-            "setup": [],
-            "dealer": {"enabled": False},
-        }
-
-        params = executor._extract_parameters(config)
-
-        assert params["dealer_enabled"] is False
-
-    def test_extract_parameters_dealer_defaults_to_false(self):
-        """_extract_parameters defaults dealer_enabled to False when not specified."""
-        executor = LocalExecutor()
-
-        config: Dict[str, Any] = {
-            "agents": [{"id": "bank", "kind": "bank"}],
-            "setup": [],
-        }
-
-        params = executor._extract_parameters(config)
-
-        assert params["dealer_enabled"] is False
-
-    def test_extract_parameters_extracts_max_days(self):
-        """_extract_parameters extracts max_days from run config."""
-        executor = LocalExecutor()
-
-        config: Dict[str, Any] = {
-            "agents": [{"id": "bank", "kind": "bank"}],
-            "setup": [],
-            "run": {"max_days": 30},
-        }
-
-        params = executor._extract_parameters(config)
-
-        assert params["max_days"] == 30
-
-    def test_extract_parameters_handles_empty_config(self):
-        """_extract_parameters handles empty config gracefully."""
-        executor = LocalExecutor()
-
-        config: Dict[str, Any] = {}
-
-        params = executor._extract_parameters(config)
-
-        # Should not have n_agents key if no agents
-        assert "n_agents" not in params
-        # dealer_enabled should default to False
-        assert params["dealer_enabled"] is False
-
-    def test_extract_parameters_handles_missing_run_config(self):
-        """_extract_parameters handles missing run config."""
-        executor = LocalExecutor()
-
-        config: Dict[str, Any] = {
-            "agents": [{"id": "bank", "kind": "bank"}],
-            "setup": [],
-        }
-
-        params = executor._extract_parameters(config)
-
-        # max_days should not be in params if not specified
-        assert "max_days" not in params
+        # scenario.yaml should still be written and referenced
+        assert "scenario_yaml" in result.artifacts
+        scenario_path = tmp_path / result.artifacts["scenario_yaml"]
+        assert scenario_path.exists()
 
 
 class TestLocalExecutorDirectoryManagement:
@@ -421,29 +326,12 @@ class TestLocalExecutorDirectoryManagement:
         result = executor.execute(
             scenario_config=MINIMAL_SCENARIO,
             run_id="test_custom_dir_001",
-            output_dir=str(custom_dir),
+            output_dir=custom_dir,
+            options=RunOptions(max_days=5),
         )
 
-        # Artifacts should be in the custom directory
-        assert result.artifacts.scenario_yaml is not None
-        assert str(custom_dir) in result.artifacts.scenario_yaml
-
-    @pytest.mark.slow
-    def test_temp_directory_created_when_output_dir_is_none(self):
-        """execute() creates temp directory when output_dir is None."""
-        executor = LocalExecutor()
-
-        result = executor.execute(
-            scenario_config=MINIMAL_SCENARIO,
-            run_id="test_temp_dir_001",
-            output_dir=None,
-        )
-
-        # Artifacts should exist in a temp directory
-        assert result.artifacts.scenario_yaml is not None
-        assert Path(result.artifacts.scenario_yaml).exists()
-        # The path should contain 'bilancio_run' (the temp dir prefix)
-        assert "bilancio_run" in result.artifacts.scenario_yaml
+        # storage_base should be the custom directory
+        assert str(custom_dir.resolve()) in result.storage_base
 
     @pytest.mark.slow
     def test_output_dir_created_if_not_exists(self, tmp_path: Path):
@@ -457,7 +345,8 @@ class TestLocalExecutorDirectoryManagement:
         result = executor.execute(
             scenario_config=MINIMAL_SCENARIO,
             run_id="test_create_dir_001",
-            output_dir=str(new_dir),
+            output_dir=new_dir,
+            options=RunOptions(max_days=5),
         )
 
         # Directory should now exist
@@ -473,7 +362,8 @@ class TestLocalExecutorDirectoryManagement:
         result = executor.execute(
             scenario_config=MINIMAL_SCENARIO,
             run_id="test_nested_dir_001",
-            output_dir=str(nested_dir),
+            output_dir=nested_dir,
+            options=RunOptions(max_days=5),
         )
 
         assert nested_dir.exists()
@@ -492,76 +382,95 @@ class TestLocalExecutorRunIdHandling:
         result = executor.execute(
             scenario_config=MINIMAL_SCENARIO,
             run_id=custom_run_id,
-            output_dir=str(tmp_path),
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
         )
 
         assert result.run_id == custom_run_id
 
-    @pytest.mark.slow
-    def test_run_id_in_temp_dir_name(self):
-        """execute() includes run_id in temp directory name."""
-        executor = LocalExecutor()
-        run_id = "my_test_run"
 
+class TestLocalExecutorRunOptions:
+    """Tests for RunOptions parameter handling."""
+
+    @pytest.mark.slow
+    def test_options_max_days_is_used(self, tmp_path: Path):
+        """execute() uses max_days from RunOptions."""
+        executor = LocalExecutor()
         result = executor.execute(
             scenario_config=MINIMAL_SCENARIO,
-            run_id=run_id,
-            output_dir=None,
+            run_id="test_options_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=3),
         )
 
-        # The temp directory path should include the run_id
-        assert result.artifacts.scenario_yaml is not None
-        assert run_id in result.artifacts.scenario_yaml
+        assert result.status == RunStatus.COMPLETED
+
+    @pytest.mark.slow
+    def test_options_mode_is_used(self, tmp_path: Path):
+        """execute() uses mode from RunOptions."""
+        executor = LocalExecutor()
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_mode_001",
+            output_dir=tmp_path,
+            options=RunOptions(mode="until_stable", max_days=5),
+        )
+
+        assert result.status == RunStatus.COMPLETED
+
+    @pytest.mark.slow
+    def test_default_options_work(self, tmp_path: Path):
+        """execute() works with default RunOptions."""
+        executor = LocalExecutor()
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_defaults_001",
+            output_dir=tmp_path,
+            options=RunOptions(),
+        )
+
+        assert result.status == RunStatus.COMPLETED
 
 
 class TestLocalExecutorScenarioWithActivity:
     """Tests with scenarios that have actual activity."""
 
     @pytest.mark.slow
-    def test_scenario_with_obligations_produces_metrics(self, tmp_path: Path):
-        """Scenario with setup events produces meaningful metrics."""
+    def test_scenario_with_obligations_produces_events(self, tmp_path: Path):
+        """Scenario with setup events produces events.jsonl."""
         executor = LocalExecutor()
 
         result = executor.execute(
             scenario_config=SCENARIO_WITH_ACTIVITY,
             run_id="test_activity_001",
-            output_dir=str(tmp_path),
+            output_dir=tmp_path,
+            options=RunOptions(max_days=10),
         )
 
         assert result.status == RunStatus.COMPLETED
-        # Metrics json should be created and contain data
-        metrics_path = tmp_path / "out" / "metrics.json"
-        assert metrics_path.exists()
-
-        metrics_data = json.loads(metrics_path.read_text())
-        assert len(metrics_data) > 0
+        # Events file should be created
+        events_path = tmp_path / "out" / "events.jsonl"
+        assert events_path.exists()
+        # And it should have content
+        assert events_path.stat().st_size > 0
 
     @pytest.mark.slow
-    def test_result_artifacts_are_complete(self, tmp_path: Path):
-        """execute() returns RunArtifacts with all expected fields for active scenario."""
+    def test_result_artifacts_are_relative(self, tmp_path: Path):
+        """execute() returns artifacts as relative paths for active scenario."""
         executor = LocalExecutor()
 
         result = executor.execute(
             scenario_config=SCENARIO_WITH_ACTIVITY,
             run_id="test_artifacts_001",
-            output_dir=str(tmp_path),
+            output_dir=tmp_path,
+            options=RunOptions(max_days=10),
         )
 
-        artifacts = result.artifacts
-        assert isinstance(artifacts, RunArtifacts)
+        assert isinstance(result, ExecutionResult)
 
-        # All artifact paths should be set for a scenario with activity
-        assert artifacts.scenario_yaml is not None
-        assert artifacts.events_jsonl is not None
-        assert artifacts.balances_csv is not None
-        assert artifacts.metrics_csv is not None
-        assert artifacts.metrics_json is not None
-        assert artifacts.run_html is not None
-
-        # All referenced files should exist
-        assert Path(artifacts.scenario_yaml).exists()
-        assert Path(artifacts.events_jsonl).exists()
-        assert Path(artifacts.balances_csv).exists()
-        assert Path(artifacts.metrics_csv).exists()
-        assert Path(artifacts.metrics_json).exists()
-        assert Path(artifacts.run_html).exists()
+        # All artifact paths should be relative
+        for key, path in result.artifacts.items():
+            assert not path.startswith("/"), f"{key} should be relative"
+            # And should resolve to existing files
+            full_path = tmp_path / path
+            assert full_path.exists(), f"{key} at {path} should exist"

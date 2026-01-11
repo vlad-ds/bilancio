@@ -1,8 +1,20 @@
 # Plan 027: Executor Separation of Concerns
 
 **Date:** January 2026
-**Status:** Planned
+**Status:** Implemented ✅
 **Depends on:** Plan 026 (Phase 4 abstractions)
+
+## Implementation Summary
+
+Implemented January 2026. Key changes:
+
+- **`RunOptions`** and **`ExecutionResult`** dataclasses in `src/bilancio/runners/models.py`
+- **`ArtifactLoader`** protocol and **`LocalArtifactLoader`** in `src/bilancio/storage/artifact_loaders.py`
+- **`MetricsComputer`** class in `src/bilancio/analysis/metrics_computer.py`
+- **`LocalExecutor`** refactored to only run simulation (no metrics computation)
+- **`RingSweepRunner`** updated to use executor + MetricsComputer pattern
+
+All 527 tests pass. Verified with control/treatment sweeps.
 
 ---
 

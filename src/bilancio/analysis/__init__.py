@@ -9,6 +9,10 @@ from bilancio.analysis.dealer_usage_summary import (
     build_dealer_usage_by_run,
     run_dealer_usage_analysis,
 )
+from bilancio.analysis.metrics_computer import (
+    MetricsBundle,
+    MetricsComputer,
+)
 
 __all__ = [
     "build_strategy_outcomes_by_run",
@@ -16,4 +20,6 @@ __all__ = [
     "run_strategy_analysis",
     "build_dealer_usage_by_run",
     "run_dealer_usage_analysis",
+    "MetricsBundle",
+    "MetricsComputer",
 ]

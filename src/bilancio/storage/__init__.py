@@ -8,6 +8,7 @@ from .models import (
 )
 from .protocols import ResultStore, RegistryStore
 from .file_store import FileResultStore, FileRegistryStore
+from .artifact_loaders import ArtifactLoader, LocalArtifactLoader
 
 __all__ = [
     "RunStatus",
@@ -18,4 +19,6 @@ __all__ = [
     "RegistryStore",
     "FileResultStore",
     "FileRegistryStore",
+    "ArtifactLoader",
+    "LocalArtifactLoader",
 ]

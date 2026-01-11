@@ -7,12 +7,14 @@ This module tests:
 
 from __future__ import annotations
 
-from typing import Dict, Any, Optional, Callable
+from pathlib import Path
+from typing import Dict, Any, Optional
 
 import pytest
 
 from bilancio.runners.protocols import SimulationExecutor, JobExecutor
 from bilancio.runners.local_executor import LocalExecutor
+from bilancio.runners.models import RunOptions, ExecutionResult
 from bilancio.storage.models import RunResult, RunStatus
 
 
@@ -37,12 +39,15 @@ class TestSimulationExecutorProtocol:
                 self,
                 scenario_config: Dict[str, Any],
                 run_id: str,
-                output_dir: Optional[str] = None,
-                progress_callback: Optional[Callable[[str], None]] = None,
-            ) -> RunResult:
-                return RunResult(
+                output_dir: Path,
+                options: RunOptions,
+            ) -> ExecutionResult:
+                return ExecutionResult(
                     run_id=run_id,
                     status=RunStatus.COMPLETED,
+                    storage_type="local",
+                    storage_base=str(output_dir),
+                    artifacts={},
                 )
 
         executor = CustomExecutor()

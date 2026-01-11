@@ -11,27 +11,20 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 import yaml
 from pydantic import BaseModel, Field, ValidationError, model_validator
 
-from bilancio.analysis.loaders import read_balances_csv, read_events_jsonl
-from bilancio.analysis.report import (
-    compute_day_metrics,
-    summarize_day_metrics,
-    write_day_metrics_csv,
-    write_day_metrics_json,
-    write_debtor_shares_csv,
-    write_intraday_csv,
-    write_metrics_html,
-)
+from bilancio.analysis.metrics_computer import MetricsComputer
 from bilancio.config.models import RingExplorerGeneratorConfig
+from bilancio.runners import LocalExecutor, RunOptions, ExecutionResult
+from bilancio.runners.protocols import SimulationExecutor
+from bilancio.storage.artifact_loaders import LocalArtifactLoader
 from bilancio.experiments.sampling import (
     generate_frontier_params,
     generate_grid_params,
     generate_lhs_params,
 )
 from bilancio.scenarios import compile_ring_explorer
-from bilancio.storage import FileRegistryStore, RegistryEntry, RunStatus
+from bilancio.storage import FileRegistryStore, RegistryEntry
+from bilancio.storage.models import RunStatus
 from bilancio.storage.protocols import RegistryStore
-
-# Note: run_scenario imported lazily in _execute_run to avoid circular import
 
 
 @dataclass
@@ -221,6 +214,7 @@ class RingSweepRunner:
         rollover_enabled: bool = True,
         detailed_dealer_logging: bool = False,  # Plan 022
         registry_store: Optional[RegistryStore] = None,  # Plan 026
+        executor: Optional[SimulationExecutor] = None,  # Plan 027
     ) -> None:
         self.base_dir = out_dir
         self.registry_dir = self.base_dir / "registry"
@@ -247,6 +241,8 @@ class RingSweepRunner:
 
         # Use provided registry store or create default file-based store
         self.registry_store: RegistryStore = registry_store or FileRegistryStore(self.base_dir)
+        # Use provided executor or create default local executor (Plan 027)
+        self.executor: SimulationExecutor = executor or LocalExecutor()
         self.experiment_id = ""  # Empty = use base_dir directly
 
         self.registry_dir.mkdir(parents=True, exist_ok=True)
@@ -429,11 +425,6 @@ class RingSweepRunner:
         run_html_path = run_dir / "run.html"
         balances_path = out_dir / "balances.csv"
         events_path = out_dir / "events.jsonl"
-        metrics_csv_path = out_dir / "metrics.csv"
-        metrics_json_path = out_dir / "metrics.json"
-        ds_csv_path = out_dir / "metrics_ds.csv"
-        intraday_csv_path = out_dir / "metrics_intraday.csv"
-        metrics_html_path = out_dir / "metrics.html"
 
         # Common parameters for all registry updates
         base_params = {
@@ -519,9 +510,8 @@ class RingSweepRunner:
             scenario_run = scenario.setdefault("run", {})
             scenario_run["default_handling"] = self.default_handling
 
+        # RingSweepRunner writes scenario.yaml itself for control
         with scenario_path.open("w", encoding="utf-8") as fh:
-            import yaml
-
             yaml.safe_dump(_to_yaml_ready(scenario), fh, sort_keys=False, allow_unicode=False)
 
         S1 = Decimal("0")
@@ -535,31 +525,31 @@ class RingSweepRunner:
         # Determine regime for logging (Plan 022)
         regime = "active" if self.dealer_enabled else "passive"
 
-        # Lazy import to avoid circular import
-        from bilancio.ui.run import run_scenario
+        # Build RunOptions from scenario configuration (Plan 027)
+        options = RunOptions(
+            mode="until_stable",
+            max_days=scenario.get("run", {}).get("max_days", 90),
+            quiet_days=scenario.get("run", {}).get("quiet_days", 2),
+            check_invariants="daily",
+            default_handling=self.default_handling,
+            show_events=scenario.get("run", {}).get("show", {}).get("events", "detailed"),
+            show_balances=scenario.get("run", {}).get("show", {}).get("balances"),
+            t_account=False,
+            detailed_dealer_logging=self.detailed_dealer_logging,
+            run_id=run_id,
+            regime=regime,
+        )
 
-        try:
-            run_scenario(
-                path=scenario_path,
-                mode="until_stable",
-                max_days=scenario["run"].get("max_days", 90),
-                quiet_days=scenario["run"].get("quiet_days", 2),
-                show=scenario["run"].get("show", {}).get("events", "detailed"),
-                agent_ids=scenario["run"].get("show", {}).get("balances"),
-                check_invariants="daily",
-                export={
-                    "balances_csv": str(balances_path),
-                    "events_jsonl": str(events_path),
-                },
-                html_output=run_html_path,
-                t_account=False,
-                default_handling=self.default_handling,
-                detailed_dealer_logging=self.detailed_dealer_logging,  # Plan 022
-                run_id=run_id,  # Plan 022
-                regime=regime,  # Plan 022
-                progress_callback=progress_callback,
-            )
-        except Exception as exc:
+        # Delegate simulation to executor (Plan 027)
+        result = self.executor.execute(
+            scenario_config=_to_yaml_ready(scenario),
+            run_id=run_id,
+            output_dir=run_dir,
+            options=options,
+        )
+
+        # Handle failure case
+        if result.status == RunStatus.FAILED:
             fail_params = {**base_params, "S1": str(S1), "L0": str(L0)}
             self._upsert_registry(
                 run_id=run_id,
@@ -570,24 +560,29 @@ class RingSweepRunner:
                     "scenario_yaml": self._rel_path(scenario_path),
                     "run_html": self._rel_path(run_html_path),
                 },
-                error=str(exc),
+                error=result.error,
             )
             return RingRunSummary(run_id, phase, kappa, concentration, mu, monotonicity, None, None, 0)
 
-        events = list(read_events_jsonl(events_path))
-        balances_rows = read_balances_csv(balances_path) if balances_path.exists() else None
-        bundle = compute_day_metrics(events, balances_rows)
+        # Use MetricsComputer for analytics (Plan 027)
+        # result.artifacts contains relative paths (e.g., "out/events.jsonl")
+        artifacts: Dict[str, str] = {}
+        if "events_jsonl" in result.artifacts:
+            artifacts["events_jsonl"] = result.artifacts["events_jsonl"]
+        if "balances_csv" in result.artifacts:
+            artifacts["balances_csv"] = result.artifacts["balances_csv"]
 
-        write_day_metrics_csv(metrics_csv_path, bundle["day_metrics"])
-        write_day_metrics_json(metrics_json_path, bundle["day_metrics"])
-        write_debtor_shares_csv(ds_csv_path, bundle["debtor_shares"])
-        write_intraday_csv(intraday_csv_path, bundle["intraday"])
-        write_metrics_html(metrics_html_path, bundle["day_metrics"], bundle["debtor_shares"], bundle["intraday"])
+        loader = LocalArtifactLoader(base_path=Path(result.storage_base))
+        computer = MetricsComputer(loader)
+        bundle = computer.compute(artifacts)
 
-        summary = summarize_day_metrics(bundle["day_metrics"])
-        delta_total = summary.get("delta_total")
-        phi_total = summary.get("phi_total")
-        time_to_stability = int(summary.get("max_day") or 0)
+        # Write metrics outputs
+        output_paths = computer.write_outputs(bundle, out_dir)
+
+        # Extract summary metrics
+        delta_total = bundle.summary.get("delta_total")
+        phi_total = bundle.summary.get("phi_total")
+        time_to_stability = int(bundle.summary.get("max_day") or 0)
 
         # Read dealer metrics if available (treatment runs with dealer enabled)
         dealer_metrics: Optional[Dict[str, Any]] = None
@@ -614,8 +609,8 @@ class RingSweepRunner:
                 "scenario_yaml": self._rel_path(scenario_path),
                 "events_jsonl": self._rel_path(events_path),
                 "balances_csv": self._rel_path(balances_path),
-                "metrics_csv": self._rel_path(metrics_csv_path),
-                "metrics_html": self._rel_path(metrics_html_path),
+                "metrics_csv": self._rel_path(output_paths["metrics_csv"]),
+                "metrics_html": self._rel_path(output_paths["metrics_html"]),
                 "run_html": self._rel_path(run_html_path),
             },
         )

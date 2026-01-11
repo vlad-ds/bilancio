@@ -2,24 +2,39 @@
 
 from __future__ import annotations
 
-from typing import Protocol, Optional, Dict, Any, Callable, runtime_checkable
+from pathlib import Path
+from typing import Protocol, Optional, Dict, Any, runtime_checkable
 
-# Import from storage to avoid circular imports at runtime
-from bilancio.storage.models import RunResult, RunStatus
+from bilancio.runners.models import RunOptions, ExecutionResult
+from bilancio.storage.models import RunStatus, RunResult
 
 
 @runtime_checkable
 class SimulationExecutor(Protocol):
-    """Protocol for synchronous simulation execution."""
+    """Protocol for synchronous simulation execution.
+
+    The executor only runs the simulation and returns where artifacts
+    are stored. It does NOT compute metrics - that's MetricsComputer's job.
+    """
 
     def execute(
         self,
         scenario_config: Dict[str, Any],
         run_id: str,
-        output_dir: Optional[str] = None,
-        progress_callback: Optional[Callable[[str], None]] = None,
-    ) -> RunResult:
-        """Execute a simulation, return result."""
+        output_dir: Path,
+        options: RunOptions,
+    ) -> ExecutionResult:
+        """Execute a simulation, return result with artifact paths.
+
+        Args:
+            scenario_config: Complete scenario configuration dict
+            run_id: Unique identifier for this run
+            output_dir: Directory for output files
+            options: RunOptions with simulation parameters
+
+        Returns:
+            ExecutionResult with storage location and relative artifact paths
+        """
         ...
 
 
