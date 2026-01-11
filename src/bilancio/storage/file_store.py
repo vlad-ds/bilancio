@@ -4,10 +4,34 @@ from __future__ import annotations
 
 import csv
 import json
+import re
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 
 from .models import RunResult, RegistryEntry, RunArtifacts, RunStatus
+
+
+# Pattern for valid IDs (alphanumeric, dash, underscore, dot)
+_VALID_ID_PATTERN = re.compile(r'^[a-zA-Z0-9_\-\.]+$')
+
+
+def _validate_id(value: str, field_name: str) -> None:
+    """Validate an ID to prevent path traversal attacks.
+
+    Args:
+        value: The ID value to validate.
+        field_name: Name of the field for error messages.
+
+    Raises:
+        ValueError: If the ID contains invalid characters.
+    """
+    if not value:
+        return  # Empty is allowed for some cases (e.g., empty experiment_id)
+    if not _VALID_ID_PATTERN.match(value):
+        raise ValueError(
+            f"Invalid {field_name}: '{value}'. "
+            f"Must contain only alphanumeric characters, dashes, underscores, and dots."
+        )
 
 
 class FileResultStore:
@@ -18,6 +42,8 @@ class FileResultStore:
         self.base_dir.mkdir(parents=True, exist_ok=True)
 
     def _run_dir(self, experiment_id: str, run_id: str) -> Path:
+        _validate_id(experiment_id, "experiment_id")
+        _validate_id(run_id, "run_id")
         return self.base_dir / experiment_id / "runs" / run_id
 
     def save_artifact(
@@ -80,8 +106,17 @@ class FileResultStore:
         )
 
     def load_artifact(self, reference: str) -> bytes:
-        """Load artifact content by path."""
+        """Load artifact content by path.
+
+        Raises:
+            ValueError: If reference attempts path traversal outside base_dir.
+        """
         path = self.base_dir / reference
+        # Validate path doesn't escape base_dir (security: prevent path traversal)
+        try:
+            path.resolve().relative_to(self.base_dir.resolve())
+        except ValueError:
+            raise ValueError(f"Invalid artifact reference: path traversal detected in '{reference}'")
         return path.read_bytes()
 
 
@@ -105,6 +140,7 @@ class FileRegistryStore:
         self.base_dir = Path(base_dir)
 
     def _registry_path(self, experiment_id: str) -> Path:
+        _validate_id(experiment_id, "experiment_id")
         if experiment_id:
             return self.base_dir / experiment_id / "registry" / "experiments.csv"
         # Empty experiment_id means use base_dir directly
@@ -269,7 +305,7 @@ class FileRegistryStore:
                     parameters[k] = v
             elif k in metric_keys:
                 try:
-                    parameters[k] = float(v)
+                    metrics[k] = float(v)
                 except ValueError:
                     metrics[k] = v
             elif k in artifact_keys:

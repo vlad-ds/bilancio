@@ -563,3 +563,113 @@ class TestFileRegistryStore:
         assert loaded is not None
         assert "custom_param" in loaded.parameters
         assert loaded.parameters["custom_param"] == "custom_value"
+
+    def test_metrics_roundtrip_through_csv(self, tmp_path):
+        """Test that metrics are correctly stored and retrieved from CSV.
+
+        This test verifies the fix for the bug where metrics were incorrectly
+        assigned to parameters instead of metrics dict in _row_to_entry.
+        """
+        store = FileRegistryStore(tmp_path)
+
+        # Create entry with all standard metrics
+        entry = RegistryEntry(
+            run_id="run_001",
+            experiment_id="exp_001",
+            status=RunStatus.COMPLETED,
+            parameters={"seed": 42, "kappa": 0.1},
+            metrics={
+                "phi_total": 150.5,
+                "delta_total": 75.25,
+                "time_to_stability": 12.0,
+            },
+        )
+        store.upsert(entry)
+
+        # Load it back
+        loaded = store.get("exp_001", "run_001")
+
+        assert loaded is not None
+        # Verify metrics are in metrics dict (not parameters)
+        assert "phi_total" in loaded.metrics
+        assert "delta_total" in loaded.metrics
+        assert "time_to_stability" in loaded.metrics
+        assert loaded.metrics["phi_total"] == 150.5
+        assert loaded.metrics["delta_total"] == 75.25
+        assert loaded.metrics["time_to_stability"] == 12.0
+
+        # Verify metrics are NOT in parameters
+        assert "phi_total" not in loaded.parameters
+        assert "delta_total" not in loaded.parameters
+        assert "time_to_stability" not in loaded.parameters
+
+        # Verify parameters are still in parameters dict
+        assert loaded.parameters["seed"] == 42
+        assert loaded.parameters["kappa"] == 0.1
+
+
+class TestFileStoreSecurityValidation:
+    """Tests for security validations in file stores."""
+
+    def test_load_artifact_rejects_path_traversal(self, tmp_path):
+        """Test that load_artifact rejects path traversal attempts."""
+        store = FileResultStore(tmp_path)
+
+        # Create a legitimate file
+        (tmp_path / "test.txt").write_bytes(b"test")
+
+        # Try to traverse outside base_dir
+        with pytest.raises(ValueError, match="path traversal detected"):
+            store.load_artifact("../../../etc/passwd")
+
+    def test_load_artifact_rejects_absolute_path_traversal(self, tmp_path):
+        """Test that load_artifact rejects absolute path traversal."""
+        store = FileResultStore(tmp_path)
+
+        with pytest.raises(ValueError, match="path traversal detected"):
+            store.load_artifact("foo/../../../etc/passwd")
+
+    def test_save_artifact_rejects_invalid_experiment_id(self, tmp_path):
+        """Test that save_artifact rejects invalid experiment_id."""
+        store = FileResultStore(tmp_path)
+
+        with pytest.raises(ValueError, match="Invalid experiment_id"):
+            store.save_artifact(
+                experiment_id="../malicious",
+                run_id="run_001",
+                name="test.txt",
+                content=b"test",
+            )
+
+    def test_save_artifact_rejects_invalid_run_id(self, tmp_path):
+        """Test that save_artifact rejects invalid run_id."""
+        store = FileResultStore(tmp_path)
+
+        with pytest.raises(ValueError, match="Invalid run_id"):
+            store.save_artifact(
+                experiment_id="exp_001",
+                run_id="../../../etc",
+                name="test.txt",
+                content=b"test",
+            )
+
+    def test_registry_rejects_invalid_experiment_id(self, tmp_path):
+        """Test that registry operations reject invalid experiment_id."""
+        store = FileRegistryStore(tmp_path)
+
+        with pytest.raises(ValueError, match="Invalid experiment_id"):
+            store.get("../malicious", "run_001")
+
+    def test_valid_ids_with_special_chars_allowed(self, tmp_path):
+        """Test that valid IDs with dashes, underscores, dots are allowed."""
+        store = FileResultStore(tmp_path)
+
+        # These should all work
+        ref = store.save_artifact(
+            experiment_id="exp-001_test.v2",
+            run_id="run.001-abc_123",
+            name="test.txt",
+            content=b"test",
+        )
+        assert "exp-001_test.v2" in ref
+        assert "run.001-abc_123" in ref
