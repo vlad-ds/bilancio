@@ -9,8 +9,6 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
-import random
-
 import yaml
 from pydantic import BaseModel, Field, ValidationError, model_validator
 
@@ -25,6 +23,11 @@ from bilancio.analysis.report import (
     write_metrics_html,
 )
 from bilancio.config.models import RingExplorerGeneratorConfig
+from bilancio.experiments.sampling import (
+    generate_frontier_params,
+    generate_grid_params,
+    generate_lhs_params,
+)
 from bilancio.scenarios import compile_ring_explorer
 
 # Note: run_scenario imported lazily in _execute_run to avoid circular import
@@ -310,21 +313,20 @@ class RingSweepRunner:
         monotonicities: Sequence[Decimal],
     ) -> List[RingRunSummary]:
         summaries: List[RingRunSummary] = []
-        for kappa in kappas:
-            for concentration in concentrations:
-                for mu in mus:
-                    for monotonicity in monotonicities:
-                        seed = self._next_seed()
-                        summaries.append(
-                            self._execute_run(
-                                "grid",
-                                kappa,
-                                concentration,
-                                mu,
-                                monotonicity,
-                                seed,
-                            )
-                        )
+        for kappa, concentration, mu, monotonicity in generate_grid_params(
+            kappas, concentrations, mus, monotonicities
+        ):
+            seed = self._next_seed()
+            summaries.append(
+                self._execute_run(
+                    "grid",
+                    kappa,
+                    concentration,
+                    mu,
+                    monotonicity,
+                    seed,
+                )
+            )
         return summaries
 
     def run_lhs(
@@ -338,40 +340,27 @@ class RingSweepRunner:
     ) -> List[RingRunSummary]:
         if count <= 0:
             return []
-        rng = random.Random(self.seed_counter + 7919)
-        kappas = self._lhs_axis(count, kappa_range, rng)
-        concentrations = self._lhs_axis(count, concentration_range, rng)
-        mus = self._lhs_axis(count, mu_range, rng)
-        rng.shuffle(concentrations)
-        rng.shuffle(mus)
-        monotonicities = self._lhs_axis(count, monotonicity_range, rng)
-        rng.shuffle(monotonicities)
         summaries: List[RingRunSummary] = []
-        for idx in range(count):
+        for kappa, concentration, mu, monotonicity in generate_lhs_params(
+            count,
+            kappa_range=kappa_range,
+            concentration_range=concentration_range,
+            mu_range=mu_range,
+            monotonicity_range=monotonicity_range,
+            seed=self.seed_counter,
+        ):
             seed = self._next_seed()
             summaries.append(
                 self._execute_run(
                     "lhs",
-                    kappas[idx],
-                    concentrations[idx],
-                    mus[idx],
-                    monotonicities[idx],
+                    kappa,
+                    concentration,
+                    mu,
+                    monotonicity,
                     seed,
                 )
             )
         return summaries
-
-    def _lhs_axis(self, count: int, bounds: Tuple[Decimal, Decimal], rng: random.Random) -> List[Decimal]:
-        low, high = bounds
-        samples: List[Decimal] = []
-        for stratum in range(count):
-            a = Decimal(stratum) / Decimal(count)
-            b = Decimal(stratum + 1) / Decimal(count)
-            u = Decimal(str(rng.random()))
-            frac = a + (b - a) * u
-            samples.append(low + (high - low) * frac)
-        rng.shuffle(samples)
-        return samples
 
     def run_frontier(
         self,
@@ -385,74 +374,42 @@ class RingSweepRunner:
         max_iterations: int,
     ) -> List[RingRunSummary]:
         summaries: List[RingRunSummary] = []
-        for concentration in concentrations:
-            for mu in mus:
-                for monotonicity in monotonicities:
-                    summaries.extend(
-                        self._run_frontier_cell(
-                            concentration,
-                            mu,
-                            monotonicity,
-                            kappa_low,
-                            kappa_high,
-                            tolerance,
-                            max_iterations,
-                        )
-                    )
+
+        # Create execution function that captures self and returns delta_total
+        def execute_fn(
+            label: str,
+            kappa: Decimal,
+            concentration: Decimal,
+            mu: Decimal,
+            monotonicity: Decimal,
+        ) -> Optional[Decimal]:
+            # Execute run with label
+            summary = self._execute_run(
+                "frontier",
+                kappa,
+                concentration,
+                mu,
+                monotonicity,
+                self._next_seed(),
+                label=label,
+            )
+            summaries.append(summary)
+            return summary.delta_total
+
+        # Use frontier sampling to execute runs with binary search
+        # Unlike grid/LHS, frontier calls execute_fn directly for immediate feedback
+        generate_frontier_params(
+            concentrations,
+            mus,
+            monotonicities,
+            kappa_low=kappa_low,
+            kappa_high=kappa_high,
+            tolerance=tolerance,
+            max_iterations=max_iterations,
+            execute_fn=execute_fn,
+        )
+
         return summaries
-
-    def _run_frontier_cell(
-        self,
-        concentration: Decimal,
-        mu: Decimal,
-        monotonicity: Decimal,
-        kappa_low: Decimal,
-        kappa_high: Decimal,
-        tolerance: Decimal,
-        max_iterations: int,
-    ) -> List[RingRunSummary]:
-        runs: List[RingRunSummary] = []
-
-        low_summary = self._execute_run("frontier", kappa_low, concentration, mu, monotonicity, self._next_seed(), label="low")
-        runs.append(low_summary)
-        if low_summary.delta_total is not None and low_summary.delta_total <= tolerance:
-            return runs
-
-        hi_kappa = kappa_high
-        hi_summary = self._execute_run("frontier", hi_kappa, concentration, mu, monotonicity, self._next_seed(), label="high")
-        runs.append(hi_summary)
-
-        while (hi_summary.delta_total is None or hi_summary.delta_total > tolerance) and hi_kappa < kappa_high * 4:
-            hi_kappa = hi_kappa * Decimal("1.5")
-            hi_summary = self._execute_run("frontier", hi_kappa, concentration, mu, monotonicity, self._next_seed(), label="high")
-            runs.append(hi_summary)
-            if hi_kappa > Decimal("128"):
-                break
-
-        if hi_summary.delta_total is None or hi_summary.delta_total > tolerance:
-            return runs
-
-        low = low_summary.kappa
-        high = hi_summary.kappa
-        best = hi_summary
-
-        for _ in range(max_iterations):
-            if high - low <= tolerance:
-                break
-            mid = (low + high) / 2
-            mid_summary = self._execute_run("frontier", mid, concentration, mu, monotonicity, self._next_seed(), label="mid")
-            runs.append(mid_summary)
-            delta = mid_summary.delta_total
-            if delta is None:
-                low = mid
-                continue
-            if delta <= tolerance:
-                best = mid_summary
-                high = mid
-            else:
-                low = mid
-
-        return runs
 
     def _execute_run(
         self,
