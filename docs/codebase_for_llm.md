@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2025-12-11 22:37:39 UTC | Branch: main | Commit: c47e85a7
+Generated: 2026-01-11 16:02:48 UTC | Branch: main | Commit: 8b8ff83c
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -19,7 +19,6 @@ This document contains the complete codebase structure and content for LLM inges
 ├── AGENTS.md
 ├── CLAUDE.md
 ├── README.md
-├── TODO.md
 ├── dashboards
 │   ├── expel_ring_analysis_dashboard
 │   │   ├── README.md
@@ -2303,6 +2302,8 @@ This document contains the complete codebase structure and content for LLM inges
 │   ├── SP239 Kalecki on Credit and Debt extended.pdf
 │   ├── analysis
 │   │   └── 016_dealer_comparison_analysis.md
+│   ├── archive
+│   │   └── TODO_2025.md
 │   ├── codebase_for_llm.md
 │   ├── dealer_ring
 │   │   ├── Instructions_for_simulation.pdf
@@ -2353,6 +2354,9 @@ This document contains the complete codebase structure and content for LLM inges
 │   ├── prompts
 │   │   ├── 015_expel_sweep_agent_prompt.md
 │   │   └── scenario_translator_agent.md
+│   ├── refactor_2026
+│   │   ├── 025_phase1_cleanup.md
+│   │   └── codebase_analysis.md
 │   └── version_1_0_exercises.pdf
 ├── examples
 │   ├── dealer_ring
@@ -2430,6 +2434,7 @@ This document contains the complete codebase structure and content for LLM inges
 │       ├── balance_sheet_display.ipynb
 │       └── pdf_example_with_firms.ipynb
 ├── out
+│   ├── events.jsonl
 │   ├── experiments
 │   │   ├── 20250925_163435_ring
 │   │   │   ├── aggregate
@@ -31700,7 +31705,12 @@ This document contains the complete codebase structure and content for LLM inges
 │       │   ├── metrics.py
 │       │   ├── report.py
 │       │   ├── strategy_outcomes.py
-│       │   ├── visualization.py
+│       │   ├── visualization
+│       │   │   ├── __init__.py
+│       │   │   ├── balances.py
+│       │   │   ├── common.py
+│       │   │   ├── events.py
+│       │   │   └── phases.py
 │       │   └── visualization_phases.py
 │       ├── config
 │       │   ├── __init__.py
@@ -31760,13 +31770,14 @@ This document contains the complete codebase structure and content for LLM inges
 │       │   ├── __init__.py
 │       │   ├── balanced_comparison.py
 │       │   ├── comparison.py
-│       │   └── ring.py
+│       │   ├── ring.py
+│       │   └── sampling
+│       │       ├── __init__.py
+│       │       ├── frontier.py
+│       │       ├── grid.py
+│       │       └── lhs.py
 │       ├── export
 │       │   ├── __init__.py
-│       │   └── writers.py
-│       ├── io
-│       │   ├── __init__.py
-│       │   ├── readers.py
 │       │   └── writers.py
 │       ├── ops
 │       │   ├── __init__.py
@@ -31777,14 +31788,16 @@ This document contains the complete codebase structure and content for LLM inges
 │       │   └── primitives_stock.py
 │       ├── scenarios
 │       │   ├── __init__.py
-│       │   └── generators
-│       │       ├── __init__.py
-│       │       └── ring_explorer.py
+│       │   └── ring_explorer.py
 │       └── ui
 │           ├── __init__.py
 │           ├── assets
 │           │   └── export.css
-│           ├── cli.py
+│           ├── cli
+│           │   ├── __init__.py
+│           │   ├── run.py
+│           │   ├── sweep.py
+│           │   └── utils.py
 │           ├── display.py
 │           ├── html_export.py
 │           ├── render
@@ -31800,7 +31813,8 @@ This document contains the complete codebase structure and content for LLM inges
     │   ├── __init__.py
     │   ├── test_balances.py
     │   ├── test_report_aggregate.py
-    │   └── test_t_account_builder.py
+    │   ├── test_t_account_builder.py
+    │   └── test_visualization.py
     ├── config
     │   ├── test_apply.py
     │   ├── test_loaders.py
@@ -31818,6 +31832,9 @@ This document contains the complete codebase structure and content for LLM inges
     │   ├── test_dealer_subsystem.py
     │   ├── test_default_handling.py
     │   └── test_phase_b1_scheduling.py
+    ├── experiments
+    │   ├── __init__.py
+    │   └── test_sweep_runners.py
     ├── integration
     │   ├── test_banking_ops.py
     │   ├── test_clearing_phase_c.py
@@ -31832,6 +31849,7 @@ This document contains the complete codebase structure and content for LLM inges
     ├── ui
     │   ├── test_cli.py
     │   ├── test_cli_html_export.py
+    │   ├── test_cli_integration.py
     │   ├── test_html_export.py
     │   ├── test_render_builders.py
     │   └── test_render_formatters.py
@@ -31841,7 +31859,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-6850 directories, 24981 files
+6854 directories, 24995 files
 
 ```
 
@@ -33565,6 +33583,116 @@ Complete git history from oldest to newest:
   - Maturity mismatch (μ) is the key driver of trading benefits
   🤖 Generated with [Claude Code](https://claude.com/claude-code)
   Co-Authored-By: Claude <noreply@anthropic.com>
+
+- **bcce1062** (2025-12-11) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **aec8f628** (2026-01-11) by vladgheorghe
+  docs(refactor): add 2026 codebase analysis and refactoring plan
+  Comprehensive analysis of codebase structure with recommendations for:
+  - Phase 1: Cleanup (dead code, merge modules, flatten nesting)
+  - Phase 2: Split large files (CLI, visualization)
+  - Phase 3: Add test coverage (experiments framework)
+  - Phase 4: Abstractions for cloud/DB scalability
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **8e264a22** (2026-01-11) by vladgheorghe
+  docs(refactor): add comprehensive Plan 025 for Phase 1 cleanup
+  Full restructuring plan addressing all identified issues:
+  Part A - Dead code removal:
+  - Delete modules/dealer_ring/ (empty pycache)
+  - Delete io/ (stub code)
+  - Archive stale TODO.md
+  Part B - Split large files:
+  - ui/cli.py (1,100 lines) → ui/cli/{run,sweep,utils}.py
+  - analysis/visualization.py (2,200 lines) → visualization/{balances,events,phases}.py
+  - experiments/ring.py → ring.py + sampling/{grid,lhs,frontier}.py
+  Part C - Add test coverage:
+  - experiments/ 0-25% → 60%
+  - visualization 13% → 50%
+  - ui/cli 34% → 60%
+  Part D - Flatten scenarios/generators/
+  Includes verification steps, rollback plan, and success criteria.
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **9d78869a** (2026-01-11) by vladgheorghe
+  refactor(cleanup): Part A - remove dead code
+  - Delete empty modules/dealer_ring/ directory (only contained __pycache__)
+  - Delete io/ module (stub functions that only raised NotImplementedError)
+  - Archive stale TODO.md to docs/archive/TODO_2025.md
+  - Remove test_io_imports test that tested deleted stubs
+  Part of Plan 025 Phase 1 Cleanup.
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **8e84355d** (2026-01-11) by vladgheorghe
+  refactor(scenarios): Part D - flatten generators/ directory
+  - Move ring_explorer.py from scenarios/generators/ to scenarios/
+  - Update scenarios/__init__.py to export compile_generator, compile_ring_explorer,
+    and compile_ring_explorer_balanced
+  - Delete scenarios/generators/ directory
+  - Update imports in config/loaders.py, experiments/ring.py,
+    tests/scenarios/test_ring_explorer.py, and dashboards/monotonicity_demo/
+  Part of Plan 025 Phase 1 Cleanup.
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **4238ff09** (2026-01-11) by vladgheorghe
+  refactor(structure): Part B - split large files into modules
+  B1: Split ui/cli.py (849 lines) into ui/cli/ directory:
+  - __init__.py: Main CLI entry point, click group
+  - run.py: run, validate, new, analyze commands
+  - sweep.py: sweep group and all sweep subcommands
+  - utils.py: Shared utilities (console, decimal helpers)
+  B2: Split analysis/visualization.py (2203 lines) into visualization/ directory:
+  - __init__.py: Re-exports public API
+  - balances.py: T-account and balance sheet display
+  - events.py: Event table formatting
+  - phases.py: Phase summary visualization
+  - common.py: Shared utilities and constants
+  B3: Extract sampling strategies from experiments/ring.py:
+  - sampling/__init__.py: Re-exports
+  - sampling/grid.py: Cartesian product sampling
+  - sampling/lhs.py: Latin Hypercube Sampling
+  - sampling/frontier.py: Binary search frontier detection
+  All public APIs preserved for backwards compatibility.
+  Part of Plan 025 Phase 1 Cleanup.
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **c211e1fd** (2026-01-11) by vladgheorghe
+  test(coverage): Part C - add tests for experiments, visualization, CLI
+  Added 96 new tests to improve coverage from 53% to 64%:
+  C1: tests/experiments/test_sweep_runners.py (33 tests)
+  - Grid, LHS, frontier sampling functions
+  - RingSweepRunner setup and configuration
+  - ComparisonSweepRunner and BalancedComparisonRunner setup
+  - Result dataclass calculations
+  C2: tests/analysis/test_visualization.py (41 tests)
+  - Balance display functions (rich/simple formats)
+  - Event display and table functions
+  - Phase display functions
+  - Build functions for T-accounts and events
+  - Multi-agent visualization
+  C3: tests/ui/test_cli_integration.py (22 tests)
+  - CLI help commands verification
+  - Validate command with real scenarios
+  - Run command with various options and exports
+  - Error handling for invalid inputs
+  Test count: 276 → 371
+  Coverage: 53% → 64%
+  Part of Plan 025 Phase 1 Cleanup.
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **6a5f94fc** (2026-01-11) by vladgheorghe
+  fix: address PR review feedback
+  - Remove duplicate RICH_AVAILABLE definitions in balances.py and events.py
+    (now imported only from common.py)
+  - Remove dead code _build_events_detailed_renderables_old in events.py
+  - Use console.print() instead of click.echo() for Rich-formatted output
+    in sweep.py strategy-outcomes and dealer-usage commands
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **8b8ff83c** (2026-01-11) by Vlad Gheorghe
+  Merge pull request #23 from vlad-ds/refactor/phase-1-cleanup
+  Phase 1 Codebase Cleanup & Restructuring (Plan 025)
 
 ---
 
@@ -35714,42 +35842,117 @@ if __name__ == "__main__":
 
 ---
 
-### 📄 src/bilancio/analysis/visualization.py
+### 📄 src/bilancio/analysis/visualization/__init__.py
 
 ```python
-"""Balance sheet visualization utilities for the bilancio system."""
+"""Balance sheet visualization utilities for the bilancio system.
+
+This module has been split into submodules for better organization:
+- balances: Balance sheet and T-account display
+- events: Event table formatting
+- phases: Phase summary visualization
+- common: Shared utilities and constants
+"""
 
 from __future__ import annotations
 
-from collections import defaultdict
-from decimal import Decimal
-from typing import Any, Dict, List, Optional, Union
-from dataclasses import dataclass
-import math
-from typing import Optional
+# Re-export public API from submodules to maintain backward compatibility
 
-try:
+# Common utilities and types
+from bilancio.analysis.visualization.common import (
+    RICH_AVAILABLE,
+    RenderableType,
+    BalanceRow,
+    TAccount,
+    parse_day_from_maturity,
+)
+
+# Balance sheet functions
+from bilancio.analysis.visualization.balances import (
+    display_agent_balance_table,
+    display_agent_balance_from_balance,
+    display_multiple_agent_balances,
+    build_t_account_rows,
+    display_agent_t_account,
+    display_agent_t_account_renderable,
+    display_agent_balance_table_renderable,
+    display_multiple_agent_balances_renderable,
+)
+
+# Event display functions
+from bilancio.analysis.visualization.events import (
+    display_events,
+    display_events_table,
+    display_events_table_renderable,
+    display_events_for_day,
+    display_events_renderable,
+    display_events_for_day_renderable,
+)
+
+# Phase summary functions
+from bilancio.analysis.visualization.phases import (
+    display_events_tables_by_phase_renderables,
+)
+
+__all__ = [
+    # Common
+    'RICH_AVAILABLE',
+    'RenderableType',
+    'BalanceRow',
+    'TAccount',
+    'parse_day_from_maturity',
+    # Balance sheets
+    'display_agent_balance_table',
+    'display_agent_balance_from_balance',
+    'display_multiple_agent_balances',
+    'build_t_account_rows',
+    'display_agent_t_account',
+    'display_agent_t_account_renderable',
+    'display_agent_balance_table_renderable',
+    'display_multiple_agent_balances_renderable',
+    # Events
+    'display_events',
+    'display_events_table',
+    'display_events_table_renderable',
+    'display_events_for_day',
+    'display_events_renderable',
+    'display_events_for_day_renderable',
+    # Phases
+    'display_events_tables_by_phase_renderables',
+]
+
+```
+
+---
+
+### 📄 src/bilancio/analysis/visualization/balances.py
+
+```python
+"""Balance sheet and T-account display functions."""
+
+from __future__ import annotations
+
+from typing import Any, List, Optional, Union
+
+from bilancio.analysis.balances import AgentBalance, agent_balance
+from bilancio.engines.system import System
+from bilancio.analysis.visualization.common import (
+    RICH_AVAILABLE,
+    RenderableType,
+    _format_currency,
+    BalanceRow,
+    TAccount,
+    _format_agent,
+    parse_day_from_maturity,
+)
+
+# Import Rich components only if available
+if RICH_AVAILABLE:
     from rich.console import Console
     from rich.table import Table
     from rich.columns import Columns
     from rich.text import Text
     from rich import box
-    from rich.console import RenderableType
-    RICH_AVAILABLE = True
-except ImportError:
-    RICH_AVAILABLE = False
-    RenderableType = Any
-
-from bilancio.analysis.balances import AgentBalance, agent_balance
-from bilancio.engines.system import System
-
-
-def _format_currency(amount: int, show_sign: bool = False) -> str:
-    """Format an integer amount as currency."""
-    formatted = f"{amount:,}"
-    if show_sign and amount > 0:
-        formatted = f"+{formatted}"
-    return formatted
 
 
 
@@ -36353,538 +36556,6 @@ def _display_simple_multiple_agent_balances(
         print(" | ".join(row_parts))
 
 
-def display_events(events: List[Dict[str, Any]], format: str = 'detailed') -> None:
-    """
-    Display system events in a nicely formatted way.
-    
-    Args:
-        events: List of event dictionaries from sys.state.events
-        format: Display format ('detailed' or 'summary')
-    """
-    console = Console() if RICH_AVAILABLE else None
-    
-    if not events:
-        _print("No events to display.", console)
-        return
-    
-    if format == 'summary':
-        _display_events_summary(events, console)
-    else:
-        _display_events_detailed(events, console)
-
-
-def display_events_table(events: List[Dict[str, Any]], group_by_day: bool = True) -> None:
-    """Render events as a table with canonical columns.
-
-    Falls back to simple text when Rich is not available.
-    """
-    console = Console() if RICH_AVAILABLE else None
-
-    if not events:
-        _print("No events to display.", console)
-        return
-
-    columns = ["Day", "Phase", "Kind", "From", "To", "SKU/Instr", "Qty", "Amount", "Notes"]
-
-    # Sort events deterministically
-    # Drop phase marker events; preserve original insertion (chronological) order
-    evs = [e for e in events if e.get("kind") not in ("PhaseA", "PhaseB", "PhaseC")]
-
-    if RICH_AVAILABLE:
-        from rich.table import Table as RichTable
-        from rich import box as rich_box
-        table = RichTable(title="Events", box=rich_box.HEAVY, show_lines=True)
-        # Column definitions with better alignment
-        table.add_column("Day", justify="right")
-        table.add_column("Phase", justify="left")
-        table.add_column("Kind", justify="left")
-        table.add_column("From", justify="left")
-        table.add_column("To", justify="left")
-        table.add_column("SKU/Instr", justify="left")
-        table.add_column("Qty", justify="right")
-        table.add_column("Amount", justify="right")
-        table.add_column("Notes", justify="left")
-        # Alternate row shading for readability
-        try:
-            table.row_styles = ["on #ffffff", "on #e6f2ff"]
-        except Exception:
-            pass
-
-        for e in evs:
-            kind = str(e.get("kind", ""))
-            # Canonical from/to mapping by kind
-            if kind in ("CashDeposited", "CashWithdrawn"):
-                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
-                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
-            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
-                frm = e.get("payer")
-                to = e.get("payee")
-            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
-                frm = e.get("debtor_bank")
-                to = e.get("creditor_bank")
-            elif kind == "StockCreated":
-                frm = e.get("owner")
-                to = None
-            else:
-                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer") or e.get("agent")
-                to = e.get("to") or e.get("creditor") or e.get("payee")
-            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
-            qty = e.get("qty") or e.get("quantity") or "—"
-            amt = e.get("amount") or "—"
-
-            notes = ""
-            if kind == "ClientPayment":
-                notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
-            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
-                notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
-                if 'due_day' in e:
-                    notes += f"; due {e.get('due_day')}"
-            elif kind == "AgentDefaulted":
-                shortfall = e.get('shortfall')
-                trigger = e.get('trigger_contract')
-                parts = []
-                if shortfall is not None:
-                    parts.append(f"shortfall {shortfall}")
-                if trigger:
-                    parts.append(f"trigger {trigger}")
-                if parts:
-                    notes = ", ".join(parts)
-
-            table.add_row(
-                str(e.get("day", "—")),
-                str(e.get("phase", "—")),
-                kind,
-                str(frm or "—"),
-                str(to or "—"),
-                str(sku),
-                str(qty),
-                str(amt),
-                notes,
-            )
-
-        console.print(table) if console else print(table)
-    else:
-        # Simple header + rows
-        header = " | ".join(columns)
-        print(header)
-        print("-" * len(header))
-        for e in evs:
-            kind = str(e.get("kind", ""))
-            if kind in ("CashDeposited", "CashWithdrawn"):
-                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
-                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
-            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
-                frm = e.get("payer")
-                to = e.get("payee")
-            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
-                frm = e.get("debtor_bank")
-                to = e.get("creditor_bank")
-            elif kind == "StockCreated":
-                frm = e.get("owner")
-                to = None
-            else:
-                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer") or e.get("agent")
-                to = e.get("to") or e.get("creditor") or e.get("payee")
-            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
-            qty = e.get("qty") or e.get("quantity") or "—"
-            amt = e.get("amount") or "—"
-            notes = ""
-            if kind == "ClientPayment":
-                notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
-            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
-                notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
-                if 'due_day' in e:
-                    notes += f"; due {e.get('due_day')}"
-            elif kind == "AgentDefaulted":
-                shortfall = e.get('shortfall')
-                trigger = e.get('trigger_contract')
-                parts = []
-                if shortfall is not None:
-                    parts.append(f"shortfall {shortfall}")
-                if trigger:
-                    parts.append(f"trigger {trigger}")
-                if parts:
-                    notes = ", ".join(parts)
-            row = [
-                str(e.get("day", "—")),
-                str(e.get("phase", "—")),
-                kind,
-                str(frm or "—"),
-                str(to or "—"),
-                str(sku),
-                str(qty),
-                str(amt),
-                notes,
-            ]
-            print(" | ".join(row))
-
-
-def display_events_table_renderable(events: List[Dict[str, Any]]) -> RenderableType:
-    """Return a Rich Table renderable (or string) for events table."""
-    if not events:
-        return Text("No events to display.", style="dim") if RICH_AVAILABLE else "No events to display."
-
-    columns = ["Day", "Phase", "Kind", "From", "To", "SKU/Instr", "Qty", "Amount", "Notes"]
-    # Drop phase marker events; preserve original insertion (chronological) order
-    evs = [e for e in events if e.get("kind") not in ("PhaseA", "PhaseB", "PhaseC")]
-
-    if RICH_AVAILABLE:
-        from rich.table import Table as RichTable
-        from rich import box as rich_box
-        table = RichTable(title="Events", box=rich_box.HEAVY, show_lines=True)
-        table.add_column("Day", justify="right")
-        table.add_column("Phase", justify="left")
-        table.add_column("Kind", justify="left")
-        table.add_column("From", justify="left")
-        table.add_column("To", justify="left")
-        table.add_column("SKU/Instr", justify="left")
-        table.add_column("Qty", justify="right")
-        table.add_column("Amount", justify="right")
-        table.add_column("Notes", justify="left")
-        try:
-            table.row_styles = ["on #ffffff", "on #e6f2ff"]
-        except Exception:
-            pass
-
-        for e in evs:
-            kind = str(e.get("kind", ""))
-            if kind in ("CashDeposited", "CashWithdrawn"):
-                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
-                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
-            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
-                frm = e.get("payer")
-                to = e.get("payee")
-            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
-                frm = e.get("debtor_bank")
-                to = e.get("creditor_bank")
-            elif kind == "StockCreated":
-                frm = e.get("owner")
-                to = None
-            else:
-                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
-                to = e.get("to") or e.get("creditor") or e.get("payee")
-            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
-            qty = e.get("qty") or e.get("quantity") or "—"
-            amt = e.get("amount") or "—"
-            notes = ""
-            if kind == "ClientPayment":
-                notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
-            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
-                notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
-                if 'due_day' in e:
-                    notes += f"; due {e.get('due_day')}"
-
-            table.add_row(
-                str(e.get("day", "—")),
-                str(e.get("phase", "—")),
-                kind,
-                str(frm or "—"),
-                str(to or "—"),
-                str(sku),
-                str(qty),
-                str(amt),
-                notes,
-            )
-        return table
-    else:
-        header = " | ".join(columns)
-        lines = [header, "-" * len(header)]
-        for e in evs:
-            kind = str(e.get("kind", ""))
-            if kind in ("CashDeposited", "CashWithdrawn"):
-                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
-                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
-            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
-                frm = e.get("payer")
-                to = e.get("payee")
-            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
-                frm = e.get("debtor_bank")
-                to = e.get("creditor_bank")
-            elif kind == "StockCreated":
-                frm = e.get("owner")
-                to = None
-            else:
-                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
-                to = e.get("to") or e.get("creditor") or e.get("payee")
-            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
-            qty = e.get("qty") or e.get("quantity") or "—"
-            amt = e.get("amount") or "—"
-            notes = ""
-            if kind == "ClientPayment":
-                notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
-            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
-                notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
-                if 'due_day' in e:
-                    notes += f"; due {e.get('due_day')}"
-            row = [
-                str(e.get("day", "—")),
-                str(e.get("phase", "—")),
-                kind,
-                str(frm or "—"),
-                str(to or "—"),
-                str(sku),
-                str(qty),
-                str(amt),
-                notes,
-            ]
-            lines.append(" | ".join(row))
-        return "\n".join(lines)
-
-
-def display_events_tables_by_phase_renderables(events: List[Dict[str, Any]], day: Optional[int] = None) -> List[RenderableType]:
-    """Return three event tables (A, B, C) using phase markers as section dividers.
-
-    - Excludes PhaseA/PhaseB/PhaseC events from rows.
-    - Titles indicate the phase and optional day.
-    """
-    if RICH_AVAILABLE:
-        from rich.table import Table as RichTable
-        from rich import box as rich_box
-        from rich.text import Text as RichText
-    
-    # If these are setup-phase events (day 0), render as a single "Setup" table
-    if any(e.get("phase") == "setup" for e in events):
-        return _build_single_setup_table(events, day)
-
-    # Group by phase markers in original order
-    buckets = {"A": [], "B": [], "C": []}
-    current = "A"
-    for e in events:
-        kind = e.get("kind")
-        if kind == "PhaseA":
-            current = "A"; continue
-        if kind == "PhaseB":
-            current = "B"; continue
-        if kind == "PhaseC":
-            current = "C"; continue
-        buckets[current].append(e)
-
-    def build_table(phase: str, rows: List[Dict[str, Any]]):
-        title_parts = {
-            "A": "Phase A — Start of day",
-            "B": "Phase B — Settlement",
-            "C": "Phase C — Clearing"
-        }
-        title = title_parts.get(phase, f"Phase {phase}")
-        if day is not None:
-            title = f"{title} (Day {day})"
-
-        if not RICH_AVAILABLE:
-            # Simple text fallback
-            header = ["Kind", "From", "To", "SKU/Instr", "Qty", "Amount", "Notes"]
-            out = [f"{title}", " | ".join(header), "-" * 80]
-            for e in rows:
-                kind = str(e.get("kind", ""))
-                # map from/to like in table renderers
-                if kind in ("CashDeposited", "CashWithdrawn"):
-                    frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
-                    to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
-                elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
-                    frm = e.get("payer"); to = e.get("payee")
-                elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
-                    frm = e.get("debtor_bank"); to = e.get("creditor_bank")
-                elif kind == "StockCreated":
-                    frm = e.get("owner"); to = None
-                else:
-                    frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
-                    to = e.get("to") or e.get("creditor") or e.get("payee")
-                sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
-                qty = e.get("qty") or e.get("quantity") or "—"
-                amt = e.get("amount") or "—"
-                notes = ""
-                if kind == "ClientPayment":
-                    notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
-                elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
-                    notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
-                    if 'due_day' in e:
-                        notes += f"; due {e.get('due_day')}"
-                elif kind == "AgentDefaulted":
-                    shortfall = e.get('shortfall')
-                    trigger = e.get('trigger_contract')
-                    parts = []
-                    if shortfall is not None:
-                        parts.append(f"shortfall {shortfall}")
-                    if trigger:
-                        parts.append(f"trigger {trigger}")
-                    if parts:
-                        notes = ", ".join(parts)
-                out.append(" | ".join(map(str, [kind, frm or "—", to or "—", sku, qty, amt, notes])))
-            return "\n".join(out)
-
-        # Rich table
-        table = RichTable(title=title, box=rich_box.HEAVY, show_lines=True)
-        table.add_column("Kind", justify="left")
-        table.add_column("From", justify="left")
-        table.add_column("To", justify="left")
-        table.add_column("SKU/Instr", justify="left")
-        table.add_column("Qty", justify="right")
-        table.add_column("Amount", justify="right")
-        table.add_column("Notes", justify="left")
-        try:
-            table.row_styles = ["on #ffffff", "on #e6f2ff"] if phase != "C" else ["on #ffffff", "on #fff2cc"]
-        except Exception:
-            pass
-        for e in rows:
-            kind = str(e.get("kind", ""))
-            if kind in ("CashDeposited", "CashWithdrawn"):
-                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
-                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
-            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
-                frm = e.get("payer"); to = e.get("payee")
-            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
-                frm = e.get("debtor_bank"); to = e.get("creditor_bank")
-            elif kind == "StockCreated":
-                frm = e.get("owner"); to = None
-            else:
-                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
-                to = e.get("to") or e.get("creditor") or e.get("payee")
-            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
-            qty = e.get("qty") or e.get("quantity") or "—"
-            amt = e.get("amount") or "—"
-            notes = ""
-            if kind == "ClientPayment":
-                notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
-            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
-                notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
-                if 'due_day' in e:
-                    notes += f"; due {e.get('due_day')}"
-            elif kind == "AgentDefaulted":
-                shortfall = e.get('shortfall')
-                trigger = e.get('trigger_contract')
-                parts = []
-                if shortfall is not None:
-                    parts.append(f"shortfall {shortfall}")
-                if trigger:
-                    parts.append(f"trigger {trigger}")
-                if parts:
-                    notes = ", ".join(parts)
-            table.add_row(kind, str(frm or "—"), str(to or "—"), str(sku), str(qty), str(amt), notes)
-        return table
-
-    renderables: List[RenderableType] = []
-    # Phase A is intentionally empty for now; only include if it has rows
-    if buckets["A"]:
-        renderables.append(build_table("A", buckets["A"]))
-    # Phase B: settlements
-    renderables.append(build_table("B", buckets["B"]))
-    # Phase C: clearing
-    renderables.append(build_table("C", buckets["C"]))
-    return renderables
-
-
-def _build_single_setup_table(events: List[Dict[str, Any]], day: Optional[int] = None) -> List[RenderableType]:
-    """Render a single setup table for setup-phase events (day 0)."""
-    rows = [e for e in events if e.get("phase") == "setup" and e.get("kind") not in ("PhaseA","PhaseB","PhaseC")]
-    title = "Setup"
-    if day is not None:
-        title = f"{title} (Day {day})"
-    if not RICH_AVAILABLE:
-        header = ["Kind", "From", "To", "SKU/Instr", "Qty", "Amount", "Notes"]
-        out = [title, " | ".join(header), "-" * 80]
-        for e in rows:
-            kind = str(e.get("kind", ""))
-            if kind in ("CashDeposited", "CashWithdrawn"):
-                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
-                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
-            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
-                frm = e.get("payer"); to = e.get("payee")
-            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
-                frm = e.get("debtor_bank"); to = e.get("creditor_bank")
-            elif kind == "StockCreated":
-                frm = e.get("owner"); to = None
-            else:
-                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
-                to = e.get("to") or e.get("creditor") or e.get("payee")
-            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
-            qty = e.get("qty") or e.get("quantity") or "—"
-            amt = e.get("amount") or "—"
-            notes = ""
-            out.append(" | ".join(map(str, [kind, frm or "—", to or "—", sku, qty, amt, notes])))
-        return ["\n".join(out)]
-
-    from rich.table import Table as RichTable
-    from rich import box as rich_box
-    table = RichTable(title=title, box=rich_box.HEAVY, show_lines=True)
-    table.add_column("Kind", justify="left")
-    table.add_column("From", justify="left")
-    table.add_column("To", justify="left")
-    table.add_column("SKU/Instr", justify="left")
-    table.add_column("Qty", justify="right")
-    table.add_column("Amount", justify="right")
-    table.add_column("Notes", justify="left")
-    try:
-        table.row_styles = ["on #ffffff", "on #e6f2ff"]
-    except Exception:
-        pass
-    for e in rows:
-        kind = str(e.get("kind", ""))
-        if kind in ("CashDeposited", "CashWithdrawn"):
-            frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
-            to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
-        elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
-            frm = e.get("payer"); to = e.get("payee")
-        elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
-            frm = e.get("debtor_bank"); to = e.get("creditor_bank")
-        elif kind == "StockCreated":
-            frm = e.get("owner"); to = None
-        else:
-            frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
-            to = e.get("to") or e.get("creditor") or e.get("payee")
-        sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
-        qty = e.get("qty") or e.get("quantity") or "—"
-        amt = e.get("amount") or "—"
-        notes = ""
-        table.add_row(kind, str(frm or "—"), str(to or "—"), str(sku), str(qty), str(amt), notes)
-    return [table]
-
-
-# ============================================================================
-# T-account builder and renderers (detailed with Qty/Value/Counterparty/Maturity)
-# ============================================================================
-
-@dataclass
-class BalanceRow:
-    name: str
-    quantity: Optional[int]
-    value_minor: Optional[int]
-    counterparty_name: Optional[str]
-    maturity: Optional[str]
-    id_or_alias: Optional[str] = None
-
-
-@dataclass
-class TAccount:
-    assets: List[BalanceRow]
-    liabilities: List[BalanceRow]
-
-
-def _format_agent(agent_id: str, system: System) -> str:
-    """Format agent as 'Name [ID]' if available."""
-    ag = system.state.agents.get(agent_id)
-    if ag is None:
-        return agent_id
-    if ag.name and ag.name != agent_id:
-        return f"{ag.name} [{agent_id}]"
-    return agent_id
-
-
-def parse_day_from_maturity(maturity_str: Optional[str]) -> int:
-    """Parse a day number from maturity strings like 'Day 42'.
-
-    Returns an integer day. If the input cannot be parsed, returns a large
-    sentinel value to sort unknown maturities last.
-    """
-    if not isinstance(maturity_str, str):
-        return math.inf  # type: ignore[return-value]
-    s = maturity_str.strip()
-    if not s.startswith("Day "):
-        return math.inf  # type: ignore[return-value]
-    try:
-        return int(s[4:].strip())
-    except Exception:
-        return math.inf  # type: ignore[return-value]
-
-
 def build_t_account_rows(system: System, agent_id: str) -> TAccount:
     """Build detailed T-account rows from system state for an agent."""
     assets: List[BalanceRow] = []
@@ -37103,240 +36774,6 @@ def display_agent_t_account_renderable(system: System, agent_id: str) -> Rendera
     return table
 
 
-def _print(text: str, console: Optional['Console'] = None) -> None:
-    """Print using Rich console if available, otherwise regular print."""
-    if console:
-        console.print(text)
-    else:
-        print(text)
-
-
-def _display_events_summary(events: List[Dict[str, Any]], console: Optional['Console'] = None) -> None:
-    """Display events in a condensed summary format."""
-    for event in events:
-        kind = event.get("kind", "Unknown")
-        day = event.get("day", "?")
-        
-        if kind == "PayableSettled":
-            _print(f"Day {day}: 💰 {event['debtor']} → {event['creditor']}: ${event['amount']}", console)
-        elif kind == "DeliveryObligationSettled":
-            qty = event.get('qty', event.get('quantity', 'N/A'))
-            _print(f"Day {day}: 📦 {event['debtor']} → {event['creditor']}: {qty} {event.get('sku', 'items')}", console)
-        elif kind == "StockTransferred":
-            _print(f"Day {day}: 🚚 {event['frm']} → {event['to']}: {event['qty']} {event['sku']}", console)
-        elif kind == "CashTransferred":
-            _print(f"Day {day}: 💵 {event['frm']} → {event['to']}: ${event['amount']}", console)
-
-
-def _display_events_detailed(events: List[Dict[str, Any]], console: Optional['Console'] = None) -> None:
-    """Display events grouped by day with detailed formatting."""
-    # Separate setup events from day events
-    setup_events = []
-    events_by_day = defaultdict(list)
-    
-    for event in events:
-        # Check if this is a setup phase event
-        if event.get("phase") == "setup":
-            setup_events.append(event)
-        else:
-            day = event.get("day", -1)
-            events_by_day[day].append(event)
-    
-    # Display setup events first if any
-    if setup_events:
-        _print(f"\n📅 Setup Phase:", console)
-        # Setup events don't have phase markers, display them directly
-        for event in setup_events:
-            _display_single_event(event, console, indent="  ")
-    
-    # Display events for each day
-    for day in sorted(events_by_day.keys()):
-        if day >= 0:
-            _print(f"\n📅 Day {day}:", console)
-        else:
-            _print(f"\n📅 Unknown Day:", console)
-        
-        _display_day_events(events_by_day[day], console)
-
-
-def _display_day_events(day_events: List[Dict[str, Any]], console: Optional['Console'] = None) -> None:
-    """Display events for a single day with proper formatting."""
-    # Group events by their phase timing
-    phase_a_events = []
-    phase_b_events = []
-    phase_c_events = []
-    
-    # Track which phase we're in based on phase markers
-    current_phase = "A"  # Start with phase A
-    
-    for event in day_events:
-        kind = event.get("kind", "Unknown")
-        
-        # Phase markers change which phase we're in
-        if kind == "PhaseA":
-            current_phase = "A"
-        elif kind == "PhaseB":
-            current_phase = "B"
-        elif kind == "PhaseC":
-            current_phase = "C"
-        else:
-            # Regular events go into the current phase bucket
-            if current_phase == "A":
-                phase_a_events.append(event)
-            elif current_phase == "B":
-                phase_b_events.append(event)
-            elif current_phase == "C":
-                phase_c_events.append(event)
-    
-    # Always display all three phases
-    # Phase A - No-op phase, just marks beginning of day
-    _print(f"\n  ⏰ Phase A: Day begins", console)
-    for event in phase_a_events:
-        _display_single_event(event, console, indent="    ")
-    
-    # Phase B - Settlement phase where obligations are fulfilled
-    _print(f"\n  💳 Phase B: Settlement (fulfilling due obligations)", console)
-    for event in phase_b_events:
-        _display_single_event(event, console, indent="    ")
-    
-    # Phase C - Intraday netting
-    _print(f"\n  📋 Phase C: Intraday netting", console)
-    for event in phase_c_events:
-        _display_single_event(event, console, indent="    ")
-    
-    # Mark end of day
-    _print(f"\n  🌙 Day ended", console)
-
-
-def _display_single_event(event: Dict[str, Any], console: Optional['Console'] = None, indent: str = "  ") -> None:
-    """Display a single event with proper formatting."""
-    kind = event.get("kind", "Unknown")
-    
-    if kind == "StockCreated":
-        _print(f"{indent}🏭 Stock created: {event['owner']} gets {event['qty']} {event['sku']}", console)
-    
-    elif kind == "CashMinted":
-        _print(f"{indent}💰 Cash minted: ${event['amount']} to {event['to']}", console)
-    
-    elif kind == "PayableSettled":
-        _print(f"{indent}✅ Payment settled: {event['debtor']} → {event['creditor']}: ${event['amount']}", console)
-    
-    elif kind == "PayableCancelled":
-        _print(f"{indent}  └─ Payment obligation removed from books", console)
-    
-    elif kind == "DeliveryObligationSettled":
-        qty = event.get('qty', event.get('quantity', 'N/A'))
-        sku = event.get('sku', 'items')
-        _print(f"{indent}✅ Delivery settled: {event['debtor']} → {event['creditor']}: {qty} {sku}", console)
-    
-    elif kind == "DeliveryObligationCancelled":
-        _print(f"{indent}  └─ Delivery obligation removed from books", console)
-    
-    elif kind == "StockTransferred":
-        _print(f"{indent}📦 Stock transferred: {event['frm']} → {event['to']}: {event['qty']} {event['sku']}", console)
-    
-    elif kind == "CashTransferred":
-        _print(f"{indent}💵 Cash transferred: {event['frm']} → {event['to']}: ${event['amount']}", console)
-    
-    elif kind == "StockSplit":
-        sku = event.get('sku', 'N/A')
-        original_qty = event.get('original_qty', 0)
-        split_qty = event.get('split_qty', 0)
-        remaining_qty = event.get('remaining_qty', 0)
-        # Show shortened IDs for readability
-        original_id = event.get('original_id', '')
-        new_id = event.get('new_id', '')
-        short_orig = original_id.split('_')[-1][:8] if original_id else 'N/A'
-        short_new = new_id.split('_')[-1][:8] if new_id else 'N/A'
-        _print(f"{indent}📊 Stock split: {short_orig} → {short_new}: {split_qty} {sku} (keeping {remaining_qty})", console)
-    
-    elif kind == "ReservesMinted":
-        amount = event.get('amount', 0)
-        to = event.get('to', 'N/A')
-        _print(f"{indent}🏦 Reserves minted: ${amount} to {to}", console)
-    
-    elif kind == "CashDeposited":
-        customer = event.get('customer', 'N/A')
-        bank = event.get('bank', 'N/A')
-        amount = event.get('amount', 0)
-        _print(f"{indent}🏧 Cash deposited: {customer} → {bank}: ${amount}", console)
-    
-    elif kind == "DeliveryObligationCreated":
-        frm = event.get('frm', event.get('from', 'N/A'))
-        to = event.get('to', 'N/A')
-        qty = event.get('qty', event.get('quantity', 0))
-        sku = event.get('sku', 'N/A')
-        due_day = event.get('due_day', 'N/A')
-        _print(f"{indent}📝 Delivery obligation created: {frm} → {to}: {qty} {sku} (due day {due_day})", console)
-    
-    elif kind == "PayableCreated":
-        frm = event.get('frm', event.get('from', event.get('debtor', 'N/A')))
-        to = event.get('to', event.get('creditor', 'N/A'))
-        amount = event.get('amount', 0)
-        due_day = event.get('due_day', 'N/A')
-        _print(f"{indent}💸 Payable created: {frm} → {to}: ${amount} (due day {due_day})", console)
-    
-    elif kind == "ClientPayment":
-        payer = event.get('payer', 'N/A')
-        payee = event.get('payee', 'N/A')
-        amount = event.get('amount', 0)
-        payer_bank = event.get('payer_bank', '')
-        payee_bank = event.get('payee_bank', '')
-        _print(f"{indent}💳 Client payment: {payer} ({payer_bank}) → {payee} ({payee_bank}): ${amount}", console)
-    
-    elif kind == "InterbankCleared":
-        debtor = event.get('debtor_bank', 'N/A')
-        creditor = event.get('creditor_bank', 'N/A')
-        amount = event.get('amount', 0)
-        _print(f"{indent}🏦 Interbank cleared: {debtor} → {creditor}: ${amount} (netted)", console)
-    
-    elif kind == "ReservesTransferred":
-        frm = event.get('frm', 'N/A')
-        to = event.get('to', 'N/A')
-        amount = event.get('amount', 0)
-        _print(f"{indent}💰 Reserves transferred: {frm} → {to}: ${amount}", console)
-    
-    elif kind == "InstrumentMerged":
-        # This is a technical event, show it more compactly
-        _print(f"{indent}🔀 Instruments merged", console)
-    
-    elif kind == "InterbankOvernightCreated":
-        debtor = event.get('debtor_bank', 'N/A')
-        creditor = event.get('creditor_bank', 'N/A')
-        amount = event.get('amount', 0)
-        _print(f"{indent}🌙 Overnight payable created: {debtor} → {creditor}: ${amount}", console)
-    
-    elif kind in ["PhaseA", "PhaseB", "PhaseC"]:
-        # Phase markers are not displayed as events themselves
-        pass
-    
-    else:
-        # For any other event types, show raw data
-        _print(f"{indent}• {kind}: {event}", console)
-
-
-def display_events_for_day(system: System, day: int) -> None:
-    """
-    Display all events that occurred on a specific simulation day.
-    
-    Args:
-        system: The bilancio system instance
-        day: The simulation day to display events for
-    """
-    console = Console() if RICH_AVAILABLE else None
-    events = [e for e in system.state.events if e.get("day") == day]
-    
-    if not events:
-        _print("  No events occurred on this day.", console)
-        return
-    
-    _display_day_events(events, console)
-
-
-# ============================================================================
-# New Renderable-returning Functions for HTML Export
-# ============================================================================
-
 def display_agent_balance_table_renderable(
     system: System,
     agent_id: str,
@@ -37427,55 +36864,6 @@ def display_multiple_agent_balances_renderable(
         # Return simple text format as string
         return _build_simple_multiple_agent_balances_string(balances, system)
 
-
-def display_events_renderable(events: List[Dict[str, Any]], format: str = 'detailed') -> List[RenderableType]:
-    """
-    Return renderables for system events in a nicely formatted way.
-    
-    Args:
-        events: List of event dictionaries from sys.state.events
-        format: Display format ('detailed' or 'summary')
-        
-    Returns:
-        List of Rich renderables (or strings for simple format)
-    """
-    if not events:
-        if RICH_AVAILABLE:
-            return [Text("No events to display.", style="dim")]
-        else:
-            return ["No events to display."]
-    
-    if format == 'summary':
-        return _build_events_summary_renderables(events)
-    else:
-        return _build_events_detailed_renderables(events)
-
-
-def display_events_for_day_renderable(system: System, day: int) -> List[RenderableType]:
-    """
-    Return renderables for all events that occurred on a specific simulation day.
-    
-    Args:
-        system: The bilancio system instance
-        day: The simulation day to display events for
-        
-    Returns:
-        List of Rich renderables (or strings for simple format)
-    """
-    events = [e for e in system.state.events if e.get("day") == day]
-    
-    if not events:
-        if RICH_AVAILABLE:
-            return [Text("  No events occurred on this day.", style="dim")]
-        else:
-            return ["  No events occurred on this day."]
-    
-    return _build_day_events_renderables(events)
-
-
-# ============================================================================
-# Helper Functions for New Renderable Functions
-# ============================================================================
 
 def _create_rich_agent_balance_table(title: str, balance: AgentBalance) -> Table:
     """Create a Rich Table for a single agent balance (returns table instead of printing)."""
@@ -37756,6 +37144,668 @@ def _build_simple_multiple_agent_balances_string(
     return "\n".join(lines)
 
 
+```
+
+---
+
+### 📄 src/bilancio/analysis/visualization/common.py
+
+```python
+"""Common utilities and types for visualization modules."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Any, Optional
+import math
+
+try:
+    from rich.console import Console, RenderableType
+    RICH_AVAILABLE = True
+except ImportError:
+    RICH_AVAILABLE = False
+    RenderableType = Any
+
+
+def _format_currency(amount: int, show_sign: bool = False) -> str:
+    """Format an integer amount as currency."""
+    formatted = f"{amount:,}"
+    if show_sign and amount > 0:
+        formatted = f"+{formatted}"
+    return formatted
+
+
+def _print(text: str, console: Optional['Console'] = None) -> None:
+    """Print using Rich console if available, otherwise regular print."""
+    if console:
+        console.print(text)
+    else:
+        print(text)
+
+
+def _format_agent(agent_id: str, system) -> str:
+    """Format agent as 'Name [ID]' if available.
+
+    Args:
+        agent_id: The agent ID to format
+        system: The System instance (imported locally to avoid circular imports)
+    """
+    ag = system.state.agents.get(agent_id)
+    if ag is None:
+        return agent_id
+    if ag.name and ag.name != agent_id:
+        return f"{ag.name} [{agent_id}]"
+    return agent_id
+
+
+def parse_day_from_maturity(maturity_str: Optional[str]) -> int:
+    """Parse a day number from maturity strings like 'Day 42'.
+
+    Returns an integer day. If the input cannot be parsed, returns a large
+    sentinel value to sort unknown maturities last.
+    """
+    if not isinstance(maturity_str, str):
+        return math.inf  # type: ignore[return-value]
+    s = maturity_str.strip()
+    if not s.startswith("Day "):
+        return math.inf  # type: ignore[return-value]
+    try:
+        return int(s[4:].strip())
+    except Exception:
+        return math.inf  # type: ignore[return-value]
+
+
+@dataclass
+class BalanceRow:
+    name: str
+    quantity: Optional[int]
+    value_minor: Optional[int]
+    counterparty_name: Optional[str]
+    maturity: Optional[str]
+    id_or_alias: Optional[str] = None
+
+
+@dataclass
+class TAccount:
+    assets: list[BalanceRow]
+    liabilities: list[BalanceRow]
+
+```
+
+---
+
+### 📄 src/bilancio/analysis/visualization/events.py
+
+```python
+"""Event table formatting and display functions."""
+
+from __future__ import annotations
+
+from collections import defaultdict
+from typing import Any, Dict, List, Optional
+
+from bilancio.engines.system import System
+from bilancio.analysis.visualization.common import (
+    RICH_AVAILABLE,
+    RenderableType,
+    _print,
+)
+
+# Import Rich components only if available
+if RICH_AVAILABLE:
+    from rich.console import Console
+    from rich.table import Table
+    from rich.text import Text
+    from rich import box
+
+
+
+def display_events(events: List[Dict[str, Any]], format: str = 'detailed') -> None:
+    """
+    Display system events in a nicely formatted way.
+    
+    Args:
+        events: List of event dictionaries from sys.state.events
+        format: Display format ('detailed' or 'summary')
+    """
+    console = Console() if RICH_AVAILABLE else None
+    
+    if not events:
+        _print("No events to display.", console)
+        return
+    
+    if format == 'summary':
+        _display_events_summary(events, console)
+    else:
+        _display_events_detailed(events, console)
+
+
+def display_events_table(events: List[Dict[str, Any]], group_by_day: bool = True) -> None:
+    """Render events as a table with canonical columns.
+
+    Falls back to simple text when Rich is not available.
+    """
+    console = Console() if RICH_AVAILABLE else None
+
+    if not events:
+        _print("No events to display.", console)
+        return
+
+    columns = ["Day", "Phase", "Kind", "From", "To", "SKU/Instr", "Qty", "Amount", "Notes"]
+
+    # Sort events deterministically
+    # Drop phase marker events; preserve original insertion (chronological) order
+    evs = [e for e in events if e.get("kind") not in ("PhaseA", "PhaseB", "PhaseC")]
+
+    if RICH_AVAILABLE:
+        from rich.table import Table as RichTable
+        from rich import box as rich_box
+        table = RichTable(title="Events", box=rich_box.HEAVY, show_lines=True)
+        # Column definitions with better alignment
+        table.add_column("Day", justify="right")
+        table.add_column("Phase", justify="left")
+        table.add_column("Kind", justify="left")
+        table.add_column("From", justify="left")
+        table.add_column("To", justify="left")
+        table.add_column("SKU/Instr", justify="left")
+        table.add_column("Qty", justify="right")
+        table.add_column("Amount", justify="right")
+        table.add_column("Notes", justify="left")
+        # Alternate row shading for readability
+        try:
+            table.row_styles = ["on #ffffff", "on #e6f2ff"]
+        except Exception:
+            pass
+
+        for e in evs:
+            kind = str(e.get("kind", ""))
+            # Canonical from/to mapping by kind
+            if kind in ("CashDeposited", "CashWithdrawn"):
+                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+                frm = e.get("payer")
+                to = e.get("payee")
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                frm = e.get("debtor_bank")
+                to = e.get("creditor_bank")
+            elif kind == "StockCreated":
+                frm = e.get("owner")
+                to = None
+            else:
+                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer") or e.get("agent")
+                to = e.get("to") or e.get("creditor") or e.get("payee")
+            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+            qty = e.get("qty") or e.get("quantity") or "—"
+            amt = e.get("amount") or "—"
+
+            notes = ""
+            if kind == "ClientPayment":
+                notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
+                if 'due_day' in e:
+                    notes += f"; due {e.get('due_day')}"
+            elif kind == "AgentDefaulted":
+                shortfall = e.get('shortfall')
+                trigger = e.get('trigger_contract')
+                parts = []
+                if shortfall is not None:
+                    parts.append(f"shortfall {shortfall}")
+                if trigger:
+                    parts.append(f"trigger {trigger}")
+                if parts:
+                    notes = ", ".join(parts)
+
+            table.add_row(
+                str(e.get("day", "—")),
+                str(e.get("phase", "—")),
+                kind,
+                str(frm or "—"),
+                str(to or "—"),
+                str(sku),
+                str(qty),
+                str(amt),
+                notes,
+            )
+
+        console.print(table) if console else print(table)
+    else:
+        # Simple header + rows
+        header = " | ".join(columns)
+        print(header)
+        print("-" * len(header))
+        for e in evs:
+            kind = str(e.get("kind", ""))
+            if kind in ("CashDeposited", "CashWithdrawn"):
+                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+                frm = e.get("payer")
+                to = e.get("payee")
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                frm = e.get("debtor_bank")
+                to = e.get("creditor_bank")
+            elif kind == "StockCreated":
+                frm = e.get("owner")
+                to = None
+            else:
+                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer") or e.get("agent")
+                to = e.get("to") or e.get("creditor") or e.get("payee")
+            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+            qty = e.get("qty") or e.get("quantity") or "—"
+            amt = e.get("amount") or "—"
+            notes = ""
+            if kind == "ClientPayment":
+                notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
+                if 'due_day' in e:
+                    notes += f"; due {e.get('due_day')}"
+            elif kind == "AgentDefaulted":
+                shortfall = e.get('shortfall')
+                trigger = e.get('trigger_contract')
+                parts = []
+                if shortfall is not None:
+                    parts.append(f"shortfall {shortfall}")
+                if trigger:
+                    parts.append(f"trigger {trigger}")
+                if parts:
+                    notes = ", ".join(parts)
+            row = [
+                str(e.get("day", "—")),
+                str(e.get("phase", "—")),
+                kind,
+                str(frm or "—"),
+                str(to or "—"),
+                str(sku),
+                str(qty),
+                str(amt),
+                notes,
+            ]
+            print(" | ".join(row))
+
+
+def display_events_table_renderable(events: List[Dict[str, Any]]) -> RenderableType:
+    """Return a Rich Table renderable (or string) for events table."""
+    if not events:
+        return Text("No events to display.", style="dim") if RICH_AVAILABLE else "No events to display."
+
+    columns = ["Day", "Phase", "Kind", "From", "To", "SKU/Instr", "Qty", "Amount", "Notes"]
+    # Drop phase marker events; preserve original insertion (chronological) order
+    evs = [e for e in events if e.get("kind") not in ("PhaseA", "PhaseB", "PhaseC")]
+
+    if RICH_AVAILABLE:
+        from rich.table import Table as RichTable
+        from rich import box as rich_box
+        table = RichTable(title="Events", box=rich_box.HEAVY, show_lines=True)
+        table.add_column("Day", justify="right")
+        table.add_column("Phase", justify="left")
+        table.add_column("Kind", justify="left")
+        table.add_column("From", justify="left")
+        table.add_column("To", justify="left")
+        table.add_column("SKU/Instr", justify="left")
+        table.add_column("Qty", justify="right")
+        table.add_column("Amount", justify="right")
+        table.add_column("Notes", justify="left")
+        try:
+            table.row_styles = ["on #ffffff", "on #e6f2ff"]
+        except Exception:
+            pass
+
+        for e in evs:
+            kind = str(e.get("kind", ""))
+            if kind in ("CashDeposited", "CashWithdrawn"):
+                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+                frm = e.get("payer")
+                to = e.get("payee")
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                frm = e.get("debtor_bank")
+                to = e.get("creditor_bank")
+            elif kind == "StockCreated":
+                frm = e.get("owner")
+                to = None
+            else:
+                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+                to = e.get("to") or e.get("creditor") or e.get("payee")
+            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+            qty = e.get("qty") or e.get("quantity") or "—"
+            amt = e.get("amount") or "—"
+            notes = ""
+            if kind == "ClientPayment":
+                notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
+                if 'due_day' in e:
+                    notes += f"; due {e.get('due_day')}"
+
+            table.add_row(
+                str(e.get("day", "—")),
+                str(e.get("phase", "—")),
+                kind,
+                str(frm or "—"),
+                str(to or "—"),
+                str(sku),
+                str(qty),
+                str(amt),
+                notes,
+            )
+        return table
+    else:
+        header = " | ".join(columns)
+        lines = [header, "-" * len(header)]
+        for e in evs:
+            kind = str(e.get("kind", ""))
+            if kind in ("CashDeposited", "CashWithdrawn"):
+                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+                frm = e.get("payer")
+                to = e.get("payee")
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                frm = e.get("debtor_bank")
+                to = e.get("creditor_bank")
+            elif kind == "StockCreated":
+                frm = e.get("owner")
+                to = None
+            else:
+                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+                to = e.get("to") or e.get("creditor") or e.get("payee")
+            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+            qty = e.get("qty") or e.get("quantity") or "—"
+            amt = e.get("amount") or "—"
+            notes = ""
+            if kind == "ClientPayment":
+                notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
+                if 'due_day' in e:
+                    notes += f"; due {e.get('due_day')}"
+            row = [
+                str(e.get("day", "—")),
+                str(e.get("phase", "—")),
+                kind,
+                str(frm or "—"),
+                str(to or "—"),
+                str(sku),
+                str(qty),
+                str(amt),
+                notes,
+            ]
+            lines.append(" | ".join(row))
+        return "\n".join(lines)
+
+
+def _display_events_summary(events: List[Dict[str, Any]], console: Optional['Console'] = None) -> None:
+    """Display events in a condensed summary format."""
+    for event in events:
+        kind = event.get("kind", "Unknown")
+        day = event.get("day", "?")
+        
+        if kind == "PayableSettled":
+            _print(f"Day {day}: 💰 {event['debtor']} → {event['creditor']}: ${event['amount']}", console)
+        elif kind == "DeliveryObligationSettled":
+            qty = event.get('qty', event.get('quantity', 'N/A'))
+            _print(f"Day {day}: 📦 {event['debtor']} → {event['creditor']}: {qty} {event.get('sku', 'items')}", console)
+        elif kind == "StockTransferred":
+            _print(f"Day {day}: 🚚 {event['frm']} → {event['to']}: {event['qty']} {event['sku']}", console)
+        elif kind == "CashTransferred":
+            _print(f"Day {day}: 💵 {event['frm']} → {event['to']}: ${event['amount']}", console)
+
+
+
+def _display_events_detailed(events: List[Dict[str, Any]], console: Optional['Console'] = None) -> None:
+    """Display events grouped by day with detailed formatting."""
+    # Separate setup events from day events
+    setup_events = []
+    events_by_day = defaultdict(list)
+    
+    for event in events:
+        # Check if this is a setup phase event
+        if event.get("phase") == "setup":
+            setup_events.append(event)
+        else:
+            day = event.get("day", -1)
+            events_by_day[day].append(event)
+    
+    # Display setup events first if any
+    if setup_events:
+        _print(f"\n📅 Setup Phase:", console)
+        # Setup events don't have phase markers, display them directly
+        for event in setup_events:
+            _display_single_event(event, console, indent="  ")
+    
+    # Display events for each day
+    for day in sorted(events_by_day.keys()):
+        if day >= 0:
+            _print(f"\n📅 Day {day}:", console)
+        else:
+            _print(f"\n📅 Unknown Day:", console)
+        
+        _display_day_events(events_by_day[day], console)
+
+
+def _display_day_events(day_events: List[Dict[str, Any]], console: Optional['Console'] = None) -> None:
+    """Display events for a single day with proper formatting."""
+    # Group events by their phase timing
+    phase_a_events = []
+    phase_b_events = []
+    phase_c_events = []
+    
+    # Track which phase we're in based on phase markers
+    current_phase = "A"  # Start with phase A
+    
+    for event in day_events:
+        kind = event.get("kind", "Unknown")
+        
+        # Phase markers change which phase we're in
+        if kind == "PhaseA":
+            current_phase = "A"
+        elif kind == "PhaseB":
+            current_phase = "B"
+        elif kind == "PhaseC":
+            current_phase = "C"
+        else:
+            # Regular events go into the current phase bucket
+            if current_phase == "A":
+                phase_a_events.append(event)
+            elif current_phase == "B":
+                phase_b_events.append(event)
+            elif current_phase == "C":
+                phase_c_events.append(event)
+    
+    # Always display all three phases
+    # Phase A - No-op phase, just marks beginning of day
+    _print(f"\n  ⏰ Phase A: Day begins", console)
+    for event in phase_a_events:
+        _display_single_event(event, console, indent="    ")
+    
+    # Phase B - Settlement phase where obligations are fulfilled
+    _print(f"\n  💳 Phase B: Settlement (fulfilling due obligations)", console)
+    for event in phase_b_events:
+        _display_single_event(event, console, indent="    ")
+    
+    # Phase C - Intraday netting
+    _print(f"\n  📋 Phase C: Intraday netting", console)
+    for event in phase_c_events:
+        _display_single_event(event, console, indent="    ")
+    
+    # Mark end of day
+    _print(f"\n  🌙 Day ended", console)
+
+
+def _display_single_event(event: Dict[str, Any], console: Optional['Console'] = None, indent: str = "  ") -> None:
+    """Display a single event with proper formatting."""
+    kind = event.get("kind", "Unknown")
+    
+    if kind == "StockCreated":
+        _print(f"{indent}🏭 Stock created: {event['owner']} gets {event['qty']} {event['sku']}", console)
+    
+    elif kind == "CashMinted":
+        _print(f"{indent}💰 Cash minted: ${event['amount']} to {event['to']}", console)
+    
+    elif kind == "PayableSettled":
+        _print(f"{indent}✅ Payment settled: {event['debtor']} → {event['creditor']}: ${event['amount']}", console)
+    
+    elif kind == "PayableCancelled":
+        _print(f"{indent}  └─ Payment obligation removed from books", console)
+    
+    elif kind == "DeliveryObligationSettled":
+        qty = event.get('qty', event.get('quantity', 'N/A'))
+        sku = event.get('sku', 'items')
+        _print(f"{indent}✅ Delivery settled: {event['debtor']} → {event['creditor']}: {qty} {sku}", console)
+    
+    elif kind == "DeliveryObligationCancelled":
+        _print(f"{indent}  └─ Delivery obligation removed from books", console)
+    
+    elif kind == "StockTransferred":
+        _print(f"{indent}📦 Stock transferred: {event['frm']} → {event['to']}: {event['qty']} {event['sku']}", console)
+    
+    elif kind == "CashTransferred":
+        _print(f"{indent}💵 Cash transferred: {event['frm']} → {event['to']}: ${event['amount']}", console)
+    
+    elif kind == "StockSplit":
+        sku = event.get('sku', 'N/A')
+        original_qty = event.get('original_qty', 0)
+        split_qty = event.get('split_qty', 0)
+        remaining_qty = event.get('remaining_qty', 0)
+        # Show shortened IDs for readability
+        original_id = event.get('original_id', '')
+        new_id = event.get('new_id', '')
+        short_orig = original_id.split('_')[-1][:8] if original_id else 'N/A'
+        short_new = new_id.split('_')[-1][:8] if new_id else 'N/A'
+        _print(f"{indent}📊 Stock split: {short_orig} → {short_new}: {split_qty} {sku} (keeping {remaining_qty})", console)
+    
+    elif kind == "ReservesMinted":
+        amount = event.get('amount', 0)
+        to = event.get('to', 'N/A')
+        _print(f"{indent}🏦 Reserves minted: ${amount} to {to}", console)
+    
+    elif kind == "CashDeposited":
+        customer = event.get('customer', 'N/A')
+        bank = event.get('bank', 'N/A')
+        amount = event.get('amount', 0)
+        _print(f"{indent}🏧 Cash deposited: {customer} → {bank}: ${amount}", console)
+    
+    elif kind == "DeliveryObligationCreated":
+        frm = event.get('frm', event.get('from', 'N/A'))
+        to = event.get('to', 'N/A')
+        qty = event.get('qty', event.get('quantity', 0))
+        sku = event.get('sku', 'N/A')
+        due_day = event.get('due_day', 'N/A')
+        _print(f"{indent}📝 Delivery obligation created: {frm} → {to}: {qty} {sku} (due day {due_day})", console)
+    
+    elif kind == "PayableCreated":
+        frm = event.get('frm', event.get('from', event.get('debtor', 'N/A')))
+        to = event.get('to', event.get('creditor', 'N/A'))
+        amount = event.get('amount', 0)
+        due_day = event.get('due_day', 'N/A')
+        _print(f"{indent}💸 Payable created: {frm} → {to}: ${amount} (due day {due_day})", console)
+    
+    elif kind == "ClientPayment":
+        payer = event.get('payer', 'N/A')
+        payee = event.get('payee', 'N/A')
+        amount = event.get('amount', 0)
+        payer_bank = event.get('payer_bank', '')
+        payee_bank = event.get('payee_bank', '')
+        _print(f"{indent}💳 Client payment: {payer} ({payer_bank}) → {payee} ({payee_bank}): ${amount}", console)
+    
+    elif kind == "InterbankCleared":
+        debtor = event.get('debtor_bank', 'N/A')
+        creditor = event.get('creditor_bank', 'N/A')
+        amount = event.get('amount', 0)
+        _print(f"{indent}🏦 Interbank cleared: {debtor} → {creditor}: ${amount} (netted)", console)
+    
+    elif kind == "ReservesTransferred":
+        frm = event.get('frm', 'N/A')
+        to = event.get('to', 'N/A')
+        amount = event.get('amount', 0)
+        _print(f"{indent}💰 Reserves transferred: {frm} → {to}: ${amount}", console)
+    
+    elif kind == "InstrumentMerged":
+        # This is a technical event, show it more compactly
+        _print(f"{indent}🔀 Instruments merged", console)
+    
+    elif kind == "InterbankOvernightCreated":
+        debtor = event.get('debtor_bank', 'N/A')
+        creditor = event.get('creditor_bank', 'N/A')
+        amount = event.get('amount', 0)
+        _print(f"{indent}🌙 Overnight payable created: {debtor} → {creditor}: ${amount}", console)
+    
+    elif kind in ["PhaseA", "PhaseB", "PhaseC"]:
+        # Phase markers are not displayed as events themselves
+        pass
+    
+    else:
+        # For any other event types, show raw data
+        _print(f"{indent}• {kind}: {event}", console)
+
+
+def display_events_for_day(system: System, day: int) -> None:
+    """
+    Display all events that occurred on a specific simulation day.
+    
+    Args:
+        system: The bilancio system instance
+        day: The simulation day to display events for
+    """
+    console = Console() if RICH_AVAILABLE else None
+    events = [e for e in system.state.events if e.get("day") == day]
+    
+    if not events:
+        _print("  No events occurred on this day.", console)
+        return
+    
+    _display_day_events(events, console)
+
+
+def display_events_renderable(events: List[Dict[str, Any]], format: str = 'detailed') -> List[RenderableType]:
+    """
+    Return renderables for system events in a nicely formatted way.
+    
+    Args:
+        events: List of event dictionaries from sys.state.events
+        format: Display format ('detailed' or 'summary')
+        
+    Returns:
+        List of Rich renderables (or strings for simple format)
+    """
+    if not events:
+        if RICH_AVAILABLE:
+            return [Text("No events to display.", style="dim")]
+        else:
+            return ["No events to display."]
+    
+    if format == 'summary':
+        return _build_events_summary_renderables(events)
+    else:
+        return _build_events_detailed_renderables(events)
+
+
+def display_events_for_day_renderable(system: System, day: int) -> List[RenderableType]:
+    """
+    Return renderables for all events that occurred on a specific simulation day.
+    
+    Args:
+        system: The bilancio system instance
+        day: The simulation day to display events for
+        
+    Returns:
+        List of Rich renderables (or strings for simple format)
+    """
+    events = [e for e in system.state.events if e.get("day") == day]
+    
+    if not events:
+        if RICH_AVAILABLE:
+            return [Text("  No events occurred on this day.", style="dim")]
+        else:
+            return ["  No events occurred on this day."]
+    
+    return _build_day_events_renderables(events)
+
+
 def _build_events_summary_renderables(events: List[Dict[str, Any]]) -> List[RenderableType]:
     """Build renderables for events in summary format."""
     renderables = []
@@ -37789,75 +37839,6 @@ def _build_events_detailed_renderables(events: List[Dict[str, Any]]) -> List[Ren
     # Import and use the phase-aware version
     from bilancio.analysis.visualization_phases import build_events_detailed_with_phases
     return build_events_detailed_with_phases(events, RICH_AVAILABLE)
-    
-def _build_events_detailed_renderables_old(events: List[Dict[str, Any]]) -> List[RenderableType]:
-    """Old version - kept for reference."""
-    renderables = []
-    
-    # Use the formatter registry to format events nicely
-    from bilancio.ui.render.formatters import registry
-    
-    # Group events by phase
-    phases = {"A": [], "B": [], "C": [], "other": []}
-    for event in events:
-        phase = event.get("phase", "other")
-        if phase in ["A", "B", "C"]:
-            phases[phase].append(event)
-        else:
-            phases["other"].append(event)
-    
-    # Display events organized by phase
-    if phases["A"]:
-        if RICH_AVAILABLE:
-            from rich.text import Text
-            phase_header = Text("\n⏰ Phase A - Morning Activities", style="bold cyan")
-            renderables.append(phase_header)
-        else:
-            renderables.append("\n⏰ Phase A - Morning Activities")
-        
-        for event in phases["A"]:
-            kind = event.get("kind", "Unknown")
-            if kind == "PhaseA":
-                continue  # Skip the phase marker itself</            
-            renderables.extend(_format_single_event(event, registry))
-    
-    if phases["B"]:
-        if RICH_AVAILABLE:
-            from rich.text import Text
-            phase_header = Text("\n🌅 Phase B - Business Hours", style="bold yellow")
-            renderables.append(phase_header)
-        else:
-            renderables.append("\n🌅 Phase B - Business Hours")
-            
-        for event in phases["B"]:
-            kind = event.get("kind", "Unknown")
-            if kind == "PhaseB":
-                continue  # Skip the phase marker itself
-            renderables.extend(_format_single_event(event, registry))
-    
-    if phases["C"]:
-        if RICH_AVAILABLE:
-            from rich.text import Text
-            phase_header = Text("\n🌙 Phase C - End of Day Clearing", style="bold green")
-            renderables.append(phase_header)
-        else:
-            renderables.append("\n🌙 Phase C - End of Day Clearing")
-            
-        for event in phases["C"]:
-            kind = event.get("kind", "Unknown")
-            if kind == "PhaseC":
-                continue  # Skip the phase marker itself
-            renderables.extend(_format_single_event(event, registry))
-    
-    # Display any events without phase markers
-    if phases["other"]:
-        for event in phases["other"]:
-            kind = event.get("kind", "Unknown")
-            if kind in ["PhaseA", "PhaseB", "PhaseC"]:
-                continue  # Skip phase markers
-            renderables.extend(_format_single_event(event, registry))
-    
-    return renderables
 
 
 def _format_single_event(event: Dict[str, Any], registry) -> List[RenderableType]:
@@ -37920,6 +37901,228 @@ def _format_single_event(event: Dict[str, Any], registry) -> List[RenderableType
 def _build_day_events_renderables(events: List[Dict[str, Any]]) -> List[RenderableType]:
     """Build renderables for events in a single day."""
     return _build_events_detailed_renderables(events)
+
+```
+
+---
+
+### 📄 src/bilancio/analysis/visualization/phases.py
+
+```python
+"""Phase summary visualization for events."""
+
+from __future__ import annotations
+
+from typing import Any, Dict, List, Optional
+
+from bilancio.analysis.visualization.common import RICH_AVAILABLE, RenderableType
+
+
+def display_events_tables_by_phase_renderables(events: List[Dict[str, Any]], day: Optional[int] = None) -> List[RenderableType]:
+    """Return three event tables (A, B, C) using phase markers as section dividers.
+
+    - Excludes PhaseA/PhaseB/PhaseC events from rows.
+    - Titles indicate the phase and optional day.
+    """
+    if RICH_AVAILABLE:
+        from rich.table import Table as RichTable
+        from rich import box as rich_box
+        from rich.text import Text as RichText
+
+    # If these are setup-phase events (day 0), render as a single "Setup" table
+    if any(e.get("phase") == "setup" for e in events):
+        return _build_single_setup_table(events, day)
+
+    # Group by phase markers in original order
+    buckets = {"A": [], "B": [], "C": []}
+    current = "A"
+    for e in events:
+        kind = e.get("kind")
+        if kind == "PhaseA":
+            current = "A"; continue
+        if kind == "PhaseB":
+            current = "B"; continue
+        if kind == "PhaseC":
+            current = "C"; continue
+        buckets[current].append(e)
+
+    def build_table(phase: str, rows: List[Dict[str, Any]]):
+        title_parts = {
+            "A": "Phase A — Start of day",
+            "B": "Phase B — Settlement",
+            "C": "Phase C — Clearing"
+        }
+        title = title_parts.get(phase, f"Phase {phase}")
+        if day is not None:
+            title = f"{title} (Day {day})"
+
+        if not RICH_AVAILABLE:
+            # Simple text fallback
+            header = ["Kind", "From", "To", "SKU/Instr", "Qty", "Amount", "Notes"]
+            out = [f"{title}", " | ".join(header), "-" * 80]
+            for e in rows:
+                kind = str(e.get("kind", ""))
+                # map from/to like in table renderers
+                if kind in ("CashDeposited", "CashWithdrawn"):
+                    frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+                    to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+                elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+                    frm = e.get("payer"); to = e.get("payee")
+                elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                    frm = e.get("debtor_bank"); to = e.get("creditor_bank")
+                elif kind == "StockCreated":
+                    frm = e.get("owner"); to = None
+                else:
+                    frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+                    to = e.get("to") or e.get("creditor") or e.get("payee")
+                sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+                qty = e.get("qty") or e.get("quantity") or "—"
+                amt = e.get("amount") or "—"
+                notes = ""
+                if kind == "ClientPayment":
+                    notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
+                elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                    notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
+                    if 'due_day' in e:
+                        notes += f"; due {e.get('due_day')}"
+                elif kind == "AgentDefaulted":
+                    shortfall = e.get('shortfall')
+                    trigger = e.get('trigger_contract')
+                    parts = []
+                    if shortfall is not None:
+                        parts.append(f"shortfall {shortfall}")
+                    if trigger:
+                        parts.append(f"trigger {trigger}")
+                    if parts:
+                        notes = ", ".join(parts)
+                out.append(" | ".join(map(str, [kind, frm or "—", to or "—", sku, qty, amt, notes])))
+            return "\n".join(out)
+
+        # Rich table
+        table = RichTable(title=title, box=rich_box.HEAVY, show_lines=True)
+        table.add_column("Kind", justify="left")
+        table.add_column("From", justify="left")
+        table.add_column("To", justify="left")
+        table.add_column("SKU/Instr", justify="left")
+        table.add_column("Qty", justify="right")
+        table.add_column("Amount", justify="right")
+        table.add_column("Notes", justify="left")
+        try:
+            table.row_styles = ["on #ffffff", "on #e6f2ff"] if phase != "C" else ["on #ffffff", "on #fff2cc"]
+        except Exception:
+            pass
+        for e in rows:
+            kind = str(e.get("kind", ""))
+            if kind in ("CashDeposited", "CashWithdrawn"):
+                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+                frm = e.get("payer"); to = e.get("payee")
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                frm = e.get("debtor_bank"); to = e.get("creditor_bank")
+            elif kind == "StockCreated":
+                frm = e.get("owner"); to = None
+            else:
+                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+                to = e.get("to") or e.get("creditor") or e.get("payee")
+            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+            qty = e.get("qty") or e.get("quantity") or "—"
+            amt = e.get("amount") or "—"
+            notes = ""
+            if kind == "ClientPayment":
+                notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
+                if 'due_day' in e:
+                    notes += f"; due {e.get('due_day')}"
+            elif kind == "AgentDefaulted":
+                shortfall = e.get('shortfall')
+                trigger = e.get('trigger_contract')
+                parts = []
+                if shortfall is not None:
+                    parts.append(f"shortfall {shortfall}")
+                if trigger:
+                    parts.append(f"trigger {trigger}")
+                if parts:
+                    notes = ", ".join(parts)
+            table.add_row(kind, str(frm or "—"), str(to or "—"), str(sku), str(qty), str(amt), notes)
+        return table
+
+    renderables: List[RenderableType] = []
+    # Phase A is intentionally empty for now; only include if it has rows
+    if buckets["A"]:
+        renderables.append(build_table("A", buckets["A"]))
+    # Phase B: settlements
+    renderables.append(build_table("B", buckets["B"]))
+    # Phase C: clearing
+    renderables.append(build_table("C", buckets["C"]))
+    return renderables
+
+
+def _build_single_setup_table(events: List[Dict[str, Any]], day: Optional[int] = None) -> List[RenderableType]:
+    """Render a single setup table for setup-phase events (day 0)."""
+    rows = [e for e in events if e.get("phase") == "setup" and e.get("kind") not in ("PhaseA","PhaseB","PhaseC")]
+    title = "Setup"
+    if day is not None:
+        title = f"{title} (Day {day})"
+    if not RICH_AVAILABLE:
+        header = ["Kind", "From", "To", "SKU/Instr", "Qty", "Amount", "Notes"]
+        out = [title, " | ".join(header), "-" * 80]
+        for e in rows:
+            kind = str(e.get("kind", ""))
+            if kind in ("CashDeposited", "CashWithdrawn"):
+                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+                frm = e.get("payer"); to = e.get("payee")
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                frm = e.get("debtor_bank"); to = e.get("creditor_bank")
+            elif kind == "StockCreated":
+                frm = e.get("owner"); to = None
+            else:
+                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+                to = e.get("to") or e.get("creditor") or e.get("payee")
+            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+            qty = e.get("qty") or e.get("quantity") or "—"
+            amt = e.get("amount") or "—"
+            notes = ""
+            out.append(" | ".join(map(str, [kind, frm or "—", to or "—", sku, qty, amt, notes])))
+        return ["\n".join(out)]
+
+    from rich.table import Table as RichTable
+    from rich import box as rich_box
+    table = RichTable(title=title, box=rich_box.HEAVY, show_lines=True)
+    table.add_column("Kind", justify="left")
+    table.add_column("From", justify="left")
+    table.add_column("To", justify="left")
+    table.add_column("SKU/Instr", justify="left")
+    table.add_column("Qty", justify="right")
+    table.add_column("Amount", justify="right")
+    table.add_column("Notes", justify="left")
+    try:
+        table.row_styles = ["on #ffffff", "on #e6f2ff"]
+    except Exception:
+        pass
+    for e in rows:
+        kind = str(e.get("kind", ""))
+        if kind in ("CashDeposited", "CashWithdrawn"):
+            frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+            to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+        elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+            frm = e.get("payer"); to = e.get("payee")
+        elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+            frm = e.get("debtor_bank"); to = e.get("creditor_bank")
+        elif kind == "StockCreated":
+            frm = e.get("owner"); to = None
+        else:
+            frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+            to = e.get("to") or e.get("creditor") or e.get("payee")
+        sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+        qty = e.get("qty") or e.get("quantity") or "—"
+        amt = e.get("amount") or "—"
+        notes = ""
+        table.add_row(kind, str(frm or "—"), str(to or "—"), str(sku), str(qty), str(amt), notes)
+    return [table]
 
 ```
 
@@ -38716,7 +38919,7 @@ def load_yaml(path: Path | str) -> ScenarioConfig:
             error_msg = f"Generator validation failed:\n" + "\n".join(errors)
             raise ValueError(error_msg) from e
 
-        from bilancio.scenarios.generators import compile_generator
+        from bilancio.scenarios import compile_generator
 
         try:
             compiled = compile_generator(generator_spec, source_path=path)
@@ -50008,8 +50211,6 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
-import random
-
 import yaml
 from pydantic import BaseModel, Field, ValidationError, model_validator
 
@@ -50024,7 +50225,12 @@ from bilancio.analysis.report import (
     write_metrics_html,
 )
 from bilancio.config.models import RingExplorerGeneratorConfig
-from bilancio.scenarios.generators.ring_explorer import compile_ring_explorer
+from bilancio.experiments.sampling import (
+    generate_frontier_params,
+    generate_grid_params,
+    generate_lhs_params,
+)
+from bilancio.scenarios import compile_ring_explorer
 
 # Note: run_scenario imported lazily in _execute_run to avoid circular import
 
@@ -50309,21 +50515,20 @@ class RingSweepRunner:
         monotonicities: Sequence[Decimal],
     ) -> List[RingRunSummary]:
         summaries: List[RingRunSummary] = []
-        for kappa in kappas:
-            for concentration in concentrations:
-                for mu in mus:
-                    for monotonicity in monotonicities:
-                        seed = self._next_seed()
-                        summaries.append(
-                            self._execute_run(
-                                "grid",
-                                kappa,
-                                concentration,
-                                mu,
-                                monotonicity,
-                                seed,
-                            )
-                        )
+        for kappa, concentration, mu, monotonicity in generate_grid_params(
+            kappas, concentrations, mus, monotonicities
+        ):
+            seed = self._next_seed()
+            summaries.append(
+                self._execute_run(
+                    "grid",
+                    kappa,
+                    concentration,
+                    mu,
+                    monotonicity,
+                    seed,
+                )
+            )
         return summaries
 
     def run_lhs(
@@ -50337,40 +50542,27 @@ class RingSweepRunner:
     ) -> List[RingRunSummary]:
         if count <= 0:
             return []
-        rng = random.Random(self.seed_counter + 7919)
-        kappas = self._lhs_axis(count, kappa_range, rng)
-        concentrations = self._lhs_axis(count, concentration_range, rng)
-        mus = self._lhs_axis(count, mu_range, rng)
-        rng.shuffle(concentrations)
-        rng.shuffle(mus)
-        monotonicities = self._lhs_axis(count, monotonicity_range, rng)
-        rng.shuffle(monotonicities)
         summaries: List[RingRunSummary] = []
-        for idx in range(count):
+        for kappa, concentration, mu, monotonicity in generate_lhs_params(
+            count,
+            kappa_range=kappa_range,
+            concentration_range=concentration_range,
+            mu_range=mu_range,
+            monotonicity_range=monotonicity_range,
+            seed=self.seed_counter,
+        ):
             seed = self._next_seed()
             summaries.append(
                 self._execute_run(
                     "lhs",
-                    kappas[idx],
-                    concentrations[idx],
-                    mus[idx],
-                    monotonicities[idx],
+                    kappa,
+                    concentration,
+                    mu,
+                    monotonicity,
                     seed,
                 )
             )
         return summaries
-
-    def _lhs_axis(self, count: int, bounds: Tuple[Decimal, Decimal], rng: random.Random) -> List[Decimal]:
-        low, high = bounds
-        samples: List[Decimal] = []
-        for stratum in range(count):
-            a = Decimal(stratum) / Decimal(count)
-            b = Decimal(stratum + 1) / Decimal(count)
-            u = Decimal(str(rng.random()))
-            frac = a + (b - a) * u
-            samples.append(low + (high - low) * frac)
-        rng.shuffle(samples)
-        return samples
 
     def run_frontier(
         self,
@@ -50384,74 +50576,42 @@ class RingSweepRunner:
         max_iterations: int,
     ) -> List[RingRunSummary]:
         summaries: List[RingRunSummary] = []
-        for concentration in concentrations:
-            for mu in mus:
-                for monotonicity in monotonicities:
-                    summaries.extend(
-                        self._run_frontier_cell(
-                            concentration,
-                            mu,
-                            monotonicity,
-                            kappa_low,
-                            kappa_high,
-                            tolerance,
-                            max_iterations,
-                        )
-                    )
+
+        # Create execution function that captures self and returns delta_total
+        def execute_fn(
+            label: str,
+            kappa: Decimal,
+            concentration: Decimal,
+            mu: Decimal,
+            monotonicity: Decimal,
+        ) -> Optional[Decimal]:
+            # Execute run with label
+            summary = self._execute_run(
+                "frontier",
+                kappa,
+                concentration,
+                mu,
+                monotonicity,
+                self._next_seed(),
+                label=label,
+            )
+            summaries.append(summary)
+            return summary.delta_total
+
+        # Use frontier sampling to execute runs with binary search
+        # Unlike grid/LHS, frontier calls execute_fn directly for immediate feedback
+        generate_frontier_params(
+            concentrations,
+            mus,
+            monotonicities,
+            kappa_low=kappa_low,
+            kappa_high=kappa_high,
+            tolerance=tolerance,
+            max_iterations=max_iterations,
+            execute_fn=execute_fn,
+        )
+
         return summaries
-
-    def _run_frontier_cell(
-        self,
-        concentration: Decimal,
-        mu: Decimal,
-        monotonicity: Decimal,
-        kappa_low: Decimal,
-        kappa_high: Decimal,
-        tolerance: Decimal,
-        max_iterations: int,
-    ) -> List[RingRunSummary]:
-        runs: List[RingRunSummary] = []
-
-        low_summary = self._execute_run("frontier", kappa_low, concentration, mu, monotonicity, self._next_seed(), label="low")
-        runs.append(low_summary)
-        if low_summary.delta_total is not None and low_summary.delta_total <= tolerance:
-            return runs
-
-        hi_kappa = kappa_high
-        hi_summary = self._execute_run("frontier", hi_kappa, concentration, mu, monotonicity, self._next_seed(), label="high")
-        runs.append(hi_summary)
-
-        while (hi_summary.delta_total is None or hi_summary.delta_total > tolerance) and hi_kappa < kappa_high * 4:
-            hi_kappa = hi_kappa * Decimal("1.5")
-            hi_summary = self._execute_run("frontier", hi_kappa, concentration, mu, monotonicity, self._next_seed(), label="high")
-            runs.append(hi_summary)
-            if hi_kappa > Decimal("128"):
-                break
-
-        if hi_summary.delta_total is None or hi_summary.delta_total > tolerance:
-            return runs
-
-        low = low_summary.kappa
-        high = hi_summary.kappa
-        best = hi_summary
-
-        for _ in range(max_iterations):
-            if high - low <= tolerance:
-                break
-            mid = (low + high) / 2
-            mid_summary = self._execute_run("frontier", mid, concentration, mu, monotonicity, self._next_seed(), label="mid")
-            runs.append(mid_summary)
-            delta = mid_summary.delta_total
-            if delta is None:
-                low = mid
-                continue
-            if delta <= tolerance:
-                best = mid_summary
-                high = mid
-            else:
-                low = mid
-
-        return runs
 
     def _execute_run(
         self,
@@ -50529,7 +50689,7 @@ class RingSweepRunner:
 
         if self.balanced_mode:
             # Use balanced generator for C vs D comparison scenarios (Plan 024)
-            from bilancio.scenarios.generators.ring_explorer import compile_ring_explorer_balanced
+            from bilancio.scenarios import compile_ring_explorer_balanced
             scenario = compile_ring_explorer_balanced(
                 generator_config,
                 face_value=self.face_value,
@@ -50677,6 +50837,307 @@ __all__ = [
     "load_ring_sweep_config",
     "_decimal_list",
 ]
+
+```
+
+---
+
+### 📄 src/bilancio/experiments/sampling/__init__.py
+
+```python
+"""Parameter sampling strategies for experiment sweeps."""
+
+from __future__ import annotations
+
+from .frontier import generate_frontier_params
+from .grid import generate_grid_params
+from .lhs import generate_lhs_params
+
+__all__ = [
+    "generate_grid_params",
+    "generate_lhs_params",
+    "generate_frontier_params",
+]
+
+```
+
+---
+
+### 📄 src/bilancio/experiments/sampling/frontier.py
+
+```python
+"""Frontier/binary search parameter sampling strategy."""
+
+from __future__ import annotations
+
+from decimal import Decimal
+from typing import Callable, List, Optional, Sequence, Tuple
+
+
+def generate_frontier_params(
+    concentrations: Sequence[Decimal],
+    mus: Sequence[Decimal],
+    monotonicities: Sequence[Decimal],
+    *,
+    kappa_low: Decimal,
+    kappa_high: Decimal,
+    tolerance: Decimal,
+    max_iterations: int,
+    execute_fn: Callable[[str, Decimal, Decimal, Decimal, Decimal], Optional[Decimal]],
+) -> None:
+    """
+    Execute frontier/binary search parameter combinations.
+
+    For each combination of (concentration, mu, monotonicity), performs binary
+    search over kappa to find the frontier where delta_total <= tolerance.
+
+    This is an adaptive sampling strategy that uses feedback from simulations
+    to efficiently locate the boundary between stable and unstable regions.
+
+    Unlike grid and LHS sampling, frontier sampling executes runs directly via
+    execute_fn because it needs immediate feedback to decide what to test next.
+
+    Args:
+        concentrations: Sequence of concentration values
+        mus: Sequence of mu values
+        monotonicities: Sequence of monotonicity values
+        kappa_low: Initial lower bound for kappa
+        kappa_high: Initial upper bound for kappa
+        tolerance: Target tolerance for delta_total
+        max_iterations: Maximum binary search iterations per cell
+        execute_fn: Function that executes a run and returns delta_total.
+                   Signature: (label, kappa, concentration, mu, monotonicity) -> Optional[Decimal]
+                   Returns None if run failed to stabilize.
+
+    Returns:
+        None (calls execute_fn directly for side effects)
+    """
+    for concentration in concentrations:
+        for mu in mus:
+            for monotonicity in monotonicities:
+                _run_frontier_cell(
+                    concentration,
+                    mu,
+                    monotonicity,
+                    kappa_low,
+                    kappa_high,
+                    tolerance,
+                    max_iterations,
+                    execute_fn,
+                )
+
+
+def _run_frontier_cell(
+    concentration: Decimal,
+    mu: Decimal,
+    monotonicity: Decimal,
+    kappa_low: Decimal,
+    kappa_high: Decimal,
+    tolerance: Decimal,
+    max_iterations: int,
+    execute_fn: Callable[[str, Decimal, Decimal, Decimal, Decimal], Optional[Decimal]],
+) -> None:
+    """
+    Binary search for frontier kappa for a single parameter cell.
+
+    Strategy:
+    1. Test kappa_low - if already stable, return
+    2. Test and expand kappa_high until stable or max reached
+    3. Binary search between low and high to find tightest stable kappa
+
+    Args:
+        concentration: Concentration parameter
+        mu: Mu parameter
+        monotonicity: Monotonicity parameter
+        kappa_low: Lower bound for kappa
+        kappa_high: Initial upper bound for kappa
+        tolerance: Target tolerance for delta_total
+        max_iterations: Maximum binary search iterations
+        execute_fn: Function to execute run and get delta_total
+
+    Returns:
+        None (calls execute_fn directly for side effects)
+    """
+    # Test lower bound
+    low_delta = execute_fn("low", kappa_low, concentration, mu, monotonicity)
+
+    # If lower bound is already stable, we're done
+    if low_delta is not None and low_delta <= tolerance:
+        return
+
+    # Find upper bound that is stable
+    hi_kappa = kappa_high
+    hi_delta = execute_fn("high", hi_kappa, concentration, mu, monotonicity)
+
+    # Expand upper bound if needed (up to 4x original or kappa=128)
+    while (hi_delta is None or hi_delta > tolerance) and hi_kappa < kappa_high * 4:
+        hi_kappa = hi_kappa * Decimal("1.5")
+        hi_delta = execute_fn("high", hi_kappa, concentration, mu, monotonicity)
+        if hi_kappa > Decimal("128"):
+            break
+
+    # If upper bound is still unstable, give up
+    if hi_delta is None or hi_delta > tolerance:
+        return
+
+    # Binary search between stable bounds
+    low = kappa_low
+    high = hi_kappa
+
+    for _ in range(max_iterations):
+        if high - low <= tolerance:
+            break
+
+        mid = (low + high) / 2
+        mid_delta = execute_fn("mid", mid, concentration, mu, monotonicity)
+
+        if mid_delta is None:
+            # Unstable, search higher
+            low = mid
+        elif mid_delta <= tolerance:
+            # Stable, search lower
+            high = mid
+        else:
+            # Unstable, search higher
+            low = mid
+
+```
+
+---
+
+### 📄 src/bilancio/experiments/sampling/grid.py
+
+```python
+"""Grid/Cartesian product parameter sampling strategy."""
+
+from __future__ import annotations
+
+from decimal import Decimal
+from typing import Iterator, Sequence, Tuple
+
+
+def generate_grid_params(
+    kappas: Sequence[Decimal],
+    concentrations: Sequence[Decimal],
+    mus: Sequence[Decimal],
+    monotonicities: Sequence[Decimal],
+) -> Iterator[Tuple[Decimal, Decimal, Decimal, Decimal]]:
+    """
+    Generate parameter combinations using Cartesian product (grid sampling).
+
+    Args:
+        kappas: Sequence of kappa values
+        concentrations: Sequence of concentration values
+        mus: Sequence of mu values
+        monotonicities: Sequence of monotonicity values
+
+    Yields:
+        Tuples of (kappa, concentration, mu, monotonicity)
+    """
+    for kappa in kappas:
+        for concentration in concentrations:
+            for mu in mus:
+                for monotonicity in monotonicities:
+                    yield (kappa, concentration, mu, monotonicity)
+
+```
+
+---
+
+### 📄 src/bilancio/experiments/sampling/lhs.py
+
+```python
+"""Latin Hypercube Sampling (LHS) parameter generation strategy."""
+
+from __future__ import annotations
+
+import random
+from decimal import Decimal
+from typing import Iterator, List, Tuple
+
+
+def generate_lhs_params(
+    count: int,
+    *,
+    kappa_range: Tuple[Decimal, Decimal],
+    concentration_range: Tuple[Decimal, Decimal],
+    mu_range: Tuple[Decimal, Decimal],
+    monotonicity_range: Tuple[Decimal, Decimal],
+    seed: int,
+) -> Iterator[Tuple[Decimal, Decimal, Decimal, Decimal]]:
+    """
+    Generate parameter combinations using Latin Hypercube Sampling.
+
+    LHS divides each parameter range into equal-probability strata and samples
+    one value from each stratum, then shuffles the samples to decorrelate them.
+    This ensures good coverage of the parameter space with fewer samples than
+    grid sampling.
+
+    Args:
+        count: Number of parameter combinations to generate
+        kappa_range: (low, high) bounds for kappa
+        concentration_range: (low, high) bounds for concentration
+        mu_range: (low, high) bounds for mu
+        monotonicity_range: (low, high) bounds for monotonicity
+        seed: Random seed for reproducibility
+
+    Yields:
+        Tuples of (kappa, concentration, mu, monotonicity)
+    """
+    if count <= 0:
+        return
+
+    rng = random.Random(seed + 7919)  # Add offset for variety
+
+    # Sample each dimension using LHS
+    kappas = _lhs_axis(count, kappa_range, rng)
+    concentrations = _lhs_axis(count, concentration_range, rng)
+    mus = _lhs_axis(count, mu_range, rng)
+    monotonicities = _lhs_axis(count, monotonicity_range, rng)
+
+    # Shuffle to decorrelate dimensions
+    rng.shuffle(concentrations)
+    rng.shuffle(mus)
+    rng.shuffle(monotonicities)
+
+    # Yield parameter combinations
+    for idx in range(count):
+        yield (kappas[idx], concentrations[idx], mus[idx], monotonicities[idx])
+
+
+def _lhs_axis(count: int, bounds: Tuple[Decimal, Decimal], rng: random.Random) -> List[Decimal]:
+    """
+    Sample a single parameter dimension using Latin Hypercube Sampling.
+
+    Divides the range into 'count' equal strata and samples one value uniformly
+    from each stratum.
+
+    Args:
+        count: Number of strata/samples
+        bounds: (low, high) bounds for the parameter
+        rng: Random number generator
+
+    Returns:
+        List of sampled values (shuffled)
+    """
+    low, high = bounds
+    samples: List[Decimal] = []
+
+    for stratum in range(count):
+        # Define stratum boundaries as fractions [0,1]
+        a = Decimal(stratum) / Decimal(count)
+        b = Decimal(stratum + 1) / Decimal(count)
+
+        # Sample uniformly within stratum
+        u = Decimal(str(rng.random()))
+        frac = a + (b - a) * u
+
+        # Map to parameter range
+        samples.append(low + (high - low) * frac)
+
+    # Shuffle to decorrelate from stratum order
+    rng.shuffle(samples)
+    return samples
 
 ```
 
@@ -50880,67 +51341,6 @@ def write_balances_snapshot(
     # Write snapshot to file
     with open(path, 'w') as f:
         json.dump(snapshot, f, indent=2, default=decimal_default)
-```
-
----
-
-### 📄 src/bilancio/io/__init__.py
-
-```python
-"""I/O package for bilancio."""
-
-```
-
----
-
-### 📄 src/bilancio/io/readers.py
-
-```python
-"""File reading utilities for bilancio."""
-
-
-# TODO: Import CashFlow from appropriate module once defined
-# from bilancio.domain.instruments import CashFlow
-
-
-def read_cashflows_csv(filepath: str) -> list["CashFlow"]:
-    """Read cash flows from a CSV file.
-    
-    Args:
-        filepath: Path to the CSV file to read
-        
-    Returns:
-        List of CashFlow objects parsed from the CSV
-        
-    TODO: Implement CSV reading logic
-    """
-    raise NotImplementedError("CSV reading not yet implemented")
-
-```
-
----
-
-### 📄 src/bilancio/io/writers.py
-
-```python
-"""File writing utilities for bilancio."""
-
-
-# TODO: Import CashFlow from appropriate module once defined
-# from bilancio.domain.instruments import CashFlow
-
-
-def write_cashflows_csv(flows: list["CashFlow"], filepath: str) -> None:
-    """Write cash flows to a CSV file.
-    
-    Args:
-        flows: List of CashFlow objects to write
-        filepath: Path to the CSV file to create/overwrite
-        
-    TODO: Implement CSV writing logic
-    """
-    raise NotImplementedError("CSV writing not yet implemented")
-
 ```
 
 ---
@@ -51407,17 +51807,6 @@ def consume_stock(system: 'System', stock_id: InstrId, quantity: int) -> None:
 ```python
 """Scenario generation utilities."""
 
-__all__ = []
-
-```
-
----
-
-### 📄 src/bilancio/scenarios/generators/__init__.py
-
-```python
-"""Generator registry for scenario compilation."""
-
 from __future__ import annotations
 
 from pathlib import Path
@@ -51428,7 +51817,10 @@ from bilancio.config.models import (
     RingExplorerGeneratorConfig,
 )
 
-from .ring_explorer import compile_ring_explorer
+from .ring_explorer import (
+    compile_ring_explorer,
+    compile_ring_explorer_balanced,
+)
 
 
 def compile_generator(
@@ -51442,13 +51834,17 @@ def compile_generator(
     raise ValueError(f"Unsupported generator '{getattr(config, 'generator', 'unknown')}'")
 
 
-__all__ = ["compile_generator"]
+__all__ = [
+    "compile_generator",
+    "compile_ring_explorer",
+    "compile_ring_explorer_balanced",
+]
 
 ```
 
 ---
 
-### 📄 src/bilancio/scenarios/generators/ring_explorer.py
+### 📄 src/bilancio/scenarios/ring_explorer.py
 
 ```python
 """Ring explorer scenario generator."""
@@ -52194,25 +52590,60 @@ __all__ = ["main"]
 
 ---
 
-### 📄 src/bilancio/ui/cli.py
+### 📄 src/bilancio/ui/cli/__init__.py
 
 ```python
 """Command-line interface for Bilancio."""
 
+from __future__ import annotations
+
 import click
-from datetime import datetime
-from decimal import Decimal
+
+from .run import run, validate, new, analyze
+from .sweep import sweep
+
+
+@click.group()
+def cli():
+    """Bilancio - Economic simulation framework."""
+    pass
+
+
+# Add all commands to the main CLI group
+cli.add_command(run)
+cli.add_command(validate)
+cli.add_command(new)
+cli.add_command(analyze)
+cli.add_command(sweep)
+
+
+def main():
+    """Main entry point for the CLI."""
+    cli()
+
+
+# Re-export for backwards compatibility
+__all__ = ['cli', 'main']
+
+```
+
+---
+
+### 📄 src/bilancio/ui/cli/run.py
+
+```python
+"""CLI commands for running and analyzing scenarios."""
+
+from __future__ import annotations
+
+import sys
 from pathlib import Path
 from typing import Optional
-import sys
 
-from click.core import ParameterSource
-
+import click
 from rich.console import Console
 from rich.panel import Panel
 
-from .run import run_scenario
-from .wizard import create_scenario_wizard
 from bilancio.analysis.loaders import read_events_jsonl, read_balances_csv
 from bilancio.analysis.report import (
     write_day_metrics_csv,
@@ -52222,35 +52653,321 @@ from bilancio.analysis.report import (
     write_metrics_html,
     compute_day_metrics,
     parse_day_ranges,
-    aggregate_runs,
-    render_dashboard,
 )
+from bilancio.ui.run import run_scenario
+from bilancio.ui.wizard import create_scenario_wizard
+
+
+console = Console()
+
+
+@click.command()
+@click.argument('scenario_file', type=click.Path(exists=True, path_type=Path))
+@click.option('--mode', type=click.Choice(['step', 'until-stable']),
+              default='until-stable', help='Simulation run mode')
+@click.option('--max-days', type=int, default=90,
+              help='Maximum days to simulate')
+@click.option('--quiet-days', type=int, default=2,
+              help='Required quiet days for stable state')
+@click.option('--show', type=click.Choice(['summary', 'detailed', 'table']),
+              default='detailed', help='Event display mode')
+@click.option('--agents', type=str, default=None,
+              help='Comma-separated list of agent IDs to show balances for')
+@click.option('--check-invariants',
+              type=click.Choice(['setup', 'daily', 'none']),
+              default='setup',
+              help='When to check system invariants')
+@click.option('--export-balances', type=click.Path(path_type=Path),
+              default=None, help='Path to export balances CSV')
+@click.option('--export-events', type=click.Path(path_type=Path),
+              default=None, help='Path to export events JSONL')
+@click.option('--html', type=click.Path(path_type=Path),
+              default=None, help='Path to export colored output as HTML')
+@click.option('--t-account/--no-t-account', default=False, help='Use detailed T-account layout for balances')
+@click.option('--default-handling', type=click.Choice(['fail-fast', 'expel-agent']),
+              default=None, help='Default-handling mode (override scenario setting)')
+def run(scenario_file: Path,
+        mode: str,
+        max_days: int,
+        quiet_days: int,
+        show: str,
+        agents: Optional[str],
+        check_invariants: str,
+        export_balances: Optional[Path],
+        export_events: Optional[Path],
+        html: Optional[Path],
+        t_account: bool,
+        default_handling: Optional[str]):
+    """Run a Bilancio simulation scenario.
+
+    Load a scenario from a YAML file and run the simulation either
+    step-by-step or until a stable state is reached.
+    """
+    try:
+        # Parse agent list if provided
+        agent_ids = None
+        if agents:
+            agent_ids = [a.strip() for a in agents.split(',')]
+
+        # Override export paths if provided via CLI
+        export = {
+            'balances_csv': str(export_balances) if export_balances else None,
+            'events_jsonl': str(export_events) if export_events else None
+        }
+
+        # Run the scenario
+        run_scenario(
+            path=scenario_file,
+            mode=mode,
+            max_days=max_days,
+            quiet_days=quiet_days,
+            show=show,
+            agent_ids=agent_ids,
+            check_invariants=check_invariants,
+            export=export,
+            html_output=html,
+            t_account=t_account,
+            default_handling=default_handling
+        )
+
+    except FileNotFoundError as e:
+        console.print(Panel(
+            f"[red]File not found:[/red] {e}",
+            title="Error",
+            border_style="red"
+        ))
+        sys.exit(1)
+
+    except ValueError as e:
+        console.print(Panel(
+            f"[red]Configuration error:[/red]\n{e}",
+            title="Error",
+            border_style="red"
+        ))
+        sys.exit(1)
+
+    except Exception as e:
+        console.print(Panel(
+            f"[red]Unexpected error:[/red]\n{e}",
+            title="Error",
+            border_style="red"
+        ))
+        if '--debug' in sys.argv:
+            raise
+        sys.exit(1)
+
+
+@click.command()
+@click.argument('scenario_file', type=click.Path(exists=True, path_type=Path))
+def validate(scenario_file: Path):
+    """Validate a Bilancio scenario configuration file.
+
+    Check that a YAML configuration file is valid without running
+    the simulation. Reports any errors in the configuration structure,
+    agent definitions, or initial actions.
+    """
+    try:
+        from bilancio.config import load_yaml
+        from bilancio.engines.system import System
+        from bilancio.config import apply_to_system
+
+        # Load and parse the configuration
+        console.print(f"[dim]Validating {scenario_file}...[/dim]")
+        config = load_yaml(scenario_file)
+
+        console.print(f"[green]✓[/green] Configuration syntax is valid")
+        console.print(f"  Name: {config.name}")
+        console.print(f"  Version: {config.version}")
+        console.print(f"  Agents: {len(config.agents)}")
+        console.print(f"  Initial actions: {len(config.initial_actions)}")
+
+        # Try to apply to a test system to validate actions
+        console.print("[dim]Checking if configuration can be applied...[/dim]")
+        test_system = System()
+        apply_to_system(config, test_system)
+
+        console.print(f"[green]✓[/green] Configuration can be applied successfully")
+
+        # Run invariant checks
+        test_system.assert_invariants()
+        console.print(f"[green]✓[/green] System invariants pass")
+
+        # Summary
+        console.print("\n[bold green]Configuration is valid![/bold green]")
+        console.print(f"\nAgents defined:")
+        for agent in config.agents:
+            console.print(f"  • {agent.id} ({agent.kind}): {agent.name}")
+
+        if config.run.export.balances_csv or config.run.export.events_jsonl:
+            console.print(f"\nExports configured:")
+            if config.run.export.balances_csv:
+                console.print(f"  • Balances: {config.run.export.balances_csv}")
+            if config.run.export.events_jsonl:
+                console.print(f"  • Events: {config.run.export.events_jsonl}")
+
+    except FileNotFoundError as e:
+        console.print(Panel(
+            f"[red]File not found:[/red] {e}",
+            title="Error",
+            border_style="red"
+        ))
+        sys.exit(1)
+
+    except ValueError as e:
+        console.print(Panel(
+            f"[red]Configuration error:[/red]\n{e}",
+            title="Validation Failed",
+            border_style="red"
+        ))
+        sys.exit(1)
+
+    except Exception as e:
+        console.print(Panel(
+            f"[red]Validation error:[/red]\n{e}",
+            title="Validation Failed",
+            border_style="red"
+        ))
+        if '--debug' in sys.argv:
+            raise
+        sys.exit(1)
+
+
+@click.command()
+@click.option('--from', 'from_template', type=str, default=None,
+              help='Base template to use')
+@click.option('-o', '--output', type=click.Path(path_type=Path),
+              required=True, help='Output YAML file path')
+def new(from_template: Optional[str], output: Path):
+    """Create a new scenario configuration.
+
+    Interactive wizard to create a new Bilancio scenario
+    configuration file.
+    """
+    try:
+        create_scenario_wizard(output, from_template)
+        console.print(f"[green]✓[/green] Created scenario file: {output}")
+
+    except Exception as e:
+        console.print(Panel(
+            f"[red]Failed to create scenario:[/red]\n{e}",
+            title="Error",
+            border_style="red"
+        ))
+        sys.exit(1)
+
+
+@click.command()
+@click.option('--events', 'events_path', type=click.Path(exists=True, path_type=Path), required=True,
+              help='Path to events JSONL exported by a run')
+@click.option('--balances', 'balances_path', type=click.Path(exists=False, path_type=Path), required=False,
+              help='Path to balances CSV (optional, improves G_t/M_t)')
+@click.option('--days', type=str, default=None,
+              help='Days to analyze, e.g. "1,2-3". Default: infer from events')
+@click.option('--out-csv', 'out_csv', type=click.Path(path_type=Path), default=None,
+              help='Output CSV for day-level metrics')
+@click.option('--out-json', 'out_json', type=click.Path(path_type=Path), default=None,
+              help='Output JSON for day-level metrics')
+@click.option('--intraday-csv', 'intraday_csv', type=click.Path(path_type=Path), default=None,
+              help='Optional CSV for intraday P_prefix steps')
+@click.option('--html', 'html_out', type=click.Path(path_type=Path), default=None,
+              help='Optional HTML analytics report')
+def analyze(
+    events_path: Path,
+    balances_path: Optional[Path],
+    days: Optional[str],
+    out_csv: Optional[Path],
+    out_json: Optional[Path],
+    intraday_csv: Optional[Path],
+    html_out: Optional[Path],
+):
+    """Analyze a completed run and export Kalecki-style metrics.
+
+    Produces a day-level metrics CSV/JSON, optional intraday CSV (diagnostic).
+    """
+    # Load inputs
+    console.print(f"[dim]Reading events from {events_path}...[/dim]")
+    events = list(read_events_jsonl(events_path))
+
+    balances_rows = None
+    if balances_path and balances_path.exists():
+        console.print(f"[dim]Reading balances from {balances_path}...[/dim]")
+        balances_rows = read_balances_csv(balances_path)
+
+    day_list = parse_day_ranges(days) if days else None
+
+    bundle = compute_day_metrics(events, balances_rows, day_list)
+
+    if not bundle["day_metrics"]:
+        console.print("[yellow]No days found to analyze.[/yellow]")
+        return
+
+    # Determine default output paths if not provided
+    base = events_path.stem.replace("_events", "") or "metrics"
+    out_dir = events_path.parent
+    if not out_csv:
+        out_csv = out_dir / f"{base}_metrics_day.csv"
+    if not out_json:
+        out_json = out_dir / f"{base}_metrics_day.json"
+    if intraday_csv:
+        intraday_csv.parent.mkdir(parents=True, exist_ok=True)
+
+    # Write outputs
+    metrics_rows = bundle["day_metrics"]
+    ds_rows = bundle["debtor_shares"]
+    intraday_rows = bundle["intraday"]
+
+    write_day_metrics_csv(out_csv, metrics_rows)
+    console.print(f"[green]✓[/green] Wrote day metrics CSV: {out_csv}")
+    write_day_metrics_json(out_json, metrics_rows)
+    console.print(f"[green]✓[/green] Wrote day metrics JSON: {out_json}")
+
+    # Debtor shares and intraday are optional; only write if path provided
+    base_name = out_csv.stem.replace("_metrics_day", "") if out_csv else "metrics"
+    ds_path = out_csv.parent / f"{base_name}_ds.csv"
+    write_debtor_shares_csv(ds_path, ds_rows)
+    console.print(f"[green]✓[/green] Wrote debtor shares CSV: {ds_path}")
+
+    if intraday_csv:
+        write_intraday_csv(intraday_csv, intraday_rows)
+        console.print(f"[green]✓[/green] Wrote intraday CSV: {intraday_csv}")
+
+    if html_out:
+        title = f"Bilancio Analytics — {events_path.stem.replace('_events','')}"
+        subtitle = f"Events: {events_path.name}{' | Balances: ' + balances_path.name if balances_path else ''}"
+        write_metrics_html(html_out, metrics_rows, ds_rows, intraday_rows, title=title, subtitle=subtitle)
+        console.print(f"[green]✓[/green] Wrote HTML analytics: {html_out}")
+
+```
+
+---
+
+### 📄 src/bilancio/ui/cli/sweep.py
+
+```python
+"""CLI commands for running experiment sweeps."""
+
+from __future__ import annotations
+
+from datetime import datetime
+from decimal import Decimal
+from pathlib import Path
+from typing import Optional
+
+import click
+from click.core import ParameterSource
+
+from bilancio.analysis.report import aggregate_runs, render_dashboard
 from bilancio.experiments.ring import (
     RingSweepRunner,
     RingSweepConfig,
     load_ring_sweep_config,
     _decimal_list,
 )
-# Comparison imports deferred to avoid circular import
-# from bilancio.experiments.comparison import ComparisonSweepRunner, ComparisonSweepConfig
 
-
-console = Console()
-
-
-def _as_decimal_list(value):
-    if isinstance(value, (list, tuple)):
-        return [Decimal(str(item)) for item in value]
-    return _decimal_list(value)
+from .utils import console, _as_decimal_list
 
 
 @click.group()
-def cli():
-    """Bilancio - Economic simulation framework."""
-    pass
-
-
-@cli.group()
 def sweep():
     """Experiment sweeps."""
     pass
@@ -52727,10 +53444,10 @@ def sweep_strategy_outcomes(experiment: Path, verbose: bool):
     by_run_path, overall_path = run_strategy_analysis(experiment)
 
     if by_run_path and by_run_path.exists():
-        click.echo(f"[green]✓[/green] Strategy outcomes by run: {by_run_path}")
-        click.echo(f"[green]✓[/green] Strategy outcomes overall: {overall_path}")
+        console.print(f"[green]✓[/green] Strategy outcomes by run: {by_run_path}")
+        console.print(f"[green]✓[/green] Strategy outcomes overall: {overall_path}")
     else:
-        click.echo("[yellow]No output generated - check that repayment_events.csv files exist[/yellow]")
+        console.print("[yellow]No output generated - check that repayment_events.csv files exist[/yellow]")
 
 
 @sweep.command("dealer-usage")
@@ -52757,295 +53474,39 @@ def sweep_dealer_usage(experiment: Path, verbose: bool):
     output_path = run_dealer_usage_analysis(experiment)
 
     if output_path and output_path.exists():
-        click.echo(f"[green]✓[/green] Dealer usage summary: {output_path}")
+        console.print(f"[green]✓[/green] Dealer usage summary: {output_path}")
     else:
-        click.echo("[yellow]No output generated - check that required CSV files exist[/yellow]")
+        console.print("[yellow]No output generated - check that required CSV files exist[/yellow]")
+
+```
+
+---
+
+### 📄 src/bilancio/ui/cli/utils.py
+
+```python
+"""Shared utilities for CLI commands."""
+
+from __future__ import annotations
+
+from decimal import Decimal
+
+from rich.console import Console
+
+from bilancio.experiments.ring import _decimal_list
 
 
-@cli.command()
-@click.argument('scenario_file', type=click.Path(exists=True, path_type=Path))
-@click.option('--mode', type=click.Choice(['step', 'until-stable']), 
-              default='until-stable', help='Simulation run mode')
-@click.option('--max-days', type=int, default=90, 
-              help='Maximum days to simulate')
-@click.option('--quiet-days', type=int, default=2,
-              help='Required quiet days for stable state')
-@click.option('--show', type=click.Choice(['summary', 'detailed', 'table']),
-              default='detailed', help='Event display mode')
-@click.option('--agents', type=str, default=None,
-              help='Comma-separated list of agent IDs to show balances for')
-@click.option('--check-invariants', 
-              type=click.Choice(['setup', 'daily', 'none']),
-              default='setup',
-              help='When to check system invariants')
-@click.option('--export-balances', type=click.Path(path_type=Path),
-              default=None, help='Path to export balances CSV')
-@click.option('--export-events', type=click.Path(path_type=Path),
-              default=None, help='Path to export events JSONL')
-@click.option('--html', type=click.Path(path_type=Path),
-              default=None, help='Path to export colored output as HTML')
-@click.option('--t-account/--no-t-account', default=False, help='Use detailed T-account layout for balances')
-@click.option('--default-handling', type=click.Choice(['fail-fast', 'expel-agent']),
-              default=None, help='Default-handling mode (override scenario setting)')
-def run(scenario_file: Path, 
-        mode: str,
-        max_days: int,
-        quiet_days: int,
-        show: str,
-        agents: Optional[str],
-        check_invariants: str,
-        export_balances: Optional[Path],
-        export_events: Optional[Path],
-        html: Optional[Path],
-        t_account: bool,
-        default_handling: Optional[str]):
-    """Run a Bilancio simulation scenario.
-    
-    Load a scenario from a YAML file and run the simulation either
-    step-by-step or until a stable state is reached.
+console = Console()
+
+
+def _as_decimal_list(value):
+    """Convert value to list of Decimals.
+
+    Handles both list/tuple input and comma-separated string input.
     """
-    try:
-        # Parse agent list if provided
-        agent_ids = None
-        if agents:
-            agent_ids = [a.strip() for a in agents.split(',')]
-        
-        # Override export paths if provided via CLI
-        export = {
-            'balances_csv': str(export_balances) if export_balances else None,
-            'events_jsonl': str(export_events) if export_events else None
-        }
-        
-        # Run the scenario
-        run_scenario(
-            path=scenario_file,
-            mode=mode,
-            max_days=max_days,
-            quiet_days=quiet_days,
-            show=show,
-            agent_ids=agent_ids,
-            check_invariants=check_invariants,
-            export=export,
-            html_output=html,
-            t_account=t_account,
-            default_handling=default_handling
-        )
-        
-    except FileNotFoundError as e:
-        console.print(Panel(
-            f"[red]File not found:[/red] {e}",
-            title="Error",
-            border_style="red"
-        ))
-        sys.exit(1)
-        
-    except ValueError as e:
-        console.print(Panel(
-            f"[red]Configuration error:[/red]\n{e}",
-            title="Error",
-            border_style="red"
-        ))
-        sys.exit(1)
-        
-    except Exception as e:
-        console.print(Panel(
-            f"[red]Unexpected error:[/red]\n{e}",
-            title="Error",
-            border_style="red"
-        ))
-        if '--debug' in sys.argv:
-            raise
-        sys.exit(1)
-
-
-@cli.command()
-@click.argument('scenario_file', type=click.Path(exists=True, path_type=Path))
-def validate(scenario_file: Path):
-    """Validate a Bilancio scenario configuration file.
-    
-    Check that a YAML configuration file is valid without running
-    the simulation. Reports any errors in the configuration structure,
-    agent definitions, or initial actions.
-    """
-    try:
-        from bilancio.config import load_yaml
-        from bilancio.engines.system import System
-        from bilancio.config import apply_to_system
-        
-        # Load and parse the configuration
-        console.print(f"[dim]Validating {scenario_file}...[/dim]")
-        config = load_yaml(scenario_file)
-        
-        console.print(f"[green]✓[/green] Configuration syntax is valid")
-        console.print(f"  Name: {config.name}")
-        console.print(f"  Version: {config.version}")
-        console.print(f"  Agents: {len(config.agents)}")
-        console.print(f"  Initial actions: {len(config.initial_actions)}")
-        
-        # Try to apply to a test system to validate actions
-        console.print("[dim]Checking if configuration can be applied...[/dim]")
-        test_system = System()
-        apply_to_system(config, test_system)
-        
-        console.print(f"[green]✓[/green] Configuration can be applied successfully")
-        
-        # Run invariant checks
-        test_system.assert_invariants()
-        console.print(f"[green]✓[/green] System invariants pass")
-        
-        # Summary
-        console.print("\n[bold green]Configuration is valid![/bold green]")
-        console.print(f"\nAgents defined:")
-        for agent in config.agents:
-            console.print(f"  • {agent.id} ({agent.kind}): {agent.name}")
-        
-        if config.run.export.balances_csv or config.run.export.events_jsonl:
-            console.print(f"\nExports configured:")
-            if config.run.export.balances_csv:
-                console.print(f"  • Balances: {config.run.export.balances_csv}")
-            if config.run.export.events_jsonl:
-                console.print(f"  • Events: {config.run.export.events_jsonl}")
-        
-    except FileNotFoundError as e:
-        console.print(Panel(
-            f"[red]File not found:[/red] {e}",
-            title="Error",
-            border_style="red"
-        ))
-        sys.exit(1)
-        
-    except ValueError as e:
-        console.print(Panel(
-            f"[red]Configuration error:[/red]\n{e}",
-            title="Validation Failed",
-            border_style="red"
-        ))
-        sys.exit(1)
-        
-    except Exception as e:
-        console.print(Panel(
-            f"[red]Validation error:[/red]\n{e}",
-            title="Validation Failed",
-            border_style="red"
-        ))
-        if '--debug' in sys.argv:
-            raise
-        sys.exit(1)
-
-
-@cli.command()
-@click.option('--from', 'from_template', type=str, default=None,
-              help='Base template to use')
-@click.option('-o', '--output', type=click.Path(path_type=Path),
-              required=True, help='Output YAML file path')
-def new(from_template: Optional[str], output: Path):
-    """Create a new scenario configuration.
-    
-    Interactive wizard to create a new Bilancio scenario
-    configuration file.
-    """
-    try:
-        create_scenario_wizard(output, from_template)
-        console.print(f"[green]✓[/green] Created scenario file: {output}")
-        
-    except Exception as e:
-        console.print(Panel(
-            f"[red]Failed to create scenario:[/red]\n{e}",
-            title="Error",
-            border_style="red"
-        ))
-        sys.exit(1)
-
-
-@cli.command()
-@click.option('--events', 'events_path', type=click.Path(exists=True, path_type=Path), required=True,
-              help='Path to events JSONL exported by a run')
-@click.option('--balances', 'balances_path', type=click.Path(exists=False, path_type=Path), required=False,
-              help='Path to balances CSV (optional, improves G_t/M_t)')
-@click.option('--days', type=str, default=None,
-              help='Days to analyze, e.g. "1,2-3". Default: infer from events')
-@click.option('--out-csv', 'out_csv', type=click.Path(path_type=Path), default=None,
-              help='Output CSV for day-level metrics')
-@click.option('--out-json', 'out_json', type=click.Path(path_type=Path), default=None,
-              help='Output JSON for day-level metrics')
-@click.option('--intraday-csv', 'intraday_csv', type=click.Path(path_type=Path), default=None,
-              help='Optional CSV for intraday P_prefix steps')
-@click.option('--html', 'html_out', type=click.Path(path_type=Path), default=None,
-              help='Optional HTML analytics report')
-def analyze(
-    events_path: Path,
-    balances_path: Optional[Path],
-    days: Optional[str],
-    out_csv: Optional[Path],
-    out_json: Optional[Path],
-    intraday_csv: Optional[Path],
-    html_out: Optional[Path],
-):
-    """Analyze a completed run and export Kalecki-style metrics.
-
-    Produces a day-level metrics CSV/JSON, optional intraday CSV (diagnostic).
-    """
-    # Load inputs
-    console.print(f"[dim]Reading events from {events_path}...[/dim]")
-    events = list(read_events_jsonl(events_path))
-
-    balances_rows = None
-    if balances_path and balances_path.exists():
-        console.print(f"[dim]Reading balances from {balances_path}...[/dim]")
-        balances_rows = read_balances_csv(balances_path)
-
-    day_list = parse_day_ranges(days) if days else None
-
-    bundle = compute_day_metrics(events, balances_rows, day_list)
-
-    if not bundle["day_metrics"]:
-        console.print("[yellow]No days found to analyze.[/yellow]")
-        return
-
-    # Determine default output paths if not provided
-    base = events_path.stem.replace("_events", "") or "metrics"
-    out_dir = events_path.parent
-    if not out_csv:
-        out_csv = out_dir / f"{base}_metrics_day.csv"
-    if not out_json:
-        out_json = out_dir / f"{base}_metrics_day.json"
-    if intraday_csv:
-        intraday_csv.parent.mkdir(parents=True, exist_ok=True)
-
-    # Write outputs
-    metrics_rows = bundle["day_metrics"]
-    ds_rows = bundle["debtor_shares"]
-    intraday_rows = bundle["intraday"]
-
-    write_day_metrics_csv(out_csv, metrics_rows)
-    console.print(f"[green]✓[/green] Wrote day metrics CSV: {out_csv}")
-    write_day_metrics_json(out_json, metrics_rows)
-    console.print(f"[green]✓[/green] Wrote day metrics JSON: {out_json}")
-
-    # Debtor shares and intraday are optional; only write if path provided
-    base_name = out_csv.stem.replace("_metrics_day", "") if out_csv else "metrics"
-    ds_path = out_csv.parent / f"{base_name}_ds.csv"
-    write_debtor_shares_csv(ds_path, ds_rows)
-    console.print(f"[green]✓[/green] Wrote debtor shares CSV: {ds_path}")
-
-    if intraday_csv:
-        write_intraday_csv(intraday_csv, intraday_rows)
-        console.print(f"[green]✓[/green] Wrote intraday CSV: {intraday_csv}")
-
-    if html_out:
-        title = f"Bilancio Analytics — {events_path.stem.replace('_events','')}"
-        subtitle = f"Events: {events_path.name}{' | Balances: ' + balances_path.name if balances_path else ''}"
-        write_metrics_html(html_out, metrics_rows, ds_rows, intraday_rows, title=title, subtitle=subtitle)
-        console.print(f"[green]✓[/green] Wrote HTML analytics: {html_out}")
-
-
-def main():
-    """Main entry point for the CLI."""
-    cli()
-
-
-if __name__ == '__main__':
-    main()
+    if isinstance(value, (list, tuple)):
+        return [Decimal(str(item)) for item in value]
+    return _decimal_list(value)
 
 ```
 
@@ -56004,6 +56465,703 @@ def test_build_t_account_rows_sorting_by_maturity():
     # Build keys using the same helper
     asset_due_days = [parse_day_from_maturity(r.maturity) for r in acct_f1.assets if r.name.endswith("receivable")]
     assert asset_due_days == sorted(asset_due_days)
+
+```
+
+---
+
+### 🧪 tests/analysis/test_visualization.py
+
+```python
+"""Tests for the analysis/visualization module.
+
+Tests cover:
+- Balance sheet display functions (rich and simple formats)
+- Event display functions
+- Build helper functions (build_t_account_rows, etc.)
+"""
+
+from io import StringIO
+from decimal import Decimal
+import sys as python_sys
+
+import pytest
+
+from bilancio.engines.system import System
+from bilancio.engines.simulation import run_day
+from bilancio.domain.agents import CentralBank, Bank, Household, Firm
+from bilancio.domain.instruments.credit import Payable
+from bilancio.ops.banking import deposit_cash, client_payment
+from bilancio.analysis.balances import agent_balance
+
+from bilancio.analysis.visualization import (
+    # Balance functions
+    display_agent_balance_table,
+    display_agent_balance_from_balance,
+    display_multiple_agent_balances,
+    build_t_account_rows,
+    display_agent_balance_table_renderable,
+    display_multiple_agent_balances_renderable,
+    # Event functions
+    display_events,
+    display_events_table,
+    display_events_table_renderable,
+    display_events_for_day,
+    display_events_renderable,
+    display_events_for_day_renderable,
+    # Phase functions
+    display_events_tables_by_phase_renderables,
+    # Common utilities
+    RICH_AVAILABLE,
+    BalanceRow,
+    TAccount,
+    parse_day_from_maturity,
+)
+
+
+# ============================================================================
+# Fixtures
+# ============================================================================
+
+
+@pytest.fixture
+def simple_system():
+    """Create a simple system with bank and household for basic tests.
+
+    Setup:
+    - Central Bank (CB01)
+    - Bank (BK01) with 5000 in reserves
+    - Household (HH01) with 1000 cash, 600 deposited at bank
+    """
+    system = System()
+    cb = CentralBank(id="CB01", name="Central Bank", kind="central_bank")
+    bank = Bank(id="BK01", name="Test Bank", kind="bank")
+    household = Household(id="HH01", name="Test Household", kind="household")
+
+    system.bootstrap_cb(cb)
+    system.add_agent(bank)
+    system.add_agent(household)
+
+    # Mint reserves to bank
+    system.mint_reserves("BK01", 5000)
+
+    # Mint cash to household and deposit some
+    system.mint_cash("HH01", 1000)
+    deposit_cash(system, "HH01", "BK01", 600)
+
+    return system
+
+
+@pytest.fixture
+def multi_agent_system():
+    """Create a system with multiple agents for comparison tests.
+
+    Setup:
+    - Central Bank (CB01)
+    - Two Banks (BK01, BK02) with reserves
+    - Two Households (HH01, HH02) with deposits at different banks
+    """
+    system = System()
+    cb = CentralBank(id="CB01", name="Central Bank", kind="central_bank")
+    bank1 = Bank(id="BK01", name="Bank One", kind="bank")
+    bank2 = Bank(id="BK02", name="Bank Two", kind="bank")
+    hh1 = Household(id="HH01", name="Household One", kind="household")
+    hh2 = Household(id="HH02", name="Household Two", kind="household")
+
+    system.bootstrap_cb(cb)
+    system.add_agent(bank1)
+    system.add_agent(bank2)
+    system.add_agent(hh1)
+    system.add_agent(hh2)
+
+    # Setup reserves
+    system.mint_reserves("BK01", 5000)
+    system.mint_reserves("BK02", 3000)
+
+    # Setup household deposits
+    system.mint_cash("HH01", 2000)
+    system.mint_cash("HH02", 1500)
+    deposit_cash(system, "HH01", "BK01", 1500)
+    deposit_cash(system, "HH02", "BK02", 1000)
+
+    return system
+
+
+@pytest.fixture
+def system_with_events():
+    """Create a system that has run a day simulation to generate events.
+
+    This includes payables, payments, and interbank clearing.
+    """
+    system = System()
+    cb = CentralBank(id="CB01", name="Central Bank", kind="central_bank")
+    bank1 = Bank(id="BK01", name="Bank One", kind="bank")
+    bank2 = Bank(id="BK02", name="Bank Two", kind="bank")
+    hh1 = Household(id="HH01", name="Alice", kind="household")
+    hh2 = Household(id="HH02", name="Bob", kind="household")
+    hh3 = Household(id="HH03", name="Charlie", kind="household")
+
+    system.bootstrap_cb(cb)
+    system.add_agent(bank1)
+    system.add_agent(bank2)
+    system.add_agent(hh1)
+    system.add_agent(hh2)
+    system.add_agent(hh3)
+
+    # Banks get reserves
+    system.mint_reserves("BK01", 500)
+    system.mint_reserves("BK02", 500)
+
+    # Households get cash and deposit
+    system.mint_cash("HH01", 300)
+    system.mint_cash("HH02", 200)
+    system.mint_cash("HH03", 100)
+    deposit_cash(system, "HH01", "BK01", 300)
+    deposit_cash(system, "HH02", "BK01", 200)
+    deposit_cash(system, "HH03", "BK02", 100)
+
+    # Create a payable due today
+    payable_id = system.new_contract_id("P")
+    payable = Payable(
+        id=payable_id,
+        kind="payable",
+        amount=100,
+        denom="X",
+        asset_holder_id="HH02",
+        liability_issuer_id="HH01",
+        due_day=system.state.day
+    )
+    system.add_contract(payable)
+
+    # Create cross-bank payment
+    client_payment(system, "HH02", "BK01", "HH03", "BK02", 50)
+
+    # Run a day to generate phase events
+    run_day(system)
+
+    return system
+
+
+# ============================================================================
+# Tests for Balance Display Functions
+# ============================================================================
+
+
+class TestDisplayAgentBalanceTable:
+    """Tests for display_agent_balance_table function."""
+
+    def test_display_rich_format_runs_without_error(self, simple_system, capsys):
+        """Test that rich format display executes without errors."""
+        if not RICH_AVAILABLE:
+            pytest.skip("Rich library not available")
+
+        display_agent_balance_table(simple_system, "HH01", format='rich')
+        # Just verify it runs - output goes to console
+        captured = capsys.readouterr()
+        # Rich output may or may not be captured depending on console setup
+
+    def test_display_simple_format(self, simple_system, capsys):
+        """Test that simple format produces text output."""
+        display_agent_balance_table(simple_system, "HH01", format='simple')
+        captured = capsys.readouterr()
+
+        # Verify key elements are in output
+        assert "HH01" in captured.out or "Test Household" in captured.out
+        assert "ASSETS" in captured.out
+        assert "LIABILITIES" in captured.out
+
+    def test_display_with_custom_title(self, simple_system, capsys):
+        """Test display with custom title."""
+        custom_title = "Custom Balance Title"
+        display_agent_balance_table(simple_system, "HH01", format='simple', title=custom_title)
+        captured = capsys.readouterr()
+
+        assert custom_title in captured.out
+
+    def test_display_bank_balance(self, simple_system, capsys):
+        """Test displaying bank balance (has both assets and liabilities)."""
+        display_agent_balance_table(simple_system, "BK01", format='simple')
+        captured = capsys.readouterr()
+
+        # Bank should have reserves as assets and deposits as liabilities
+        assert "ASSETS" in captured.out
+        assert "LIABILITIES" in captured.out
+
+
+class TestDisplayAgentBalanceFromBalance:
+    """Tests for display_agent_balance_from_balance function."""
+
+    def test_display_from_balance_object(self, simple_system, capsys):
+        """Test displaying from a pre-computed AgentBalance object."""
+        balance = agent_balance(simple_system, "HH01")
+        display_agent_balance_from_balance(balance, format='simple')
+        captured = capsys.readouterr()
+
+        assert "ASSETS" in captured.out
+        assert "LIABILITIES" in captured.out
+
+    def test_display_from_balance_with_title(self, simple_system, capsys):
+        """Test displaying from balance with custom title."""
+        balance = agent_balance(simple_system, "BK01")
+        display_agent_balance_from_balance(balance, format='simple', title="Bank Balance Sheet")
+        captured = capsys.readouterr()
+
+        assert "Bank Balance Sheet" in captured.out
+
+
+class TestDisplayMultipleAgentBalances:
+    """Tests for display_multiple_agent_balances function."""
+
+    def test_display_multiple_by_id(self, multi_agent_system, capsys):
+        """Test displaying multiple agents by ID."""
+        display_multiple_agent_balances(
+            multi_agent_system,
+            ["HH01", "HH02"],
+            format='simple'
+        )
+        captured = capsys.readouterr()
+
+        # Both agents should appear in output
+        assert "HH01" in captured.out or "Household One" in captured.out
+        assert "HH02" in captured.out or "Household Two" in captured.out
+
+    def test_display_multiple_by_balance_objects(self, multi_agent_system, capsys):
+        """Test displaying multiple agents using AgentBalance objects."""
+        balances = [
+            agent_balance(multi_agent_system, "BK01"),
+            agent_balance(multi_agent_system, "BK02")
+        ]
+        display_multiple_agent_balances(multi_agent_system, balances, format='simple')
+        captured = capsys.readouterr()
+
+        # Both banks should appear
+        assert "BK01" in captured.out or "Bank One" in captured.out
+        assert "BK02" in captured.out or "Bank Two" in captured.out
+
+    def test_display_mixed_items(self, multi_agent_system, capsys):
+        """Test displaying with mix of IDs and balance objects."""
+        balance_hh1 = agent_balance(multi_agent_system, "HH01")
+        display_multiple_agent_balances(
+            multi_agent_system,
+            [balance_hh1, "HH02"],
+            format='simple'
+        )
+        captured = capsys.readouterr()
+
+        # Both should appear
+        assert "HH01" in captured.out or "Household One" in captured.out
+
+
+# ============================================================================
+# Tests for Balance Renderable Functions
+# ============================================================================
+
+
+class TestBalanceRenderables:
+    """Tests for balance renderable functions."""
+
+    def test_balance_table_renderable_rich(self, simple_system):
+        """Test that renderable returns appropriate type for rich format."""
+        if not RICH_AVAILABLE:
+            pytest.skip("Rich library not available")
+
+        result = display_agent_balance_table_renderable(
+            simple_system, "HH01", format='rich'
+        )
+        # Should return a Rich Table
+        assert result is not None
+        # Rich Table has specific attributes
+        assert hasattr(result, 'columns') or isinstance(result, str)
+
+    def test_balance_table_renderable_simple(self, simple_system):
+        """Test that renderable returns string for simple format."""
+        result = display_agent_balance_table_renderable(
+            simple_system, "HH01", format='simple'
+        )
+        assert isinstance(result, str)
+        assert "ASSETS" in result
+
+    def test_multiple_balances_renderable_simple(self, multi_agent_system):
+        """Test multiple balances renderable in simple format."""
+        result = display_multiple_agent_balances_renderable(
+            multi_agent_system,
+            ["HH01", "HH02"],
+            format='simple'
+        )
+        assert isinstance(result, str)
+        assert "HH01" in result or "Household One" in result
+
+
+# ============================================================================
+# Tests for Build Functions
+# ============================================================================
+
+
+class TestBuildTAccountRows:
+    """Tests for build_t_account_rows function."""
+
+    def test_returns_taccount_structure(self, simple_system):
+        """Test that build_t_account_rows returns proper TAccount structure."""
+        taccount = build_t_account_rows(simple_system, "HH01")
+
+        assert isinstance(taccount, TAccount)
+        assert isinstance(taccount.assets, list)
+        assert isinstance(taccount.liabilities, list)
+
+    def test_asset_rows_have_expected_fields(self, simple_system):
+        """Test that asset rows contain expected BalanceRow fields."""
+        taccount = build_t_account_rows(simple_system, "HH01")
+
+        # Household should have assets (cash, deposit)
+        assert len(taccount.assets) > 0
+
+        for row in taccount.assets:
+            assert isinstance(row, BalanceRow)
+            assert row.name is not None
+            # value_minor should be set for financial assets
+            assert row.value_minor is not None or row.quantity is not None
+
+    def test_liability_rows_for_bank(self, simple_system):
+        """Test that bank liability rows are built correctly."""
+        taccount = build_t_account_rows(simple_system, "BK01")
+
+        # Bank should have liabilities (deposits from household)
+        assert len(taccount.liabilities) > 0
+
+        deposit_found = False
+        for row in taccount.liabilities:
+            if "bank_deposit" in row.name or "deposit" in row.name.lower():
+                deposit_found = True
+                assert row.value_minor == 600  # HH01 deposited 600
+
+        assert deposit_found, "Bank should have deposit liability"
+
+    def test_counterparty_info_present(self, simple_system):
+        """Test that counterparty information is included in rows."""
+        taccount = build_t_account_rows(simple_system, "HH01")
+
+        # Find the bank deposit asset
+        for row in taccount.assets:
+            if "bank_deposit" in row.name:
+                # Counterparty should be the bank
+                assert row.counterparty_name is not None
+                assert "BK01" in row.counterparty_name or "Test Bank" in row.counterparty_name
+
+    def test_delivery_obligations_as_receivables(self, simple_system):
+        """Test that delivery obligations appear as receivables on asset side."""
+        # Add delivery obligation
+        simple_system.create_delivery_obligation(
+            "BK01", "HH01", sku="GOODS", quantity=10,
+            unit_price=Decimal("5"), due_day=1
+        )
+
+        taccount = build_t_account_rows(simple_system, "HH01")
+
+        # HH01 should now have a receivable (right to receive goods)
+        receivable_found = any(
+            "receivable" in row.name.lower()
+            for row in taccount.assets
+        )
+        assert receivable_found, "Should have receivable for delivery obligation"
+
+    def test_delivery_obligations_as_liabilities(self, simple_system):
+        """Test that delivery obligations appear on liability side for issuer."""
+        simple_system.create_delivery_obligation(
+            "HH01", "BK01", sku="WIDGETS", quantity=5,
+            unit_price=Decimal("10"), due_day=2
+        )
+
+        taccount = build_t_account_rows(simple_system, "HH01")
+
+        # HH01 should have an obligation liability
+        obligation_found = any(
+            "obligation" in row.name.lower()
+            for row in taccount.liabilities
+        )
+        assert obligation_found, "Should have obligation liability"
+
+
+class TestParseDayFromMaturity:
+    """Tests for parse_day_from_maturity helper function."""
+
+    def test_parses_valid_day_string(self):
+        """Test parsing valid 'Day N' format."""
+        assert parse_day_from_maturity("Day 1") == 1
+        assert parse_day_from_maturity("Day 10") == 10
+        assert parse_day_from_maturity("Day 100") == 100
+
+    def test_returns_infinity_for_invalid(self):
+        """Test that invalid formats return infinity."""
+        import math
+
+        assert parse_day_from_maturity(None) == math.inf
+        assert parse_day_from_maturity("") > 10**9
+        assert parse_day_from_maturity("on-demand") > 10**9
+        assert parse_day_from_maturity("Day X") > 10**9
+        assert parse_day_from_maturity("Tomorrow") > 10**9
+
+
+# ============================================================================
+# Tests for Event Display Functions
+# ============================================================================
+
+
+class TestDisplayEvents:
+    """Tests for display_events function."""
+
+    def test_display_empty_events(self, capsys):
+        """Test displaying empty event list."""
+        display_events([], format='detailed')
+        captured = capsys.readouterr()
+
+        assert "No events" in captured.out
+
+    def test_display_detailed_format(self, system_with_events, capsys):
+        """Test detailed format includes phase information."""
+        events = system_with_events.state.events
+        display_events(events, format='detailed')
+        captured = capsys.readouterr()
+
+        # Should include phase labels
+        assert "Phase" in captured.out or "Day" in captured.out
+
+    def test_display_summary_format(self, system_with_events, capsys):
+        """Test summary format shows condensed events."""
+        events = system_with_events.state.events
+        display_events(events, format='summary')
+        # Should run without error - summary format may produce less output
+
+
+class TestDisplayEventsTable:
+    """Tests for display_events_table function."""
+
+    def test_display_events_table_has_columns(self, system_with_events, capsys):
+        """Test that events table includes expected columns."""
+        events = system_with_events.state.events
+        display_events_table(events)
+        # Should run without error
+
+
+class TestDisplayEventsTableRenderable:
+    """Tests for display_events_table_renderable function."""
+
+    def test_renderable_empty_events(self):
+        """Test renderable with empty events returns appropriate message."""
+        result = display_events_table_renderable([])
+
+        if RICH_AVAILABLE:
+            # Returns Rich Text or similar
+            assert result is not None
+        else:
+            assert "No events" in str(result)
+
+    def test_renderable_with_events(self, system_with_events):
+        """Test renderable with actual events returns table structure."""
+        events = system_with_events.state.events
+        result = display_events_table_renderable(events)
+
+        assert result is not None
+        if RICH_AVAILABLE:
+            # Should be a Rich Table with columns
+            assert hasattr(result, 'columns') or isinstance(result, str)
+        else:
+            assert isinstance(result, str)
+
+
+class TestDisplayEventsForDay:
+    """Tests for display_events_for_day function."""
+
+    def test_display_events_for_specific_day(self, system_with_events, capsys):
+        """Test displaying events for a specific day."""
+        # Day 0 should have events (run_day increments day)
+        display_events_for_day(system_with_events, 0)
+        captured = capsys.readouterr()
+
+        # Should show day events or "no events" message
+        assert len(captured.out) > 0
+
+    def test_display_events_for_future_day(self, system_with_events, capsys):
+        """Test displaying events for day with no events."""
+        display_events_for_day(system_with_events, 999)
+        captured = capsys.readouterr()
+
+        assert "No events" in captured.out
+
+
+class TestDisplayEventsRenderable:
+    """Tests for display_events_renderable function."""
+
+    def test_renderable_returns_list(self, system_with_events):
+        """Test that renderable returns list of renderables."""
+        events = system_with_events.state.events
+        result = display_events_renderable(events, format='detailed')
+
+        assert isinstance(result, list)
+
+    def test_renderable_empty_events(self):
+        """Test renderable with empty events."""
+        result = display_events_renderable([])
+
+        assert isinstance(result, list)
+        assert len(result) > 0  # Should have "no events" message
+
+
+class TestDisplayEventsForDayRenderable:
+    """Tests for display_events_for_day_renderable function."""
+
+    def test_renderable_for_day_with_events(self, system_with_events):
+        """Test getting renderables for a day with events."""
+        result = display_events_for_day_renderable(system_with_events, 0)
+
+        assert isinstance(result, list)
+
+    def test_renderable_for_empty_day(self, system_with_events):
+        """Test getting renderables for a day without events."""
+        result = display_events_for_day_renderable(system_with_events, 999)
+
+        assert isinstance(result, list)
+        assert len(result) > 0  # Should have "no events" message
+
+
+# ============================================================================
+# Tests for Phase Display Functions
+# ============================================================================
+
+
+class TestDisplayEventsTablesByPhase:
+    """Tests for display_events_tables_by_phase_renderables function."""
+
+    def test_phase_tables_returns_list(self, system_with_events):
+        """Test that phase tables returns list of renderables."""
+        # Get events for day 0
+        day_events = [e for e in system_with_events.state.events if e.get("day") == 0]
+        result = display_events_tables_by_phase_renderables(day_events, day=0)
+
+        assert isinstance(result, list)
+
+    def test_phase_tables_include_phases_b_and_c(self, system_with_events):
+        """Test that result includes Phase B and C tables."""
+        day_events = [e for e in system_with_events.state.events if e.get("day") == 0]
+        result = display_events_tables_by_phase_renderables(day_events, day=0)
+
+        # Should have at least 2 tables (Phase B and C, possibly A)
+        assert len(result) >= 2
+
+    def test_phase_tables_with_empty_events(self):
+        """Test phase tables with empty events."""
+        result = display_events_tables_by_phase_renderables([])
+
+        assert isinstance(result, list)
+        # Should still return phase table structures even if empty
+
+
+# ============================================================================
+# Tests for Common Types and Constants
+# ============================================================================
+
+
+class TestCommonTypes:
+    """Tests for common types exported from the module."""
+
+    def test_balance_row_dataclass(self):
+        """Test BalanceRow dataclass creation."""
+        row = BalanceRow(
+            name="cash",
+            quantity=None,
+            value_minor=1000,
+            counterparty_name="CB01",
+            maturity="on-demand"
+        )
+
+        assert row.name == "cash"
+        assert row.value_minor == 1000
+        assert row.counterparty_name == "CB01"
+
+    def test_balance_row_with_quantity(self):
+        """Test BalanceRow with quantity for non-financial items."""
+        row = BalanceRow(
+            name="WIDGETS receivable",
+            quantity=50,
+            value_minor=5000,
+            counterparty_name="Firm A",
+            maturity="Day 5"
+        )
+
+        assert row.quantity == 50
+        assert row.maturity == "Day 5"
+
+    def test_taccount_dataclass(self):
+        """Test TAccount dataclass creation."""
+        assets = [
+            BalanceRow("cash", None, 1000, "CB", "on-demand")
+        ]
+        liabilities = [
+            BalanceRow("deposit", None, 500, "HH01", "on-demand")
+        ]
+
+        taccount = TAccount(assets=assets, liabilities=liabilities)
+
+        assert len(taccount.assets) == 1
+        assert len(taccount.liabilities) == 1
+        assert taccount.assets[0].name == "cash"
+
+    def test_rich_available_constant(self):
+        """Test that RICH_AVAILABLE is a boolean."""
+        assert isinstance(RICH_AVAILABLE, bool)
+
+
+# ============================================================================
+# Integration Tests
+# ============================================================================
+
+
+class TestVisualizationIntegration:
+    """Integration tests combining multiple visualization functions."""
+
+    def test_full_visualization_workflow(self, system_with_events, capsys):
+        """Test a complete visualization workflow."""
+        # Display balances for all households
+        display_multiple_agent_balances(
+            system_with_events,
+            ["HH01", "HH02", "HH03"],
+            format='simple'
+        )
+
+        # Display events for day 0
+        display_events_for_day(system_with_events, 0)
+
+        # Build T-accounts for bank
+        taccount = build_t_account_rows(system_with_events, "BK01")
+
+        captured = capsys.readouterr()
+
+        # Verify all components ran
+        assert "HH01" in captured.out or "Alice" in captured.out
+        assert isinstance(taccount, TAccount)
+
+    def test_display_before_and_after_adding_obligation(self, simple_system, capsys):
+        """Test displaying state before and after adding delivery obligation."""
+        # Display initial state
+        display_agent_balance_table(simple_system, "HH01", format='simple')
+        initial_output = capsys.readouterr().out
+
+        # Add a delivery obligation (doesn't require complex settlement)
+        simple_system.create_delivery_obligation(
+            from_agent="HH01",
+            to_agent="BK01",
+            sku="WIDGETS",
+            quantity=10,
+            unit_price=Decimal("5"),
+            due_day=1
+        )
+
+        # Display after state
+        display_agent_balance_table(simple_system, "HH01", format='simple')
+        after_output = capsys.readouterr().out
+
+        # Verify both outputs were generated
+        assert len(initial_output) > 0
+        assert len(after_output) > 0
 
 ```
 
@@ -60871,6 +62029,849 @@ def test_b1_executes_before_b2(tmp_path: Path):
 
 ---
 
+### 🧪 tests/experiments/__init__.py
+
+```python
+# Tests for bilancio.experiments module
+
+```
+
+---
+
+### 🧪 tests/experiments/test_sweep_runners.py
+
+```python
+"""Tests for experiment sweep runners and sampling functions.
+
+This module tests:
+- RingSweepRunner grid and LHS execution
+- Sampling functions: generate_grid_params, generate_lhs_params, generate_frontier_params
+- Registry CSV creation
+"""
+
+from __future__ import annotations
+
+from decimal import Decimal
+from pathlib import Path
+from typing import Optional
+from unittest.mock import patch, MagicMock
+
+import pytest
+
+from bilancio.experiments.sampling import (
+    generate_grid_params,
+    generate_lhs_params,
+    generate_frontier_params,
+)
+
+
+# =============================================================================
+# Tests for generate_grid_params
+# =============================================================================
+
+
+class TestGenerateGridParams:
+    """Tests for Cartesian product grid sampling."""
+
+    def test_basic_2x2_grid(self):
+        """A 2x2x1x1 grid produces 4 combinations."""
+        kappas = [Decimal("1"), Decimal("2")]
+        concentrations = [Decimal("0.5"), Decimal("1")]
+        mus = [Decimal("0")]
+        monotonicities = [Decimal("0")]
+
+        result = list(generate_grid_params(kappas, concentrations, mus, monotonicities))
+
+        assert len(result) == 4
+        # Check that all combinations are present
+        expected = [
+            (Decimal("1"), Decimal("0.5"), Decimal("0"), Decimal("0")),
+            (Decimal("1"), Decimal("1"), Decimal("0"), Decimal("0")),
+            (Decimal("2"), Decimal("0.5"), Decimal("0"), Decimal("0")),
+            (Decimal("2"), Decimal("1"), Decimal("0"), Decimal("0")),
+        ]
+        assert set(result) == set(expected)
+
+    def test_single_values(self):
+        """Grid with single values per dimension produces one combination."""
+        kappas = [Decimal("1")]
+        concentrations = [Decimal("0.5")]
+        mus = [Decimal("0.25")]
+        monotonicities = [Decimal("0")]
+
+        result = list(generate_grid_params(kappas, concentrations, mus, monotonicities))
+
+        assert len(result) == 1
+        assert result[0] == (Decimal("1"), Decimal("0.5"), Decimal("0.25"), Decimal("0"))
+
+    def test_empty_dimension(self):
+        """Grid with empty dimension produces no combinations."""
+        kappas = []
+        concentrations = [Decimal("0.5")]
+        mus = [Decimal("0")]
+        monotonicities = [Decimal("0")]
+
+        result = list(generate_grid_params(kappas, concentrations, mus, monotonicities))
+
+        assert len(result) == 0
+
+    def test_full_grid_count(self):
+        """Grid count equals product of dimensions."""
+        kappas = [Decimal("1"), Decimal("2"), Decimal("4")]
+        concentrations = [Decimal("0.5"), Decimal("1")]
+        mus = [Decimal("0"), Decimal("0.5"), Decimal("1")]
+        monotonicities = [Decimal("0"), Decimal("0.5")]
+
+        result = list(generate_grid_params(kappas, concentrations, mus, monotonicities))
+
+        expected_count = 3 * 2 * 3 * 2  # 36
+        assert len(result) == expected_count
+
+    def test_iterator_returns_tuples_of_decimals(self):
+        """All returned values are Decimal tuples."""
+        kappas = [Decimal("1")]
+        concentrations = [Decimal("0.5")]
+        mus = [Decimal("0")]
+        monotonicities = [Decimal("0")]
+
+        result = list(generate_grid_params(kappas, concentrations, mus, monotonicities))
+
+        assert len(result) == 1
+        kappa, concentration, mu, monotonicity = result[0]
+        assert isinstance(kappa, Decimal)
+        assert isinstance(concentration, Decimal)
+        assert isinstance(mu, Decimal)
+        assert isinstance(monotonicity, Decimal)
+
+
+# =============================================================================
+# Tests for generate_lhs_params
+# =============================================================================
+
+
+class TestGenerateLHSParams:
+    """Tests for Latin Hypercube Sampling."""
+
+    def test_count_matches_request(self):
+        """LHS generates exactly the requested number of samples."""
+        count = 10
+        result = list(generate_lhs_params(
+            count,
+            kappa_range=(Decimal("0.5"), Decimal("4")),
+            concentration_range=(Decimal("0.1"), Decimal("5")),
+            mu_range=(Decimal("0"), Decimal("1")),
+            monotonicity_range=(Decimal("0"), Decimal("0.5")),
+            seed=42,
+        ))
+
+        assert len(result) == count
+
+    def test_zero_count_returns_empty(self):
+        """LHS with count=0 returns empty iterator."""
+        result = list(generate_lhs_params(
+            0,
+            kappa_range=(Decimal("0.5"), Decimal("4")),
+            concentration_range=(Decimal("0.1"), Decimal("5")),
+            mu_range=(Decimal("0"), Decimal("1")),
+            monotonicity_range=(Decimal("0"), Decimal("0.5")),
+            seed=42,
+        ))
+
+        assert len(result) == 0
+
+    def test_values_within_range(self):
+        """All LHS samples fall within specified ranges."""
+        count = 20
+        kappa_range = (Decimal("0.5"), Decimal("4"))
+        concentration_range = (Decimal("0.1"), Decimal("5"))
+        mu_range = (Decimal("0"), Decimal("1"))
+        monotonicity_range = (Decimal("-0.5"), Decimal("0.5"))
+
+        result = list(generate_lhs_params(
+            count,
+            kappa_range=kappa_range,
+            concentration_range=concentration_range,
+            mu_range=mu_range,
+            monotonicity_range=monotonicity_range,
+            seed=42,
+        ))
+
+        for kappa, concentration, mu, monotonicity in result:
+            assert kappa_range[0] <= kappa <= kappa_range[1]
+            assert concentration_range[0] <= concentration <= concentration_range[1]
+            assert mu_range[0] <= mu <= mu_range[1]
+            assert monotonicity_range[0] <= monotonicity <= monotonicity_range[1]
+
+    def test_reproducibility_with_same_seed(self):
+        """Same seed produces identical samples."""
+        kwargs = dict(
+            count=5,
+            kappa_range=(Decimal("0.5"), Decimal("4")),
+            concentration_range=(Decimal("0.1"), Decimal("5")),
+            mu_range=(Decimal("0"), Decimal("1")),
+            monotonicity_range=(Decimal("0"), Decimal("0.5")),
+            seed=12345,
+        )
+
+        result1 = list(generate_lhs_params(**kwargs))
+        result2 = list(generate_lhs_params(**kwargs))
+
+        assert result1 == result2
+
+    def test_different_seeds_produce_different_samples(self):
+        """Different seeds produce different samples."""
+        base_kwargs = dict(
+            count=5,
+            kappa_range=(Decimal("0.5"), Decimal("4")),
+            concentration_range=(Decimal("0.1"), Decimal("5")),
+            mu_range=(Decimal("0"), Decimal("1")),
+            monotonicity_range=(Decimal("0"), Decimal("0.5")),
+        )
+
+        result1 = list(generate_lhs_params(**base_kwargs, seed=42))
+        result2 = list(generate_lhs_params(**base_kwargs, seed=43))
+
+        assert result1 != result2
+
+    def test_returns_decimal_tuples(self):
+        """All returned values are Decimal tuples."""
+        result = list(generate_lhs_params(
+            1,
+            kappa_range=(Decimal("1"), Decimal("2")),
+            concentration_range=(Decimal("0.5"), Decimal("1")),
+            mu_range=(Decimal("0"), Decimal("1")),
+            monotonicity_range=(Decimal("0"), Decimal("0")),
+            seed=42,
+        ))
+
+        assert len(result) == 1
+        kappa, concentration, mu, monotonicity = result[0]
+        assert isinstance(kappa, Decimal)
+        assert isinstance(concentration, Decimal)
+        assert isinstance(mu, Decimal)
+        assert isinstance(monotonicity, Decimal)
+
+
+# =============================================================================
+# Tests for generate_frontier_params
+# =============================================================================
+
+
+class TestGenerateFrontierParams:
+    """Tests for frontier/binary search sampling."""
+
+    def test_calls_execute_fn(self):
+        """Frontier sampling calls execute_fn for each test."""
+        calls = []
+
+        def mock_execute(label: str, kappa: Decimal, concentration: Decimal, mu: Decimal, monotonicity: Decimal) -> Optional[Decimal]:
+            calls.append((label, kappa, concentration, mu, monotonicity))
+            # Return stable for high kappa, unstable for low
+            if kappa >= Decimal("2"):
+                return Decimal("0.01")  # Stable
+            return Decimal("1.0")  # Unstable
+
+        generate_frontier_params(
+            concentrations=[Decimal("1")],
+            mus=[Decimal("0.5")],
+            monotonicities=[Decimal("0")],
+            kappa_low=Decimal("0.5"),
+            kappa_high=Decimal("4"),
+            tolerance=Decimal("0.1"),
+            max_iterations=3,
+            execute_fn=mock_execute,
+        )
+
+        # Should have called execute_fn multiple times
+        assert len(calls) > 0
+        # First call should be with kappa_low
+        assert calls[0][1] == Decimal("0.5")  # kappa_low
+
+    def test_frontier_stops_if_low_is_stable(self):
+        """Frontier stops immediately if kappa_low is already stable."""
+        calls = []
+
+        def mock_execute(label: str, kappa: Decimal, concentration: Decimal, mu: Decimal, monotonicity: Decimal) -> Optional[Decimal]:
+            calls.append((label, kappa, concentration, mu, monotonicity))
+            # Always stable
+            return Decimal("0.01")
+
+        generate_frontier_params(
+            concentrations=[Decimal("1")],
+            mus=[Decimal("0.5")],
+            monotonicities=[Decimal("0")],
+            kappa_low=Decimal("0.5"),
+            kappa_high=Decimal("4"),
+            tolerance=Decimal("0.1"),
+            max_iterations=10,
+            execute_fn=mock_execute,
+        )
+
+        # Should only call once for kappa_low since it's already stable
+        assert len(calls) == 1
+        assert calls[0][0] == "low"  # label
+
+    def test_frontier_iterates_over_all_cells(self):
+        """Frontier iterates over all (concentration, mu, monotonicity) combinations."""
+        cells_visited = set()
+
+        def mock_execute(label: str, kappa: Decimal, concentration: Decimal, mu: Decimal, monotonicity: Decimal) -> Optional[Decimal]:
+            cells_visited.add((concentration, mu, monotonicity))
+            return Decimal("0.01")  # Always stable
+
+        generate_frontier_params(
+            concentrations=[Decimal("1"), Decimal("2")],
+            mus=[Decimal("0"), Decimal("0.5")],
+            monotonicities=[Decimal("0")],
+            kappa_low=Decimal("0.5"),
+            kappa_high=Decimal("4"),
+            tolerance=Decimal("0.1"),
+            max_iterations=3,
+            execute_fn=mock_execute,
+        )
+
+        # Should have visited 2*2*1 = 4 cells
+        expected_cells = {
+            (Decimal("1"), Decimal("0"), Decimal("0")),
+            (Decimal("1"), Decimal("0.5"), Decimal("0")),
+            (Decimal("2"), Decimal("0"), Decimal("0")),
+            (Decimal("2"), Decimal("0.5"), Decimal("0")),
+        }
+        assert cells_visited == expected_cells
+
+    def test_frontier_handles_failed_runs(self):
+        """Frontier continues when execute_fn returns None (failed run)."""
+        calls = []
+
+        def mock_execute(label: str, kappa: Decimal, concentration: Decimal, mu: Decimal, monotonicity: Decimal) -> Optional[Decimal]:
+            calls.append(label)
+            # Return None for low (failed), stable for high
+            if kappa < Decimal("2"):
+                return None  # Failed
+            return Decimal("0.01")  # Stable
+
+        generate_frontier_params(
+            concentrations=[Decimal("1")],
+            mus=[Decimal("0.5")],
+            monotonicities=[Decimal("0")],
+            kappa_low=Decimal("0.5"),
+            kappa_high=Decimal("4"),
+            tolerance=Decimal("0.1"),
+            max_iterations=3,
+            execute_fn=mock_execute,
+        )
+
+        # Should have tried low, then high, then some mid points
+        assert "low" in calls
+        assert "high" in calls
+
+
+# =============================================================================
+# Tests for RingSweepRunner (mocked to avoid full simulation)
+# =============================================================================
+
+
+class TestRingSweepRunnerSetup:
+    """Tests for RingSweepRunner initialization and configuration."""
+
+    def test_creates_output_directories(self, tmp_path: Path):
+        """RingSweepRunner creates registry, runs, and aggregate directories."""
+        from bilancio.experiments.ring import RingSweepRunner
+
+        runner = RingSweepRunner(
+            out_dir=tmp_path,
+            name_prefix="Test",
+            n_agents=2,
+            maturity_days=3,
+            Q_total=Decimal("100"),
+            liquidity_mode="uniform",
+            liquidity_agent=None,
+            base_seed=42,
+        )
+
+        assert (tmp_path / "registry").exists()
+        assert (tmp_path / "runs").exists()
+        assert (tmp_path / "aggregate").exists()
+
+    def test_creates_empty_registry_csv(self, tmp_path: Path):
+        """RingSweepRunner creates registry CSV with headers."""
+        from bilancio.experiments.ring import RingSweepRunner
+
+        runner = RingSweepRunner(
+            out_dir=tmp_path,
+            name_prefix="Test",
+            n_agents=2,
+            maturity_days=3,
+            Q_total=Decimal("100"),
+            liquidity_mode="uniform",
+            liquidity_agent=None,
+            base_seed=42,
+        )
+
+        registry_path = tmp_path / "registry" / "experiments.csv"
+        assert registry_path.exists()
+
+        # Check headers
+        content = registry_path.read_text()
+        assert "run_id" in content
+        assert "kappa" in content
+        assert "status" in content
+
+    def test_seed_increments(self, tmp_path: Path):
+        """Seed counter increments with each call to _next_seed()."""
+        from bilancio.experiments.ring import RingSweepRunner
+
+        runner = RingSweepRunner(
+            out_dir=tmp_path,
+            name_prefix="Test",
+            n_agents=2,
+            maturity_days=3,
+            Q_total=Decimal("100"),
+            liquidity_mode="uniform",
+            liquidity_agent=None,
+            base_seed=100,
+        )
+
+        assert runner._next_seed() == 100
+        assert runner._next_seed() == 101
+        assert runner._next_seed() == 102
+
+
+class TestRingSweepRunnerGridMocked:
+    """Tests for RingSweepRunner.run_grid with mocked execution."""
+
+    def test_run_grid_calls_execute_for_each_combination(self, tmp_path: Path):
+        """run_grid calls _execute_run for each parameter combination."""
+        from bilancio.experiments.ring import RingSweepRunner, RingRunSummary
+
+        runner = RingSweepRunner(
+            out_dir=tmp_path,
+            name_prefix="Test",
+            n_agents=2,
+            maturity_days=3,
+            Q_total=Decimal("100"),
+            liquidity_mode="uniform",
+            liquidity_agent=None,
+            base_seed=42,
+        )
+
+        # Mock _execute_run to avoid actual simulation
+        calls = []
+
+        def mock_execute(phase, kappa, concentration, mu, monotonicity, seed, **kwargs):
+            calls.append((kappa, concentration, mu, monotonicity))
+            return RingRunSummary(
+                run_id=f"test_{len(calls)}",
+                phase=phase,
+                kappa=kappa,
+                concentration=concentration,
+                mu=mu,
+                monotonicity=monotonicity,
+                delta_total=Decimal("0.1"),
+                phi_total=Decimal("0.5"),
+                time_to_stability=5,
+            )
+
+        with patch.object(runner, "_execute_run", mock_execute):
+            kappas = [Decimal("1"), Decimal("2")]
+            concentrations = [Decimal("0.5"), Decimal("1")]
+            mus = [Decimal("0")]
+            monotonicities = [Decimal("0")]
+
+            summaries = runner.run_grid(kappas, concentrations, mus, monotonicities)
+
+        # Should have 2*2*1*1 = 4 calls
+        assert len(calls) == 4
+        assert len(summaries) == 4
+
+    def test_run_grid_returns_summaries(self, tmp_path: Path):
+        """run_grid returns list of RingRunSummary objects."""
+        from bilancio.experiments.ring import RingSweepRunner, RingRunSummary
+
+        runner = RingSweepRunner(
+            out_dir=tmp_path,
+            name_prefix="Test",
+            n_agents=2,
+            maturity_days=3,
+            Q_total=Decimal("100"),
+            liquidity_mode="uniform",
+            liquidity_agent=None,
+            base_seed=42,
+        )
+
+        def mock_execute(phase, kappa, concentration, mu, monotonicity, seed, **kwargs):
+            return RingRunSummary(
+                run_id=f"test_{seed}",
+                phase=phase,
+                kappa=kappa,
+                concentration=concentration,
+                mu=mu,
+                monotonicity=monotonicity,
+                delta_total=Decimal("0.1"),
+                phi_total=Decimal("0.5"),
+                time_to_stability=5,
+            )
+
+        with patch.object(runner, "_execute_run", mock_execute):
+            summaries = runner.run_grid(
+                [Decimal("1")],
+                [Decimal("0.5")],
+                [Decimal("0")],
+                [Decimal("0")],
+            )
+
+        assert len(summaries) == 1
+        assert isinstance(summaries[0], RingRunSummary)
+        assert summaries[0].kappa == Decimal("1")
+
+
+class TestRingSweepRunnerLHSMocked:
+    """Tests for RingSweepRunner.run_lhs with mocked execution."""
+
+    def test_run_lhs_generates_requested_count(self, tmp_path: Path):
+        """run_lhs generates exactly the requested number of samples."""
+        from bilancio.experiments.ring import RingSweepRunner, RingRunSummary
+
+        runner = RingSweepRunner(
+            out_dir=tmp_path,
+            name_prefix="Test",
+            n_agents=2,
+            maturity_days=3,
+            Q_total=Decimal("100"),
+            liquidity_mode="uniform",
+            liquidity_agent=None,
+            base_seed=42,
+        )
+
+        call_count = [0]
+
+        def mock_execute(phase, kappa, concentration, mu, monotonicity, seed, **kwargs):
+            call_count[0] += 1
+            return RingRunSummary(
+                run_id=f"test_{seed}",
+                phase=phase,
+                kappa=kappa,
+                concentration=concentration,
+                mu=mu,
+                monotonicity=monotonicity,
+                delta_total=Decimal("0.1"),
+                phi_total=Decimal("0.5"),
+                time_to_stability=5,
+            )
+
+        with patch.object(runner, "_execute_run", mock_execute):
+            summaries = runner.run_lhs(
+                count=5,
+                kappa_range=(Decimal("0.5"), Decimal("4")),
+                concentration_range=(Decimal("0.1"), Decimal("5")),
+                mu_range=(Decimal("0"), Decimal("1")),
+                monotonicity_range=(Decimal("0"), Decimal("0.5")),
+            )
+
+        assert call_count[0] == 5
+        assert len(summaries) == 5
+
+    def test_run_lhs_zero_count_returns_empty(self, tmp_path: Path):
+        """run_lhs with count=0 returns empty list without executing."""
+        from bilancio.experiments.ring import RingSweepRunner
+
+        runner = RingSweepRunner(
+            out_dir=tmp_path,
+            name_prefix="Test",
+            n_agents=2,
+            maturity_days=3,
+            Q_total=Decimal("100"),
+            liquidity_mode="uniform",
+            liquidity_agent=None,
+            base_seed=42,
+        )
+
+        # Should not need to mock since no runs should happen
+        summaries = runner.run_lhs(
+            count=0,
+            kappa_range=(Decimal("0.5"), Decimal("4")),
+            concentration_range=(Decimal("0.1"), Decimal("5")),
+            mu_range=(Decimal("0"), Decimal("1")),
+            monotonicity_range=(Decimal("0"), Decimal("0.5")),
+        )
+
+        assert summaries == []
+
+
+# =============================================================================
+# Tests for RingSweepConfig loading
+# =============================================================================
+
+
+class TestRingSweepConfigLoading:
+    """Tests for loading sweep configuration from YAML."""
+
+    def test_load_valid_grid_config(self, tmp_path: Path):
+        """Valid grid config loads correctly."""
+        from bilancio.experiments.ring import load_ring_sweep_config
+
+        config_yaml = """
+version: 1
+out_dir: ./output
+grid:
+  enabled: true
+  kappas: [0.5, 1, 2]
+  concentrations: [0.5, 1]
+  mus: [0, 0.5]
+runner:
+  n_agents: 50
+  maturity_days: 5
+  q_total: 5000
+  liquidity_mode: uniform
+  base_seed: 100
+"""
+        config_path = tmp_path / "sweep.yaml"
+        config_path.write_text(config_yaml)
+
+        config = load_ring_sweep_config(config_path)
+
+        assert config.version == 1
+        assert config.grid is not None
+        assert config.grid.enabled is True
+        assert len(config.grid.kappas) == 3
+        assert config.runner.n_agents == 50
+
+    def test_load_config_file_not_found(self, tmp_path: Path):
+        """Missing config file raises FileNotFoundError."""
+        from bilancio.experiments.ring import load_ring_sweep_config
+
+        with pytest.raises(FileNotFoundError):
+            load_ring_sweep_config(tmp_path / "nonexistent.yaml")
+
+    def test_load_config_invalid_version(self, tmp_path: Path):
+        """Invalid version raises ValueError."""
+        from bilancio.experiments.ring import load_ring_sweep_config
+
+        config_yaml = """
+version: 99
+grid:
+  enabled: true
+  kappas: [1]
+  concentrations: [1]
+  mus: [0]
+"""
+        config_path = tmp_path / "sweep.yaml"
+        config_path.write_text(config_yaml)
+
+        with pytest.raises(ValueError, match="Unsupported sweep config version"):
+            load_ring_sweep_config(config_path)
+
+
+# =============================================================================
+# Tests for ComparisonSweepRunner setup
+# =============================================================================
+
+
+class TestComparisonSweepRunnerSetup:
+    """Tests for ComparisonSweepRunner initialization."""
+
+    def test_creates_output_directories(self, tmp_path: Path):
+        """ComparisonSweepRunner creates control, treatment, and aggregate directories."""
+        from bilancio.experiments.comparison import ComparisonSweepRunner, ComparisonSweepConfig
+
+        config = ComparisonSweepConfig(
+            n_agents=5,
+            maturity_days=3,
+            kappas=[Decimal("1")],
+            concentrations=[Decimal("1")],
+            mus=[Decimal("0")],
+        )
+
+        runner = ComparisonSweepRunner(config, tmp_path)
+
+        assert (tmp_path / "control").exists()
+        assert (tmp_path / "treatment").exists()
+        assert (tmp_path / "aggregate").exists()
+
+
+# =============================================================================
+# Tests for BalancedComparisonRunner setup
+# =============================================================================
+
+
+class TestBalancedComparisonRunnerSetup:
+    """Tests for BalancedComparisonRunner initialization."""
+
+    def test_creates_output_directories(self, tmp_path: Path):
+        """BalancedComparisonRunner creates passive, active, and aggregate directories."""
+        from bilancio.experiments.balanced_comparison import BalancedComparisonRunner, BalancedComparisonConfig
+
+        config = BalancedComparisonConfig(
+            n_agents=5,
+            maturity_days=3,
+            kappas=[Decimal("1")],
+            concentrations=[Decimal("1")],
+            mus=[Decimal("0")],
+            outside_mid_ratios=[Decimal("0.75")],
+        )
+
+        runner = BalancedComparisonRunner(config, tmp_path)
+
+        assert (tmp_path / "passive").exists()
+        assert (tmp_path / "active").exists()
+        assert (tmp_path / "aggregate").exists()
+
+
+# =============================================================================
+# Tests for ComparisonResult and BalancedComparisonResult
+# =============================================================================
+
+
+class TestComparisonResult:
+    """Tests for ComparisonResult dataclass."""
+
+    def test_delta_reduction_calculation(self):
+        """delta_reduction is control minus treatment."""
+        from bilancio.experiments.comparison import ComparisonResult
+
+        result = ComparisonResult(
+            kappa=Decimal("1"),
+            concentration=Decimal("1"),
+            mu=Decimal("0"),
+            monotonicity=Decimal("0"),
+            seed=42,
+            delta_control=Decimal("0.5"),
+            phi_control=Decimal("1"),
+            control_run_id="c1",
+            control_status="completed",
+            delta_treatment=Decimal("0.3"),
+            phi_treatment=Decimal("0.8"),
+            treatment_run_id="t1",
+            treatment_status="completed",
+        )
+
+        assert result.delta_reduction == Decimal("0.2")
+
+    def test_relief_ratio_calculation(self):
+        """relief_ratio is reduction divided by control."""
+        from bilancio.experiments.comparison import ComparisonResult
+
+        result = ComparisonResult(
+            kappa=Decimal("1"),
+            concentration=Decimal("1"),
+            mu=Decimal("0"),
+            monotonicity=Decimal("0"),
+            seed=42,
+            delta_control=Decimal("0.5"),
+            phi_control=Decimal("1"),
+            control_run_id="c1",
+            control_status="completed",
+            delta_treatment=Decimal("0.25"),
+            phi_treatment=Decimal("0.8"),
+            treatment_run_id="t1",
+            treatment_status="completed",
+        )
+
+        assert result.relief_ratio == Decimal("0.5")
+
+    def test_relief_ratio_zero_control(self):
+        """relief_ratio is 0 when control has no defaults."""
+        from bilancio.experiments.comparison import ComparisonResult
+
+        result = ComparisonResult(
+            kappa=Decimal("1"),
+            concentration=Decimal("1"),
+            mu=Decimal("0"),
+            monotonicity=Decimal("0"),
+            seed=42,
+            delta_control=Decimal("0"),
+            phi_control=Decimal("1"),
+            control_run_id="c1",
+            control_status="completed",
+            delta_treatment=Decimal("0"),
+            phi_treatment=Decimal("1"),
+            treatment_run_id="t1",
+            treatment_status="completed",
+        )
+
+        assert result.relief_ratio == Decimal("0")
+
+    def test_delta_reduction_none_when_missing(self):
+        """delta_reduction is None when control or treatment is None."""
+        from bilancio.experiments.comparison import ComparisonResult
+
+        result = ComparisonResult(
+            kappa=Decimal("1"),
+            concentration=Decimal("1"),
+            mu=Decimal("0"),
+            monotonicity=Decimal("0"),
+            seed=42,
+            delta_control=None,
+            phi_control=None,
+            control_run_id="c1",
+            control_status="failed",
+            delta_treatment=Decimal("0.3"),
+            phi_treatment=Decimal("0.8"),
+            treatment_run_id="t1",
+            treatment_status="completed",
+        )
+
+        assert result.delta_reduction is None
+        assert result.relief_ratio is None
+
+
+class TestBalancedComparisonResult:
+    """Tests for BalancedComparisonResult dataclass."""
+
+    def test_trading_effect_calculation(self):
+        """trading_effect is passive minus active."""
+        from bilancio.experiments.balanced_comparison import BalancedComparisonResult
+
+        result = BalancedComparisonResult(
+            kappa=Decimal("1"),
+            concentration=Decimal("1"),
+            mu=Decimal("0"),
+            monotonicity=Decimal("0"),
+            seed=42,
+            face_value=Decimal("20"),
+            outside_mid_ratio=Decimal("0.75"),
+            big_entity_share=Decimal("0.25"),
+            delta_passive=Decimal("0.5"),
+            phi_passive=Decimal("1"),
+            passive_run_id="p1",
+            passive_status="completed",
+            delta_active=Decimal("0.3"),
+            phi_active=Decimal("0.8"),
+            active_run_id="a1",
+            active_status="completed",
+        )
+
+        assert result.trading_effect == Decimal("0.2")
+
+    def test_trading_relief_ratio_calculation(self):
+        """trading_relief_ratio is effect divided by passive."""
+        from bilancio.experiments.balanced_comparison import BalancedComparisonResult
+
+        result = BalancedComparisonResult(
+            kappa=Decimal("1"),
+            concentration=Decimal("1"),
+            mu=Decimal("0"),
+            monotonicity=Decimal("0"),
+            seed=42,
+            face_value=Decimal("20"),
+            outside_mid_ratio=Decimal("0.75"),
+            big_entity_share=Decimal("0.25"),
+            delta_passive=Decimal("0.5"),
+            phi_passive=Decimal("1"),
+            passive_run_id="p1",
+            passive_status="completed",
+            delta_active=Decimal("0.25"),
+            phi_active=Decimal("0.8"),
+            active_run_id="a1",
+            active_status="completed",
+        )
+
+        assert result.trading_relief_ratio == Decimal("0.5")
+
+```
+
+---
+
 ### 🧪 tests/integration/test_banking_ops.py
 
 ```python
@@ -62503,7 +64504,7 @@ from pathlib import Path
 
 from bilancio.config.loaders import load_yaml
 from bilancio.config.models import RingExplorerGeneratorConfig
-from bilancio.scenarios.generators.ring_explorer import compile_ring_explorer
+from bilancio.scenarios import compile_ring_explorer
 
 
 def _sum_amounts(actions, key):
@@ -62769,19 +64770,6 @@ def test_analysis_imports():
     
     with pytest.raises(NotImplementedError):
         calculate_irr([])
-
-
-def test_io_imports():
-    """Test that IO modules can be imported."""
-    from bilancio.io.readers import read_cashflows_csv
-    from bilancio.io.writers import write_cashflows_csv
-    
-    # These are placeholders so they should raise NotImplementedError
-    with pytest.raises(NotImplementedError):
-        read_cashflows_csv("dummy.csv")
-    
-    with pytest.raises(NotImplementedError):
-        write_cashflows_csv([], "dummy.csv")
 
 
 def test_package_metadata():
@@ -63125,6 +65113,331 @@ def test_renderable_functions_return_correct_types():
     system = System()
     summary = show_simulation_summary_renderable(system)
     assert summary is not None
+```
+
+---
+
+### 🧪 tests/ui/test_cli_integration.py
+
+```python
+"""Integration tests for CLI module.
+
+Tests the CLI commands work correctly with real scenario files.
+Uses Click's CliRunner for testing.
+"""
+
+import pytest
+from pathlib import Path
+from click.testing import CliRunner
+
+from bilancio.ui.cli import cli
+
+
+# Path to example scenarios
+EXAMPLES_DIR = Path(__file__).parent.parent.parent / "examples" / "scenarios"
+
+
+class TestCLIHelp:
+    """Test CLI help output for all commands."""
+
+    def test_main_help_shows_expected_commands(self):
+        """Test that main --help shows all expected commands."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ['--help'])
+
+        assert result.exit_code == 0
+        assert 'run' in result.output
+        assert 'validate' in result.output
+        assert 'new' in result.output
+        assert 'analyze' in result.output
+        assert 'sweep' in result.output
+
+    def test_validate_help(self):
+        """Test that validate command help works."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ['validate', '--help'])
+
+        assert result.exit_code == 0
+        assert 'Validate' in result.output
+        assert 'scenario' in result.output.lower()
+
+    def test_analyze_help(self):
+        """Test that analyze command help works."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ['analyze', '--help'])
+
+        assert result.exit_code == 0
+        assert '--events' in result.output
+        assert '--balances' in result.output
+        assert '--out-csv' in result.output
+
+    def test_sweep_help_shows_subcommands(self):
+        """Test that sweep --help shows sweep subcommands."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ['sweep', '--help'])
+
+        assert result.exit_code == 0
+        assert 'ring' in result.output
+        assert 'comparison' in result.output
+        assert 'balanced' in result.output
+
+    def test_sweep_ring_help_shows_options(self):
+        """Test that sweep ring --help shows ring options."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ['sweep', 'ring', '--help'])
+
+        assert result.exit_code == 0
+        assert '--config' in result.output
+        assert '--out-dir' in result.output
+        assert '--kappas' in result.output
+        assert '--n-agents' in result.output
+        assert '--grid' in result.output
+
+    def test_sweep_comparison_help(self):
+        """Test that sweep comparison --help works."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ['sweep', 'comparison', '--help'])
+
+        assert result.exit_code == 0
+        assert '--out-dir' in result.output
+        assert '--n-agents' in result.output
+        assert '--dealer-share' in result.output
+
+    def test_sweep_balanced_help(self):
+        """Test that sweep balanced --help works."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ['sweep', 'balanced', '--help'])
+
+        assert result.exit_code == 0
+        assert '--out-dir' in result.output
+        assert '--face-value' in result.output
+        assert '--big-entity-share' in result.output
+
+
+class TestValidateCommand:
+    """Test the validate command with real scenarios."""
+
+    def test_validate_simple_bank_scenario(self):
+        """Test validating the simple_bank.yaml scenario."""
+        scenario_path = EXAMPLES_DIR / "simple_bank.yaml"
+        if not scenario_path.exists():
+            pytest.skip(f"Scenario file not found: {scenario_path}")
+
+        runner = CliRunner()
+        result = runner.invoke(cli, ['validate', str(scenario_path)])
+
+        assert result.exit_code == 0
+        assert 'valid' in result.output.lower()
+
+    def test_validate_two_banks_scenario(self):
+        """Test validating the two_banks_interbank.yaml scenario."""
+        scenario_path = EXAMPLES_DIR / "two_banks_interbank.yaml"
+        if not scenario_path.exists():
+            pytest.skip(f"Scenario file not found: {scenario_path}")
+
+        runner = CliRunner()
+        result = runner.invoke(cli, ['validate', str(scenario_path)])
+
+        assert result.exit_code == 0
+        assert 'valid' in result.output.lower()
+
+    def test_validate_nonexistent_file(self):
+        """Test validate with non-existent file."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ['validate', 'nonexistent_file.yaml'])
+
+        assert result.exit_code != 0
+
+
+class TestRunCommand:
+    """Test the run command with real scenarios."""
+
+    def test_run_simple_bank_with_max_days(self):
+        """Test running simple_bank.yaml with --max-days limit."""
+        scenario_path = EXAMPLES_DIR / "simple_bank.yaml"
+        if not scenario_path.exists():
+            pytest.skip(f"Scenario file not found: {scenario_path}")
+
+        runner = CliRunner()
+        result = runner.invoke(cli, [
+            'run', str(scenario_path),
+            '--max-days', '3'
+        ])
+
+        assert result.exit_code == 0
+        # Check that the scenario name appears
+        assert 'Simple Banking System' in result.output
+
+    def test_run_with_show_summary(self):
+        """Test running with --show summary option."""
+        scenario_path = EXAMPLES_DIR / "simple_bank.yaml"
+        if not scenario_path.exists():
+            pytest.skip(f"Scenario file not found: {scenario_path}")
+
+        runner = CliRunner()
+        result = runner.invoke(cli, [
+            'run', str(scenario_path),
+            '--max-days', '2',
+            '--show', 'summary'
+        ])
+
+        assert result.exit_code == 0
+
+    def test_run_with_agent_filter(self):
+        """Test running with --agents filter option."""
+        scenario_path = EXAMPLES_DIR / "simple_bank.yaml"
+        if not scenario_path.exists():
+            pytest.skip(f"Scenario file not found: {scenario_path}")
+
+        runner = CliRunner()
+        result = runner.invoke(cli, [
+            'run', str(scenario_path),
+            '--max-days', '2',
+            '--agents', 'CB,B1'
+        ])
+
+        assert result.exit_code == 0
+
+    def test_run_with_check_invariants_none(self):
+        """Test running with --check-invariants none."""
+        scenario_path = EXAMPLES_DIR / "simple_bank.yaml"
+        if not scenario_path.exists():
+            pytest.skip(f"Scenario file not found: {scenario_path}")
+
+        runner = CliRunner()
+        result = runner.invoke(cli, [
+            'run', str(scenario_path),
+            '--max-days', '2',
+            '--check-invariants', 'none'
+        ])
+
+        assert result.exit_code == 0
+
+    def test_run_t_account_option(self):
+        """Test running with --t-account option."""
+        scenario_path = EXAMPLES_DIR / "simple_bank.yaml"
+        if not scenario_path.exists():
+            pytest.skip(f"Scenario file not found: {scenario_path}")
+
+        runner = CliRunner()
+        result = runner.invoke(cli, [
+            'run', str(scenario_path),
+            '--max-days', '2',
+            '--t-account'
+        ])
+
+        assert result.exit_code == 0
+
+
+class TestRunWithExport:
+    """Test run command with export options."""
+
+    def test_run_with_export_balances(self, tmp_path):
+        """Test running with --export-balances option."""
+        scenario_path = EXAMPLES_DIR / "simple_bank.yaml"
+        if not scenario_path.exists():
+            pytest.skip(f"Scenario file not found: {scenario_path}")
+
+        balances_file = tmp_path / "balances.csv"
+
+        runner = CliRunner()
+        result = runner.invoke(cli, [
+            'run', str(scenario_path),
+            '--max-days', '2',
+            '--export-balances', str(balances_file)
+        ])
+
+        assert result.exit_code == 0
+        assert balances_file.exists()
+        assert balances_file.stat().st_size > 0
+
+    def test_run_with_export_events(self, tmp_path):
+        """Test running with --export-events option."""
+        scenario_path = EXAMPLES_DIR / "simple_bank.yaml"
+        if not scenario_path.exists():
+            pytest.skip(f"Scenario file not found: {scenario_path}")
+
+        events_file = tmp_path / "events.jsonl"
+
+        runner = CliRunner()
+        result = runner.invoke(cli, [
+            'run', str(scenario_path),
+            '--max-days', '2',
+            '--export-events', str(events_file)
+        ])
+
+        assert result.exit_code == 0
+        assert events_file.exists()
+        assert events_file.stat().st_size > 0
+
+    def test_run_with_html_export(self, tmp_path):
+        """Test running with --html export option."""
+        scenario_path = EXAMPLES_DIR / "simple_bank.yaml"
+        if not scenario_path.exists():
+            pytest.skip(f"Scenario file not found: {scenario_path}")
+
+        html_file = tmp_path / "output.html"
+
+        runner = CliRunner()
+        result = runner.invoke(cli, [
+            'run', str(scenario_path),
+            '--max-days', '2',
+            '--html', str(html_file)
+        ])
+
+        assert result.exit_code == 0
+        assert html_file.exists()
+        content = html_file.read_text()
+        assert 'html' in content.lower()
+
+
+class TestErrorHandling:
+    """Test CLI error handling."""
+
+    def test_run_invalid_mode(self):
+        """Test running with invalid --mode option."""
+        scenario_path = EXAMPLES_DIR / "simple_bank.yaml"
+        if not scenario_path.exists():
+            pytest.skip(f"Scenario file not found: {scenario_path}")
+
+        runner = CliRunner()
+        result = runner.invoke(cli, [
+            'run', str(scenario_path),
+            '--mode', 'invalid-mode'
+        ])
+
+        # Click should reject invalid choice
+        assert result.exit_code != 0
+
+    def test_run_invalid_show(self):
+        """Test running with invalid --show option."""
+        scenario_path = EXAMPLES_DIR / "simple_bank.yaml"
+        if not scenario_path.exists():
+            pytest.skip(f"Scenario file not found: {scenario_path}")
+
+        runner = CliRunner()
+        result = runner.invoke(cli, [
+            'run', str(scenario_path),
+            '--show', 'invalid-show'
+        ])
+
+        # Click should reject invalid choice
+        assert result.exit_code != 0
+
+    def test_unknown_command(self):
+        """Test invoking unknown command."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ['unknown-command'])
+
+        assert result.exit_code != 0
+
+    def test_sweep_unknown_subcommand(self):
+        """Test invoking unknown sweep subcommand."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ['sweep', 'unknown-subcommand'])
+
+        assert result.exit_code != 0
+
 ```
 
 ---
@@ -64464,5 +66777,5 @@ def test_settle_multiple_obligations():
 ## End of Codebase
 
 Generated from: /home/runner/work/bilancio/bilancio
-Total source files: 86
-Total test files: 35
+Total source files: 93
+Total test files: 39
