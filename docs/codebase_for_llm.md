@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2026-01-11 16:02:48 UTC | Branch: main | Commit: 8b8ff83c
+Generated: 2026-01-11 17:29:06 UTC | Branch: main | Commit: ded88327
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -2356,6 +2356,8 @@ This document contains the complete codebase structure and content for LLM inges
 │   │   └── scenario_translator_agent.md
 │   ├── refactor_2026
 │   │   ├── 025_phase1_cleanup.md
+│   │   ├── 026_phase4_abstractions.md
+│   │   ├── 027_executor_separation.md
 │   │   └── codebase_analysis.md
 │   └── version_1_0_exercises.pdf
 ├── examples
@@ -31703,6 +31705,7 @@ This document contains the complete codebase structure and content for LLM inges
 │       │   ├── dealer_usage_summary.py
 │       │   ├── loaders.py
 │       │   ├── metrics.py
+│       │   ├── metrics_computer.py
 │       │   ├── report.py
 │       │   ├── strategy_outcomes.py
 │       │   ├── visualization
@@ -31786,9 +31789,20 @@ This document contains the complete codebase structure and content for LLM inges
 │       │   ├── cashflows.py
 │       │   ├── primitives.py
 │       │   └── primitives_stock.py
+│       ├── runners
+│       │   ├── __init__.py
+│       │   ├── local_executor.py
+│       │   ├── models.py
+│       │   └── protocols.py
 │       ├── scenarios
 │       │   ├── __init__.py
 │       │   └── ring_explorer.py
+│       ├── storage
+│       │   ├── __init__.py
+│       │   ├── artifact_loaders.py
+│       │   ├── file_store.py
+│       │   ├── models.py
+│       │   └── protocols.py
 │       └── ui
 │           ├── __init__.py
 │           ├── assets
@@ -31812,6 +31826,7 @@ This document contains the complete codebase structure and content for LLM inges
     ├── analysis
     │   ├── __init__.py
     │   ├── test_balances.py
+    │   ├── test_metrics_computer.py
     │   ├── test_report_aggregate.py
     │   ├── test_t_account_builder.py
     │   └── test_visualization.py
@@ -31843,8 +31858,18 @@ This document contains the complete codebase structure and content for LLM inges
     │   └── test_settlement_phase_b.py
     ├── ops
     │   └── test_alias_helpers.py
+    ├── runners
+    │   ├── __init__.py
+    │   ├── test_local_executor.py
+    │   ├── test_models.py
+    │   └── test_protocols.py
     ├── scenarios
     │   └── test_ring_explorer.py
+    ├── storage
+    │   ├── __init__.py
+    │   ├── test_artifact_loaders.py
+    │   ├── test_file_store.py
+    │   └── test_models.py
     ├── test_smoke.py
     ├── ui
     │   ├── test_cli.py
@@ -31859,7 +31884,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-6854 directories, 24995 files
+6858 directories, 25016 files
 
 ```
 
@@ -33694,6 +33719,81 @@ Complete git history from oldest to newest:
   Merge pull request #23 from vlad-ds/refactor/phase-1-cleanup
   Phase 1 Codebase Cleanup & Restructuring (Plan 025)
 
+- **657921de** (2026-01-11) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **b1ebf91b** (2026-01-11) by vladgheorghe
+  feat: add storage and runner abstraction layers (Phase 4)
+  Add foundation for cloud/database backend support:
+  Storage module (src/bilancio/storage/):
+  - RunStatus, RunArtifacts, RunResult, RegistryEntry models
+  - ResultStore and RegistryStore protocols
+  - FileResultStore: file-based result storage with JSON metadata
+  - FileRegistryStore: CSV-based registry with dynamic fields
+  Runners module (src/bilancio/runners/):
+  - SimulationExecutor protocol for synchronous execution
+  - JobExecutor protocol for async/distributed execution (future)
+  - LocalExecutor: wraps run_scenario() with structured output
+  Tests: 85 new tests (46 storage, 39 runners)
+  Total: 371 → 456 tests, 64% → 67% coverage
+  Plan: docs/refactor_2026/026_phase4_abstractions.md
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **d8c1c363** (2026-01-11) by vladgheorghe
+  refactor: RingSweepRunner uses FileRegistryStore
+  - Add registry_store parameter to RingSweepRunner (optional, defaults to FileRegistryStore)
+  - Replace manual CSV registry handling with RegistryStore protocol calls
+  - Update _upsert_registry to create RegistryEntry objects
+  - FileRegistryStore: handle empty experiment_id for flat directory structure
+  - FileRegistryStore: add ring-specific fields (phase, S1, L0, metrics_html)
+  - Maintain backward compatibility: create empty registry CSV on init
+  All 456 tests pass.
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **afe539e2** (2026-01-11) by vladgheorghe
+  docs: add Plan 027 for executor separation of concerns
+  Defines the next stage of refactoring:
+  - Executor only runs simulation, returns artifact paths/URIs
+  - Executor reports storage location (local vs cloud)
+  - MetricsComputer handles all derived metrics (separate concern)
+  - ArtifactLoader protocol for fetching from any storage backend
+  - Clear path to CloudExecutor implementation
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **4a01e70f** (2026-01-11) by vladgheorghe
+  feat(runners): implement Plan 027 executor separation of concerns
+  Refactors the runner abstractions to cleanly separate simulation execution
+  from metrics computation, enabling future cloud execution support.
+  New components:
+  - RunOptions: configuration dataclass for run_scenario()
+  - ExecutionResult: result with storage_type, storage_base, artifacts
+  - ArtifactLoader: protocol for loading artifacts from any storage
+  - LocalArtifactLoader: file-based implementation
+  - MetricsComputer: extracts metrics computation from LocalExecutor
+  - MetricsBundle: dataclass for computed metrics
+  Changes:
+  - LocalExecutor: now only runs simulation, returns artifact paths
+  - RingSweepRunner: uses executor + MetricsComputer pattern
+  - Updated protocols with new execute() signature
+  Tests: 527 passing (77 new), 67% coverage. Verified with control/treatment sweeps.
+  This sets up a clear path for CloudExecutor + S3ArtifactLoader in the future.
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **f82653d1** (2026-01-11) by vladgheorghe
+  fix(storage): address PR review feedback
+  - Fix _row_to_entry bug: metrics were assigned to parameters dict
+    instead of metrics dict (P2 bug from Claude/Codex reviews)
+  - Add path traversal validation in load_artifact for security
+  - Add input validation for experiment_id and run_id to prevent
+    malicious path construction
+  - Add tests for metrics round-trip through CSV
+  - Add tests for security validations
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **ded88327** (2026-01-11) by Vlad Gheorghe
+  Merge pull request #24 from vlad-ds/refactor/phase-4-abstractions
+  feat: add storage and runner abstraction layers (Phase 4)
+
 ---
 
 ## Source Code (src/bilancio)
@@ -33747,6 +33847,10 @@ from bilancio.analysis.dealer_usage_summary import (
     build_dealer_usage_by_run,
     run_dealer_usage_analysis,
 )
+from bilancio.analysis.metrics_computer import (
+    MetricsBundle,
+    MetricsComputer,
+)
 
 __all__ = [
     "build_strategy_outcomes_by_run",
@@ -33754,6 +33858,8 @@ __all__ = [
     "run_strategy_analysis",
     "build_dealer_usage_by_run",
     "run_dealer_usage_analysis",
+    "MetricsBundle",
+    "MetricsComputer",
 ]
 
 ```
@@ -34818,6 +34924,262 @@ def microstructure_gain_lower_bound(
     if not Mpeak_rtgs:
         return None
     return Decimal("1") - (Mbar_t / Mpeak_rtgs)
+
+```
+
+---
+
+### 📄 src/bilancio/analysis/metrics_computer.py
+
+```python
+"""Metrics computation extracted from LocalExecutor for reuse.
+
+This module provides a MetricsComputer class that can compute metrics from
+simulation artifacts (events.jsonl, balances.csv) regardless of where the
+simulation ran (local or remote).
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+from bilancio.storage.artifact_loaders import ArtifactLoader
+from bilancio.analysis.loaders import read_events_jsonl, read_balances_csv
+from bilancio.analysis.report import (
+    compute_day_metrics,
+    summarize_day_metrics,
+    write_day_metrics_csv,
+    write_day_metrics_json,
+    write_debtor_shares_csv,
+    write_intraday_csv,
+    write_metrics_html,
+)
+
+
+@dataclass
+class MetricsBundle:
+    """Bundle of computed metrics from a simulation run.
+
+    Contains all computed metrics in structured form for further processing
+    or writing to output files.
+    """
+
+    day_metrics: List[Dict[str, Any]]
+    """Per-day metrics rows (S_t, Mbar_t, phi_t, etc.)."""
+
+    debtor_shares: List[Dict[str, Any]]
+    """Debtor shortfall shares (day, agent, DS_t)."""
+
+    intraday: List[Dict[str, Any]]
+    """Intraday settlement steps (day, step, P_prefix, etc.)."""
+
+    summary: Dict[str, Any]
+    """Aggregate summary from summarize_day_metrics (phi_total, delta_total, etc.)."""
+
+
+class MetricsComputer:
+    """Computes metrics from simulation artifacts.
+
+    Uses an ArtifactLoader to read events and balances, then applies
+    the standard metrics computation pipeline from bilancio.analysis.report.
+
+    Example:
+        loader = LocalArtifactLoader(base_path=Path("/some/experiment/dir"))
+        computer = MetricsComputer(loader)
+
+        artifacts = {
+            "events_jsonl": "runs/run_001/out/events.jsonl",
+            "balances_csv": "runs/run_001/out/balances.csv",
+        }
+        bundle = computer.compute(artifacts)
+
+        output_paths = computer.write_outputs(bundle, Path("/output/dir"))
+    """
+
+    def __init__(self, loader: ArtifactLoader) -> None:
+        """Initialize with an artifact loader.
+
+        Args:
+            loader: An ArtifactLoader implementation for reading artifacts.
+        """
+        self.loader = loader
+
+    def compute(
+        self,
+        artifacts: Dict[str, str],
+        day_list: Optional[List[int]] = None,
+    ) -> MetricsBundle:
+        """Compute metrics from simulation artifacts.
+
+        Args:
+            artifacts: Dict mapping artifact names to references.
+                Required: 'events_jsonl'
+                Optional: 'balances_csv' (for M_t, G_t metrics)
+            day_list: Optional list of days to compute metrics for.
+                If None, days are inferred from events.
+
+        Returns:
+            MetricsBundle containing all computed metrics.
+
+        Raises:
+            KeyError: If required artifact 'events_jsonl' is missing.
+            FileNotFoundError: If referenced artifact files don't exist.
+        """
+        # Load events (required)
+        events_ref = artifacts.get("events_jsonl")
+        if not events_ref:
+            raise KeyError("Missing required artifact: 'events_jsonl'")
+
+        events_text = self.loader.load_text(events_ref)
+        # Parse JSONL from text - we need to handle this since read_events_jsonl takes a path
+        events = self._parse_events_from_text(events_text)
+
+        # Load balances (optional, enables M_t and G_t computation)
+        balances_rows: Optional[List[Dict[str, Any]]] = None
+        balances_ref = artifacts.get("balances_csv")
+        if balances_ref and self.loader.exists(balances_ref):
+            balances_text = self.loader.load_text(balances_ref)
+            balances_rows = self._parse_balances_from_text(balances_text)
+
+        # Compute day metrics
+        result = compute_day_metrics(
+            events=events,
+            balances_rows=balances_rows,
+            day_list=day_list,
+        )
+
+        # Compute summary
+        summary = summarize_day_metrics(result["day_metrics"])
+
+        return MetricsBundle(
+            day_metrics=result["day_metrics"],
+            debtor_shares=result["debtor_shares"],
+            intraday=result["intraday"],
+            summary=summary,
+        )
+
+    def write_outputs(
+        self,
+        bundle: MetricsBundle,
+        output_dir: Path,
+        title: Optional[str] = None,
+        subtitle: Optional[str] = None,
+    ) -> Dict[str, Path]:
+        """Write metrics bundle to output files.
+
+        Args:
+            bundle: The computed MetricsBundle to write.
+            output_dir: Directory to write output files to.
+            title: Optional title for HTML report.
+            subtitle: Optional subtitle for HTML report.
+
+        Returns:
+            Dict mapping output types to their file paths:
+                - 'metrics_csv': Path to metrics.csv
+                - 'metrics_json': Path to metrics.json
+                - 'debtor_shares_csv': Path to debtor_shares.csv
+                - 'intraday_csv': Path to intraday.csv
+                - 'metrics_html': Path to metrics.html
+        """
+        output_dir = Path(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        paths: Dict[str, Path] = {}
+
+        # Write metrics CSV
+        metrics_csv_path = output_dir / "metrics.csv"
+        write_day_metrics_csv(metrics_csv_path, bundle.day_metrics)
+        paths["metrics_csv"] = metrics_csv_path
+
+        # Write metrics JSON
+        metrics_json_path = output_dir / "metrics.json"
+        write_day_metrics_json(metrics_json_path, bundle.day_metrics)
+        paths["metrics_json"] = metrics_json_path
+
+        # Write debtor shares CSV
+        debtor_shares_path = output_dir / "debtor_shares.csv"
+        write_debtor_shares_csv(debtor_shares_path, bundle.debtor_shares)
+        paths["debtor_shares_csv"] = debtor_shares_path
+
+        # Write intraday CSV
+        intraday_path = output_dir / "intraday.csv"
+        write_intraday_csv(intraday_path, bundle.intraday)
+        paths["intraday_csv"] = intraday_path
+
+        # Write metrics HTML
+        metrics_html_path = output_dir / "metrics.html"
+        write_metrics_html(
+            metrics_html_path,
+            day_metrics=bundle.day_metrics,
+            debtor_shares=bundle.debtor_shares,
+            intraday=bundle.intraday,
+            title=title,
+            subtitle=subtitle,
+        )
+        paths["metrics_html"] = metrics_html_path
+
+        return paths
+
+    def _parse_events_from_text(self, text: str) -> List[Dict[str, Any]]:
+        """Parse events from JSONL text content.
+
+        This mirrors read_events_jsonl but works from text instead of file path.
+        """
+        import json
+        from decimal import Decimal
+
+        events: List[Dict[str, Any]] = []
+        for line in text.splitlines():
+            if not line.strip():
+                continue
+            evt = json.loads(line)
+            # Normalize common fields (same as read_events_jsonl)
+            if "amount" in evt:
+                evt["amount"] = self._to_decimal(evt["amount"])
+            if "day" in evt and evt["day"] is not None:
+                try:
+                    evt["day"] = int(evt["day"])
+                except Exception:
+                    pass
+            if "due_day" in evt and evt["due_day"] is not None:
+                try:
+                    evt["due_day"] = int(evt["due_day"])
+                except Exception:
+                    pass
+            events.append(evt)
+        return events
+
+    def _parse_balances_from_text(self, text: str) -> List[Dict[str, Any]]:
+        """Parse balances from CSV text content.
+
+        This mirrors read_balances_csv but works from text instead of file path.
+        """
+        import csv
+        from io import StringIO
+
+        rows: List[Dict[str, Any]] = []
+        reader = csv.DictReader(StringIO(text))
+        for row in reader:
+            rows.append(dict(row))
+        return rows
+
+    @staticmethod
+    def _to_decimal(val: Any) -> Any:
+        """Best-effort Decimal conversion for numeric values."""
+        from decimal import Decimal
+
+        if val is None:
+            return Decimal("0")
+        if isinstance(val, Decimal):
+            return val
+        if isinstance(val, bool):
+            return Decimal(int(val))
+        try:
+            return Decimal(str(val))
+        except Exception:
+            return Decimal("0")
 
 ```
 
@@ -50204,7 +50566,6 @@ __all__ = [
 
 from __future__ import annotations
 
-import csv
 import uuid
 from dataclasses import dataclass
 from decimal import Decimal
@@ -50214,25 +50575,20 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 import yaml
 from pydantic import BaseModel, Field, ValidationError, model_validator
 
-from bilancio.analysis.loaders import read_balances_csv, read_events_jsonl
-from bilancio.analysis.report import (
-    compute_day_metrics,
-    summarize_day_metrics,
-    write_day_metrics_csv,
-    write_day_metrics_json,
-    write_debtor_shares_csv,
-    write_intraday_csv,
-    write_metrics_html,
-)
+from bilancio.analysis.metrics_computer import MetricsComputer
 from bilancio.config.models import RingExplorerGeneratorConfig
+from bilancio.runners import LocalExecutor, RunOptions, ExecutionResult
+from bilancio.runners.protocols import SimulationExecutor
+from bilancio.storage.artifact_loaders import LocalArtifactLoader
 from bilancio.experiments.sampling import (
     generate_frontier_params,
     generate_grid_params,
     generate_lhs_params,
 )
 from bilancio.scenarios import compile_ring_explorer
-
-# Note: run_scenario imported lazily in _execute_run to avoid circular import
+from bilancio.storage import FileRegistryStore, RegistryEntry
+from bilancio.storage.models import RunStatus
+from bilancio.storage.protocols import RegistryStore
 
 
 @dataclass
@@ -50399,34 +50755,6 @@ def load_ring_sweep_config(path: Path | str) -> RingSweepConfig:
 class RingSweepRunner:
     """Coordinator for running Kalecki ring experiments."""
 
-    REGISTRY_FIELDS = [
-        "run_id",
-        "phase",
-        "seed",
-        "n_agents",
-        "kappa",
-        "concentration",
-        "mu",
-        "monotonicity",
-        "maturity_days",
-        "Q_total",
-        "S1",
-        "L0",
-        "scenario_yaml",
-        "events_jsonl",
-        "balances_csv",
-        "metrics_csv",
-        "metrics_html",
-        "run_html",
-        "default_handling",
-        "dealer_enabled",
-        "status",
-        "time_to_stability",
-        "phi_total",
-        "delta_total",
-        "error",
-    ]
-
     def __init__(
         self,
         out_dir: Path,
@@ -50449,6 +50777,8 @@ class RingSweepRunner:
         dealer_share_per_bucket: Optional[Decimal] = None,
         rollover_enabled: bool = True,
         detailed_dealer_logging: bool = False,  # Plan 022
+        registry_store: Optional[RegistryStore] = None,  # Plan 026
+        executor: Optional[SimulationExecutor] = None,  # Plan 027
     ) -> None:
         self.base_dir = out_dir
         self.registry_dir = self.base_dir / "registry"
@@ -50472,40 +50802,63 @@ class RingSweepRunner:
         self.dealer_share_per_bucket = dealer_share_per_bucket or Decimal("0.125")
         self.rollover_enabled = rollover_enabled
         self.detailed_dealer_logging = detailed_dealer_logging  # Plan 022
-        self.registry_rows: List[Dict[str, Any]] = []
+
+        # Use provided registry store or create default file-based store
+        self.registry_store: RegistryStore = registry_store or FileRegistryStore(self.base_dir)
+        # Use provided executor or create default local executor (Plan 027)
+        self.executor: SimulationExecutor = executor or LocalExecutor()
+        self.experiment_id = ""  # Empty = use base_dir directly
 
         self.registry_dir.mkdir(parents=True, exist_ok=True)
         self.runs_dir.mkdir(parents=True, exist_ok=True)
         self.aggregate_dir.mkdir(parents=True, exist_ok=True)
 
-        self.registry_path = self.registry_dir / "experiments.csv"
-        if self.registry_path.exists():
-            with self.registry_path.open("r", newline="") as fh:
-                reader = csv.DictReader(fh)
-                self.registry_rows = list(reader)
-        else:
-            self._write_registry()
+        # Initialize empty registry file if it doesn't exist (backward compatible)
+        registry_path = self.registry_dir / "experiments.csv"
+        if not registry_path.exists():
+            self._init_empty_registry(registry_path)
+
+    def _init_empty_registry(self, registry_path: Path) -> None:
+        """Create an empty registry file with headers."""
+        import csv
+        default_fields = [
+            "run_id", "experiment_id", "phase", "status", "error",
+            "seed", "n_agents", "kappa", "concentration", "mu", "monotonicity",
+            "maturity_days", "Q_total", "S1", "L0", "default_handling", "dealer_enabled",
+            "phi_total", "delta_total", "time_to_stability",
+            "scenario_yaml", "events_jsonl", "balances_csv", "metrics_csv",
+            "metrics_html", "run_html",
+        ]
+        with registry_path.open("w", newline="") as fh:
+            writer = csv.DictWriter(fh, fieldnames=default_fields)
+            writer.writeheader()
 
     def _next_seed(self) -> int:
         value = self.seed_counter
         self.seed_counter += 1
         return value
 
-    def _write_registry(self) -> None:
-        with self.registry_path.open("w", newline="") as fh:
-            writer = csv.DictWriter(fh, fieldnames=self.REGISTRY_FIELDS)
-            writer.writeheader()
-            for row in self.registry_rows:
-                writer.writerow({field: row.get(field, "") for field in self.REGISTRY_FIELDS})
-
-    def _upsert_registry(self, row: Dict[str, Any]) -> None:
-        for existing in self.registry_rows:
-            if existing.get("run_id") == row.get("run_id"):
-                existing.update(row)
-                break
-        else:
-            self.registry_rows.append(row)
-        self._write_registry()
+    def _upsert_registry(
+        self,
+        run_id: str,
+        phase: str,
+        status: RunStatus,
+        parameters: Dict[str, Any],
+        metrics: Optional[Dict[str, Any]] = None,
+        artifact_paths: Optional[Dict[str, str]] = None,
+        error: Optional[str] = None,
+    ) -> None:
+        """Upsert a registry entry using the configured store."""
+        entry = RegistryEntry(
+            run_id=run_id,
+            experiment_id=self.experiment_id,
+            status=status,
+            parameters=parameters,
+            metrics=metrics or {},
+            artifact_paths=artifact_paths or {},
+            error=error,
+        )
+        self.registry_store.upsert(entry)
 
     def run_grid(
         self,
@@ -50636,28 +50989,29 @@ class RingSweepRunner:
         run_html_path = run_dir / "run.html"
         balances_path = out_dir / "balances.csv"
         events_path = out_dir / "events.jsonl"
-        metrics_csv_path = out_dir / "metrics.csv"
-        metrics_json_path = out_dir / "metrics.json"
-        ds_csv_path = out_dir / "metrics_ds.csv"
-        intraday_csv_path = out_dir / "metrics_intraday.csv"
-        metrics_html_path = out_dir / "metrics.html"
 
-        registry_entry = {
-            "run_id": run_id,
+        # Common parameters for all registry updates
+        base_params = {
             "phase": phase,
-            "seed": str(seed),
-            "n_agents": str(self.n_agents),
+            "seed": seed,
+            "n_agents": self.n_agents,
             "kappa": str(kappa),
             "concentration": str(concentration),
             "mu": str(mu),
             "monotonicity": str(monotonicity),
-            "maturity_days": str(self.maturity_days),
+            "maturity_days": self.maturity_days,
             "Q_total": str(self.Q_total),
             "default_handling": self.default_handling,
-            "dealer_enabled": str(self.dealer_enabled),
-            "status": "running",
+            "dealer_enabled": self.dealer_enabled,
         }
-        self._upsert_registry(registry_entry)
+
+        # Initial "running" status
+        self._upsert_registry(
+            run_id=run_id,
+            phase=phase,
+            status=RunStatus.RUNNING,
+            parameters=base_params,
+        )
 
         generator_data = {
             "version": 1,
@@ -50720,9 +51074,8 @@ class RingSweepRunner:
             scenario_run = scenario.setdefault("run", {})
             scenario_run["default_handling"] = self.default_handling
 
+        # RingSweepRunner writes scenario.yaml itself for control
         with scenario_path.open("w", encoding="utf-8") as fh:
-            import yaml
-
             yaml.safe_dump(_to_yaml_ready(scenario), fh, sort_keys=False, allow_unicode=False)
 
         S1 = Decimal("0")
@@ -50736,56 +51089,64 @@ class RingSweepRunner:
         # Determine regime for logging (Plan 022)
         regime = "active" if self.dealer_enabled else "passive"
 
-        # Lazy import to avoid circular import
-        from bilancio.ui.run import run_scenario
+        # Build RunOptions from scenario configuration (Plan 027)
+        options = RunOptions(
+            mode="until_stable",
+            max_days=scenario.get("run", {}).get("max_days", 90),
+            quiet_days=scenario.get("run", {}).get("quiet_days", 2),
+            check_invariants="daily",
+            default_handling=self.default_handling,
+            show_events=scenario.get("run", {}).get("show", {}).get("events", "detailed"),
+            show_balances=scenario.get("run", {}).get("show", {}).get("balances"),
+            t_account=False,
+            detailed_dealer_logging=self.detailed_dealer_logging,
+            run_id=run_id,
+            regime=regime,
+        )
 
-        try:
-            run_scenario(
-                path=scenario_path,
-                mode="until_stable",
-                max_days=scenario["run"].get("max_days", 90),
-                quiet_days=scenario["run"].get("quiet_days", 2),
-                show=scenario["run"].get("show", {}).get("events", "detailed"),
-                agent_ids=scenario["run"].get("show", {}).get("balances"),
-                check_invariants="daily",
-                export={
-                    "balances_csv": str(balances_path),
-                    "events_jsonl": str(events_path),
+        # Delegate simulation to executor (Plan 027)
+        result = self.executor.execute(
+            scenario_config=_to_yaml_ready(scenario),
+            run_id=run_id,
+            output_dir=run_dir,
+            options=options,
+        )
+
+        # Handle failure case
+        if result.status == RunStatus.FAILED:
+            fail_params = {**base_params, "S1": str(S1), "L0": str(L0)}
+            self._upsert_registry(
+                run_id=run_id,
+                phase=phase,
+                status=RunStatus.FAILED,
+                parameters=fail_params,
+                artifact_paths={
+                    "scenario_yaml": self._rel_path(scenario_path),
+                    "run_html": self._rel_path(run_html_path),
                 },
-                html_output=run_html_path,
-                t_account=False,
-                default_handling=self.default_handling,
-                detailed_dealer_logging=self.detailed_dealer_logging,  # Plan 022
-                run_id=run_id,  # Plan 022
-                regime=regime,  # Plan 022
-                progress_callback=progress_callback,
+                error=result.error,
             )
-        except Exception as exc:
-            registry_entry.update({
-                "status": "failed",
-                "error": str(exc),
-                "S1": str(S1),
-                "L0": str(L0),
-                "scenario_yaml": self._rel_path(scenario_path),
-                "run_html": self._rel_path(run_html_path),
-            })
-            self._upsert_registry(registry_entry)
             return RingRunSummary(run_id, phase, kappa, concentration, mu, monotonicity, None, None, 0)
 
-        events = list(read_events_jsonl(events_path))
-        balances_rows = read_balances_csv(balances_path) if balances_path.exists() else None
-        bundle = compute_day_metrics(events, balances_rows)
+        # Use MetricsComputer for analytics (Plan 027)
+        # result.artifacts contains relative paths (e.g., "out/events.jsonl")
+        artifacts: Dict[str, str] = {}
+        if "events_jsonl" in result.artifacts:
+            artifacts["events_jsonl"] = result.artifacts["events_jsonl"]
+        if "balances_csv" in result.artifacts:
+            artifacts["balances_csv"] = result.artifacts["balances_csv"]
 
-        write_day_metrics_csv(metrics_csv_path, bundle["day_metrics"])
-        write_day_metrics_json(metrics_json_path, bundle["day_metrics"])
-        write_debtor_shares_csv(ds_csv_path, bundle["debtor_shares"])
-        write_intraday_csv(intraday_csv_path, bundle["intraday"])
-        write_metrics_html(metrics_html_path, bundle["day_metrics"], bundle["debtor_shares"], bundle["intraday"])
+        loader = LocalArtifactLoader(base_path=Path(result.storage_base))
+        computer = MetricsComputer(loader)
+        bundle = computer.compute(artifacts)
 
-        summary = summarize_day_metrics(bundle["day_metrics"])
-        delta_total = summary.get("delta_total")
-        phi_total = summary.get("phi_total")
-        time_to_stability = int(summary.get("max_day") or 0)
+        # Write metrics outputs
+        output_paths = computer.write_outputs(bundle, out_dir)
+
+        # Extract summary metrics
+        delta_total = bundle.summary.get("delta_total")
+        phi_total = bundle.summary.get("phi_total")
+        time_to_stability = int(bundle.summary.get("max_day") or 0)
 
         # Read dealer metrics if available (treatment runs with dealer enabled)
         dealer_metrics: Optional[Dict[str, Any]] = None
@@ -50795,22 +51156,28 @@ class RingSweepRunner:
             with dealer_metrics_path.open() as f:
                 dealer_metrics = json.load(f)
 
-        registry_entry.update({
-            "status": "completed",
-            "S1": str(S1),
-            "L0": str(L0),
-            "scenario_yaml": self._rel_path(scenario_path),
-            "events_jsonl": self._rel_path(events_path),
-            "balances_csv": self._rel_path(balances_path),
-            "metrics_csv": self._rel_path(metrics_csv_path),
-            "metrics_html": self._rel_path(metrics_html_path),
-            "run_html": self._rel_path(run_html_path),
-            "time_to_stability": str(time_to_stability),
+        # Update registry with completed status
+        success_params = {**base_params, "S1": str(S1), "L0": str(L0)}
+        success_metrics = {
+            "time_to_stability": time_to_stability,
             "phi_total": str(phi_total) if phi_total is not None else "",
             "delta_total": str(delta_total) if delta_total is not None else "",
-            "error": "",
-        })
-        self._upsert_registry(registry_entry)
+        }
+        self._upsert_registry(
+            run_id=run_id,
+            phase=phase,
+            status=RunStatus.COMPLETED,
+            parameters=success_params,
+            metrics=success_metrics,
+            artifact_paths={
+                "scenario_yaml": self._rel_path(scenario_path),
+                "events_jsonl": self._rel_path(events_path),
+                "balances_csv": self._rel_path(balances_path),
+                "metrics_csv": self._rel_path(output_paths["metrics_csv"]),
+                "metrics_html": self._rel_path(output_paths["metrics_html"]),
+                "run_html": self._rel_path(run_html_path),
+            },
+        )
 
         return RingRunSummary(
             run_id, phase, kappa, concentration, mu, monotonicity,
@@ -51802,6 +52169,321 @@ def consume_stock(system: 'System', stock_id: InstrId, quantity: int) -> None:
 
 ---
 
+### 📄 src/bilancio/runners/__init__.py
+
+```python
+"""Runner abstractions for simulation execution."""
+
+from .protocols import SimulationExecutor, JobExecutor
+from .local_executor import LocalExecutor
+from .models import RunOptions, ExecutionResult
+
+__all__ = [
+    "SimulationExecutor",
+    "JobExecutor",
+    "LocalExecutor",
+    "RunOptions",
+    "ExecutionResult",
+]
+
+```
+
+---
+
+### 📄 src/bilancio/runners/local_executor.py
+
+```python
+"""Local synchronous simulation executor."""
+
+from __future__ import annotations
+
+import time
+from pathlib import Path
+from typing import Dict, Any
+
+import yaml
+
+from bilancio.runners.models import RunOptions, ExecutionResult
+from bilancio.storage.models import RunStatus
+
+
+class LocalExecutor:
+    """Execute simulations locally and synchronously.
+
+    This executor only runs the simulation and returns artifact locations.
+    It does NOT compute metrics - that's MetricsComputer's job.
+
+    The executor:
+    1. Writes the scenario YAML to the run directory
+    2. Calls run_scenario() with appropriate parameters
+    3. Returns an ExecutionResult with artifact paths (relative to storage_base)
+    """
+
+    def execute(
+        self,
+        scenario_config: Dict[str, Any],
+        run_id: str,
+        output_dir: Path,
+        options: RunOptions,
+    ) -> ExecutionResult:
+        """Execute simulation, return result with artifact paths.
+
+        Args:
+            scenario_config: Complete scenario configuration dict
+            run_id: Unique identifier for this run
+            output_dir: Directory for output files (must be provided)
+            options: RunOptions with simulation parameters
+
+        Returns:
+            ExecutionResult with storage location and relative artifact paths
+        """
+        # Import here to avoid circular imports at module load time
+        from bilancio.ui.run import run_scenario
+
+        start_time = time.time()
+
+        # Ensure output directory exists
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Write scenario YAML
+        scenario_path = output_dir / "scenario.yaml"
+        scenario_path.write_text(yaml.dump(scenario_config, default_flow_style=False))
+
+        # Set up export paths
+        exports_dir = output_dir / "out"
+        exports_dir.mkdir(exist_ok=True)
+
+        balances_path = exports_dir / "balances.csv"
+        events_path = exports_dir / "events.jsonl"
+        run_html_path = output_dir / "run.html"
+
+        try:
+            # Run simulation
+            run_scenario(
+                path=scenario_path,
+                mode=options.mode,
+                max_days=options.max_days,
+                quiet_days=options.quiet_days,
+                show=options.show_events,
+                agent_ids=options.show_balances,
+                check_invariants=options.check_invariants,
+                export={
+                    "balances_csv": str(balances_path),
+                    "events_jsonl": str(events_path),
+                },
+                html_output=run_html_path,
+                t_account=options.t_account,
+                default_handling=options.default_handling,
+                detailed_dealer_logging=options.detailed_dealer_logging,
+                run_id=options.run_id or run_id,
+                regime=options.regime or "",
+            )
+
+            execution_time_ms = int((time.time() - start_time) * 1000)
+
+            # Build artifact paths (relative to output_dir)
+            artifacts: Dict[str, str] = {
+                "scenario_yaml": "scenario.yaml",
+            }
+            if events_path.exists():
+                artifacts["events_jsonl"] = "out/events.jsonl"
+            if balances_path.exists():
+                artifacts["balances_csv"] = "out/balances.csv"
+            if run_html_path.exists():
+                artifacts["run_html"] = "run.html"
+
+            return ExecutionResult(
+                run_id=run_id,
+                status=RunStatus.COMPLETED,
+                storage_type="local",
+                storage_base=str(output_dir.resolve()),
+                artifacts=artifacts,
+                execution_time_ms=execution_time_ms,
+            )
+
+        except Exception as e:
+            execution_time_ms = int((time.time() - start_time) * 1000)
+
+            # Still record what artifacts exist
+            artifacts: Dict[str, str] = {}
+            if scenario_path.exists():
+                artifacts["scenario_yaml"] = "scenario.yaml"
+
+            return ExecutionResult(
+                run_id=run_id,
+                status=RunStatus.FAILED,
+                storage_type="local",
+                storage_base=str(output_dir.resolve()),
+                artifacts=artifacts,
+                error=str(e),
+                execution_time_ms=execution_time_ms,
+            )
+
+```
+
+---
+
+### 📄 src/bilancio/runners/models.py
+
+```python
+"""Data models for the runner abstraction layer."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional
+
+from bilancio.storage.models import RunStatus
+
+
+@dataclass
+class RunOptions:
+    """Options passed to run_scenario().
+
+    These options configure how the simulation is executed and what
+    outputs are generated. The executor passes these through to the
+    underlying simulation engine.
+
+    Attributes:
+        mode: Execution mode - "until_stable", "fixed_days", or "continuous".
+        max_days: Maximum number of simulation days to run.
+        quiet_days: Number of consecutive quiet days before stopping
+            (for "until_stable" mode).
+        check_invariants: When to check balance sheet invariants -
+            "daily", "end", or "never".
+        default_handling: How to handle defaults - "fail-fast" or "continue".
+        show_events: Event display level for HTML report -
+            "detailed", "summary", or "none".
+        show_balances: List of agent names to show balances for in HTML report.
+            If None, shows all agents.
+        t_account: Whether to use T-account format in balance display.
+        detailed_dealer_logging: Enable detailed logging for dealer simulations.
+        run_id: Optional run identifier. If not provided, one will be generated.
+        regime: Optional regime identifier for parameter sweeps.
+    """
+
+    mode: str = "until_stable"
+    max_days: int = 90
+    quiet_days: int = 2
+    check_invariants: str = "daily"
+    default_handling: str = "fail-fast"
+
+    # Display options (for HTML report)
+    show_events: str = "detailed"
+    show_balances: Optional[List[str]] = None
+    t_account: bool = False
+
+    # Dealer options
+    detailed_dealer_logging: bool = False
+    run_id: Optional[str] = None
+    regime: Optional[str] = None
+
+
+@dataclass
+class ExecutionResult:
+    """Result of simulation execution.
+
+    Returned by the executor after a simulation run completes (or fails).
+    Contains references to where artifacts are stored rather than the
+    artifacts themselves.
+
+    Attributes:
+        run_id: Unique identifier for this run.
+        status: Final status of the run (COMPLETED, FAILED, etc.).
+        storage_type: Type of storage backend - "local", "s3", or "gcs".
+        storage_base: Base path/URI for artifacts - e.g., "/path/to/run"
+            or "s3://bucket/prefix".
+        artifacts: Mapping of artifact type to relative path within storage_base.
+            Keys are artifact names like "events_jsonl", "balances_csv", etc.
+        error: Error message if the run failed.
+        execution_time_ms: Execution time in milliseconds.
+    """
+
+    run_id: str
+    status: RunStatus
+
+    # Storage location
+    storage_type: str  # "local", "s3", "gcs"
+    storage_base: str  # "/path/to/run" or "s3://bucket/prefix"
+
+    # Artifact references (relative to storage_base)
+    artifacts: Dict[str, str] = field(default_factory=dict)
+
+    # Error info if failed
+    error: Optional[str] = None
+    execution_time_ms: Optional[int] = None
+
+```
+
+---
+
+### 📄 src/bilancio/runners/protocols.py
+
+```python
+"""Protocol definitions for simulation executors."""
+
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Protocol, Optional, Dict, Any, runtime_checkable
+
+from bilancio.runners.models import RunOptions, ExecutionResult
+from bilancio.storage.models import RunStatus, RunResult
+
+
+@runtime_checkable
+class SimulationExecutor(Protocol):
+    """Protocol for synchronous simulation execution.
+
+    The executor only runs the simulation and returns where artifacts
+    are stored. It does NOT compute metrics - that's MetricsComputer's job.
+    """
+
+    def execute(
+        self,
+        scenario_config: Dict[str, Any],
+        run_id: str,
+        output_dir: Path,
+        options: RunOptions,
+    ) -> ExecutionResult:
+        """Execute a simulation, return result with artifact paths.
+
+        Args:
+            scenario_config: Complete scenario configuration dict
+            run_id: Unique identifier for this run
+            output_dir: Directory for output files
+            options: RunOptions with simulation parameters
+
+        Returns:
+            ExecutionResult with storage location and relative artifact paths
+        """
+        ...
+
+
+@runtime_checkable
+class JobExecutor(Protocol):
+    """Protocol for async/distributed job execution (future use)."""
+
+    def submit(self, scenario_config: Dict[str, Any], run_id: str) -> str:
+        """Submit job, return job_id."""
+        ...
+
+    def status(self, job_id: str) -> RunStatus:
+        """Check job status."""
+        ...
+
+    def result(self, job_id: str) -> Optional[RunResult]:
+        """Get result if completed."""
+        ...
+
+    def cancel(self, job_id: str) -> bool:
+        """Cancel a pending/running job."""
+        ...
+
+```
+
+---
+
 ### 📄 src/bilancio/scenarios/__init__.py
 
 ```python
@@ -52573,6 +53255,626 @@ def _to_yaml_ready(obj: Any) -> Any:
 
 
 __all__ = ["compile_ring_explorer", "compile_ring_explorer_balanced"]
+
+```
+
+---
+
+### 📄 src/bilancio/storage/__init__.py
+
+```python
+"""Storage abstractions for experiment results."""
+
+from .models import (
+    RunStatus,
+    RunArtifacts,
+    RunResult,
+    RegistryEntry,
+)
+from .protocols import ResultStore, RegistryStore
+from .file_store import FileResultStore, FileRegistryStore
+from .artifact_loaders import ArtifactLoader, LocalArtifactLoader
+
+__all__ = [
+    "RunStatus",
+    "RunArtifacts",
+    "RunResult",
+    "RegistryEntry",
+    "ResultStore",
+    "RegistryStore",
+    "FileResultStore",
+    "FileRegistryStore",
+    "ArtifactLoader",
+    "LocalArtifactLoader",
+]
+
+```
+
+---
+
+### 📄 src/bilancio/storage/artifact_loaders.py
+
+```python
+"""Artifact loaders for fetching artifacts from various storage backends."""
+
+from pathlib import Path
+from typing import Protocol, runtime_checkable
+
+
+@runtime_checkable
+class ArtifactLoader(Protocol):
+    """Protocol for loading artifacts from any storage backend.
+
+    This protocol defines the interface for artifact loading, allowing
+    different implementations for local filesystem, cloud storage, etc.
+    """
+
+    def load_bytes(self, reference: str) -> bytes:
+        """Load artifact as bytes.
+
+        Args:
+            reference: The artifact reference (e.g., relative path or URI).
+
+        Returns:
+            The artifact contents as bytes.
+
+        Raises:
+            FileNotFoundError: If the artifact does not exist.
+        """
+        ...
+
+    def load_text(self, reference: str) -> str:
+        """Load artifact as text.
+
+        Args:
+            reference: The artifact reference (e.g., relative path or URI).
+
+        Returns:
+            The artifact contents as a string.
+
+        Raises:
+            FileNotFoundError: If the artifact does not exist.
+        """
+        ...
+
+    def exists(self, reference: str) -> bool:
+        """Check if artifact exists.
+
+        Args:
+            reference: The artifact reference (e.g., relative path or URI).
+
+        Returns:
+            True if the artifact exists, False otherwise.
+        """
+        ...
+
+
+class LocalArtifactLoader:
+    """Load artifacts from local filesystem.
+
+    This implementation resolves artifact references as paths relative
+    to a base directory.
+    """
+
+    def __init__(self, base_path: Path) -> None:
+        """Initialize with base path for relative references.
+
+        Args:
+            base_path: The base directory for resolving relative paths.
+        """
+        self.base_path = Path(base_path)
+
+    def load_bytes(self, reference: str) -> bytes:
+        """Load artifact as bytes from filesystem.
+
+        Args:
+            reference: Relative path to the artifact from base_path.
+
+        Returns:
+            The artifact contents as bytes.
+
+        Raises:
+            FileNotFoundError: If the artifact does not exist.
+        """
+        path = self.base_path / reference
+        return path.read_bytes()
+
+    def load_text(self, reference: str) -> str:
+        """Load artifact as text from filesystem.
+
+        Args:
+            reference: Relative path to the artifact from base_path.
+
+        Returns:
+            The artifact contents as a string.
+
+        Raises:
+            FileNotFoundError: If the artifact does not exist.
+        """
+        path = self.base_path / reference
+        return path.read_text()
+
+    def exists(self, reference: str) -> bool:
+        """Check if artifact exists on filesystem.
+
+        Args:
+            reference: Relative path to the artifact from base_path.
+
+        Returns:
+            True if the artifact exists, False otherwise.
+        """
+        path = self.base_path / reference
+        return path.exists()
+
+```
+
+---
+
+### 📄 src/bilancio/storage/file_store.py
+
+```python
+"""File-based result storage implementation."""
+
+from __future__ import annotations
+
+import csv
+import json
+import re
+from pathlib import Path
+from typing import Optional, List, Dict, Any
+
+from .models import RunResult, RegistryEntry, RunArtifacts, RunStatus
+
+
+# Pattern for valid IDs (alphanumeric, dash, underscore, dot)
+_VALID_ID_PATTERN = re.compile(r'^[a-zA-Z0-9_\-\.]+$')
+
+
+def _validate_id(value: str, field_name: str) -> None:
+    """Validate an ID to prevent path traversal attacks.
+
+    Args:
+        value: The ID value to validate.
+        field_name: Name of the field for error messages.
+
+    Raises:
+        ValueError: If the ID contains invalid characters.
+    """
+    if not value:
+        return  # Empty is allowed for some cases (e.g., empty experiment_id)
+    if not _VALID_ID_PATTERN.match(value):
+        raise ValueError(
+            f"Invalid {field_name}: '{value}'. "
+            f"Must contain only alphanumeric characters, dashes, underscores, and dots."
+        )
+
+
+class FileResultStore:
+    """Store results as files on local filesystem."""
+
+    def __init__(self, base_dir: Path | str):
+        self.base_dir = Path(base_dir)
+        self.base_dir.mkdir(parents=True, exist_ok=True)
+
+    def _run_dir(self, experiment_id: str, run_id: str) -> Path:
+        _validate_id(experiment_id, "experiment_id")
+        _validate_id(run_id, "run_id")
+        return self.base_dir / experiment_id / "runs" / run_id
+
+    def save_artifact(
+        self,
+        experiment_id: str,
+        run_id: str,
+        name: str,
+        content: bytes,
+        content_type: str = "application/octet-stream"
+    ) -> str:
+        """Save artifact to file, return relative path."""
+        run_dir = self._run_dir(experiment_id, run_id)
+        run_dir.mkdir(parents=True, exist_ok=True)
+
+        # Determine subdirectory based on artifact type
+        if name in ("scenario.yaml",):
+            path = run_dir / name
+        else:
+            out_dir = run_dir / "out"
+            out_dir.mkdir(exist_ok=True)
+            path = out_dir / name
+
+        path.write_bytes(content)
+        return str(path.relative_to(self.base_dir))
+
+    def save_run(self, experiment_id: str, result: RunResult) -> None:
+        """Save run result metadata as JSON."""
+        run_dir = self._run_dir(experiment_id, result.run_id)
+        run_dir.mkdir(parents=True, exist_ok=True)
+
+        meta_path = run_dir / "result.json"
+        meta = {
+            "run_id": result.run_id,
+            "status": result.status.value,
+            "parameters": result.parameters,
+            "metrics": result.metrics,
+            "artifacts": {
+                k: v for k, v in vars(result.artifacts).items() if v is not None
+            },
+            "error": result.error,
+            "execution_time_ms": result.execution_time_ms,
+        }
+        meta_path.write_text(json.dumps(meta, indent=2))
+
+    def load_run(self, experiment_id: str, run_id: str) -> Optional[RunResult]:
+        """Load run result from file."""
+        meta_path = self._run_dir(experiment_id, run_id) / "result.json"
+        if not meta_path.exists():
+            return None
+
+        meta = json.loads(meta_path.read_text())
+        return RunResult(
+            run_id=meta["run_id"],
+            status=RunStatus(meta["status"]),
+            parameters=meta.get("parameters", {}),
+            metrics=meta.get("metrics", {}),
+            artifacts=RunArtifacts(**meta.get("artifacts", {})),
+            error=meta.get("error"),
+            execution_time_ms=meta.get("execution_time_ms"),
+        )
+
+    def load_artifact(self, reference: str) -> bytes:
+        """Load artifact content by path.
+
+        Raises:
+            ValueError: If reference attempts path traversal outside base_dir.
+        """
+        path = self.base_dir / reference
+        # Validate path doesn't escape base_dir (security: prevent path traversal)
+        try:
+            path.resolve().relative_to(self.base_dir.resolve())
+        except ValueError:
+            raise ValueError(f"Invalid artifact reference: path traversal detected in '{reference}'")
+        return path.read_bytes()
+
+
+class FileRegistryStore:
+    """Store registry as CSV file."""
+
+    # Default fields - will be extended dynamically
+    DEFAULT_FIELDS = [
+        "run_id", "experiment_id", "phase", "status", "error",
+        # Common parameters
+        "seed", "n_agents", "kappa", "concentration", "mu", "monotonicity",
+        "maturity_days", "Q_total", "S1", "L0", "default_handling", "dealer_enabled",
+        # Common metrics
+        "phi_total", "delta_total", "time_to_stability",
+        # Common artifact paths
+        "scenario_yaml", "events_jsonl", "balances_csv", "metrics_csv",
+        "metrics_html", "run_html",
+    ]
+
+    def __init__(self, base_dir: Path | str):
+        self.base_dir = Path(base_dir)
+
+    def _registry_path(self, experiment_id: str) -> Path:
+        _validate_id(experiment_id, "experiment_id")
+        if experiment_id:
+            return self.base_dir / experiment_id / "registry" / "experiments.csv"
+        # Empty experiment_id means use base_dir directly
+        return self.base_dir / "registry" / "experiments.csv"
+
+    def upsert(self, entry: RegistryEntry) -> None:
+        """Insert or update registry entry."""
+        registry_path = self._registry_path(entry.experiment_id)
+        registry_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Load existing entries
+        entries: Dict[str, Dict[str, str]] = {}
+        fieldnames = list(self.DEFAULT_FIELDS)
+
+        if registry_path.exists():
+            with open(registry_path, "r", newline="") as f:
+                reader = csv.DictReader(f)
+                if reader.fieldnames:
+                    fieldnames = list(reader.fieldnames)
+                for row in reader:
+                    entries[row["run_id"]] = dict(row)
+
+        # Build row from entry
+        row: Dict[str, str] = {
+            "run_id": entry.run_id,
+            "experiment_id": entry.experiment_id,
+            "status": entry.status.value,
+            "error": entry.error or "",
+        }
+
+        # Add parameters, metrics, artifact paths
+        for k, v in entry.parameters.items():
+            row[k] = str(v) if v is not None else ""
+            if k not in fieldnames:
+                fieldnames.append(k)
+
+        for k, v in entry.metrics.items():
+            row[k] = str(v) if v is not None else ""
+            if k not in fieldnames:
+                fieldnames.append(k)
+
+        for k, v in entry.artifact_paths.items():
+            row[k] = str(v) if v is not None else ""
+            if k not in fieldnames:
+                fieldnames.append(k)
+
+        entries[entry.run_id] = row
+
+        # Write back
+        with open(registry_path, "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
+            writer.writeheader()
+            for r in entries.values():
+                writer.writerow(r)
+
+    def get(self, experiment_id: str, run_id: str) -> Optional[RegistryEntry]:
+        """Get registry entry by ID."""
+        registry_path = self._registry_path(experiment_id)
+        if not registry_path.exists():
+            return None
+
+        with open(registry_path, "r", newline="") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                if row["run_id"] == run_id:
+                    return self._row_to_entry(row)
+        return None
+
+    def list_runs(self, experiment_id: str) -> List[str]:
+        """List all run IDs."""
+        registry_path = self._registry_path(experiment_id)
+        if not registry_path.exists():
+            return []
+
+        with open(registry_path, "r", newline="") as f:
+            reader = csv.DictReader(f)
+            return [row["run_id"] for row in reader]
+
+    def get_completed_keys(
+        self,
+        experiment_id: str,
+        key_fields: Optional[List[str]] = None
+    ) -> set:
+        """Get completed parameter keys for resumption."""
+        if key_fields is None:
+            key_fields = ["seed", "kappa", "concentration"]
+
+        registry_path = self._registry_path(experiment_id)
+        if not registry_path.exists():
+            return set()
+
+        completed = set()
+        with open(registry_path, "r", newline="") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                if row.get("status") == "completed":
+                    key_values = []
+                    for field in key_fields:
+                        val = row.get(field, "")
+                        # Try to parse as number for consistent hashing
+                        try:
+                            if "." in val:
+                                key_values.append(float(val))
+                            else:
+                                key_values.append(int(val))
+                        except (ValueError, TypeError):
+                            key_values.append(val)
+                    completed.add(tuple(key_values))
+        return completed
+
+    def query(
+        self,
+        experiment_id: str,
+        filters: Optional[Dict[str, Any]] = None
+    ) -> List[RegistryEntry]:
+        """Query registry with filters."""
+        registry_path = self._registry_path(experiment_id)
+        if not registry_path.exists():
+            return []
+
+        results = []
+        with open(registry_path, "r", newline="") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                if filters:
+                    match = all(
+                        str(row.get(k, "")) == str(v)
+                        for k, v in filters.items()
+                    )
+                    if not match:
+                        continue
+                results.append(self._row_to_entry(row))
+        return results
+
+    def _row_to_entry(self, row: Dict[str, str]) -> RegistryEntry:
+        """Convert CSV row to RegistryEntry."""
+        # Known parameter, metric, and artifact keys
+        param_keys = {"phase", "seed", "n_agents", "kappa", "concentration", "mu",
+                      "monotonicity", "maturity_days", "Q_total", "S1", "L0",
+                      "default_handling", "dealer_enabled"}
+        metric_keys = {"phi_total", "delta_total", "time_to_stability"}
+        artifact_keys = {"scenario_yaml", "events_jsonl", "balances_csv",
+                        "metrics_csv", "metrics_json", "metrics_html", "run_html",
+                        "dealer_metrics_json", "trades_csv", "repayment_events_csv"}
+        meta_keys = {"run_id", "experiment_id", "status", "error"}
+
+        parameters: Dict[str, Any] = {}
+        metrics: Dict[str, Any] = {}
+        artifact_paths: Dict[str, str] = {}
+
+        for k, v in row.items():
+            if not v or k in meta_keys:
+                continue
+            if k in param_keys:
+                # Try to parse as number
+                try:
+                    if "." in v:
+                        parameters[k] = float(v)
+                    else:
+                        parameters[k] = int(v)
+                except ValueError:
+                    parameters[k] = v
+            elif k in metric_keys:
+                try:
+                    metrics[k] = float(v)
+                except ValueError:
+                    metrics[k] = v
+            elif k in artifact_keys:
+                artifact_paths[k] = v
+            else:
+                # Unknown field - add to parameters
+                parameters[k] = v
+
+        return RegistryEntry(
+            run_id=row["run_id"],
+            experiment_id=row.get("experiment_id", ""),
+            status=RunStatus(row.get("status", "completed")),
+            parameters=parameters,
+            metrics=metrics,
+            artifact_paths=artifact_paths,
+            error=row.get("error") or None,
+        )
+
+```
+
+---
+
+### 📄 src/bilancio/storage/models.py
+
+```python
+"""Data models for storage abstractions."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Dict, Any, Optional
+from enum import Enum
+
+
+class RunStatus(Enum):
+    """Status of a simulation run."""
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+@dataclass
+class RunArtifacts:
+    """References to simulation output artifacts."""
+    scenario_yaml: Optional[str] = None
+    events_jsonl: Optional[str] = None
+    balances_csv: Optional[str] = None
+    metrics_csv: Optional[str] = None
+    metrics_json: Optional[str] = None
+    run_html: Optional[str] = None
+    dealer_metrics_json: Optional[str] = None
+    trades_csv: Optional[str] = None
+    repayment_events_csv: Optional[str] = None
+
+
+@dataclass
+class RunResult:
+    """Complete result of a single simulation run."""
+    run_id: str
+    status: RunStatus
+    parameters: Dict[str, Any] = field(default_factory=dict)
+    metrics: Dict[str, Any] = field(default_factory=dict)
+    artifacts: RunArtifacts = field(default_factory=RunArtifacts)
+    error: Optional[str] = None
+    execution_time_ms: Optional[int] = None
+
+
+@dataclass
+class RegistryEntry:
+    """Metadata for registry storage."""
+    run_id: str
+    experiment_id: str
+    status: RunStatus
+    parameters: Dict[str, Any] = field(default_factory=dict)
+    metrics: Dict[str, Any] = field(default_factory=dict)
+    artifact_paths: Dict[str, str] = field(default_factory=dict)
+    error: Optional[str] = None
+
+```
+
+---
+
+### 📄 src/bilancio/storage/protocols.py
+
+```python
+"""Protocol definitions for storage backends."""
+
+from __future__ import annotations
+
+from typing import Protocol, Optional, List, Dict, Any, runtime_checkable
+
+from .models import RunResult, RegistryEntry
+
+
+@runtime_checkable
+class ResultStore(Protocol):
+    """Protocol for storing simulation results."""
+
+    def save_artifact(
+        self,
+        experiment_id: str,
+        run_id: str,
+        name: str,
+        content: bytes,
+        content_type: str = "application/octet-stream"
+    ) -> str:
+        """Save an artifact, return its reference (path or key)."""
+        ...
+
+    def save_run(self, experiment_id: str, result: RunResult) -> None:
+        """Save a complete run result."""
+        ...
+
+    def load_run(self, experiment_id: str, run_id: str) -> Optional[RunResult]:
+        """Load a run result by ID."""
+        ...
+
+    def load_artifact(self, reference: str) -> bytes:
+        """Load artifact content by reference."""
+        ...
+
+
+@runtime_checkable
+class RegistryStore(Protocol):
+    """Protocol for experiment registry storage."""
+
+    def upsert(self, entry: RegistryEntry) -> None:
+        """Insert or update a registry entry."""
+        ...
+
+    def get(self, experiment_id: str, run_id: str) -> Optional[RegistryEntry]:
+        """Get a specific registry entry."""
+        ...
+
+    def list_runs(self, experiment_id: str) -> List[str]:
+        """List all run IDs for an experiment."""
+        ...
+
+    def get_completed_keys(
+        self,
+        experiment_id: str,
+        key_fields: Optional[List[str]] = None
+    ) -> set:
+        """Get set of completed parameter keys for resumption."""
+        ...
+
+    def query(
+        self,
+        experiment_id: str,
+        filters: Optional[Dict[str, Any]] = None
+    ) -> List[RegistryEntry]:
+        """Query registry entries with optional filters."""
+        ...
 
 ```
 
@@ -56363,6 +57665,368 @@ class TestBalanceAnalytics:
         
         # Ensure all invariants pass
         system.assert_invariants()
+```
+
+---
+
+### 🧪 tests/analysis/test_metrics_computer.py
+
+```python
+"""Tests for MetricsComputer."""
+
+import json
+import pytest
+from pathlib import Path
+from typing import Dict, Any, List
+
+from bilancio.storage.artifact_loaders import LocalArtifactLoader
+from bilancio.analysis.metrics_computer import MetricsComputer, MetricsBundle
+
+
+# Sample events in JSONL format for testing
+SAMPLE_EVENTS_JSONL = """{"type": "setup", "event": "mint_reserves", "day": 0, "amount": 10000, "to": "Bank1"}
+{"type": "setup", "event": "create_payable", "day": 0, "from": "Firm1", "to": "Firm2", "amount": 500, "due_day": 1}
+{"type": "phase", "day": 1, "phase": "B"}
+{"type": "settlement", "day": 1, "from": "Firm1", "to": "Firm2", "amount": 500, "event": "settled"}
+{"type": "phase", "day": 1, "phase": "C"}
+{"type": "end_day", "day": 1}
+{"type": "phase", "day": 2, "phase": "B"}
+{"type": "phase", "day": 2, "phase": "C"}
+{"type": "end_day", "day": 2}
+"""
+
+# Sample balances CSV content
+SAMPLE_BALANCES_CSV = """day,agent,account,balance
+0,Bank1,reserves,10000
+0,Firm1,deposits,2000
+0,Firm2,deposits,1000
+1,Bank1,reserves,10000
+1,Firm1,deposits,1500
+1,Firm2,deposits,1500
+"""
+
+
+@pytest.fixture
+def sample_events_file(tmp_path: Path) -> Path:
+    """Create a sample events.jsonl file."""
+    events_file = tmp_path / "events.jsonl"
+    events_file.write_text(SAMPLE_EVENTS_JSONL)
+    return events_file
+
+
+@pytest.fixture
+def sample_balances_file(tmp_path: Path) -> Path:
+    """Create a sample balances.csv file."""
+    balances_file = tmp_path / "balances.csv"
+    balances_file.write_text(SAMPLE_BALANCES_CSV)
+    return balances_file
+
+
+@pytest.fixture
+def loader(tmp_path: Path) -> LocalArtifactLoader:
+    """Create a LocalArtifactLoader for temp directory."""
+    return LocalArtifactLoader(tmp_path)
+
+
+@pytest.fixture
+def computer(loader: LocalArtifactLoader) -> MetricsComputer:
+    """Create a MetricsComputer instance."""
+    return MetricsComputer(loader)
+
+
+class TestMetricsComputerCompute:
+    """Tests for MetricsComputer.compute()."""
+
+    def test_compute_with_events_only(
+        self, computer: MetricsComputer, sample_events_file: Path
+    ):
+        """compute() works with only events_jsonl artifact."""
+        artifacts = {"events_jsonl": "events.jsonl"}
+        bundle = computer.compute(artifacts)
+
+        assert isinstance(bundle, MetricsBundle)
+        assert isinstance(bundle.day_metrics, list)
+        assert isinstance(bundle.debtor_shares, list)
+        assert isinstance(bundle.intraday, list)
+        assert isinstance(bundle.summary, dict)
+
+    def test_compute_with_events_and_balances(
+        self,
+        computer: MetricsComputer,
+        sample_events_file: Path,
+        sample_balances_file: Path,
+    ):
+        """compute() works with both events_jsonl and balances_csv."""
+        artifacts = {
+            "events_jsonl": "events.jsonl",
+            "balances_csv": "balances.csv",
+        }
+        bundle = computer.compute(artifacts)
+
+        assert isinstance(bundle, MetricsBundle)
+        # With balances, M_t and G_t should potentially be computed
+        assert bundle.day_metrics is not None
+
+    def test_compute_raises_keyerror_when_events_missing(
+        self, computer: MetricsComputer
+    ):
+        """compute() raises KeyError when events_jsonl is missing."""
+        artifacts: Dict[str, str] = {}
+
+        with pytest.raises(KeyError) as exc_info:
+            computer.compute(artifacts)
+
+        assert "events_jsonl" in str(exc_info.value)
+
+    def test_compute_raises_keyerror_when_events_none(
+        self, computer: MetricsComputer
+    ):
+        """compute() raises KeyError when events_jsonl is None."""
+        artifacts = {"events_jsonl": None}
+
+        with pytest.raises(KeyError):
+            computer.compute(artifacts)
+
+    def test_compute_raises_filenotfound_for_missing_events_file(
+        self, computer: MetricsComputer, tmp_path: Path
+    ):
+        """compute() raises FileNotFoundError when events file doesn't exist."""
+        artifacts = {"events_jsonl": "nonexistent.jsonl"}
+
+        with pytest.raises(FileNotFoundError):
+            computer.compute(artifacts)
+
+    def test_compute_with_day_list(
+        self, computer: MetricsComputer, sample_events_file: Path
+    ):
+        """compute() accepts optional day_list parameter."""
+        artifacts = {"events_jsonl": "events.jsonl"}
+        bundle = computer.compute(artifacts, day_list=[1])
+
+        assert isinstance(bundle, MetricsBundle)
+
+    def test_compute_ignores_missing_balances_file(
+        self, computer: MetricsComputer, sample_events_file: Path
+    ):
+        """compute() ignores balances_csv if file doesn't exist."""
+        artifacts = {
+            "events_jsonl": "events.jsonl",
+            "balances_csv": "nonexistent_balances.csv",
+        }
+
+        # Should not raise, just skip balances
+        bundle = computer.compute(artifacts)
+        assert isinstance(bundle, MetricsBundle)
+
+    def test_compute_returns_metrics_bundle(
+        self, computer: MetricsComputer, sample_events_file: Path
+    ):
+        """compute() returns a MetricsBundle instance."""
+        artifacts = {"events_jsonl": "events.jsonl"}
+        result = computer.compute(artifacts)
+
+        assert isinstance(result, MetricsBundle)
+
+
+class TestMetricsComputerWriteOutputs:
+    """Tests for MetricsComputer.write_outputs()."""
+
+    def test_write_outputs_creates_metrics_csv(
+        self, computer: MetricsComputer, sample_events_file: Path, tmp_path: Path
+    ):
+        """write_outputs() creates metrics.csv file."""
+        artifacts = {"events_jsonl": "events.jsonl"}
+        bundle = computer.compute(artifacts)
+
+        output_dir = tmp_path / "output"
+        paths = computer.write_outputs(bundle, output_dir)
+
+        assert "metrics_csv" in paths
+        assert paths["metrics_csv"].exists()
+        assert paths["metrics_csv"].name == "metrics.csv"
+
+    def test_write_outputs_creates_metrics_json(
+        self, computer: MetricsComputer, sample_events_file: Path, tmp_path: Path
+    ):
+        """write_outputs() creates metrics.json file."""
+        artifacts = {"events_jsonl": "events.jsonl"}
+        bundle = computer.compute(artifacts)
+
+        output_dir = tmp_path / "output"
+        paths = computer.write_outputs(bundle, output_dir)
+
+        assert "metrics_json" in paths
+        assert paths["metrics_json"].exists()
+        assert paths["metrics_json"].name == "metrics.json"
+
+    def test_write_outputs_creates_debtor_shares_csv(
+        self, computer: MetricsComputer, sample_events_file: Path, tmp_path: Path
+    ):
+        """write_outputs() creates debtor_shares.csv file."""
+        artifacts = {"events_jsonl": "events.jsonl"}
+        bundle = computer.compute(artifacts)
+
+        output_dir = tmp_path / "output"
+        paths = computer.write_outputs(bundle, output_dir)
+
+        assert "debtor_shares_csv" in paths
+        assert paths["debtor_shares_csv"].exists()
+        assert paths["debtor_shares_csv"].name == "debtor_shares.csv"
+
+    def test_write_outputs_creates_intraday_csv(
+        self, computer: MetricsComputer, sample_events_file: Path, tmp_path: Path
+    ):
+        """write_outputs() creates intraday.csv file."""
+        artifacts = {"events_jsonl": "events.jsonl"}
+        bundle = computer.compute(artifacts)
+
+        output_dir = tmp_path / "output"
+        paths = computer.write_outputs(bundle, output_dir)
+
+        assert "intraday_csv" in paths
+        assert paths["intraday_csv"].exists()
+        assert paths["intraday_csv"].name == "intraday.csv"
+
+    def test_write_outputs_creates_metrics_html(
+        self, computer: MetricsComputer, sample_events_file: Path, tmp_path: Path
+    ):
+        """write_outputs() creates metrics.html file."""
+        artifacts = {"events_jsonl": "events.jsonl"}
+        bundle = computer.compute(artifacts)
+
+        output_dir = tmp_path / "output"
+        paths = computer.write_outputs(bundle, output_dir)
+
+        assert "metrics_html" in paths
+        assert paths["metrics_html"].exists()
+        assert paths["metrics_html"].name == "metrics.html"
+
+    def test_write_outputs_creates_all_expected_files(
+        self, computer: MetricsComputer, sample_events_file: Path, tmp_path: Path
+    ):
+        """write_outputs() creates all 5 expected output files."""
+        artifacts = {"events_jsonl": "events.jsonl"}
+        bundle = computer.compute(artifacts)
+
+        output_dir = tmp_path / "output"
+        paths = computer.write_outputs(bundle, output_dir)
+
+        expected_files = {
+            "metrics_csv",
+            "metrics_json",
+            "debtor_shares_csv",
+            "intraday_csv",
+            "metrics_html",
+        }
+        assert set(paths.keys()) == expected_files
+
+    def test_write_outputs_creates_output_directory(
+        self, computer: MetricsComputer, sample_events_file: Path, tmp_path: Path
+    ):
+        """write_outputs() creates output directory if it doesn't exist."""
+        artifacts = {"events_jsonl": "events.jsonl"}
+        bundle = computer.compute(artifacts)
+
+        output_dir = tmp_path / "nested" / "output"
+        assert not output_dir.exists()
+
+        computer.write_outputs(bundle, output_dir)
+
+        assert output_dir.exists()
+
+    def test_write_outputs_accepts_title_and_subtitle(
+        self, computer: MetricsComputer, sample_events_file: Path, tmp_path: Path
+    ):
+        """write_outputs() accepts optional title and subtitle."""
+        artifacts = {"events_jsonl": "events.jsonl"}
+        bundle = computer.compute(artifacts)
+
+        output_dir = tmp_path / "output"
+        paths = computer.write_outputs(
+            bundle, output_dir, title="Test Report", subtitle="Test Subtitle"
+        )
+
+        # Just verify it doesn't raise and creates the files
+        assert paths["metrics_html"].exists()
+
+
+class TestMetricsBundle:
+    """Tests for MetricsBundle dataclass."""
+
+    def test_metrics_bundle_has_day_metrics_attribute(self):
+        """MetricsBundle has day_metrics attribute."""
+        bundle = MetricsBundle(
+            day_metrics=[],
+            debtor_shares=[],
+            intraday=[],
+            summary={},
+        )
+        assert hasattr(bundle, "day_metrics")
+
+    def test_metrics_bundle_has_debtor_shares_attribute(self):
+        """MetricsBundle has debtor_shares attribute."""
+        bundle = MetricsBundle(
+            day_metrics=[],
+            debtor_shares=[],
+            intraday=[],
+            summary={},
+        )
+        assert hasattr(bundle, "debtor_shares")
+
+    def test_metrics_bundle_has_intraday_attribute(self):
+        """MetricsBundle has intraday attribute."""
+        bundle = MetricsBundle(
+            day_metrics=[],
+            debtor_shares=[],
+            intraday=[],
+            summary={},
+        )
+        assert hasattr(bundle, "intraday")
+
+    def test_metrics_bundle_has_summary_attribute(self):
+        """MetricsBundle has summary attribute."""
+        bundle = MetricsBundle(
+            day_metrics=[],
+            debtor_shares=[],
+            intraday=[],
+            summary={},
+        )
+        assert hasattr(bundle, "summary")
+
+    def test_metrics_bundle_stores_values(self):
+        """MetricsBundle stores provided values correctly."""
+        day_metrics = [{"day": 1, "S_t": 100}]
+        debtor_shares = [{"day": 1, "agent": "A", "DS_t": 0.5}]
+        intraday = [{"day": 1, "step": 0, "P_prefix": 50}]
+        summary = {"phi_total": 100.0, "delta_total": 50.0}
+
+        bundle = MetricsBundle(
+            day_metrics=day_metrics,
+            debtor_shares=debtor_shares,
+            intraday=intraday,
+            summary=summary,
+        )
+
+        assert bundle.day_metrics == day_metrics
+        assert bundle.debtor_shares == debtor_shares
+        assert bundle.intraday == intraday
+        assert bundle.summary == summary
+
+
+class TestMetricsComputerInit:
+    """Tests for MetricsComputer initialization."""
+
+    def test_init_stores_loader(self, loader: LocalArtifactLoader):
+        """__init__ stores the loader."""
+        computer = MetricsComputer(loader)
+        assert computer.loader is loader
+
+    def test_accepts_artifact_loader_protocol(self, tmp_path: Path):
+        """__init__ accepts any ArtifactLoader implementation."""
+        loader = LocalArtifactLoader(tmp_path)
+        computer = MetricsComputer(loader)
+        assert computer.loader is not None
+
 ```
 
 ---
@@ -64495,6 +66159,952 @@ def test_alias_helpers_roundtrip():
 
 ---
 
+### 🧪 tests/runners/__init__.py
+
+```python
+# Tests for bilancio.runners module
+
+```
+
+---
+
+### 🧪 tests/runners/test_local_executor.py
+
+```python
+"""Tests for LocalExecutor simulation execution.
+
+This module tests:
+- Basic execution and result handling
+- Output file creation
+- Error handling
+- Directory management
+
+Note: Metrics computation is NOT tested here because LocalExecutor
+no longer computes metrics. That's MetricsComputer's job.
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Dict, Any
+
+import pytest
+
+from bilancio.runners.local_executor import LocalExecutor
+from bilancio.runners.models import RunOptions, ExecutionResult
+from bilancio.storage.models import RunStatus
+
+
+# Minimal scenario configuration for testing
+MINIMAL_SCENARIO: Dict[str, Any] = {
+    "version": 1,
+    "name": "Test Scenario",
+    "description": "Minimal test scenario",
+    "agents": [
+        {"id": "bank", "kind": "bank", "name": "Test Bank"},
+        {"id": "firm1", "kind": "firm", "name": "Test Firm 1"},
+        {"id": "firm2", "kind": "firm", "name": "Test Firm 2"},
+    ],
+    "initial_actions": [],
+    "run": {"max_days": 5},
+}
+
+# Scenario with activity that produces events
+SCENARIO_WITH_ACTIVITY: Dict[str, Any] = {
+    "version": 1,
+    "name": "Activity Test Scenario",
+    "description": "Scenario with payment activity to generate events",
+    "agents": [
+        {"id": "CB", "kind": "central_bank", "name": "Central Bank"},
+        {"id": "bank", "kind": "bank", "name": "Test Bank"},
+        {"id": "firm1", "kind": "firm", "name": "Test Firm 1"},
+        {"id": "firm2", "kind": "firm", "name": "Test Firm 2"},
+    ],
+    "initial_actions": [
+        {"mint_reserves": {"to": "bank", "amount": 10000}},
+        {"mint_cash": {"to": "firm1", "amount": 2000}},
+        {"mint_cash": {"to": "firm2", "amount": 1500}},
+        {"deposit_cash": {"customer": "firm1", "bank": "bank", "amount": 1800}},
+        {"deposit_cash": {"customer": "firm2", "bank": "bank", "amount": 1000}},
+        {"create_payable": {"from": "firm1", "to": "firm2", "amount": 500, "due_day": 1}},
+    ],
+    "run": {"max_days": 10},
+}
+
+
+class TestLocalExecutorBasicExecution:
+    """Tests for basic LocalExecutor.execute functionality."""
+
+    @pytest.mark.slow
+    def test_execute_returns_execution_result(self, tmp_path: Path):
+        """execute() returns an ExecutionResult object."""
+        executor = LocalExecutor()
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_basic_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        assert isinstance(result, ExecutionResult)
+        assert result.run_id == "test_basic_001"
+
+    @pytest.mark.slow
+    def test_execute_simple_scenario_returns_completed_status(self, tmp_path: Path):
+        """execute() with valid scenario returns COMPLETED status."""
+        executor = LocalExecutor()
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_completed_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        assert result.status == RunStatus.COMPLETED
+        assert result.error is None
+
+    @pytest.mark.slow
+    def test_execute_populates_execution_time(self, tmp_path: Path):
+        """execute() populates execution_time_ms."""
+        executor = LocalExecutor()
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_time_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        assert result.execution_time_ms is not None
+        assert result.execution_time_ms > 0
+
+    @pytest.mark.slow
+    def test_execute_returns_local_storage_type(self, tmp_path: Path):
+        """execute() returns storage_type='local'."""
+        executor = LocalExecutor()
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_storage_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        assert result.storage_type == "local"
+
+    @pytest.mark.slow
+    def test_execute_returns_absolute_storage_base(self, tmp_path: Path):
+        """execute() returns absolute path as storage_base."""
+        executor = LocalExecutor()
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_storage_base_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        assert result.storage_base == str(tmp_path.resolve())
+
+
+class TestLocalExecutorOutputFiles:
+    """Tests for output file creation."""
+
+    @pytest.mark.slow
+    def test_execute_creates_scenario_yaml(self, tmp_path: Path):
+        """execute() creates scenario.yaml file."""
+        executor = LocalExecutor()
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_yaml_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        scenario_path = tmp_path / "scenario.yaml"
+        assert scenario_path.exists()
+        assert result.artifacts.get("scenario_yaml") == "scenario.yaml"
+
+    @pytest.mark.slow
+    def test_execute_creates_exports_directory(self, tmp_path: Path):
+        """execute() creates out/ exports directory."""
+        executor = LocalExecutor()
+        executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_exports_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        exports_dir = tmp_path / "out"
+        assert exports_dir.exists()
+        assert exports_dir.is_dir()
+
+    @pytest.mark.slow
+    def test_execute_creates_balances_csv(self, tmp_path: Path):
+        """execute() creates balances.csv file."""
+        executor = LocalExecutor()
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_balances_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        balances_path = tmp_path / "out" / "balances.csv"
+        assert balances_path.exists()
+        assert result.artifacts.get("balances_csv") == "out/balances.csv"
+
+    @pytest.mark.slow
+    def test_execute_creates_events_jsonl(self, tmp_path: Path):
+        """execute() creates events.jsonl file."""
+        executor = LocalExecutor()
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_events_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        events_path = tmp_path / "out" / "events.jsonl"
+        assert events_path.exists()
+        assert result.artifacts.get("events_jsonl") == "out/events.jsonl"
+
+    @pytest.mark.slow
+    def test_execute_creates_run_html(self, tmp_path: Path):
+        """execute() creates run.html file."""
+        executor = LocalExecutor()
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_html_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        html_path = tmp_path / "run.html"
+        assert html_path.exists()
+        assert result.artifacts.get("run_html") == "run.html"
+
+    @pytest.mark.slow
+    def test_artifacts_are_relative_paths(self, tmp_path: Path):
+        """execute() returns artifacts as relative paths."""
+        executor = LocalExecutor()
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_relative_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        # All artifact paths should be relative (not starting with /)
+        for key, path in result.artifacts.items():
+            assert not path.startswith("/"), f"Artifact {key} should be relative: {path}"
+
+
+class TestLocalExecutorErrorHandling:
+    """Tests for error handling in LocalExecutor."""
+
+    @pytest.mark.slow
+    def test_execute_returns_failed_status_on_invalid_scenario(self, tmp_path: Path):
+        """execute() returns FAILED status when scenario is invalid."""
+        executor = LocalExecutor()
+
+        # Invalid scenario - missing required fields
+        invalid_scenario: Dict[str, Any] = {
+            "agents": "not_a_list",  # Should be a list
+            "setup": [],
+        }
+
+        result = executor.execute(
+            scenario_config=invalid_scenario,
+            run_id="test_failed_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        assert result.status == RunStatus.FAILED
+
+    @pytest.mark.slow
+    def test_execute_returns_error_message_on_failure(self, tmp_path: Path):
+        """execute() includes error message when simulation fails."""
+        executor = LocalExecutor()
+
+        # Invalid scenario configuration
+        invalid_scenario: Dict[str, Any] = {
+            "agents": [{"id": "bank"}],  # Missing 'kind'
+            "setup": [],
+        }
+
+        result = executor.execute(
+            scenario_config=invalid_scenario,
+            run_id="test_error_msg_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        assert result.status == RunStatus.FAILED
+        assert result.error is not None
+        assert len(result.error) > 0
+
+    @pytest.mark.slow
+    def test_execute_records_execution_time_on_failure(self, tmp_path: Path):
+        """execute() records execution_time_ms even on failure."""
+        executor = LocalExecutor()
+
+        invalid_scenario: Dict[str, Any] = {
+            "agents": "invalid",
+            "setup": [],
+        }
+
+        result = executor.execute(
+            scenario_config=invalid_scenario,
+            run_id="test_time_fail_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        assert result.execution_time_ms is not None
+        assert result.execution_time_ms >= 0
+
+    @pytest.mark.slow
+    def test_failed_execution_still_includes_scenario_yaml(self, tmp_path: Path):
+        """execute() includes scenario_yaml artifact even on failure."""
+        executor = LocalExecutor()
+
+        invalid_scenario: Dict[str, Any] = {
+            "agents": "invalid",
+            "setup": [],
+        }
+
+        result = executor.execute(
+            scenario_config=invalid_scenario,
+            run_id="test_yaml_fail_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        # scenario.yaml should still be written and referenced
+        assert "scenario_yaml" in result.artifacts
+        scenario_path = tmp_path / result.artifacts["scenario_yaml"]
+        assert scenario_path.exists()
+
+
+class TestLocalExecutorDirectoryManagement:
+    """Tests for output directory management."""
+
+    @pytest.mark.slow
+    def test_output_dir_parameter_is_respected(self, tmp_path: Path):
+        """execute() uses provided output_dir."""
+        executor = LocalExecutor()
+        custom_dir = tmp_path / "custom_output"
+        custom_dir.mkdir()
+
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_custom_dir_001",
+            output_dir=custom_dir,
+            options=RunOptions(max_days=5),
+        )
+
+        # storage_base should be the custom directory
+        assert str(custom_dir.resolve()) in result.storage_base
+
+    @pytest.mark.slow
+    def test_output_dir_created_if_not_exists(self, tmp_path: Path):
+        """execute() creates output_dir if it doesn't exist."""
+        executor = LocalExecutor()
+        new_dir = tmp_path / "new_output_dir"
+
+        # Directory should not exist yet
+        assert not new_dir.exists()
+
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_create_dir_001",
+            output_dir=new_dir,
+            options=RunOptions(max_days=5),
+        )
+
+        # Directory should now exist
+        assert new_dir.exists()
+        assert result.status == RunStatus.COMPLETED
+
+    @pytest.mark.slow
+    def test_nested_output_dir_created(self, tmp_path: Path):
+        """execute() creates nested output directories."""
+        executor = LocalExecutor()
+        nested_dir = tmp_path / "level1" / "level2" / "level3"
+
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_nested_dir_001",
+            output_dir=nested_dir,
+            options=RunOptions(max_days=5),
+        )
+
+        assert nested_dir.exists()
+        assert result.status == RunStatus.COMPLETED
+
+
+class TestLocalExecutorRunIdHandling:
+    """Tests for run_id handling in results."""
+
+    @pytest.mark.slow
+    def test_run_id_preserved_in_result(self, tmp_path: Path):
+        """execute() preserves run_id in result."""
+        executor = LocalExecutor()
+        custom_run_id = "unique_run_id_12345"
+
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id=custom_run_id,
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        assert result.run_id == custom_run_id
+
+
+class TestLocalExecutorRunOptions:
+    """Tests for RunOptions parameter handling."""
+
+    @pytest.mark.slow
+    def test_options_max_days_is_used(self, tmp_path: Path):
+        """execute() uses max_days from RunOptions."""
+        executor = LocalExecutor()
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_options_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=3),
+        )
+
+        assert result.status == RunStatus.COMPLETED
+
+    @pytest.mark.slow
+    def test_options_mode_is_used(self, tmp_path: Path):
+        """execute() uses mode from RunOptions."""
+        executor = LocalExecutor()
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_mode_001",
+            output_dir=tmp_path,
+            options=RunOptions(mode="until_stable", max_days=5),
+        )
+
+        assert result.status == RunStatus.COMPLETED
+
+    @pytest.mark.slow
+    def test_default_options_work(self, tmp_path: Path):
+        """execute() works with default RunOptions."""
+        executor = LocalExecutor()
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_defaults_001",
+            output_dir=tmp_path,
+            options=RunOptions(),
+        )
+
+        assert result.status == RunStatus.COMPLETED
+
+
+class TestLocalExecutorScenarioWithActivity:
+    """Tests with scenarios that have actual activity."""
+
+    @pytest.mark.slow
+    def test_scenario_with_obligations_produces_events(self, tmp_path: Path):
+        """Scenario with setup events produces events.jsonl."""
+        executor = LocalExecutor()
+
+        result = executor.execute(
+            scenario_config=SCENARIO_WITH_ACTIVITY,
+            run_id="test_activity_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=10),
+        )
+
+        assert result.status == RunStatus.COMPLETED
+        # Events file should be created
+        events_path = tmp_path / "out" / "events.jsonl"
+        assert events_path.exists()
+        # And it should have content
+        assert events_path.stat().st_size > 0
+
+    @pytest.mark.slow
+    def test_result_artifacts_are_relative(self, tmp_path: Path):
+        """execute() returns artifacts as relative paths for active scenario."""
+        executor = LocalExecutor()
+
+        result = executor.execute(
+            scenario_config=SCENARIO_WITH_ACTIVITY,
+            run_id="test_artifacts_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=10),
+        )
+
+        assert isinstance(result, ExecutionResult)
+
+        # All artifact paths should be relative
+        for key, path in result.artifacts.items():
+            assert not path.startswith("/"), f"{key} should be relative"
+            # And should resolve to existing files
+            full_path = tmp_path / path
+            assert full_path.exists(), f"{key} at {path} should exist"
+
+```
+
+---
+
+### 🧪 tests/runners/test_models.py
+
+```python
+"""Tests for runner data models."""
+
+import pytest
+
+from bilancio.runners.models import RunOptions, ExecutionResult
+from bilancio.storage.models import RunStatus
+
+
+class TestRunOptionsDefaults:
+    """Tests for RunOptions default values."""
+
+    def test_mode_defaults_to_until_stable(self):
+        """mode defaults to 'until_stable'."""
+        options = RunOptions()
+        assert options.mode == "until_stable"
+
+    def test_max_days_defaults_to_90(self):
+        """max_days defaults to 90."""
+        options = RunOptions()
+        assert options.max_days == 90
+
+    def test_quiet_days_defaults_to_2(self):
+        """quiet_days defaults to 2."""
+        options = RunOptions()
+        assert options.quiet_days == 2
+
+    def test_check_invariants_defaults_to_daily(self):
+        """check_invariants defaults to 'daily'."""
+        options = RunOptions()
+        assert options.check_invariants == "daily"
+
+    def test_default_handling_defaults_to_fail_fast(self):
+        """default_handling defaults to 'fail-fast'."""
+        options = RunOptions()
+        assert options.default_handling == "fail-fast"
+
+    def test_show_events_defaults_to_detailed(self):
+        """show_events defaults to 'detailed'."""
+        options = RunOptions()
+        assert options.show_events == "detailed"
+
+    def test_show_balances_defaults_to_none(self):
+        """show_balances defaults to None."""
+        options = RunOptions()
+        assert options.show_balances is None
+
+    def test_t_account_defaults_to_false(self):
+        """t_account defaults to False."""
+        options = RunOptions()
+        assert options.t_account is False
+
+    def test_detailed_dealer_logging_defaults_to_false(self):
+        """detailed_dealer_logging defaults to False."""
+        options = RunOptions()
+        assert options.detailed_dealer_logging is False
+
+    def test_run_id_defaults_to_none(self):
+        """run_id defaults to None."""
+        options = RunOptions()
+        assert options.run_id is None
+
+    def test_regime_defaults_to_none(self):
+        """regime defaults to None."""
+        options = RunOptions()
+        assert options.regime is None
+
+
+class TestRunOptionsCustomization:
+    """Tests for customizing RunOptions."""
+
+    def test_mode_can_be_customized(self):
+        """mode can be set to custom value."""
+        options = RunOptions(mode="fixed_days")
+        assert options.mode == "fixed_days"
+
+    def test_max_days_can_be_customized(self):
+        """max_days can be set to custom value."""
+        options = RunOptions(max_days=30)
+        assert options.max_days == 30
+
+    def test_quiet_days_can_be_customized(self):
+        """quiet_days can be set to custom value."""
+        options = RunOptions(quiet_days=5)
+        assert options.quiet_days == 5
+
+    def test_check_invariants_can_be_customized(self):
+        """check_invariants can be set to custom value."""
+        options = RunOptions(check_invariants="end")
+        assert options.check_invariants == "end"
+
+    def test_default_handling_can_be_customized(self):
+        """default_handling can be set to custom value."""
+        options = RunOptions(default_handling="continue")
+        assert options.default_handling == "continue"
+
+    def test_show_events_can_be_customized(self):
+        """show_events can be set to custom value."""
+        options = RunOptions(show_events="summary")
+        assert options.show_events == "summary"
+
+    def test_show_balances_can_be_customized(self):
+        """show_balances can be set to list of agent names."""
+        options = RunOptions(show_balances=["Bank1", "Firm1"])
+        assert options.show_balances == ["Bank1", "Firm1"]
+
+    def test_t_account_can_be_customized(self):
+        """t_account can be set to True."""
+        options = RunOptions(t_account=True)
+        assert options.t_account is True
+
+    def test_detailed_dealer_logging_can_be_customized(self):
+        """detailed_dealer_logging can be set to True."""
+        options = RunOptions(detailed_dealer_logging=True)
+        assert options.detailed_dealer_logging is True
+
+    def test_run_id_can_be_customized(self):
+        """run_id can be set to custom value."""
+        options = RunOptions(run_id="custom_run_001")
+        assert options.run_id == "custom_run_001"
+
+    def test_regime_can_be_customized(self):
+        """regime can be set to custom value."""
+        options = RunOptions(regime="baseline")
+        assert options.regime == "baseline"
+
+    def test_multiple_options_can_be_customized(self):
+        """Multiple options can be customized at once."""
+        options = RunOptions(
+            mode="continuous",
+            max_days=100,
+            quiet_days=3,
+            check_invariants="never",
+            default_handling="continue",
+            show_events="none",
+            show_balances=["Bank1"],
+            t_account=True,
+            detailed_dealer_logging=True,
+            run_id="test_run",
+            regime="treatment",
+        )
+
+        assert options.mode == "continuous"
+        assert options.max_days == 100
+        assert options.quiet_days == 3
+        assert options.check_invariants == "never"
+        assert options.default_handling == "continue"
+        assert options.show_events == "none"
+        assert options.show_balances == ["Bank1"]
+        assert options.t_account is True
+        assert options.detailed_dealer_logging is True
+        assert options.run_id == "test_run"
+        assert options.regime == "treatment"
+
+
+class TestExecutionResultCreation:
+    """Tests for ExecutionResult creation."""
+
+    def test_creation_with_all_required_fields(self):
+        """ExecutionResult can be created with all required fields."""
+        result = ExecutionResult(
+            run_id="run_001",
+            status=RunStatus.COMPLETED,
+            storage_type="local",
+            storage_base="/path/to/run",
+        )
+
+        assert result.run_id == "run_001"
+        assert result.status == RunStatus.COMPLETED
+        assert result.storage_type == "local"
+        assert result.storage_base == "/path/to/run"
+
+    def test_creation_with_failed_status(self):
+        """ExecutionResult can be created with FAILED status."""
+        result = ExecutionResult(
+            run_id="run_fail",
+            status=RunStatus.FAILED,
+            storage_type="local",
+            storage_base="/path/to/run",
+            error="Simulation diverged",
+        )
+
+        assert result.status == RunStatus.FAILED
+        assert result.error == "Simulation diverged"
+
+    def test_creation_with_all_fields(self):
+        """ExecutionResult can be created with all fields."""
+        result = ExecutionResult(
+            run_id="run_002",
+            status=RunStatus.COMPLETED,
+            storage_type="s3",
+            storage_base="s3://bucket/prefix",
+            artifacts={
+                "events_jsonl": "out/events.jsonl",
+                "balances_csv": "out/balances.csv",
+            },
+            error=None,
+            execution_time_ms=5000,
+        )
+
+        assert result.run_id == "run_002"
+        assert result.status == RunStatus.COMPLETED
+        assert result.storage_type == "s3"
+        assert result.storage_base == "s3://bucket/prefix"
+        assert result.artifacts["events_jsonl"] == "out/events.jsonl"
+        assert result.artifacts["balances_csv"] == "out/balances.csv"
+        assert result.error is None
+        assert result.execution_time_ms == 5000
+
+
+class TestExecutionResultDefaults:
+    """Tests for ExecutionResult default values."""
+
+    def test_artifacts_defaults_to_empty_dict(self):
+        """artifacts defaults to empty dict."""
+        result = ExecutionResult(
+            run_id="run_001",
+            status=RunStatus.COMPLETED,
+            storage_type="local",
+            storage_base="/path",
+        )
+        assert result.artifacts == {}
+
+    def test_error_defaults_to_none(self):
+        """error defaults to None."""
+        result = ExecutionResult(
+            run_id="run_001",
+            status=RunStatus.COMPLETED,
+            storage_type="local",
+            storage_base="/path",
+        )
+        assert result.error is None
+
+    def test_execution_time_ms_defaults_to_none(self):
+        """execution_time_ms defaults to None."""
+        result = ExecutionResult(
+            run_id="run_001",
+            status=RunStatus.COMPLETED,
+            storage_type="local",
+            storage_base="/path",
+        )
+        assert result.execution_time_ms is None
+
+
+class TestExecutionResultArtifacts:
+    """Tests for ExecutionResult artifacts handling."""
+
+    def test_artifacts_can_store_multiple_paths(self):
+        """artifacts can store multiple artifact paths."""
+        artifacts = {
+            "scenario_yaml": "scenario.yaml",
+            "events_jsonl": "out/events.jsonl",
+            "balances_csv": "out/balances.csv",
+            "run_html": "run.html",
+            "metrics_csv": "out/metrics.csv",
+        }
+
+        result = ExecutionResult(
+            run_id="run_001",
+            status=RunStatus.COMPLETED,
+            storage_type="local",
+            storage_base="/path",
+            artifacts=artifacts,
+        )
+
+        assert len(result.artifacts) == 5
+        assert result.artifacts["scenario_yaml"] == "scenario.yaml"
+        assert result.artifacts["events_jsonl"] == "out/events.jsonl"
+
+    def test_artifacts_can_be_modified(self):
+        """artifacts dict can be modified after creation."""
+        result = ExecutionResult(
+            run_id="run_001",
+            status=RunStatus.COMPLETED,
+            storage_type="local",
+            storage_base="/path",
+        )
+
+        result.artifacts["new_artifact"] = "path/to/artifact"
+        assert result.artifacts["new_artifact"] == "path/to/artifact"
+
+
+class TestExecutionResultStorageTypes:
+    """Tests for ExecutionResult storage type variants."""
+
+    def test_local_storage_type(self):
+        """ExecutionResult supports 'local' storage type."""
+        result = ExecutionResult(
+            run_id="run_001",
+            status=RunStatus.COMPLETED,
+            storage_type="local",
+            storage_base="/Users/test/experiments/run_001",
+        )
+        assert result.storage_type == "local"
+
+    def test_s3_storage_type(self):
+        """ExecutionResult supports 's3' storage type."""
+        result = ExecutionResult(
+            run_id="run_001",
+            status=RunStatus.COMPLETED,
+            storage_type="s3",
+            storage_base="s3://my-bucket/experiments/run_001",
+        )
+        assert result.storage_type == "s3"
+
+    def test_gcs_storage_type(self):
+        """ExecutionResult supports 'gcs' storage type."""
+        result = ExecutionResult(
+            run_id="run_001",
+            status=RunStatus.COMPLETED,
+            storage_type="gcs",
+            storage_base="gs://my-bucket/experiments/run_001",
+        )
+        assert result.storage_type == "gcs"
+
+```
+
+---
+
+### 🧪 tests/runners/test_protocols.py
+
+```python
+"""Tests for simulation executor protocol definitions.
+
+This module tests:
+- Protocol structure validation
+- Protocol conformance checking
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Dict, Any, Optional
+
+import pytest
+
+from bilancio.runners.protocols import SimulationExecutor, JobExecutor
+from bilancio.runners.local_executor import LocalExecutor
+from bilancio.runners.models import RunOptions, ExecutionResult
+from bilancio.storage.models import RunResult, RunStatus
+
+
+class TestSimulationExecutorProtocol:
+    """Tests for SimulationExecutor protocol definition."""
+
+    def test_local_executor_is_instance_of_protocol(self):
+        """LocalExecutor should satisfy SimulationExecutor protocol."""
+        executor = LocalExecutor()
+        assert isinstance(executor, SimulationExecutor)
+
+    def test_protocol_has_execute_method(self):
+        """SimulationExecutor protocol requires execute method."""
+        # Check that the protocol has the execute method defined
+        assert hasattr(SimulationExecutor, "execute")
+
+    def test_custom_class_satisfying_protocol(self):
+        """A custom class with execute method should satisfy the protocol."""
+
+        class CustomExecutor:
+            def execute(
+                self,
+                scenario_config: Dict[str, Any],
+                run_id: str,
+                output_dir: Path,
+                options: RunOptions,
+            ) -> ExecutionResult:
+                return ExecutionResult(
+                    run_id=run_id,
+                    status=RunStatus.COMPLETED,
+                    storage_type="local",
+                    storage_base=str(output_dir),
+                    artifacts={},
+                )
+
+        executor = CustomExecutor()
+        assert isinstance(executor, SimulationExecutor)
+
+    def test_class_missing_execute_does_not_satisfy_protocol(self):
+        """A class without execute method should not satisfy the protocol."""
+
+        class IncompleteExecutor:
+            pass
+
+        executor = IncompleteExecutor()
+        assert not isinstance(executor, SimulationExecutor)
+
+    def test_class_with_wrong_signature_still_satisfies_protocol(self):
+        """Protocol checking is structural, not signature-exact at runtime."""
+        # Note: Python's Protocol runtime checking only checks method existence,
+        # not exact signatures. This is a known limitation.
+
+        class WrongSignatureExecutor:
+            def execute(self):
+                pass
+
+        executor = WrongSignatureExecutor()
+        # This will still pass isinstance check because Python only checks
+        # method existence at runtime, not the full signature
+        assert isinstance(executor, SimulationExecutor)
+
+
+class TestJobExecutorProtocol:
+    """Tests for JobExecutor protocol definition."""
+
+    def test_protocol_has_required_methods(self):
+        """JobExecutor protocol requires submit, status, result, and cancel methods."""
+        assert hasattr(JobExecutor, "submit")
+        assert hasattr(JobExecutor, "status")
+        assert hasattr(JobExecutor, "result")
+        assert hasattr(JobExecutor, "cancel")
+
+    def test_custom_class_satisfying_job_executor_protocol(self):
+        """A custom class with all required methods should satisfy the protocol."""
+
+        class CustomJobExecutor:
+            def submit(self, scenario_config: Dict[str, Any], run_id: str) -> str:
+                return "job_123"
+
+            def status(self, job_id: str) -> RunStatus:
+                return RunStatus.RUNNING
+
+            def result(self, job_id: str) -> Optional[RunResult]:
+                return None
+
+            def cancel(self, job_id: str) -> bool:
+                return True
+
+        executor = CustomJobExecutor()
+        assert isinstance(executor, JobExecutor)
+
+    def test_class_missing_method_does_not_satisfy_protocol(self):
+        """A class missing any required method should not satisfy the protocol."""
+
+        class IncompleteJobExecutor:
+            def submit(self, scenario_config: Dict[str, Any], run_id: str) -> str:
+                return "job_123"
+
+            # Missing: status, result, cancel
+
+        executor = IncompleteJobExecutor()
+        assert not isinstance(executor, JobExecutor)
+
+    def test_local_executor_does_not_satisfy_job_executor(self):
+        """LocalExecutor should not satisfy JobExecutor protocol."""
+        executor = LocalExecutor()
+        assert not isinstance(executor, JobExecutor)
+
+```
+
+---
+
 ### 🧪 tests/scenarios/test_ring_explorer.py
 
 ```python
@@ -64666,6 +67276,1108 @@ def test_monotonicity_extremes():
     assert ascending_amounts == sorted(ascending_amounts, reverse=False)
     assert all(amount > Decimal("0") for amount in descending_amounts)
     assert all(amount > Decimal("0") for amount in ascending_amounts)
+
+```
+
+---
+
+### 🧪 tests/storage/__init__.py
+
+```python
+
+```
+
+---
+
+### 🧪 tests/storage/test_artifact_loaders.py
+
+```python
+"""Tests for artifact loader implementations."""
+
+import pytest
+from pathlib import Path
+
+from bilancio.storage.artifact_loaders import ArtifactLoader, LocalArtifactLoader
+
+
+class TestLocalArtifactLoaderLoadText:
+    """Tests for LocalArtifactLoader.load_text()."""
+
+    def test_load_text_returns_file_contents(self, tmp_path: Path):
+        """load_text() returns text content of a file."""
+        test_file = tmp_path / "test.txt"
+        test_file.write_text("Hello, World!")
+
+        loader = LocalArtifactLoader(tmp_path)
+        result = loader.load_text("test.txt")
+
+        assert result == "Hello, World!"
+
+    def test_load_text_handles_unicode(self, tmp_path: Path):
+        """load_text() correctly handles unicode content."""
+        test_file = tmp_path / "unicode.txt"
+        test_file.write_text("Hello, \u4e16\u754c! \u00e9\u00e8\u00ea")
+
+        loader = LocalArtifactLoader(tmp_path)
+        result = loader.load_text("unicode.txt")
+
+        assert result == "Hello, \u4e16\u754c! \u00e9\u00e8\u00ea"
+
+    def test_load_text_handles_multiline_content(self, tmp_path: Path):
+        """load_text() preserves multiline content."""
+        test_file = tmp_path / "multiline.txt"
+        content = "line1\nline2\nline3"
+        test_file.write_text(content)
+
+        loader = LocalArtifactLoader(tmp_path)
+        result = loader.load_text("multiline.txt")
+
+        assert result == content
+
+    def test_load_text_raises_for_missing_file(self, tmp_path: Path):
+        """load_text() raises FileNotFoundError for missing files."""
+        loader = LocalArtifactLoader(tmp_path)
+
+        with pytest.raises(FileNotFoundError):
+            loader.load_text("nonexistent.txt")
+
+    def test_load_text_nested_path(self, tmp_path: Path):
+        """load_text() handles nested path references."""
+        nested_dir = tmp_path / "subdir" / "deeper"
+        nested_dir.mkdir(parents=True)
+        test_file = nested_dir / "nested.txt"
+        test_file.write_text("nested content")
+
+        loader = LocalArtifactLoader(tmp_path)
+        result = loader.load_text("subdir/deeper/nested.txt")
+
+        assert result == "nested content"
+
+
+class TestLocalArtifactLoaderLoadBytes:
+    """Tests for LocalArtifactLoader.load_bytes()."""
+
+    def test_load_bytes_returns_file_contents(self, tmp_path: Path):
+        """load_bytes() returns binary content of a file."""
+        test_file = tmp_path / "test.bin"
+        test_file.write_bytes(b"\x00\x01\x02\x03")
+
+        loader = LocalArtifactLoader(tmp_path)
+        result = loader.load_bytes("test.bin")
+
+        assert result == b"\x00\x01\x02\x03"
+
+    def test_load_bytes_handles_text_files(self, tmp_path: Path):
+        """load_bytes() can read text files as bytes."""
+        test_file = tmp_path / "text.txt"
+        test_file.write_text("Hello, World!")
+
+        loader = LocalArtifactLoader(tmp_path)
+        result = loader.load_bytes("text.txt")
+
+        assert result == b"Hello, World!"
+
+    def test_load_bytes_raises_for_missing_file(self, tmp_path: Path):
+        """load_bytes() raises FileNotFoundError for missing files."""
+        loader = LocalArtifactLoader(tmp_path)
+
+        with pytest.raises(FileNotFoundError):
+            loader.load_bytes("nonexistent.bin")
+
+    def test_load_bytes_nested_path(self, tmp_path: Path):
+        """load_bytes() handles nested path references."""
+        nested_dir = tmp_path / "data"
+        nested_dir.mkdir()
+        test_file = nested_dir / "file.bin"
+        test_file.write_bytes(b"\xff\xfe")
+
+        loader = LocalArtifactLoader(tmp_path)
+        result = loader.load_bytes("data/file.bin")
+
+        assert result == b"\xff\xfe"
+
+
+class TestLocalArtifactLoaderExists:
+    """Tests for LocalArtifactLoader.exists()."""
+
+    def test_exists_returns_true_for_existing_file(self, tmp_path: Path):
+        """exists() returns True when file exists."""
+        test_file = tmp_path / "exists.txt"
+        test_file.write_text("content")
+
+        loader = LocalArtifactLoader(tmp_path)
+        result = loader.exists("exists.txt")
+
+        assert result is True
+
+    def test_exists_returns_false_for_missing_file(self, tmp_path: Path):
+        """exists() returns False when file does not exist."""
+        loader = LocalArtifactLoader(tmp_path)
+        result = loader.exists("nonexistent.txt")
+
+        assert result is False
+
+    def test_exists_handles_nested_paths(self, tmp_path: Path):
+        """exists() handles nested path references."""
+        nested_dir = tmp_path / "subdir"
+        nested_dir.mkdir()
+        test_file = nested_dir / "file.txt"
+        test_file.write_text("content")
+
+        loader = LocalArtifactLoader(tmp_path)
+
+        assert loader.exists("subdir/file.txt") is True
+        assert loader.exists("subdir/missing.txt") is False
+
+    def test_exists_returns_false_for_directory(self, tmp_path: Path):
+        """exists() returns True for directory (matches Path.exists behavior)."""
+        subdir = tmp_path / "subdir"
+        subdir.mkdir()
+
+        loader = LocalArtifactLoader(tmp_path)
+        # Note: Path.exists() returns True for directories
+        assert loader.exists("subdir") is True
+
+
+class TestLocalArtifactLoaderInit:
+    """Tests for LocalArtifactLoader initialization."""
+
+    def test_init_stores_base_path(self, tmp_path: Path):
+        """__init__ stores base_path as Path object."""
+        loader = LocalArtifactLoader(tmp_path)
+        assert loader.base_path == tmp_path
+
+    def test_init_converts_string_to_path(self, tmp_path: Path):
+        """__init__ converts string path to Path object."""
+        loader = LocalArtifactLoader(str(tmp_path))
+        assert isinstance(loader.base_path, Path)
+        assert loader.base_path == tmp_path
+
+    def test_base_path_not_required_to_exist(self):
+        """__init__ does not require base_path to exist."""
+        # This should not raise
+        loader = LocalArtifactLoader(Path("/nonexistent/path"))
+        assert loader.base_path == Path("/nonexistent/path")
+
+
+class TestLocalArtifactLoaderProtocol:
+    """Tests for LocalArtifactLoader implementing ArtifactLoader protocol."""
+
+    def test_implements_artifact_loader_protocol(self, tmp_path: Path):
+        """LocalArtifactLoader implements ArtifactLoader protocol."""
+        loader = LocalArtifactLoader(tmp_path)
+        # ArtifactLoader is a runtime_checkable Protocol
+        assert isinstance(loader, ArtifactLoader)
+
+    def test_has_load_text_method(self, tmp_path: Path):
+        """LocalArtifactLoader has load_text method."""
+        loader = LocalArtifactLoader(tmp_path)
+        assert hasattr(loader, "load_text")
+        assert callable(loader.load_text)
+
+    def test_has_load_bytes_method(self, tmp_path: Path):
+        """LocalArtifactLoader has load_bytes method."""
+        loader = LocalArtifactLoader(tmp_path)
+        assert hasattr(loader, "load_bytes")
+        assert callable(loader.load_bytes)
+
+    def test_has_exists_method(self, tmp_path: Path):
+        """LocalArtifactLoader has exists method."""
+        loader = LocalArtifactLoader(tmp_path)
+        assert hasattr(loader, "exists")
+        assert callable(loader.exists)
+
+```
+
+---
+
+### 🧪 tests/storage/test_file_store.py
+
+```python
+"""Tests for file-based storage implementations."""
+
+import json
+import csv
+import pytest
+from pathlib import Path
+
+from bilancio.storage.models import (
+    RunStatus,
+    RunArtifacts,
+    RunResult,
+    RegistryEntry,
+)
+from bilancio.storage.file_store import FileResultStore, FileRegistryStore
+
+
+class TestFileResultStore:
+    """Tests for FileResultStore."""
+
+    def test_init_creates_base_dir(self, tmp_path):
+        """Test that initialization creates the base directory."""
+        base_dir = tmp_path / "results"
+        assert not base_dir.exists()
+        store = FileResultStore(base_dir)
+        assert base_dir.exists()
+
+    def test_init_accepts_string_path(self, tmp_path):
+        """Test that initialization accepts string path."""
+        base_dir = str(tmp_path / "results")
+        store = FileResultStore(base_dir)
+        assert Path(base_dir).exists()
+
+    def test_save_artifact_creates_correct_structure(self, tmp_path):
+        """Test that save_artifact creates correct directory structure."""
+        store = FileResultStore(tmp_path)
+        content = b"test content"
+
+        store.save_artifact(
+            experiment_id="exp_001",
+            run_id="run_001",
+            name="events.jsonl",
+            content=content,
+        )
+
+        # Check that the file exists in the correct location
+        expected_path = tmp_path / "exp_001" / "runs" / "run_001" / "out" / "events.jsonl"
+        assert expected_path.exists()
+        assert expected_path.read_bytes() == content
+
+    def test_save_artifact_scenario_yaml_at_run_level(self, tmp_path):
+        """Test that scenario.yaml is saved at run level, not in out/."""
+        store = FileResultStore(tmp_path)
+        content = b"scenario: test"
+
+        store.save_artifact(
+            experiment_id="exp_001",
+            run_id="run_001",
+            name="scenario.yaml",
+            content=content,
+        )
+
+        # scenario.yaml should be at run level, not in out/
+        expected_path = tmp_path / "exp_001" / "runs" / "run_001" / "scenario.yaml"
+        assert expected_path.exists()
+        out_path = tmp_path / "exp_001" / "runs" / "run_001" / "out" / "scenario.yaml"
+        assert not out_path.exists()
+
+    def test_save_artifact_returns_relative_path(self, tmp_path):
+        """Test that save_artifact returns correct relative path."""
+        store = FileResultStore(tmp_path)
+
+        rel_path = store.save_artifact(
+            experiment_id="exp_001",
+            run_id="run_001",
+            name="events.jsonl",
+            content=b"test",
+        )
+
+        assert rel_path == "exp_001/runs/run_001/out/events.jsonl"
+
+    def test_save_artifact_scenario_returns_relative_path(self, tmp_path):
+        """Test that save_artifact returns correct relative path for scenario."""
+        store = FileResultStore(tmp_path)
+
+        rel_path = store.save_artifact(
+            experiment_id="exp_001",
+            run_id="run_001",
+            name="scenario.yaml",
+            content=b"test",
+        )
+
+        assert rel_path == "exp_001/runs/run_001/scenario.yaml"
+
+    def test_save_run_creates_result_json(self, tmp_path):
+        """Test that save_run creates result.json with correct format."""
+        store = FileResultStore(tmp_path)
+        result = RunResult(
+            run_id="run_001",
+            status=RunStatus.COMPLETED,
+            parameters={"seed": 42, "kappa": 0.1},
+            metrics={"phi_total": 100.0},
+            artifacts=RunArtifacts(scenario_yaml="exp/runs/run_001/scenario.yaml"),
+            execution_time_ms=5000,
+        )
+
+        store.save_run("exp_001", result)
+
+        result_path = tmp_path / "exp_001" / "runs" / "run_001" / "result.json"
+        assert result_path.exists()
+
+        data = json.loads(result_path.read_text())
+        assert data["run_id"] == "run_001"
+        assert data["status"] == "completed"
+        assert data["parameters"] == {"seed": 42, "kappa": 0.1}
+        assert data["metrics"] == {"phi_total": 100.0}
+        assert data["artifacts"]["scenario_yaml"] == "exp/runs/run_001/scenario.yaml"
+        assert data["execution_time_ms"] == 5000
+        assert data["error"] is None
+
+    def test_save_run_with_error(self, tmp_path):
+        """Test that save_run correctly saves error field."""
+        store = FileResultStore(tmp_path)
+        result = RunResult(
+            run_id="run_fail",
+            status=RunStatus.FAILED,
+            error="Simulation diverged",
+        )
+
+        store.save_run("exp_001", result)
+
+        result_path = tmp_path / "exp_001" / "runs" / "run_fail" / "result.json"
+        data = json.loads(result_path.read_text())
+        assert data["status"] == "failed"
+        assert data["error"] == "Simulation diverged"
+
+    def test_load_run_returns_none_for_nonexistent(self, tmp_path):
+        """Test that load_run returns None for non-existent run."""
+        store = FileResultStore(tmp_path)
+        result = store.load_run("exp_001", "nonexistent_run")
+        assert result is None
+
+    def test_load_run_returns_none_for_nonexistent_experiment(self, tmp_path):
+        """Test that load_run returns None for non-existent experiment."""
+        store = FileResultStore(tmp_path)
+        result = store.load_run("nonexistent_exp", "run_001")
+        assert result is None
+
+    def test_load_run_correctly_deserializes(self, tmp_path):
+        """Test that load_run correctly deserializes saved run."""
+        store = FileResultStore(tmp_path)
+        original = RunResult(
+            run_id="run_001",
+            status=RunStatus.COMPLETED,
+            parameters={"seed": 42, "kappa": 0.1},
+            metrics={"phi_total": 100.0, "delta_total": 50.0},
+            artifacts=RunArtifacts(
+                scenario_yaml="exp/runs/run_001/scenario.yaml",
+                events_jsonl="exp/runs/run_001/out/events.jsonl",
+            ),
+            execution_time_ms=5000,
+        )
+
+        store.save_run("exp_001", original)
+        loaded = store.load_run("exp_001", "run_001")
+
+        assert loaded is not None
+        assert loaded.run_id == original.run_id
+        assert loaded.status == original.status
+        assert loaded.parameters == original.parameters
+        assert loaded.metrics == original.metrics
+        assert loaded.artifacts.scenario_yaml == original.artifacts.scenario_yaml
+        assert loaded.artifacts.events_jsonl == original.artifacts.events_jsonl
+        assert loaded.execution_time_ms == original.execution_time_ms
+
+    def test_load_artifact_returns_correct_content(self, tmp_path):
+        """Test that load_artifact returns correct content."""
+        store = FileResultStore(tmp_path)
+        content = b"test artifact content"
+
+        rel_path = store.save_artifact(
+            experiment_id="exp_001",
+            run_id="run_001",
+            name="events.jsonl",
+            content=content,
+        )
+
+        loaded_content = store.load_artifact(rel_path)
+        assert loaded_content == content
+
+    def test_roundtrip_save_then_load(self, tmp_path):
+        """Test complete round-trip: save then load preserves all data."""
+        store = FileResultStore(tmp_path)
+
+        # Save artifacts
+        scenario_content = b"agents:\n  - name: Bank1"
+        events_content = b'{"day": 1, "event": "payment"}\n'
+
+        scenario_path = store.save_artifact(
+            "exp_001", "run_001", "scenario.yaml", scenario_content
+        )
+        events_path = store.save_artifact(
+            "exp_001", "run_001", "events.jsonl", events_content
+        )
+
+        # Save run result
+        original = RunResult(
+            run_id="run_001",
+            status=RunStatus.COMPLETED,
+            parameters={"seed": 42, "kappa": 0.15, "n_agents": 10},
+            metrics={"phi_total": 150.0, "delta_total": 75.0, "time_to_stability": 5},
+            artifacts=RunArtifacts(
+                scenario_yaml=scenario_path,
+                events_jsonl=events_path,
+            ),
+            execution_time_ms=10000,
+        )
+        store.save_run("exp_001", original)
+
+        # Load everything back
+        loaded = store.load_run("exp_001", "run_001")
+        loaded_scenario = store.load_artifact(loaded.artifacts.scenario_yaml)
+        loaded_events = store.load_artifact(loaded.artifacts.events_jsonl)
+
+        # Verify everything matches
+        assert loaded.run_id == original.run_id
+        assert loaded.status == original.status
+        assert loaded.parameters == original.parameters
+        assert loaded.metrics == original.metrics
+        assert loaded.execution_time_ms == original.execution_time_ms
+        assert loaded_scenario == scenario_content
+        assert loaded_events == events_content
+
+
+class TestFileRegistryStore:
+    """Tests for FileRegistryStore."""
+
+    def test_upsert_creates_registry_file_and_directory(self, tmp_path):
+        """Test that upsert creates registry file and directory structure."""
+        store = FileRegistryStore(tmp_path)
+        entry = RegistryEntry(
+            run_id="run_001",
+            experiment_id="exp_001",
+            status=RunStatus.COMPLETED,
+        )
+
+        store.upsert(entry)
+
+        registry_path = tmp_path / "exp_001" / "registry" / "experiments.csv"
+        assert registry_path.exists()
+
+    def test_upsert_updates_existing_entry(self, tmp_path):
+        """Test that upsert updates existing entry (not duplicates)."""
+        store = FileRegistryStore(tmp_path)
+
+        # First upsert
+        entry1 = RegistryEntry(
+            run_id="run_001",
+            experiment_id="exp_001",
+            status=RunStatus.RUNNING,
+            parameters={"seed": 42},
+        )
+        store.upsert(entry1)
+
+        # Second upsert with same run_id
+        entry2 = RegistryEntry(
+            run_id="run_001",
+            experiment_id="exp_001",
+            status=RunStatus.COMPLETED,
+            parameters={"seed": 42},
+            metrics={"phi_total": 100.0},
+        )
+        store.upsert(entry2)
+
+        # Should only have one entry
+        run_ids = store.list_runs("exp_001")
+        assert len(run_ids) == 1
+        assert run_ids[0] == "run_001"
+
+        # Entry should be updated
+        loaded = store.get("exp_001", "run_001")
+        assert loaded.status == RunStatus.COMPLETED
+
+    def test_get_returns_none_for_nonexistent_entry(self, tmp_path):
+        """Test that get returns None for non-existent entry."""
+        store = FileRegistryStore(tmp_path)
+        result = store.get("exp_001", "nonexistent_run")
+        assert result is None
+
+    def test_get_returns_none_for_nonexistent_experiment(self, tmp_path):
+        """Test that get returns None for non-existent experiment."""
+        store = FileRegistryStore(tmp_path)
+        result = store.get("nonexistent_exp", "run_001")
+        assert result is None
+
+    def test_get_returns_correct_entry(self, tmp_path):
+        """Test that get returns correct entry."""
+        store = FileRegistryStore(tmp_path)
+        entry = RegistryEntry(
+            run_id="run_001",
+            experiment_id="exp_001",
+            status=RunStatus.COMPLETED,
+            parameters={"seed": 42, "kappa": 0.1},
+            metrics={"phi_total": 100.0},
+            artifact_paths={"scenario_yaml": "exp_001/runs/run_001/scenario.yaml"},
+        )
+        store.upsert(entry)
+
+        loaded = store.get("exp_001", "run_001")
+
+        assert loaded is not None
+        assert loaded.run_id == "run_001"
+        assert loaded.experiment_id == "exp_001"
+        assert loaded.status == RunStatus.COMPLETED
+        assert loaded.parameters["seed"] == 42
+
+    def test_list_runs_returns_all_run_ids(self, tmp_path):
+        """Test that list_runs returns all run IDs."""
+        store = FileRegistryStore(tmp_path)
+
+        # Add multiple entries
+        for i in range(5):
+            entry = RegistryEntry(
+                run_id=f"run_{i:03d}",
+                experiment_id="exp_001",
+                status=RunStatus.COMPLETED,
+            )
+            store.upsert(entry)
+
+        run_ids = store.list_runs("exp_001")
+
+        assert len(run_ids) == 5
+        assert set(run_ids) == {"run_000", "run_001", "run_002", "run_003", "run_004"}
+
+    def test_list_runs_returns_empty_for_nonexistent_experiment(self, tmp_path):
+        """Test that list_runs returns empty list for non-existent experiment."""
+        store = FileRegistryStore(tmp_path)
+        run_ids = store.list_runs("nonexistent_exp")
+        assert run_ids == []
+
+    def test_get_completed_keys_returns_correct_keys(self, tmp_path):
+        """Test that get_completed_keys returns correct keys."""
+        store = FileRegistryStore(tmp_path)
+
+        # Add some completed entries
+        for seed in [1, 2, 3]:
+            for kappa in [0.1, 0.2]:
+                entry = RegistryEntry(
+                    run_id=f"run_s{seed}_k{kappa}",
+                    experiment_id="exp_001",
+                    status=RunStatus.COMPLETED,
+                    parameters={"seed": seed, "kappa": kappa, "concentration": 0.5},
+                )
+                store.upsert(entry)
+
+        completed = store.get_completed_keys("exp_001")
+
+        # Default key_fields is ["seed", "kappa", "concentration"]
+        assert len(completed) == 6
+        assert (1, 0.1, 0.5) in completed
+        assert (2, 0.2, 0.5) in completed
+
+    def test_get_completed_keys_excludes_non_completed(self, tmp_path):
+        """Test that get_completed_keys excludes non-completed runs."""
+        store = FileRegistryStore(tmp_path)
+
+        # Add completed entry
+        entry1 = RegistryEntry(
+            run_id="run_001",
+            experiment_id="exp_001",
+            status=RunStatus.COMPLETED,
+            parameters={"seed": 1, "kappa": 0.1, "concentration": 0.5},
+        )
+        store.upsert(entry1)
+
+        # Add failed entry
+        entry2 = RegistryEntry(
+            run_id="run_002",
+            experiment_id="exp_001",
+            status=RunStatus.FAILED,
+            parameters={"seed": 2, "kappa": 0.1, "concentration": 0.5},
+        )
+        store.upsert(entry2)
+
+        completed = store.get_completed_keys("exp_001")
+
+        assert len(completed) == 1
+        assert (1, 0.1, 0.5) in completed
+        assert (2, 0.1, 0.5) not in completed
+
+    def test_get_completed_keys_with_custom_key_fields(self, tmp_path):
+        """Test that get_completed_keys works with custom key_fields."""
+        store = FileRegistryStore(tmp_path)
+
+        entry = RegistryEntry(
+            run_id="run_001",
+            experiment_id="exp_001",
+            status=RunStatus.COMPLETED,
+            parameters={"seed": 42, "n_agents": 10, "mu": 0.5},
+        )
+        store.upsert(entry)
+
+        completed = store.get_completed_keys("exp_001", key_fields=["seed", "n_agents"])
+
+        assert len(completed) == 1
+        assert (42, 10) in completed
+
+    def test_get_completed_keys_returns_empty_for_nonexistent(self, tmp_path):
+        """Test that get_completed_keys returns empty set for non-existent experiment."""
+        store = FileRegistryStore(tmp_path)
+        completed = store.get_completed_keys("nonexistent_exp")
+        assert completed == set()
+
+    def test_query_with_no_filters_returns_all(self, tmp_path):
+        """Test that query with no filters returns all entries."""
+        store = FileRegistryStore(tmp_path)
+
+        # Add multiple entries with different statuses
+        for i, status in enumerate([RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.COMPLETED]):
+            entry = RegistryEntry(
+                run_id=f"run_{i:03d}",
+                experiment_id="exp_001",
+                status=status,
+            )
+            store.upsert(entry)
+
+        results = store.query("exp_001")
+
+        assert len(results) == 3
+        run_ids = {r.run_id for r in results}
+        assert run_ids == {"run_000", "run_001", "run_002"}
+
+    def test_query_with_filters_returns_matching(self, tmp_path):
+        """Test that query with filters returns matching entries only."""
+        store = FileRegistryStore(tmp_path)
+
+        # Add entries with different parameters
+        for seed in [1, 2, 3]:
+            for kappa in [0.1, 0.2]:
+                entry = RegistryEntry(
+                    run_id=f"run_s{seed}_k{kappa}",
+                    experiment_id="exp_001",
+                    status=RunStatus.COMPLETED,
+                    parameters={"seed": seed, "kappa": kappa},
+                )
+                store.upsert(entry)
+
+        # Filter by kappa
+        results = store.query("exp_001", filters={"kappa": 0.1})
+
+        assert len(results) == 3
+        for r in results:
+            assert r.parameters["kappa"] == 0.1
+
+    def test_query_with_status_filter(self, tmp_path):
+        """Test that query can filter by status."""
+        store = FileRegistryStore(tmp_path)
+
+        # Add entries with different statuses
+        entry1 = RegistryEntry(
+            run_id="run_001",
+            experiment_id="exp_001",
+            status=RunStatus.COMPLETED,
+        )
+        entry2 = RegistryEntry(
+            run_id="run_002",
+            experiment_id="exp_001",
+            status=RunStatus.FAILED,
+        )
+        entry3 = RegistryEntry(
+            run_id="run_003",
+            experiment_id="exp_001",
+            status=RunStatus.COMPLETED,
+        )
+        store.upsert(entry1)
+        store.upsert(entry2)
+        store.upsert(entry3)
+
+        results = store.query("exp_001", filters={"status": "completed"})
+
+        assert len(results) == 2
+        assert all(r.status == RunStatus.COMPLETED for r in results)
+
+    def test_query_returns_empty_for_nonexistent_experiment(self, tmp_path):
+        """Test that query returns empty list for non-existent experiment."""
+        store = FileRegistryStore(tmp_path)
+        results = store.query("nonexistent_exp")
+        assert results == []
+
+    def test_query_with_multiple_filters(self, tmp_path):
+        """Test that query with multiple filters works correctly."""
+        store = FileRegistryStore(tmp_path)
+
+        # Add various entries
+        for seed in [1, 2]:
+            for kappa in [0.1, 0.2]:
+                for status in [RunStatus.COMPLETED, RunStatus.FAILED]:
+                    entry = RegistryEntry(
+                        run_id=f"run_s{seed}_k{kappa}_{status.value}",
+                        experiment_id="exp_001",
+                        status=status,
+                        parameters={"seed": seed, "kappa": kappa},
+                    )
+                    store.upsert(entry)
+
+        # Filter by multiple criteria
+        results = store.query(
+            "exp_001",
+            filters={"seed": 1, "status": "completed"}
+        )
+
+        assert len(results) == 2
+        for r in results:
+            assert r.parameters["seed"] == 1
+            assert r.status == RunStatus.COMPLETED
+
+    def test_upsert_preserves_existing_entries(self, tmp_path):
+        """Test that upsert preserves other entries when adding new ones."""
+        store = FileRegistryStore(tmp_path)
+
+        # Add first entry
+        entry1 = RegistryEntry(
+            run_id="run_001",
+            experiment_id="exp_001",
+            status=RunStatus.COMPLETED,
+            parameters={"seed": 1},
+        )
+        store.upsert(entry1)
+
+        # Add second entry
+        entry2 = RegistryEntry(
+            run_id="run_002",
+            experiment_id="exp_001",
+            status=RunStatus.COMPLETED,
+            parameters={"seed": 2},
+        )
+        store.upsert(entry2)
+
+        # Both entries should exist
+        loaded1 = store.get("exp_001", "run_001")
+        loaded2 = store.get("exp_001", "run_002")
+
+        assert loaded1 is not None
+        assert loaded1.parameters["seed"] == 1
+        assert loaded2 is not None
+        assert loaded2.parameters["seed"] == 2
+
+    def test_dynamic_fields_are_preserved(self, tmp_path):
+        """Test that dynamically added fields are preserved in registry."""
+        store = FileRegistryStore(tmp_path)
+
+        # Add entry with non-standard parameters
+        entry = RegistryEntry(
+            run_id="run_001",
+            experiment_id="exp_001",
+            status=RunStatus.COMPLETED,
+            parameters={"custom_param": "custom_value", "another_param": 123},
+        )
+        store.upsert(entry)
+
+        # Load it back
+        loaded = store.get("exp_001", "run_001")
+
+        assert loaded is not None
+        assert "custom_param" in loaded.parameters
+        assert loaded.parameters["custom_param"] == "custom_value"
+
+    def test_metrics_roundtrip_through_csv(self, tmp_path):
+        """Test that metrics are correctly stored and retrieved from CSV.
+
+        This test verifies the fix for the bug where metrics were incorrectly
+        assigned to parameters instead of metrics dict in _row_to_entry.
+        """
+        store = FileRegistryStore(tmp_path)
+
+        # Create entry with all standard metrics
+        entry = RegistryEntry(
+            run_id="run_001",
+            experiment_id="exp_001",
+            status=RunStatus.COMPLETED,
+            parameters={"seed": 42, "kappa": 0.1},
+            metrics={
+                "phi_total": 150.5,
+                "delta_total": 75.25,
+                "time_to_stability": 12.0,
+            },
+        )
+        store.upsert(entry)
+
+        # Load it back
+        loaded = store.get("exp_001", "run_001")
+
+        assert loaded is not None
+        # Verify metrics are in metrics dict (not parameters)
+        assert "phi_total" in loaded.metrics
+        assert "delta_total" in loaded.metrics
+        assert "time_to_stability" in loaded.metrics
+        assert loaded.metrics["phi_total"] == 150.5
+        assert loaded.metrics["delta_total"] == 75.25
+        assert loaded.metrics["time_to_stability"] == 12.0
+
+        # Verify metrics are NOT in parameters
+        assert "phi_total" not in loaded.parameters
+        assert "delta_total" not in loaded.parameters
+        assert "time_to_stability" not in loaded.parameters
+
+        # Verify parameters are still in parameters dict
+        assert loaded.parameters["seed"] == 42
+        assert loaded.parameters["kappa"] == 0.1
+
+
+class TestFileStoreSecurityValidation:
+    """Tests for security validations in file stores."""
+
+    def test_load_artifact_rejects_path_traversal(self, tmp_path):
+        """Test that load_artifact rejects path traversal attempts."""
+        store = FileResultStore(tmp_path)
+
+        # Create a legitimate file
+        (tmp_path / "test.txt").write_bytes(b"test")
+
+        # Try to traverse outside base_dir
+        with pytest.raises(ValueError, match="path traversal detected"):
+            store.load_artifact("../../../etc/passwd")
+
+    def test_load_artifact_rejects_absolute_path_traversal(self, tmp_path):
+        """Test that load_artifact rejects absolute path traversal."""
+        store = FileResultStore(tmp_path)
+
+        with pytest.raises(ValueError, match="path traversal detected"):
+            store.load_artifact("foo/../../../etc/passwd")
+
+    def test_save_artifact_rejects_invalid_experiment_id(self, tmp_path):
+        """Test that save_artifact rejects invalid experiment_id."""
+        store = FileResultStore(tmp_path)
+
+        with pytest.raises(ValueError, match="Invalid experiment_id"):
+            store.save_artifact(
+                experiment_id="../malicious",
+                run_id="run_001",
+                name="test.txt",
+                content=b"test",
+            )
+
+    def test_save_artifact_rejects_invalid_run_id(self, tmp_path):
+        """Test that save_artifact rejects invalid run_id."""
+        store = FileResultStore(tmp_path)
+
+        with pytest.raises(ValueError, match="Invalid run_id"):
+            store.save_artifact(
+                experiment_id="exp_001",
+                run_id="../../../etc",
+                name="test.txt",
+                content=b"test",
+            )
+
+    def test_registry_rejects_invalid_experiment_id(self, tmp_path):
+        """Test that registry operations reject invalid experiment_id."""
+        store = FileRegistryStore(tmp_path)
+
+        with pytest.raises(ValueError, match="Invalid experiment_id"):
+            store.get("../malicious", "run_001")
+
+    def test_valid_ids_with_special_chars_allowed(self, tmp_path):
+        """Test that valid IDs with dashes, underscores, dots are allowed."""
+        store = FileResultStore(tmp_path)
+
+        # These should all work
+        ref = store.save_artifact(
+            experiment_id="exp-001_test.v2",
+            run_id="run.001-abc_123",
+            name="test.txt",
+            content=b"test",
+        )
+        assert "exp-001_test.v2" in ref
+        assert "run.001-abc_123" in ref
+
+```
+
+---
+
+### 🧪 tests/storage/test_models.py
+
+```python
+"""Tests for storage data models."""
+
+import pytest
+
+from bilancio.storage.models import (
+    RunStatus,
+    RunArtifacts,
+    RunResult,
+    RegistryEntry,
+)
+
+
+class TestRunStatus:
+    """Tests for RunStatus enum."""
+
+    def test_pending_value(self):
+        """Test PENDING enum has correct value."""
+        assert RunStatus.PENDING.value == "pending"
+
+    def test_running_value(self):
+        """Test RUNNING enum has correct value."""
+        assert RunStatus.RUNNING.value == "running"
+
+    def test_completed_value(self):
+        """Test COMPLETED enum has correct value."""
+        assert RunStatus.COMPLETED.value == "completed"
+
+    def test_failed_value(self):
+        """Test FAILED enum has correct value."""
+        assert RunStatus.FAILED.value == "failed"
+
+    def test_all_statuses_exist(self):
+        """Test all expected statuses exist."""
+        statuses = {s.value for s in RunStatus}
+        assert statuses == {"pending", "running", "completed", "failed"}
+
+    def test_status_from_string(self):
+        """Test creating status from string value."""
+        assert RunStatus("completed") == RunStatus.COMPLETED
+        assert RunStatus("failed") == RunStatus.FAILED
+
+
+class TestRunArtifacts:
+    """Tests for RunArtifacts dataclass."""
+
+    def test_defaults_all_none(self):
+        """Test all fields default to None."""
+        artifacts = RunArtifacts()
+        assert artifacts.scenario_yaml is None
+        assert artifacts.events_jsonl is None
+        assert artifacts.balances_csv is None
+        assert artifacts.metrics_csv is None
+        assert artifacts.metrics_json is None
+        assert artifacts.run_html is None
+        assert artifacts.dealer_metrics_json is None
+        assert artifacts.trades_csv is None
+        assert artifacts.repayment_events_csv is None
+
+    def test_with_some_values(self):
+        """Test creating with specific values."""
+        artifacts = RunArtifacts(
+            scenario_yaml="path/to/scenario.yaml",
+            events_jsonl="path/to/events.jsonl",
+        )
+        assert artifacts.scenario_yaml == "path/to/scenario.yaml"
+        assert artifacts.events_jsonl == "path/to/events.jsonl"
+        assert artifacts.balances_csv is None
+
+    def test_with_all_values(self):
+        """Test creating with all values set."""
+        artifacts = RunArtifacts(
+            scenario_yaml="scenario.yaml",
+            events_jsonl="events.jsonl",
+            balances_csv="balances.csv",
+            metrics_csv="metrics.csv",
+            metrics_json="metrics.json",
+            run_html="run.html",
+            dealer_metrics_json="dealer_metrics.json",
+            trades_csv="trades.csv",
+            repayment_events_csv="repayment_events.csv",
+        )
+        assert artifacts.scenario_yaml == "scenario.yaml"
+        assert artifacts.events_jsonl == "events.jsonl"
+        assert artifacts.balances_csv == "balances.csv"
+        assert artifacts.metrics_csv == "metrics.csv"
+        assert artifacts.metrics_json == "metrics.json"
+        assert artifacts.run_html == "run.html"
+        assert artifacts.dealer_metrics_json == "dealer_metrics.json"
+        assert artifacts.trades_csv == "trades.csv"
+        assert artifacts.repayment_events_csv == "repayment_events.csv"
+
+
+class TestRunResult:
+    """Tests for RunResult dataclass."""
+
+    def test_minimal_creation(self):
+        """Test creating with only required fields."""
+        result = RunResult(
+            run_id="run_001",
+            status=RunStatus.COMPLETED,
+        )
+        assert result.run_id == "run_001"
+        assert result.status == RunStatus.COMPLETED
+        assert result.parameters == {}
+        assert result.metrics == {}
+        assert isinstance(result.artifacts, RunArtifacts)
+        assert result.error is None
+        assert result.execution_time_ms is None
+
+    def test_full_creation(self):
+        """Test creating with all fields."""
+        artifacts = RunArtifacts(scenario_yaml="scenario.yaml")
+        result = RunResult(
+            run_id="run_002",
+            status=RunStatus.FAILED,
+            parameters={"seed": 42, "kappa": 0.1},
+            metrics={"phi_total": 100.5},
+            artifacts=artifacts,
+            error="Simulation diverged",
+            execution_time_ms=5000,
+        )
+        assert result.run_id == "run_002"
+        assert result.status == RunStatus.FAILED
+        assert result.parameters == {"seed": 42, "kappa": 0.1}
+        assert result.metrics == {"phi_total": 100.5}
+        assert result.artifacts.scenario_yaml == "scenario.yaml"
+        assert result.error == "Simulation diverged"
+        assert result.execution_time_ms == 5000
+
+    def test_field_access(self):
+        """Test accessing various field types."""
+        result = RunResult(
+            run_id="test_run",
+            status=RunStatus.RUNNING,
+            parameters={"n_agents": 10, "mu": 0.5},
+            metrics={"delta_total": 42.0},
+        )
+        # Access parameters
+        assert result.parameters["n_agents"] == 10
+        assert result.parameters["mu"] == 0.5
+        # Access metrics
+        assert result.metrics["delta_total"] == 42.0
+        # Status comparison
+        assert result.status == RunStatus.RUNNING
+        assert result.status.value == "running"
+
+
+class TestRegistryEntry:
+    """Tests for RegistryEntry dataclass."""
+
+    def test_minimal_creation(self):
+        """Test creating with only required fields."""
+        entry = RegistryEntry(
+            run_id="run_001",
+            experiment_id="exp_001",
+            status=RunStatus.COMPLETED,
+        )
+        assert entry.run_id == "run_001"
+        assert entry.experiment_id == "exp_001"
+        assert entry.status == RunStatus.COMPLETED
+        assert entry.parameters == {}
+        assert entry.metrics == {}
+        assert entry.artifact_paths == {}
+        assert entry.error is None
+
+    def test_full_creation(self):
+        """Test creating with all fields."""
+        entry = RegistryEntry(
+            run_id="run_002",
+            experiment_id="exp_001",
+            status=RunStatus.FAILED,
+            parameters={"seed": 123, "kappa": 0.2},
+            metrics={"phi_total": 50.0, "delta_total": 25.0},
+            artifact_paths={
+                "scenario_yaml": "exp_001/runs/run_002/scenario.yaml",
+                "events_jsonl": "exp_001/runs/run_002/out/events.jsonl",
+            },
+            error="OOM error",
+        )
+        assert entry.run_id == "run_002"
+        assert entry.experiment_id == "exp_001"
+        assert entry.status == RunStatus.FAILED
+        assert entry.parameters == {"seed": 123, "kappa": 0.2}
+        assert entry.metrics == {"phi_total": 50.0, "delta_total": 25.0}
+        assert "scenario_yaml" in entry.artifact_paths
+        assert entry.error == "OOM error"
+
+    def test_field_access(self):
+        """Test accessing entry fields."""
+        entry = RegistryEntry(
+            run_id="test_run",
+            experiment_id="test_exp",
+            status=RunStatus.PENDING,
+            parameters={"concentration": 0.8},
+            artifact_paths={"run_html": "path/to/run.html"},
+        )
+        # Access by key
+        assert entry.parameters["concentration"] == 0.8
+        assert entry.artifact_paths["run_html"] == "path/to/run.html"
+        # Status value
+        assert entry.status.value == "pending"
 
 ```
 
@@ -66777,5 +70489,5 @@ def test_settle_multiple_obligations():
 ## End of Codebase
 
 Generated from: /home/runner/work/bilancio/bilancio
-Total source files: 93
-Total test files: 39
+Total source files: 103
+Total test files: 48
