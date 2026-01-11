@@ -25,7 +25,7 @@ from bilancio.analysis.report import (
     write_metrics_html,
 )
 from bilancio.config.models import RingExplorerGeneratorConfig
-from bilancio.scenarios.generators.ring_explorer import compile_ring_explorer
+from bilancio.scenarios import compile_ring_explorer
 
 # Note: run_scenario imported lazily in _execute_run to avoid circular import
 
@@ -530,7 +530,7 @@ class RingSweepRunner:
 
         if self.balanced_mode:
             # Use balanced generator for C vs D comparison scenarios (Plan 024)
-            from bilancio.scenarios.generators.ring_explorer import compile_ring_explorer_balanced
+            from bilancio.scenarios import compile_ring_explorer_balanced
             scenario = compile_ring_explorer_balanced(
                 generator_config,
                 face_value=self.face_value,

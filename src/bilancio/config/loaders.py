@@ -175,7 +175,7 @@ def load_yaml(path: Path | str) -> ScenarioConfig:
             error_msg = f"Generator validation failed:\n" + "\n".join(errors)
             raise ValueError(error_msg) from e
 
-        from bilancio.scenarios.generators import compile_generator
+        from bilancio.scenarios import compile_generator
 
         try:
             compiled = compile_generator(generator_spec, source_path=path)
