@@ -1,3 +1,34 @@
 """Scenario generation utilities."""
 
-__all__ = []
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Any, Dict, Optional
+
+from bilancio.config.models import (
+    GeneratorConfig,
+    RingExplorerGeneratorConfig,
+)
+
+from .ring_explorer import (
+    compile_ring_explorer,
+    compile_ring_explorer_balanced,
+)
+
+
+def compile_generator(
+    config: GeneratorConfig,
+    *,
+    source_path: Optional[Path] = None,
+) -> Dict[str, Any]:
+    """Compile a generator specification into a scenario dictionary."""
+    if isinstance(config, RingExplorerGeneratorConfig):
+        return compile_ring_explorer(config, source_path=source_path)
+    raise ValueError(f"Unsupported generator '{getattr(config, 'generator', 'unknown')}'")
+
+
+__all__ = [
+    "compile_generator",
+    "compile_ring_explorer",
+    "compile_ring_explorer_balanced",
+]

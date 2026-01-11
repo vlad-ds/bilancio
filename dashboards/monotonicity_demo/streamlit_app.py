@@ -9,7 +9,7 @@ from typing import List, Tuple
 import pandas as pd
 import streamlit as st
 
-from bilancio.scenarios.generators.ring_explorer import _draw_payables
+from bilancio.scenarios.ring_explorer import _draw_payables
 
 
 st.set_page_config(page_title="Ring Monotonicity Explorer", layout="wide")
