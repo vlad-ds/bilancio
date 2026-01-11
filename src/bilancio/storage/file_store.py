@@ -90,21 +90,25 @@ class FileRegistryStore:
 
     # Default fields - will be extended dynamically
     DEFAULT_FIELDS = [
-        "run_id", "experiment_id", "status", "error",
+        "run_id", "experiment_id", "phase", "status", "error",
         # Common parameters
         "seed", "n_agents", "kappa", "concentration", "mu", "monotonicity",
-        "maturity_days", "Q_total", "dealer_enabled",
+        "maturity_days", "Q_total", "S1", "L0", "default_handling", "dealer_enabled",
         # Common metrics
         "phi_total", "delta_total", "time_to_stability",
         # Common artifact paths
-        "scenario_yaml", "events_jsonl", "balances_csv", "metrics_csv", "run_html",
+        "scenario_yaml", "events_jsonl", "balances_csv", "metrics_csv",
+        "metrics_html", "run_html",
     ]
 
     def __init__(self, base_dir: Path | str):
         self.base_dir = Path(base_dir)
 
     def _registry_path(self, experiment_id: str) -> Path:
-        return self.base_dir / experiment_id / "registry" / "experiments.csv"
+        if experiment_id:
+            return self.base_dir / experiment_id / "registry" / "experiments.csv"
+        # Empty experiment_id means use base_dir directly
+        return self.base_dir / "registry" / "experiments.csv"
 
     def upsert(self, entry: RegistryEntry) -> None:
         """Insert or update registry entry."""
@@ -238,11 +242,12 @@ class FileRegistryStore:
     def _row_to_entry(self, row: Dict[str, str]) -> RegistryEntry:
         """Convert CSV row to RegistryEntry."""
         # Known parameter, metric, and artifact keys
-        param_keys = {"seed", "n_agents", "kappa", "concentration", "mu",
-                      "monotonicity", "maturity_days", "Q_total", "dealer_enabled"}
+        param_keys = {"phase", "seed", "n_agents", "kappa", "concentration", "mu",
+                      "monotonicity", "maturity_days", "Q_total", "S1", "L0",
+                      "default_handling", "dealer_enabled"}
         metric_keys = {"phi_total", "delta_total", "time_to_stability"}
         artifact_keys = {"scenario_yaml", "events_jsonl", "balances_csv",
-                        "metrics_csv", "metrics_json", "run_html",
+                        "metrics_csv", "metrics_json", "metrics_html", "run_html",
                         "dealer_metrics_json", "trades_csv", "repayment_events_csv"}
         meta_keys = {"run_id", "experiment_id", "status", "error"}
 

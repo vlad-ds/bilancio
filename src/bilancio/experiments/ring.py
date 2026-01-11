@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import csv
 import uuid
 from dataclasses import dataclass
 from decimal import Decimal
@@ -29,6 +28,8 @@ from bilancio.experiments.sampling import (
     generate_lhs_params,
 )
 from bilancio.scenarios import compile_ring_explorer
+from bilancio.storage import FileRegistryStore, RegistryEntry, RunStatus
+from bilancio.storage.protocols import RegistryStore
 
 # Note: run_scenario imported lazily in _execute_run to avoid circular import
 
@@ -197,34 +198,6 @@ def load_ring_sweep_config(path: Path | str) -> RingSweepConfig:
 class RingSweepRunner:
     """Coordinator for running Kalecki ring experiments."""
 
-    REGISTRY_FIELDS = [
-        "run_id",
-        "phase",
-        "seed",
-        "n_agents",
-        "kappa",
-        "concentration",
-        "mu",
-        "monotonicity",
-        "maturity_days",
-        "Q_total",
-        "S1",
-        "L0",
-        "scenario_yaml",
-        "events_jsonl",
-        "balances_csv",
-        "metrics_csv",
-        "metrics_html",
-        "run_html",
-        "default_handling",
-        "dealer_enabled",
-        "status",
-        "time_to_stability",
-        "phi_total",
-        "delta_total",
-        "error",
-    ]
-
     def __init__(
         self,
         out_dir: Path,
@@ -247,6 +220,7 @@ class RingSweepRunner:
         dealer_share_per_bucket: Optional[Decimal] = None,
         rollover_enabled: bool = True,
         detailed_dealer_logging: bool = False,  # Plan 022
+        registry_store: Optional[RegistryStore] = None,  # Plan 026
     ) -> None:
         self.base_dir = out_dir
         self.registry_dir = self.base_dir / "registry"
@@ -270,40 +244,61 @@ class RingSweepRunner:
         self.dealer_share_per_bucket = dealer_share_per_bucket or Decimal("0.125")
         self.rollover_enabled = rollover_enabled
         self.detailed_dealer_logging = detailed_dealer_logging  # Plan 022
-        self.registry_rows: List[Dict[str, Any]] = []
+
+        # Use provided registry store or create default file-based store
+        self.registry_store: RegistryStore = registry_store or FileRegistryStore(self.base_dir)
+        self.experiment_id = ""  # Empty = use base_dir directly
 
         self.registry_dir.mkdir(parents=True, exist_ok=True)
         self.runs_dir.mkdir(parents=True, exist_ok=True)
         self.aggregate_dir.mkdir(parents=True, exist_ok=True)
 
-        self.registry_path = self.registry_dir / "experiments.csv"
-        if self.registry_path.exists():
-            with self.registry_path.open("r", newline="") as fh:
-                reader = csv.DictReader(fh)
-                self.registry_rows = list(reader)
-        else:
-            self._write_registry()
+        # Initialize empty registry file if it doesn't exist (backward compatible)
+        registry_path = self.registry_dir / "experiments.csv"
+        if not registry_path.exists():
+            self._init_empty_registry(registry_path)
+
+    def _init_empty_registry(self, registry_path: Path) -> None:
+        """Create an empty registry file with headers."""
+        import csv
+        default_fields = [
+            "run_id", "experiment_id", "phase", "status", "error",
+            "seed", "n_agents", "kappa", "concentration", "mu", "monotonicity",
+            "maturity_days", "Q_total", "S1", "L0", "default_handling", "dealer_enabled",
+            "phi_total", "delta_total", "time_to_stability",
+            "scenario_yaml", "events_jsonl", "balances_csv", "metrics_csv",
+            "metrics_html", "run_html",
+        ]
+        with registry_path.open("w", newline="") as fh:
+            writer = csv.DictWriter(fh, fieldnames=default_fields)
+            writer.writeheader()
 
     def _next_seed(self) -> int:
         value = self.seed_counter
         self.seed_counter += 1
         return value
 
-    def _write_registry(self) -> None:
-        with self.registry_path.open("w", newline="") as fh:
-            writer = csv.DictWriter(fh, fieldnames=self.REGISTRY_FIELDS)
-            writer.writeheader()
-            for row in self.registry_rows:
-                writer.writerow({field: row.get(field, "") for field in self.REGISTRY_FIELDS})
-
-    def _upsert_registry(self, row: Dict[str, Any]) -> None:
-        for existing in self.registry_rows:
-            if existing.get("run_id") == row.get("run_id"):
-                existing.update(row)
-                break
-        else:
-            self.registry_rows.append(row)
-        self._write_registry()
+    def _upsert_registry(
+        self,
+        run_id: str,
+        phase: str,
+        status: RunStatus,
+        parameters: Dict[str, Any],
+        metrics: Optional[Dict[str, Any]] = None,
+        artifact_paths: Optional[Dict[str, str]] = None,
+        error: Optional[str] = None,
+    ) -> None:
+        """Upsert a registry entry using the configured store."""
+        entry = RegistryEntry(
+            run_id=run_id,
+            experiment_id=self.experiment_id,
+            status=status,
+            parameters=parameters,
+            metrics=metrics or {},
+            artifact_paths=artifact_paths or {},
+            error=error,
+        )
+        self.registry_store.upsert(entry)
 
     def run_grid(
         self,
@@ -440,22 +435,28 @@ class RingSweepRunner:
         intraday_csv_path = out_dir / "metrics_intraday.csv"
         metrics_html_path = out_dir / "metrics.html"
 
-        registry_entry = {
-            "run_id": run_id,
+        # Common parameters for all registry updates
+        base_params = {
             "phase": phase,
-            "seed": str(seed),
-            "n_agents": str(self.n_agents),
+            "seed": seed,
+            "n_agents": self.n_agents,
             "kappa": str(kappa),
             "concentration": str(concentration),
             "mu": str(mu),
             "monotonicity": str(monotonicity),
-            "maturity_days": str(self.maturity_days),
+            "maturity_days": self.maturity_days,
             "Q_total": str(self.Q_total),
             "default_handling": self.default_handling,
-            "dealer_enabled": str(self.dealer_enabled),
-            "status": "running",
+            "dealer_enabled": self.dealer_enabled,
         }
-        self._upsert_registry(registry_entry)
+
+        # Initial "running" status
+        self._upsert_registry(
+            run_id=run_id,
+            phase=phase,
+            status=RunStatus.RUNNING,
+            parameters=base_params,
+        )
 
         generator_data = {
             "version": 1,
@@ -559,15 +560,18 @@ class RingSweepRunner:
                 progress_callback=progress_callback,
             )
         except Exception as exc:
-            registry_entry.update({
-                "status": "failed",
-                "error": str(exc),
-                "S1": str(S1),
-                "L0": str(L0),
-                "scenario_yaml": self._rel_path(scenario_path),
-                "run_html": self._rel_path(run_html_path),
-            })
-            self._upsert_registry(registry_entry)
+            fail_params = {**base_params, "S1": str(S1), "L0": str(L0)}
+            self._upsert_registry(
+                run_id=run_id,
+                phase=phase,
+                status=RunStatus.FAILED,
+                parameters=fail_params,
+                artifact_paths={
+                    "scenario_yaml": self._rel_path(scenario_path),
+                    "run_html": self._rel_path(run_html_path),
+                },
+                error=str(exc),
+            )
             return RingRunSummary(run_id, phase, kappa, concentration, mu, monotonicity, None, None, 0)
 
         events = list(read_events_jsonl(events_path))
@@ -593,22 +597,28 @@ class RingSweepRunner:
             with dealer_metrics_path.open() as f:
                 dealer_metrics = json.load(f)
 
-        registry_entry.update({
-            "status": "completed",
-            "S1": str(S1),
-            "L0": str(L0),
-            "scenario_yaml": self._rel_path(scenario_path),
-            "events_jsonl": self._rel_path(events_path),
-            "balances_csv": self._rel_path(balances_path),
-            "metrics_csv": self._rel_path(metrics_csv_path),
-            "metrics_html": self._rel_path(metrics_html_path),
-            "run_html": self._rel_path(run_html_path),
-            "time_to_stability": str(time_to_stability),
+        # Update registry with completed status
+        success_params = {**base_params, "S1": str(S1), "L0": str(L0)}
+        success_metrics = {
+            "time_to_stability": time_to_stability,
             "phi_total": str(phi_total) if phi_total is not None else "",
             "delta_total": str(delta_total) if delta_total is not None else "",
-            "error": "",
-        })
-        self._upsert_registry(registry_entry)
+        }
+        self._upsert_registry(
+            run_id=run_id,
+            phase=phase,
+            status=RunStatus.COMPLETED,
+            parameters=success_params,
+            metrics=success_metrics,
+            artifact_paths={
+                "scenario_yaml": self._rel_path(scenario_path),
+                "events_jsonl": self._rel_path(events_path),
+                "balances_csv": self._rel_path(balances_path),
+                "metrics_csv": self._rel_path(metrics_csv_path),
+                "metrics_html": self._rel_path(metrics_html_path),
+                "run_html": self._rel_path(run_html_path),
+            },
+        )
 
         return RingRunSummary(
             run_id, phase, kappa, concentration, mu, monotonicity,
