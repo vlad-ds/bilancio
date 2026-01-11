@@ -4,16 +4,6 @@ from __future__ import annotations
 
 from typing import Any, List, Optional, Union
 
-try:
-    from rich.console import Console
-    from rich.table import Table
-    from rich.columns import Columns
-    from rich.text import Text
-    from rich import box
-    RICH_AVAILABLE = True
-except ImportError:
-    RICH_AVAILABLE = False
-
 from bilancio.analysis.balances import AgentBalance, agent_balance
 from bilancio.engines.system import System
 from bilancio.analysis.visualization.common import (
@@ -25,6 +15,14 @@ from bilancio.analysis.visualization.common import (
     _format_agent,
     parse_day_from_maturity,
 )
+
+# Import Rich components only if available
+if RICH_AVAILABLE:
+    from rich.console import Console
+    from rich.table import Table
+    from rich.columns import Columns
+    from rich.text import Text
+    from rich import box
 
 
 
