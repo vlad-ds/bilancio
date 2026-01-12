@@ -17,7 +17,7 @@ from bilancio.experiments.ring import (
     load_ring_sweep_config,
     _decimal_list,
 )
-from bilancio.jobs import JobManager, JobConfig, generate_job_id
+from bilancio.jobs import JobManager, JobConfig, generate_job_id, create_job_manager
 
 from .utils import console, _as_decimal_list
 
@@ -198,7 +198,8 @@ def sweep_ring(
     # Create job manager and job config
     manager: Optional[JobManager] = None
     try:
-        manager = JobManager(jobs_dir=out_dir)
+        # Use create_job_manager to enable Supabase cloud storage
+        manager = create_job_manager(jobs_dir=out_dir, cloud=True, local=True)
 
         grid_kappas = _as_decimal_list(kappas)
         grid_concentrations = _as_decimal_list(concentrations)
@@ -534,10 +535,10 @@ def sweep_balanced(
     if job_id is None:
         job_id = generate_job_id()
 
-    # Create job manager
+    # Create job manager with Supabase cloud storage
     manager: Optional[JobManager] = None
     try:
-        manager = JobManager(jobs_dir=out_dir)
+        manager = create_job_manager(jobs_dir=out_dir, cloud=True, local=True)
 
         # Create job config
         job_config = JobConfig(
@@ -593,7 +594,7 @@ def sweep_balanced(
         quiet=quiet,  # Plan 030
     )
 
-    runner = BalancedComparisonRunner(config, out_dir, executor=executor)
+    runner = BalancedComparisonRunner(config, out_dir, executor=executor, job_id=job_id)
 
     try:
         results = runner.run_all()

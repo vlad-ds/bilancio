@@ -147,11 +147,29 @@ BILANCIO_SUPABASE_URL=https://xxxx.supabase.co
 BILANCIO_SUPABASE_ANON_KEY=eyJ...
 ```
 
+**Important:** To use Supabase from the CLI, you must load the environment variables first:
+```bash
+# Load env vars before running commands
+export $(grep -v '^#' .env | xargs)
+
+# Now Supabase commands will work
+uv run bilancio jobs ls --cloud
+```
+
 ### Architecture
 
 - **Cloud-only mode (recommended)**: Jobs stored only in Supabase, no local files
 - **Hybrid mode**: Jobs saved to both local filesystem AND Supabase
 - **Local-only mode**: Default if Supabase not configured
+
+### Automatic Persistence During Sweeps
+
+When running cloud sweeps (`--cloud` flag), jobs, runs, and metrics are automatically persisted to Supabase:
+- **Jobs**: Created at sweep start, updated on completion
+- **Runs**: Each simulation run (passive/active) is recorded with parameters
+- **Metrics**: delta_total, phi_total, and other metrics are stored per run
+
+No additional configuration needed - just ensure env vars are loaded.
 
 ### Using Cloud Storage in Code
 
