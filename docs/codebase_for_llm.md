@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2026-01-12 17:39:37 UTC | Branch: main | Commit: 5d1c8fd8
+Generated: 2026-01-12 20:54:33 UTC | Branch: main | Commit: 79a7eee3
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -10,6 +10,7 @@ This document contains the complete codebase structure and content for LLM inges
 
 ```
 /home/runner/work/bilancio/bilancio
+├── .env.example
 ├── .github
 │   └── workflows
 │       ├── claude-code-review.yml
@@ -2351,6 +2352,7 @@ This document contains the complete codebase structure and content for LLM inges
 │   │   ├── 023_default_aware_instrumentation.md
 │   │   ├── 024_dealer_simulation_redesign.md
 │   │   ├── 029_job_system.md
+│   │   ├── 031_cloud_storage.md
 │   │   └── Kalecki_debt_simulation (1).pdf
 │   ├── prompts
 │   │   ├── 015_expel_sweep_agent_prompt.md
@@ -31792,7 +31794,8 @@ This document contains the complete codebase structure and content for LLM inges
 │       │   ├── __init__.py
 │       │   ├── job_id.py
 │       │   ├── manager.py
-│       │   └── models.py
+│       │   ├── models.py
+│       │   └── supabase_store.py
 │       ├── ops
 │       │   ├── __init__.py
 │       │   ├── aliases.py
@@ -31815,16 +31818,20 @@ This document contains the complete codebase structure and content for LLM inges
 │       │   ├── file_store.py
 │       │   ├── modal_artifact_loader.py
 │       │   ├── models.py
-│       │   └── protocols.py
+│       │   ├── protocols.py
+│       │   ├── supabase_client.py
+│       │   └── supabase_registry.py
 │       └── ui
 │           ├── __init__.py
 │           ├── assets
 │           │   └── export.css
 │           ├── cli
 │           │   ├── __init__.py
+│           │   ├── jobs.py
 │           │   ├── run.py
 │           │   ├── sweep.py
-│           │   └── utils.py
+│           │   ├── utils.py
+│           │   └── volume.py
 │           ├── display.py
 │           ├── html_export.py
 │           ├── render
@@ -31835,6 +31842,18 @@ This document contains the complete codebase structure and content for LLM inges
 │           ├── run.py
 │           ├── settings.py
 │           └── wizard.py
+├── supabase
+│   ├── .temp
+│   │   ├── cli-latest
+│   │   ├── gotrue-version
+│   │   ├── pooler-url
+│   │   ├── postgres-version
+│   │   ├── project-ref
+│   │   ├── rest-version
+│   │   ├── storage-migration
+│   │   └── storage-version
+│   └── migrations
+│       └── 20260112_initial_schema.sql
 └── tests
     ├── analysis
     │   ├── __init__.py
@@ -31902,7 +31921,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-6861 directories, 25031 files
+6864 directories, 25047 files
 
 ```
 
@@ -33954,6 +33973,28 @@ Complete git history from oldest to newest:
 - **5d1c8fd8** (2026-01-12) by Vlad Gheorghe
   Merge pull request #26 from vlad-ds/feature/quiet-mode
   feat(sweeps): add quiet mode and parallel cloud execution
+
+- **daed9224** (2026-01-12) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **f2914815** (2026-01-12) by vladgheorghe
+  feat(storage): add Supabase cloud storage layer (Plan 031)
+  Add optional Supabase integration for persistent job/run/metrics storage:
+  - Add SupabaseJobStore for job persistence to PostgreSQL
+  - Add SupabaseRegistryStore implementing RegistryStore protocol
+  - Add supabase_client module with singleton pattern
+  - Update JobManager with cloud_store parameter and create_job_manager()
+  - Add CLI commands: bilancio jobs ls/get/runs/metrics --cloud
+  - Add Modal Volume management: bilancio volume ls/cleanup/rm
+  - Add database schema migration for jobs/runs/metrics/events tables
+  Architecture supports three modes:
+  - Cloud-only (recommended for VMs): cloud=True, local=False
+  - Hybrid: cloud=True, local=True
+  - Local-only: default when Supabase not configured
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **79a7eee3** (2026-01-12) by vladgheorghe
+  Improve cloud sweep execution
 
 ---
 
@@ -51222,14 +51263,18 @@ from bilancio.analysis.metrics_computer import MetricsComputer
 from bilancio.config.models import RingExplorerGeneratorConfig
 from bilancio.runners import LocalExecutor, RunOptions, ExecutionResult
 from bilancio.runners.protocols import SimulationExecutor
-from bilancio.storage.artifact_loaders import LocalArtifactLoader
 from bilancio.experiments.sampling import (
     generate_frontier_params,
     generate_grid_params,
     generate_lhs_params,
 )
 from bilancio.scenarios import compile_ring_explorer
-from bilancio.storage import FileRegistryStore, RegistryEntry
+from bilancio.storage import (
+    FileRegistryStore,
+    LocalArtifactLoader,
+    ModalVolumeArtifactLoader,
+    RegistryEntry,
+)
 from bilancio.storage.models import RunStatus
 from bilancio.storage.protocols import RegistryStore
 
@@ -51810,7 +51855,7 @@ class RingSweepRunner:
         if "balances_csv" in result.artifacts:
             artifacts["balances_csv"] = result.artifacts["balances_csv"]
 
-        loader = LocalArtifactLoader(base_path=Path(result.storage_base))
+        loader = self._artifact_loader_for_result(result)
         computer = MetricsComputer(loader)
         bundle = computer.compute(artifacts)
 
@@ -52051,7 +52096,7 @@ class RingSweepRunner:
         if "balances_csv" in result.artifacts:
             artifacts["balances_csv"] = result.artifacts["balances_csv"]
 
-        loader = LocalArtifactLoader(base_path=Path(result.storage_base))
+        loader = self._artifact_loader_for_result(result)
         computer = MetricsComputer(loader)
         bundle = computer.compute(artifacts)
 
@@ -52102,6 +52147,11 @@ class RingSweepRunner:
             return str(Path("..").joinpath(absolute.relative_to(self.base_dir)))
         except ValueError:
             return str(absolute)
+
+    def _artifact_loader_for_result(self, result: ExecutionResult):
+        if result.storage_type == "modal_volume":
+            return ModalVolumeArtifactLoader(base_path=result.storage_base)
+        return LocalArtifactLoader(base_path=Path(result.storage_base))
 
     def _liquidity_allocation_dict(self) -> Dict[str, Any]:
         allocation: Dict[str, Any] = {"mode": self.liquidity_mode}
@@ -52632,10 +52682,11 @@ def write_balances_snapshot(
 """Job management for simulation runs."""
 
 from .job_id import generate_job_id, validate_job_id
-from .manager import JobManager
+from .manager import JobManager, create_job_manager
 from .models import Job, JobConfig, JobEvent, JobStatus
 
 __all__ = [
+    "create_job_manager",
     "generate_job_id",
     "validate_job_id",
     "Job",
@@ -52704,24 +52755,91 @@ def validate_job_id(job_id: str) -> bool:
 """Job lifecycle management."""
 
 import json
+import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from .job_id import generate_job_id
 from .models import Job, JobConfig, JobEvent, JobStatus
 
+if TYPE_CHECKING:
+    from .supabase_store import SupabaseJobStore
+
+logger = logging.getLogger(__name__)
+
+
+def create_job_manager(
+    jobs_dir: Optional[Path] = None,
+    cloud: bool = False,
+    local: bool = True,
+) -> "JobManager":
+    """Factory function to create a JobManager with optional cloud storage.
+
+    Args:
+        jobs_dir: Directory to store job manifests. If None and local=True,
+                  jobs are only in-memory.
+        cloud: If True, enable Supabase cloud storage (requires BILANCIO_SUPABASE_*
+               environment variables to be set).
+        local: If False, skip local file storage (useful for memory-constrained VMs).
+               When cloud=True and local=False, jobs are only stored in Supabase.
+
+    Returns:
+        Configured JobManager instance.
+
+    Example:
+        >>> # Cloud-only (no local files)
+        >>> manager = create_job_manager(cloud=True, local=False)
+        >>> job = manager.create_job("Test job", config)
+        >>>
+        >>> # Both local and cloud
+        >>> manager = create_job_manager(Path("./jobs"), cloud=True, local=True)
+    """
+    cloud_store = None
+    if cloud:
+        try:
+            from bilancio.storage.supabase_client import is_supabase_configured
+
+            if is_supabase_configured():
+                from .supabase_store import SupabaseJobStore
+
+                cloud_store = SupabaseJobStore()
+                logger.info("Supabase cloud storage enabled for jobs")
+            else:
+                logger.warning(
+                    "Cloud storage requested but Supabase not configured. "
+                    "Set BILANCIO_SUPABASE_URL and BILANCIO_SUPABASE_ANON_KEY."
+                )
+        except ImportError as e:
+            logger.warning(f"Failed to import Supabase: {e}")
+
+    # If local=False, don't pass jobs_dir to avoid creating local files
+    effective_jobs_dir = jobs_dir if local else None
+
+    return JobManager(jobs_dir=effective_jobs_dir, cloud_store=cloud_store)
+
 
 class JobManager:
-    """Manages job lifecycle and persistence."""
+    """Manages job lifecycle and persistence.
 
-    def __init__(self, jobs_dir: Optional[Path] = None):
+    Supports both local file storage and optional cloud storage via Supabase.
+    When cloud_store is provided, jobs are persisted to both local and cloud.
+    """
+
+    def __init__(
+        self,
+        jobs_dir: Optional[Path] = None,
+        cloud_store: Optional["SupabaseJobStore"] = None,
+    ):
         """Initialize the job manager.
 
         Args:
             jobs_dir: Directory to store job manifests. If None, jobs are only in-memory.
+            cloud_store: Optional Supabase store for cloud persistence. Jobs will be
+                        saved to both local and cloud when provided.
         """
         self.jobs_dir = jobs_dir
+        self.cloud_store = cloud_store
         self._jobs: dict[str, Job] = {}
 
         if jobs_dir:
@@ -52769,6 +52887,7 @@ class JobManager:
 
         self._jobs[job_id] = job
         self._save_job(job)
+        self._save_event(event)
 
         return job
 
@@ -52793,6 +52912,7 @@ class JobManager:
         )
         job.events.append(event)
         self._save_job(job)
+        self._save_event(event)
 
     def record_progress(
         self,
@@ -52827,6 +52947,7 @@ class JobManager:
         )
         job.events.append(event)
         self._save_job(job)
+        self._save_event(event)
 
     def complete_job(self, job_id: str, summary: Optional[dict] = None) -> None:
         """Mark a job as completed.
@@ -52854,6 +52975,7 @@ class JobManager:
         )
         job.events.append(event)
         self._save_job(job)
+        self._save_event(event)
 
     def fail_job(self, job_id: str, error: str) -> None:
         """Mark a job as failed.
@@ -52882,6 +53004,7 @@ class JobManager:
         )
         job.events.append(event)
         self._save_job(job)
+        self._save_event(event)
 
     def get_job(self, job_id: str) -> Optional[Job]:
         """Get a job by ID.
@@ -52926,20 +53049,41 @@ class JobManager:
         return list(self._jobs.values())
 
     def _save_job(self, job: Job) -> None:
-        """Save job manifest to disk.
+        """Save job manifest to disk and optionally to cloud.
 
         Args:
             job: The job to save
         """
-        if self.jobs_dir is None:
-            return
+        # Save to local filesystem
+        if self.jobs_dir is not None:
+            job_dir = self.jobs_dir / job.job_id
+            job_dir.mkdir(parents=True, exist_ok=True)
 
-        job_dir = self.jobs_dir / job.job_id
-        job_dir.mkdir(parents=True, exist_ok=True)
+            manifest_path = job_dir / "job_manifest.json"
+            with open(manifest_path, "w") as f:
+                json.dump(job.to_dict(), f, indent=2)
 
-        manifest_path = job_dir / "job_manifest.json"
-        with open(manifest_path, "w") as f:
-            json.dump(job.to_dict(), f, indent=2)
+        # Save to cloud store if configured
+        if self.cloud_store is not None:
+            try:
+                self.cloud_store.save_job(job)
+            except Exception as e:
+                logger.warning(f"Failed to save job to cloud: {e}")
+
+    def _save_event(self, event: JobEvent) -> None:
+        """Save a job event to cloud storage.
+
+        Events are saved to Supabase for queryable history.
+        Local events are stored in the job manifest itself.
+
+        Args:
+            event: The event to save
+        """
+        if self.cloud_store is not None:
+            try:
+                self.cloud_store.save_event(event)
+            except Exception as e:
+                logger.warning(f"Failed to save event to cloud: {e}")
 
     def _load_job(self, manifest_path: Path) -> Job:
         """Load a job from a manifest file.
@@ -53106,6 +53250,362 @@ class Job:
             notes=data.get("notes"),
             events=[JobEvent.from_dict(e) for e in data.get("events", [])],
         )
+
+```
+
+---
+
+### 📄 src/bilancio/jobs/supabase_store.py
+
+```python
+"""Supabase storage backend for job persistence.
+
+This module provides a SupabaseJobStore class that persists jobs and events
+to a Supabase PostgreSQL database for durable, queryable storage.
+"""
+
+import logging
+from datetime import datetime
+from decimal import Decimal
+from typing import Any, Optional
+
+from .models import Job, JobConfig, JobEvent, JobStatus
+
+logger = logging.getLogger(__name__)
+
+
+class SupabaseJobStore:
+    """Persists jobs and events to Supabase.
+
+    This store provides durable storage for job metadata, allowing jobs to be
+    queried across sessions and from different environments (local, Modal, etc).
+
+    If Supabase is unavailable, operations fail gracefully with warnings rather
+    than raising exceptions, allowing the application to continue with local
+    storage fallback.
+    """
+
+    def __init__(self, client: Optional[Any] = None) -> None:
+        """Initialize the Supabase job store.
+
+        Args:
+            client: Optional Supabase client instance. If not provided,
+                   attempts to get one from the supabase_client module.
+        """
+        self._client = client
+        self._initialized = False
+
+    @property
+    def client(self) -> Optional[Any]:
+        """Lazily initialize and return the Supabase client."""
+        if self._client is not None:
+            return self._client
+
+        if self._initialized:
+            return None
+
+        self._initialized = True
+
+        try:
+            from bilancio.storage.supabase_client import (
+                get_supabase_client,
+                is_supabase_configured,
+            )
+
+            if not is_supabase_configured():
+                logger.debug("Supabase is not configured")
+                return None
+
+            self._client = get_supabase_client()
+            return self._client
+        except ImportError:
+            logger.warning("supabase_client module not found")
+            return None
+        except Exception as e:
+            logger.warning(f"Failed to initialize Supabase client: {e}")
+            return None
+
+    def save_job(self, job: Job) -> None:
+        """Save or update a job to Supabase.
+
+        Maps the Job dataclass to the database schema, handling type conversions
+        for arrays, decimals, and timestamps.
+
+        Args:
+            job: The Job instance to save.
+        """
+        if self.client is None:
+            logger.debug("Supabase unavailable, skipping job save")
+            return
+
+        try:
+            # Map Job fields to database columns
+            data = {
+                "job_id": job.job_id,
+                "created_at": job.created_at.isoformat(),
+                "status": job.status.value,
+                "description": job.description,
+                # Config fields (flattened into job table)
+                "sweep_type": job.config.sweep_type,
+                "n_agents": job.config.n_agents,
+                "maturity_days": job.config.maturity_days,
+                "kappas": [str(k) for k in job.config.kappas],
+                "concentrations": [str(c) for c in job.config.concentrations],
+                "mus": [str(m) for m in job.config.mus],
+                "outside_mid_ratios": [str(r) for r in job.config.outside_mid_ratios],
+                "seeds": job.config.seeds,
+                "cloud": job.config.cloud,
+                # Optional fields
+                "notes": job.notes,
+                "error": job.error,
+                "total_runs": len(job.run_ids) if job.run_ids else None,
+                "completed_runs": len(job.run_ids) if job.status == JobStatus.COMPLETED else 0,
+            }
+
+            # Add completed_at if present
+            if job.completed_at:
+                data["completed_at"] = job.completed_at.isoformat()
+
+            # Upsert the job (insert or update on conflict)
+            self.client.table("jobs").upsert(data, on_conflict="job_id").execute()
+
+            logger.debug(f"Saved job {job.job_id} to Supabase")
+
+        except Exception as e:
+            logger.warning(f"Failed to save job to Supabase: {e}")
+
+    def save_event(self, event: JobEvent) -> None:
+        """Save a job event to Supabase.
+
+        Args:
+            event: The JobEvent instance to save.
+        """
+        if self.client is None:
+            logger.debug("Supabase unavailable, skipping event save")
+            return
+
+        try:
+            data = {
+                "job_id": event.job_id,
+                "event_type": event.event_type,
+                "timestamp": event.timestamp.isoformat(),
+                "details": event.details,
+            }
+
+            self.client.table("job_events").insert(data).execute()
+
+            logger.debug(f"Saved event {event.event_type} for job {event.job_id}")
+
+        except Exception as e:
+            logger.warning(f"Failed to save event to Supabase: {e}")
+
+    def get_job(self, job_id: str) -> Optional[Job]:
+        """Load a job from Supabase by ID.
+
+        Args:
+            job_id: The unique job identifier.
+
+        Returns:
+            The Job instance if found, None otherwise.
+        """
+        if self.client is None:
+            logger.debug("Supabase unavailable, cannot get job")
+            return None
+
+        try:
+            response = (
+                self.client.table("jobs")
+                .select("*")
+                .eq("job_id", job_id)
+                .single()
+                .execute()
+            )
+
+            if not response.data:
+                return None
+
+            return self._row_to_job(response.data)
+
+        except Exception as e:
+            logger.warning(f"Failed to get job from Supabase: {e}")
+            return None
+
+    def list_jobs(
+        self,
+        status: Optional[str] = None,
+        limit: int = 100,
+    ) -> list[Job]:
+        """List jobs from Supabase with optional filtering.
+
+        Args:
+            status: Optional status filter (e.g., "running", "completed").
+            limit: Maximum number of jobs to return (default 100).
+
+        Returns:
+            List of Job instances matching the criteria.
+        """
+        if self.client is None:
+            logger.debug("Supabase unavailable, returning empty list")
+            return []
+
+        try:
+            query = (
+                self.client.table("jobs")
+                .select("*")
+                .order("created_at", desc=True)
+                .limit(limit)
+            )
+
+            if status:
+                query = query.eq("status", status)
+
+            response = query.execute()
+
+            if not response.data:
+                return []
+
+            return [self._row_to_job(row) for row in response.data]
+
+        except Exception as e:
+            logger.warning(f"Failed to list jobs from Supabase: {e}")
+            return []
+
+    def update_status(
+        self,
+        job_id: str,
+        status: JobStatus,
+        completed_at: Optional[datetime] = None,
+        error: Optional[str] = None,
+    ) -> None:
+        """Update the status of a job.
+
+        This is a lightweight update method that only modifies status-related
+        fields without requiring a full Job object.
+
+        Args:
+            job_id: The job ID to update.
+            status: The new status.
+            completed_at: Optional completion timestamp.
+            error: Optional error message (for failed status).
+        """
+        if self.client is None:
+            logger.debug("Supabase unavailable, skipping status update")
+            return
+
+        try:
+            data: dict[str, Any] = {"status": status.value}
+
+            if completed_at:
+                data["completed_at"] = completed_at.isoformat()
+
+            if error:
+                data["error"] = error
+
+            self.client.table("jobs").update(data).eq("job_id", job_id).execute()
+
+            logger.debug(f"Updated job {job_id} status to {status.value}")
+
+        except Exception as e:
+            logger.warning(f"Failed to update job status in Supabase: {e}")
+
+    def _row_to_job(self, row: dict[str, Any]) -> Job:
+        """Convert a database row to a Job instance.
+
+        Args:
+            row: Dictionary containing database row data.
+
+        Returns:
+            A Job instance populated from the row data.
+        """
+        # Parse arrays - Supabase returns them as lists already
+        kappas = [Decimal(str(k)) for k in (row.get("kappas") or [])]
+        concentrations = [Decimal(str(c)) for c in (row.get("concentrations") or [])]
+        mus = [Decimal(str(m)) for m in (row.get("mus") or [])]
+        outside_mid_ratios = [
+            Decimal(str(r)) for r in (row.get("outside_mid_ratios") or ["1"])
+        ]
+        seeds = row.get("seeds") or [42]
+
+        # Build JobConfig
+        config = JobConfig(
+            sweep_type=row["sweep_type"],
+            n_agents=row["n_agents"],
+            kappas=kappas,
+            concentrations=concentrations,
+            mus=mus,
+            cloud=row.get("cloud", False),
+            outside_mid_ratios=outside_mid_ratios,
+            maturity_days=row.get("maturity_days", 5),
+            seeds=seeds,
+        )
+
+        # Parse timestamps
+        created_at = datetime.fromisoformat(row["created_at"].replace("Z", "+00:00"))
+        completed_at = None
+        if row.get("completed_at"):
+            completed_at = datetime.fromisoformat(
+                row["completed_at"].replace("Z", "+00:00")
+            )
+
+        # Build Job (events are loaded separately if needed)
+        return Job(
+            job_id=row["job_id"],
+            created_at=created_at,
+            status=JobStatus(row["status"]),
+            description=row.get("description") or "",
+            config=config,
+            run_ids=[],  # Run IDs would need separate query to runs table
+            modal_call_ids={},  # Modal call IDs stored per-run, not in jobs table
+            completed_at=completed_at,
+            error=row.get("error"),
+            notes=row.get("notes"),
+            events=[],  # Events loaded separately if needed
+        )
+
+    def get_events(self, job_id: str) -> list[JobEvent]:
+        """Load all events for a job from Supabase.
+
+        Args:
+            job_id: The job ID to get events for.
+
+        Returns:
+            List of JobEvent instances, ordered by timestamp.
+        """
+        if self.client is None:
+            logger.debug("Supabase unavailable, returning empty events list")
+            return []
+
+        try:
+            response = (
+                self.client.table("job_events")
+                .select("*")
+                .eq("job_id", job_id)
+                .order("timestamp", desc=False)
+                .execute()
+            )
+
+            if not response.data:
+                return []
+
+            events = []
+            for row in response.data:
+                timestamp = datetime.fromisoformat(
+                    row["timestamp"].replace("Z", "+00:00")
+                )
+                events.append(
+                    JobEvent(
+                        job_id=row["job_id"],
+                        event_type=row["event_type"],
+                        timestamp=timestamp,
+                        details=row.get("details") or {},
+                    )
+                )
+
+            return events
+
+        except Exception as e:
+            logger.warning(f"Failed to get events from Supabase: {e}")
+            return []
 
 ```
 
@@ -53598,6 +54098,7 @@ __all__ = [
 
 from __future__ import annotations
 
+import itertools
 import subprocess
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -53734,10 +54235,10 @@ class CloudExecutor:
         max_parallel: int = 50,
         progress_callback: Optional[Callable[[int, int], None]] = None,
     ) -> List[ExecutionResult]:
-        """Execute multiple simulations in parallel on Modal using .map().
+        """Execute multiple simulations in parallel on Modal.
 
-        Uses Modal's .map() for maximum parallelism - Modal scales containers
-        automatically to process all inputs concurrently.
+        Modal handles parallelization automatically. This method provides
+        a convenient interface for batch execution.
 
         Args:
             runs: List of (scenario_config, run_id, options) tuples.
@@ -53751,87 +54252,58 @@ class CloudExecutor:
         run_simulation = self._get_run_simulation()
 
         total = len(runs)
+        results: List[Optional[ExecutionResult]] = [None] * total
 
-        # Prepare argument lists for .map()
-        scenario_configs = []
-        run_ids = []
-        experiment_ids = []
-        options_list = []
-        job_ids = []
+        run_id_to_index = {run_id: idx for idx, (_, run_id, _) in enumerate(runs)}
+        configs = [config for config, _, _ in runs]
+        run_ids = [run_id for _, run_id, _ in runs]
+        options_dicts = [self._options_to_dict(options) for _, _, options in runs]
 
-        for config, run_id, options in runs:
-            scenario_configs.append(config)
-            run_ids.append(run_id)
-            experiment_ids.append(self.experiment_id)
-            options_list.append(self._options_to_dict(options))
-            job_ids.append(self.job_id)
-
-        # Use .map() for maximum parallelism - Modal scales containers automatically
-        # order_outputs=True ensures results come back in input order
-        results: List[ExecutionResult] = []
+        # Collect results as they complete (unordered) so progress doesn't stall
         completed = 0
-
-        for idx, result in enumerate(
-            run_simulation.map(
-                scenario_configs,
-                run_ids,
-                experiment_ids,
-                options_list,
-                job_ids,
-                order_outputs=True,
-                return_exceptions=True,
-                wrap_returned_exceptions=False,
-            )
+        for result in run_simulation.map(
+            configs,
+            run_ids,
+            itertools.repeat(self.experiment_id),
+            options_dicts,
+            itertools.repeat(self.job_id),
+            order_outputs=False,
         ):
-            run_id = run_ids[idx]
+            run_id = result["run_id"]
+            idx = run_id_to_index[run_id]
 
-            # Handle exceptions from Modal
-            if isinstance(result, Exception):
-                results.append(
-                    ExecutionResult(
-                        run_id=run_id,
-                        status=RunStatus.FAILED,
-                        storage_type="none",
-                        storage_base="",
-                        artifacts={},
-                        error=str(result),
-                        execution_time_ms=None,
-                        modal_call_id=None,
-                    )
-                )
+            # Download artifacts if requested and determine storage location
+            if self.download_artifacts and result["status"] == "completed":
+                output_dir = self.local_output_dir / "runs" / run_id
+                self._download_run_artifacts(run_id, output_dir, result["artifacts"])
+                # When downloading, the storage_base should be the local path
+                storage_type = "local"
+                storage_base = str(output_dir.resolve())
             else:
-                # Download artifacts if requested and determine storage location
-                if self.download_artifacts and result["status"] == "completed":
-                    output_dir = self.local_output_dir / "runs" / run_id
-                    self._download_run_artifacts(run_id, output_dir, result["artifacts"])
-                    storage_type = "local"
-                    storage_base = str(output_dir.resolve())
-                else:
-                    storage_type = result["storage_type"]
-                    storage_base = result["storage_base"]
+                # When not downloading, keep the modal_volume reference
+                storage_type = result["storage_type"]
+                storage_base = result["storage_base"]
 
-                results.append(
-                    ExecutionResult(
-                        run_id=result["run_id"],
-                        status=(
-                            RunStatus.COMPLETED
-                            if result["status"] == "completed"
-                            else RunStatus.FAILED
-                        ),
-                        storage_type=storage_type,
-                        storage_base=storage_base,
-                        artifacts=result["artifacts"],
-                        error=result.get("error"),
-                        execution_time_ms=result.get("execution_time_ms"),
-                        modal_call_id=result.get("modal_call_id"),
-                    )
-                )
+            results[idx] = ExecutionResult(
+                run_id=result["run_id"],
+                status=(
+                    RunStatus.COMPLETED
+                    if result["status"] == "completed"
+                    else RunStatus.FAILED
+                ),
+                storage_type=storage_type,
+                storage_base=storage_base,
+                artifacts=result["artifacts"],
+                error=result.get("error"),
+                execution_time_ms=result.get("execution_time_ms"),
+                modal_call_id=result.get("modal_call_id"),
+            )
 
             completed += 1
             if progress_callback:
                 progress_callback(completed, total)
 
-        return results
+        return results  # type: ignore
 
     def _options_to_dict(self, options: RunOptions) -> Dict[str, Any]:
         """Convert RunOptions to serializable dict."""
@@ -54987,6 +55459,12 @@ from .protocols import ResultStore, RegistryStore
 from .file_store import FileResultStore, FileRegistryStore
 from .artifact_loaders import ArtifactLoader, LocalArtifactLoader
 from .modal_artifact_loader import ModalVolumeArtifactLoader
+from .supabase_client import (
+    get_supabase_client,
+    is_supabase_configured,
+    SupabaseConfigError,
+)
+from .supabase_registry import SupabaseRegistryStore
 
 __all__ = [
     "RunStatus",
@@ -55000,6 +55478,11 @@ __all__ = [
     "ArtifactLoader",
     "LocalArtifactLoader",
     "ModalVolumeArtifactLoader",
+    # Supabase
+    "get_supabase_client",
+    "is_supabase_configured",
+    "SupabaseConfigError",
+    "SupabaseRegistryStore",
 ]
 
 ```
@@ -55766,6 +56249,531 @@ class RegistryStore(Protocol):
 
 ---
 
+### 📄 src/bilancio/storage/supabase_client.py
+
+```python
+"""Supabase client wrapper for bilancio storage.
+
+This module provides a configured Supabase client for persisting simulation
+results and job metadata to the Supabase database.
+
+Environment variables required:
+    BILANCIO_SUPABASE_URL: The Supabase project URL
+    BILANCIO_SUPABASE_ANON_KEY: The Supabase anonymous/public key
+"""
+
+from __future__ import annotations
+
+import os
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from supabase import Client
+
+# Module-level singleton for client reuse
+_supabase_client: Client | None = None
+
+
+class SupabaseConfigError(Exception):
+    """Raised when Supabase credentials are missing or invalid."""
+
+    pass
+
+
+def is_supabase_configured() -> bool:
+    """Check if Supabase environment variables are set.
+
+    Returns:
+        True if both BILANCIO_SUPABASE_URL and BILANCIO_SUPABASE_ANON_KEY
+        are set in the environment, False otherwise.
+    """
+    url = os.environ.get("BILANCIO_SUPABASE_URL")
+    key = os.environ.get("BILANCIO_SUPABASE_ANON_KEY")
+    return bool(url and key)
+
+
+def get_supabase_client() -> Client:
+    """Get a configured Supabase client instance.
+
+    This function implements a singleton pattern - the client is created
+    once and reused for subsequent calls. This is efficient for connection
+    pooling and reduces overhead.
+
+    Returns:
+        A configured Supabase Client instance.
+
+    Raises:
+        SupabaseConfigError: If BILANCIO_SUPABASE_URL or
+            BILANCIO_SUPABASE_ANON_KEY environment variables are not set.
+
+    Example:
+        >>> client = get_supabase_client()
+        >>> response = client.table("jobs").select("*").execute()
+    """
+    global _supabase_client
+
+    if _supabase_client is not None:
+        return _supabase_client
+
+    url = os.environ.get("BILANCIO_SUPABASE_URL")
+    key = os.environ.get("BILANCIO_SUPABASE_ANON_KEY")
+
+    if not url:
+        raise SupabaseConfigError(
+            "BILANCIO_SUPABASE_URL environment variable is not set. "
+            "Please set it to your Supabase project URL "
+            "(e.g., https://xxxxx.supabase.co)"
+        )
+
+    if not key:
+        raise SupabaseConfigError(
+            "BILANCIO_SUPABASE_ANON_KEY environment variable is not set. "
+            "Please set it to your Supabase anonymous/public key."
+        )
+
+    from supabase import create_client
+
+    _supabase_client = create_client(url, key)
+    return _supabase_client
+
+
+def reset_client() -> None:
+    """Reset the singleton client instance.
+
+    This is primarily useful for testing or when credentials change.
+    The next call to get_supabase_client() will create a new client.
+    """
+    global _supabase_client
+    _supabase_client = None
+
+```
+
+---
+
+### 📄 src/bilancio/storage/supabase_registry.py
+
+```python
+"""Supabase-based registry store implementation."""
+
+from __future__ import annotations
+
+import logging
+from datetime import datetime, timezone
+from decimal import Decimal
+from typing import Optional, List, Dict, Any, TYPE_CHECKING
+
+from .models import RegistryEntry, RunStatus
+
+if TYPE_CHECKING:
+    from supabase import Client
+
+logger = logging.getLogger(__name__)
+
+
+class SupabaseRegistryStore:
+    """Store registry entries in Supabase PostgreSQL database.
+
+    This implementation stores run metadata in the `runs` table and
+    associated metrics in the `metrics` table. It implements the
+    RegistryStore protocol for compatibility with the storage abstraction.
+
+    The schema expects:
+    - runs: run_id, job_id, status, kappa, concentration, mu, seed, etc.
+    - metrics: run_id, job_id, delta_total, phi_total, raw_metrics, etc.
+    """
+
+    # Parameter fields that map directly to runs table columns
+    RUNS_PARAM_COLUMNS = {
+        "kappa", "concentration", "mu", "outside_mid_ratio", "seed", "regime"
+    }
+
+    # Metric fields that map directly to metrics table columns
+    METRICS_COLUMNS = {
+        "delta_total", "phi_total", "n_defaults", "n_clears",
+        "time_to_stability", "trading_effect", "total_trades", "total_trade_volume"
+    }
+
+    def __init__(self, client: Optional["Client"] = None):
+        """Initialize Supabase registry store.
+
+        Args:
+            client: Optional Supabase client. If not provided, will be
+                    created lazily using get_supabase_client().
+        """
+        self._client = client
+        self._initialized = client is not None
+
+    @property
+    def client(self) -> "Client":
+        """Get or create the Supabase client.
+
+        Returns:
+            Supabase client instance.
+
+        Raises:
+            RuntimeError: If Supabase is not configured.
+        """
+        if not self._initialized:
+            from bilancio.storage.supabase_client import (
+                get_supabase_client,
+                is_supabase_configured,
+            )
+
+            if not is_supabase_configured():
+                raise RuntimeError(
+                    "Supabase is not configured. Set SUPABASE_URL and "
+                    "SUPABASE_KEY environment variables."
+                )
+            self._client = get_supabase_client()
+            self._initialized = True
+
+        return self._client
+
+    def upsert(self, entry: RegistryEntry) -> None:
+        """Insert or update a registry entry.
+
+        This method performs two operations:
+        1. Upserts the run record in the `runs` table
+        2. Upserts the metrics record in the `metrics` table
+
+        Args:
+            entry: The registry entry to upsert.
+        """
+        try:
+            # Build runs table row
+            runs_row = self._build_runs_row(entry)
+
+            # Upsert into runs table
+            self.client.table("runs").upsert(
+                runs_row,
+                on_conflict="run_id"
+            ).execute()
+
+            # Build and upsert metrics if we have any
+            if entry.metrics:
+                metrics_row = self._build_metrics_row(entry)
+
+                # Check if metrics row already exists for this run
+                existing = self.client.table("metrics").select("id").eq(
+                    "run_id", entry.run_id
+                ).execute()
+
+                if existing.data:
+                    # Update existing metrics row
+                    self.client.table("metrics").update(metrics_row).eq(
+                        "run_id", entry.run_id
+                    ).execute()
+                else:
+                    # Insert new metrics row
+                    self.client.table("metrics").insert(metrics_row).execute()
+
+            logger.debug(f"Upserted registry entry for run {entry.run_id}")
+
+        except Exception as e:
+            logger.warning(f"Failed to upsert registry entry {entry.run_id}: {e}")
+
+    def get(self, experiment_id: str, run_id: str) -> Optional[RegistryEntry]:
+        """Get a specific registry entry.
+
+        Args:
+            experiment_id: The job/experiment ID.
+            run_id: The run ID to retrieve.
+
+        Returns:
+            RegistryEntry if found, None otherwise.
+        """
+        try:
+            # Query runs table with metrics join
+            result = self.client.table("runs").select(
+                "*, metrics(*)"
+            ).eq("run_id", run_id).eq("job_id", experiment_id).execute()
+
+            if not result.data:
+                return None
+
+            row = result.data[0]
+            return self._row_to_entry(row)
+
+        except Exception as e:
+            logger.warning(f"Failed to get registry entry {run_id}: {e}")
+            return None
+
+    def list_runs(self, experiment_id: str) -> List[str]:
+        """List all run IDs for an experiment.
+
+        Args:
+            experiment_id: The job/experiment ID.
+
+        Returns:
+            List of run IDs.
+        """
+        try:
+            result = self.client.table("runs").select("run_id").eq(
+                "job_id", experiment_id
+            ).execute()
+
+            return [row["run_id"] for row in result.data]
+
+        except Exception as e:
+            logger.warning(f"Failed to list runs for {experiment_id}: {e}")
+            return []
+
+    def get_completed_keys(
+        self,
+        experiment_id: str,
+        key_fields: Optional[List[str]] = None
+    ) -> set:
+        """Get set of completed parameter combinations.
+
+        Used for sweep resumption to identify which parameter combinations
+        have already been completed.
+
+        Args:
+            experiment_id: The job/experiment ID.
+            key_fields: List of parameter field names to use as keys.
+                       Defaults to ["seed", "kappa", "concentration"].
+
+        Returns:
+            Set of tuples containing completed parameter combinations.
+        """
+        if key_fields is None:
+            key_fields = ["seed", "kappa", "concentration"]
+
+        try:
+            # Build select clause for requested fields
+            select_fields = ",".join(key_fields)
+
+            result = self.client.table("runs").select(select_fields).eq(
+                "job_id", experiment_id
+            ).eq("status", "completed").execute()
+
+            completed = set()
+            for row in result.data:
+                key_values = []
+                for field in key_fields:
+                    val = row.get(field)
+                    if val is not None:
+                        # Convert Decimal to float for consistent hashing
+                        if isinstance(val, (Decimal, str)):
+                            try:
+                                val = float(val)
+                            except (ValueError, TypeError):
+                                pass
+                        key_values.append(val)
+                    else:
+                        key_values.append(None)
+                completed.add(tuple(key_values))
+
+            return completed
+
+        except Exception as e:
+            logger.warning(
+                f"Failed to get completed keys for {experiment_id}: {e}"
+            )
+            return set()
+
+    def query(
+        self,
+        experiment_id: str,
+        filters: Optional[Dict[str, Any]] = None
+    ) -> List[RegistryEntry]:
+        """Query registry entries with optional filters.
+
+        Args:
+            experiment_id: The job/experiment ID.
+            filters: Optional dict of field=value filters to apply.
+
+        Returns:
+            List of matching RegistryEntry objects.
+        """
+        try:
+            # Start with base query including metrics
+            query = self.client.table("runs").select("*, metrics(*)").eq(
+                "job_id", experiment_id
+            )
+
+            # Apply filters
+            if filters:
+                for field, value in filters.items():
+                    query = query.eq(field, value)
+
+            result = query.execute()
+
+            return [self._row_to_entry(row) for row in result.data]
+
+        except Exception as e:
+            logger.warning(
+                f"Failed to query registry for {experiment_id}: {e}"
+            )
+            return []
+
+    def _build_runs_row(self, entry: RegistryEntry) -> Dict[str, Any]:
+        """Build a row dict for the runs table.
+
+        Args:
+            entry: The registry entry to convert.
+
+        Returns:
+            Dict suitable for inserting into runs table.
+        """
+        row: Dict[str, Any] = {
+            "run_id": entry.run_id,
+            "job_id": entry.experiment_id,
+            "status": entry.status.value,
+        }
+
+        # Add error if present
+        if entry.error:
+            row["error"] = entry.error
+
+        # Add timestamps based on status
+        now = datetime.now(timezone.utc).isoformat()
+        if entry.status == RunStatus.COMPLETED:
+            row["completed_at"] = now
+        elif entry.status == RunStatus.FAILED:
+            row["completed_at"] = now
+
+        # Map parameters to runs table columns
+        for param, value in entry.parameters.items():
+            if param in self.RUNS_PARAM_COLUMNS:
+                row[param] = self._convert_value(value)
+
+        # Store Modal volume path if present in artifact_paths
+        if entry.artifact_paths:
+            # Derive volume path from any artifact path
+            for artifact_path in entry.artifact_paths.values():
+                if artifact_path:
+                    # Extract base path (e.g., "experiment/runs/run_id")
+                    parts = artifact_path.split("/")
+                    if "runs" in parts:
+                        idx = parts.index("runs")
+                        if idx + 2 <= len(parts):
+                            row["modal_volume_path"] = "/".join(parts[:idx + 2])
+                            break
+
+        return row
+
+    def _build_metrics_row(self, entry: RegistryEntry) -> Dict[str, Any]:
+        """Build a row dict for the metrics table.
+
+        Args:
+            entry: The registry entry to convert.
+
+        Returns:
+            Dict suitable for inserting into metrics table.
+        """
+        row: Dict[str, Any] = {
+            "run_id": entry.run_id,
+            "job_id": entry.experiment_id,
+            "raw_metrics": entry.metrics,  # Store full metrics as JSONB
+        }
+
+        # Map known metrics to dedicated columns
+        for metric, value in entry.metrics.items():
+            if metric in self.METRICS_COLUMNS:
+                row[metric] = self._convert_value(value)
+
+        return row
+
+    def _row_to_entry(self, row: Dict[str, Any]) -> RegistryEntry:
+        """Convert a database row to RegistryEntry.
+
+        Args:
+            row: Dict from Supabase query result.
+
+        Returns:
+            RegistryEntry object.
+        """
+        # Extract parameters from runs table columns
+        parameters: Dict[str, Any] = {}
+        for param in self.RUNS_PARAM_COLUMNS:
+            if param in row and row[param] is not None:
+                parameters[param] = self._parse_value(row[param])
+
+        # Extract metrics from nested metrics relation or raw_metrics
+        metrics: Dict[str, Any] = {}
+        metrics_data = row.get("metrics")
+
+        if metrics_data:
+            # metrics is a list from the join, take first item
+            if isinstance(metrics_data, list) and metrics_data:
+                metrics_row = metrics_data[0]
+            else:
+                metrics_row = metrics_data
+
+            # Prefer raw_metrics if available (has all metrics)
+            raw_metrics = metrics_row.get("raw_metrics")
+            if raw_metrics and isinstance(raw_metrics, dict):
+                metrics = raw_metrics
+            else:
+                # Fall back to individual columns
+                for metric in self.METRICS_COLUMNS:
+                    if metric in metrics_row and metrics_row[metric] is not None:
+                        metrics[metric] = self._parse_value(metrics_row[metric])
+
+        # Build artifact paths from modal_volume_path
+        artifact_paths: Dict[str, str] = {}
+        volume_path = row.get("modal_volume_path")
+        if volume_path:
+            # Reconstruct standard artifact paths
+            artifact_paths["scenario_yaml"] = f"{volume_path}/scenario.yaml"
+            artifact_paths["events_jsonl"] = f"{volume_path}/out/events.jsonl"
+            artifact_paths["balances_csv"] = f"{volume_path}/out/balances.csv"
+            artifact_paths["metrics_csv"] = f"{volume_path}/out/metrics.csv"
+            artifact_paths["run_html"] = f"{volume_path}/run.html"
+
+        return RegistryEntry(
+            run_id=row["run_id"],
+            experiment_id=row.get("job_id", ""),
+            status=RunStatus(row.get("status", "completed")),
+            parameters=parameters,
+            metrics=metrics,
+            artifact_paths=artifact_paths,
+            error=row.get("error"),
+        )
+
+    @staticmethod
+    def _convert_value(value: Any) -> Any:
+        """Convert Python value for Supabase storage.
+
+        Args:
+            value: Value to convert.
+
+        Returns:
+            Converted value suitable for database storage.
+        """
+        if isinstance(value, Decimal):
+            return float(value)
+        if isinstance(value, bool):
+            return value
+        return value
+
+    @staticmethod
+    def _parse_value(value: Any) -> Any:
+        """Parse database value to Python type.
+
+        Args:
+            value: Value from database.
+
+        Returns:
+            Parsed Python value.
+        """
+        if isinstance(value, str):
+            # Try to parse as number
+            try:
+                if "." in value:
+                    return float(value)
+                return int(value)
+            except ValueError:
+                return value
+        if isinstance(value, Decimal):
+            return float(value)
+        return value
+
+```
+
+---
+
 ### 📄 src/bilancio/ui/__init__.py
 
 ```python
@@ -55789,6 +56797,8 @@ import click
 
 from .run import run, validate, new, analyze
 from .sweep import sweep
+from .volume import volume
+from .jobs import jobs
 
 
 @click.group()
@@ -55803,6 +56813,8 @@ cli.add_command(validate)
 cli.add_command(new)
 cli.add_command(analyze)
 cli.add_command(sweep)
+cli.add_command(volume)
+cli.add_command(jobs)
 
 
 def main():
@@ -55812,6 +56824,349 @@ def main():
 
 # Re-export for backwards compatibility
 __all__ = ['cli', 'main']
+
+```
+
+---
+
+### 📄 src/bilancio/ui/cli/jobs.py
+
+```python
+"""Job management CLI commands."""
+
+from __future__ import annotations
+
+from datetime import datetime
+from pathlib import Path
+from typing import Optional
+
+import click
+
+
+def format_datetime(dt: Optional[datetime]) -> str:
+    """Format datetime for display."""
+    if dt is None:
+        return "-"
+    return dt.strftime("%Y-%m-%d %H:%M")
+
+
+def format_duration(start: datetime, end: Optional[datetime]) -> str:
+    """Format duration between two datetimes."""
+    if end is None:
+        return "running"
+    delta = end - start
+    minutes = delta.total_seconds() / 60
+    if minutes < 1:
+        return f"{delta.total_seconds():.0f}s"
+    if minutes < 60:
+        return f"{minutes:.1f}m"
+    return f"{minutes/60:.1f}h"
+
+
+@click.group()
+def jobs():
+    """Query and manage simulation jobs."""
+    pass
+
+
+@jobs.command("ls")
+@click.option(
+    "--cloud", is_flag=True, help="Query from Supabase cloud storage"
+)
+@click.option(
+    "--local",
+    type=click.Path(exists=True, path_type=Path),
+    help="Local directory containing job manifests",
+)
+@click.option(
+    "--status",
+    type=click.Choice(["pending", "running", "completed", "failed"]),
+    help="Filter by job status",
+)
+@click.option("--limit", default=20, help="Maximum number of jobs to show")
+def list_jobs(
+    cloud: bool, local: Optional[Path], status: Optional[str], limit: int
+):
+    """List simulation jobs.
+
+    By default, lists from Supabase if configured.
+
+    Examples:
+        bilancio jobs ls --cloud
+        bilancio jobs ls --local out/experiments
+        bilancio jobs ls --status completed --limit 10
+    """
+    jobs_list = []
+
+    if cloud:
+        # Query from Supabase
+        try:
+            from bilancio.jobs.supabase_store import SupabaseJobStore
+
+            store = SupabaseJobStore()
+            if store.client is None:
+                raise click.ClickException(
+                    "Supabase not configured. Set BILANCIO_SUPABASE_URL and "
+                    "BILANCIO_SUPABASE_ANON_KEY environment variables."
+                )
+            jobs_list = store.list_jobs(status=status, limit=limit)
+        except ImportError as e:
+            raise click.ClickException(f"Failed to import Supabase: {e}")
+
+    elif local:
+        # Query from local filesystem
+        from bilancio.jobs import JobManager
+
+        manager = JobManager(jobs_dir=local)
+        jobs_list = manager.list_jobs()
+
+        # Apply filters
+        if status:
+            jobs_list = [j for j in jobs_list if j.status.value == status]
+
+        # Sort by creation time (newest first) and limit
+        jobs_list = sorted(jobs_list, key=lambda j: j.created_at, reverse=True)[
+            :limit
+        ]
+
+    else:
+        # Try Supabase first, fall back to error
+        try:
+            from bilancio.storage.supabase_client import is_supabase_configured
+
+            if is_supabase_configured():
+                from bilancio.jobs.supabase_store import SupabaseJobStore
+
+                store = SupabaseJobStore()
+                jobs_list = store.list_jobs(status=status, limit=limit)
+            else:
+                click.echo(
+                    "No source specified. Use --cloud or --local <path>.\n"
+                    "Tip: Set BILANCIO_SUPABASE_* env vars to use --cloud."
+                )
+                return
+        except Exception as e:
+            raise click.ClickException(f"Failed to query jobs: {e}")
+
+    if not jobs_list:
+        click.echo("No jobs found.")
+        return
+
+    # Display jobs
+    click.echo(f"{'JOB ID':<36} {'STATUS':<10} {'CREATED':<16} {'DURATION':<10} {'RUNS':<6}")
+    click.echo("-" * 80)
+
+    for job in jobs_list:
+        duration = format_duration(job.created_at, job.completed_at)
+        runs = len(job.run_ids) if job.run_ids else 0
+        click.echo(
+            f"{job.job_id:<36} {job.status.value:<10} "
+            f"{format_datetime(job.created_at):<16} {duration:<10} {runs:<6}"
+        )
+
+    click.echo("-" * 80)
+    click.echo(f"Total: {len(jobs_list)} jobs")
+
+
+@jobs.command("get")
+@click.argument("job_id")
+@click.option("--cloud", is_flag=True, help="Query from Supabase cloud storage")
+@click.option(
+    "--local",
+    type=click.Path(exists=True, path_type=Path),
+    help="Local directory containing job manifests",
+)
+def get_job(job_id: str, cloud: bool, local: Optional[Path]):
+    """Get detailed information about a job.
+
+    Examples:
+        bilancio jobs get castle-river-mountain-forest
+        bilancio jobs get castle-river-mountain-forest --cloud
+    """
+    job = None
+
+    if cloud:
+        try:
+            from bilancio.jobs.supabase_store import SupabaseJobStore
+
+            store = SupabaseJobStore()
+            if store.client is None:
+                raise click.ClickException("Supabase not configured.")
+            job = store.get_job(job_id)
+        except ImportError as e:
+            raise click.ClickException(f"Failed to import Supabase: {e}")
+
+    elif local:
+        from bilancio.jobs import JobManager
+
+        manager = JobManager(jobs_dir=local)
+        job = manager.get_job(job_id)
+
+    else:
+        # Try Supabase first, then local
+        try:
+            from bilancio.storage.supabase_client import is_supabase_configured
+
+            if is_supabase_configured():
+                from bilancio.jobs.supabase_store import SupabaseJobStore
+
+                store = SupabaseJobStore()
+                job = store.get_job(job_id)
+        except Exception:
+            pass
+
+        if job is None:
+            # Try common local paths
+            for path in [Path("out/experiments"), Path(".")]:
+                if path.exists():
+                    from bilancio.jobs import JobManager
+
+                    manager = JobManager(jobs_dir=path)
+                    job = manager.get_job(job_id)
+                    if job:
+                        break
+
+    if job is None:
+        raise click.ClickException(f"Job not found: {job_id}")
+
+    # Display job details
+    click.echo(f"Job ID:      {job.job_id}")
+    click.echo(f"Status:      {job.status.value}")
+    click.echo(f"Description: {job.description}")
+    click.echo(f"Created:     {format_datetime(job.created_at)}")
+    click.echo(f"Completed:   {format_datetime(job.completed_at)}")
+    if job.error:
+        click.echo(f"Error:       {job.error}")
+    click.echo()
+
+    # Configuration
+    click.echo("Configuration:")
+    config = job.config
+    click.echo(f"  Sweep Type:    {config.sweep_type}")
+    click.echo(f"  N Agents:      {config.n_agents}")
+    click.echo(f"  Maturity Days: {config.maturity_days}")
+    click.echo(f"  Kappas:        {', '.join(str(k) for k in config.kappas)}")
+    click.echo(f"  Concentrations: {', '.join(str(c) for c in config.concentrations)}")
+    click.echo(f"  Mus:           {', '.join(str(m) for m in config.mus)}")
+    click.echo(f"  Cloud:         {config.cloud}")
+    click.echo()
+
+    # Runs
+    if job.run_ids:
+        click.echo(f"Runs ({len(job.run_ids)}):")
+        for run_id in job.run_ids[:10]:  # Show first 10
+            click.echo(f"  - {run_id}")
+        if len(job.run_ids) > 10:
+            click.echo(f"  ... and {len(job.run_ids) - 10} more")
+
+
+@jobs.command("runs")
+@click.argument("job_id")
+@click.option("--cloud", is_flag=True, help="Query from Supabase cloud storage")
+@click.option(
+    "--status",
+    type=click.Choice(["pending", "running", "completed", "failed"]),
+    help="Filter by run status",
+)
+def list_runs(job_id: str, cloud: bool, status: Optional[str]):
+    """List runs for a specific job.
+
+    Examples:
+        bilancio jobs runs castle-river-mountain-forest
+        bilancio jobs runs castle-river-mountain-forest --cloud
+    """
+    if not cloud:
+        click.echo("Note: Use --cloud to query runs from Supabase.")
+        click.echo("Local run listing requires reading registry CSV files.")
+        return
+
+    try:
+        from bilancio.storage.supabase_registry import SupabaseRegistryStore
+
+        store = SupabaseRegistryStore()
+        entries = store.query(job_id, {"status": status} if status else None)
+
+        if not entries:
+            click.echo(f"No runs found for job: {job_id}")
+            return
+
+        click.echo(f"{'RUN ID':<40} {'STATUS':<10} {'KAPPA':<8} {'CONC':<8} {'DELTA':<10}")
+        click.echo("-" * 80)
+
+        for entry in entries:
+            kappa = entry.parameters.get("kappa", "-")
+            conc = entry.parameters.get("concentration", "-")
+            delta = entry.metrics.get("delta_total", "-")
+            if isinstance(delta, float):
+                delta = f"{delta:.4f}"
+            click.echo(
+                f"{entry.run_id:<40} {entry.status.value:<10} "
+                f"{kappa:<8} {conc:<8} {delta:<10}"
+            )
+
+        click.echo("-" * 80)
+        click.echo(f"Total: {len(entries)} runs")
+
+    except Exception as e:
+        raise click.ClickException(f"Failed to query runs: {e}")
+
+
+@jobs.command("metrics")
+@click.argument("job_id")
+@click.option("--cloud", is_flag=True, help="Query from Supabase cloud storage")
+def show_metrics(job_id: str, cloud: bool):
+    """Show aggregate metrics for a job.
+
+    Examples:
+        bilancio jobs metrics castle-river-mountain-forest --cloud
+    """
+    if not cloud:
+        click.echo("Use --cloud to query metrics from Supabase.")
+        return
+
+    try:
+        from bilancio.storage.supabase_registry import SupabaseRegistryStore
+
+        store = SupabaseRegistryStore()
+        entries = store.query(job_id)
+
+        if not entries:
+            click.echo(f"No runs found for job: {job_id}")
+            return
+
+        # Calculate aggregate metrics
+        completed = [e for e in entries if e.status.value == "completed"]
+
+        if not completed:
+            click.echo("No completed runs to show metrics for.")
+            return
+
+        # Collect delta values
+        deltas = [
+            e.metrics.get("delta_total", 0) for e in completed if "delta_total" in e.metrics
+        ]
+        phis = [
+            e.metrics.get("phi_total", 0) for e in completed if "phi_total" in e.metrics
+        ]
+
+        click.echo(f"Job: {job_id}")
+        click.echo(f"Completed runs: {len(completed)} / {len(entries)}")
+        click.echo()
+
+        if deltas:
+            click.echo("Delta (default rate):")
+            click.echo(f"  Mean:   {sum(deltas)/len(deltas):.4f}")
+            click.echo(f"  Min:    {min(deltas):.4f}")
+            click.echo(f"  Max:    {max(deltas):.4f}")
+
+        if phis:
+            click.echo("Phi (clearing rate):")
+            click.echo(f"  Mean:   {sum(phis)/len(phis):.4f}")
+            click.echo(f"  Min:    {min(phis):.4f}")
+            click.echo(f"  Max:    {max(phis):.4f}")
+
+    except Exception as e:
+        raise click.ClickException(f"Failed to query metrics: {e}")
 
 ```
 
@@ -56368,7 +57723,7 @@ def sweep_ring(
 
         executor = CloudExecutor(
             experiment_id=job_id,  # Use job_id as experiment_id for simplicity
-            download_artifacts=True,
+            download_artifacts=False,
             local_output_dir=out_dir,
             job_id=job_id,
         )
@@ -56705,7 +58060,7 @@ def sweep_balanced(
         from bilancio.runners import CloudExecutor
         executor = CloudExecutor(
             experiment_id=job_id,  # Use job_id as experiment_id for simplicity
-            download_artifacts=True,
+            download_artifacts=False,
             local_output_dir=out_dir,
             job_id=job_id,
         )
@@ -56870,6 +58225,229 @@ def _as_decimal_list(value):
     if isinstance(value, (list, tuple)):
         return [Decimal(str(item)) for item in value]
     return _decimal_list(value)
+
+```
+
+---
+
+### 📄 src/bilancio/ui/cli/volume.py
+
+```python
+"""Modal Volume management commands."""
+
+from __future__ import annotations
+
+import subprocess
+import json
+from datetime import datetime, timedelta
+from typing import Optional
+
+import click
+
+
+def get_volume_contents(volume_name: str = "bilancio-results") -> list[dict]:
+    """Get contents of Modal Volume as list of dicts."""
+    result = subprocess.run(
+        ["uv", "run", "modal", "volume", "ls", volume_name, "--json"],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        raise click.ClickException(f"Failed to list volume: {result.stderr}")
+    return json.loads(result.stdout)
+
+
+def delete_volume_path(volume_name: str, path: str) -> bool:
+    """Delete a path from Modal Volume."""
+    result = subprocess.run(
+        ["uv", "run", "modal", "volume", "rm", volume_name, path, "-r"],
+        capture_output=True,
+        text=True,
+    )
+    return result.returncode == 0
+
+
+def parse_modal_date(date_str: str) -> datetime:
+    """Parse Modal's date format (e.g., '2026-01-12 16:20 CET')."""
+    # Remove timezone abbreviation and parse
+    parts = date_str.rsplit(" ", 1)
+    date_part = parts[0]
+    try:
+        return datetime.strptime(date_part, "%Y-%m-%d %H:%M")
+    except ValueError:
+        # Fallback: return now if parsing fails
+        return datetime.now()
+
+
+@click.group()
+def volume():
+    """Manage Modal Volume storage."""
+    pass
+
+
+@volume.command("ls")
+@click.option("--volume", "volume_name", default="bilancio-results", help="Volume name")
+def list_volume(volume_name: str):
+    """List experiments in Modal Volume."""
+    try:
+        contents = get_volume_contents(volume_name)
+    except Exception as e:
+        raise click.ClickException(str(e))
+
+    if not contents:
+        click.echo("Volume is empty.")
+        return
+
+    click.echo(f"Experiments in {volume_name}:")
+    click.echo("-" * 60)
+
+    for item in contents:
+        name = item.get("Filename", "unknown")
+        modified = item.get("Created/Modified", "unknown")
+        item_type = item.get("Type", "unknown")
+        if item_type == "dir":
+            click.echo(f"  {name:<40} {modified}")
+
+    click.echo("-" * 60)
+    click.echo(f"Total: {len([i for i in contents if i.get('Type') == 'dir'])} experiments")
+
+
+@volume.command("cleanup")
+@click.option("--volume", "volume_name", default="bilancio-results", help="Volume name")
+@click.option(
+    "--older-than",
+    type=int,
+    default=None,
+    help="Delete experiments older than N days",
+)
+@click.option(
+    "--pattern",
+    type=str,
+    default=None,
+    help="Delete experiments matching pattern (e.g., 'test_*')",
+)
+@click.option("--dry-run", is_flag=True, help="Show what would be deleted without deleting")
+@click.option("--yes", "-y", is_flag=True, help="Skip confirmation prompt")
+def cleanup(
+    volume_name: str,
+    older_than: Optional[int],
+    pattern: Optional[str],
+    dry_run: bool,
+    yes: bool,
+):
+    """Clean up old experiments from Modal Volume.
+
+    Examples:
+        bilancio volume cleanup --older-than 30
+        bilancio volume cleanup --pattern "test_*" --dry-run
+        bilancio volume cleanup --older-than 7 --yes
+    """
+    try:
+        contents = get_volume_contents(volume_name)
+    except Exception as e:
+        raise click.ClickException(str(e))
+
+    # Filter directories only
+    experiments = [i for i in contents if i.get("Type") == "dir"]
+
+    if not experiments:
+        click.echo("No experiments found in volume.")
+        return
+
+    # Apply filters
+    to_delete = []
+    now = datetime.now()
+
+    for exp in experiments:
+        name = exp.get("Filename", "")
+        modified_str = exp.get("Created/Modified", "")
+        modified = parse_modal_date(modified_str)
+
+        should_delete = False
+
+        # Age filter
+        if older_than is not None:
+            age_days = (now - modified).days
+            if age_days >= older_than:
+                should_delete = True
+
+        # Pattern filter
+        if pattern is not None:
+            import fnmatch
+
+            if fnmatch.fnmatch(name, pattern):
+                should_delete = True
+
+        # If no filters specified, don't delete anything
+        if older_than is None and pattern is None:
+            click.echo("Error: Specify --older-than or --pattern to select experiments to delete.")
+            click.echo("Use 'bilancio volume ls' to see all experiments.")
+            return
+
+        if should_delete:
+            to_delete.append(exp)
+
+    if not to_delete:
+        click.echo("No experiments match the criteria.")
+        return
+
+    # Show what will be deleted
+    click.echo(f"{'[DRY RUN] ' if dry_run else ''}Experiments to delete:")
+    click.echo("-" * 60)
+    for exp in to_delete:
+        name = exp.get("Filename", "")
+        modified = exp.get("Created/Modified", "")
+        click.echo(f"  {name:<40} {modified}")
+    click.echo("-" * 60)
+    click.echo(f"Total: {len(to_delete)} experiments")
+
+    if dry_run:
+        click.echo("\n[DRY RUN] No changes made.")
+        return
+
+    # Confirm
+    if not yes:
+        if not click.confirm(f"\nDelete {len(to_delete)} experiments?"):
+            click.echo("Aborted.")
+            return
+
+    # Delete
+    deleted = 0
+    failed = 0
+    for exp in to_delete:
+        name = exp.get("Filename", "")
+        click.echo(f"Deleting {name}...", nl=False)
+        if delete_volume_path(volume_name, name):
+            click.echo(" OK")
+            deleted += 1
+        else:
+            click.echo(" FAILED")
+            failed += 1
+
+    click.echo(f"\nDeleted: {deleted}, Failed: {failed}")
+
+
+@volume.command("rm")
+@click.argument("experiment_id")
+@click.option("--volume", "volume_name", default="bilancio-results", help="Volume name")
+@click.option("--yes", "-y", is_flag=True, help="Skip confirmation prompt")
+def remove(experiment_id: str, volume_name: str, yes: bool):
+    """Remove a specific experiment from Modal Volume.
+
+    Example:
+        bilancio volume rm castle-river-mountain-forest
+    """
+    if not yes:
+        if not click.confirm(f"Delete experiment '{experiment_id}'?"):
+            click.echo("Aborted.")
+            return
+
+    click.echo(f"Deleting {experiment_id}...", nl=False)
+    if delete_volume_path(volume_name, experiment_id):
+        click.echo(" OK")
+    else:
+        click.echo(" FAILED")
+        raise click.ClickException("Failed to delete experiment")
 
 ```
 
@@ -73540,5 +75118,5 @@ def test_settle_multiple_obligations():
 ## End of Codebase
 
 Generated from: /home/runner/work/bilancio/bilancio
-Total source files: 112
+Total source files: 117
 Total test files: 52
