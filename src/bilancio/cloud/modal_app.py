@@ -60,10 +60,17 @@ def compute_metrics_from_events(events_path: str) -> dict:
         events_path: Path to events.jsonl file.
 
     Returns:
-        Dict with delta_total, phi_total, time_to_stability, and raw metrics.
+        Dict with all global metrics from summarize_day_metrics, properly serialized.
     """
     import json
+    from decimal import Decimal
     from pathlib import Path
+
+    def to_serializable(val):
+        """Convert Decimal to float for JSON serialization."""
+        if isinstance(val, Decimal):
+            return float(val)
+        return val
 
     # Read events
     events = []
@@ -77,6 +84,11 @@ def compute_metrics_from_events(events_path: str) -> dict:
             "delta_total": None,
             "phi_total": None,
             "time_to_stability": None,
+            "max_G_t": None,
+            "alpha_1": None,
+            "Mpeak_1": None,
+            "v_1": None,
+            "HHIplus_1": None,
             "raw_metrics": {},
         }
 
@@ -86,11 +98,19 @@ def compute_metrics_from_events(events_path: str) -> dict:
     result = compute_day_metrics(events=events, balances_rows=None, day_list=None)
     summary = summarize_day_metrics(result["day_metrics"])
 
+    # Convert all Decimal values to float for JSON serialization
+    serializable_summary = {k: to_serializable(v) for k, v in summary.items()}
+
     return {
-        "delta_total": summary.get("delta_total"),
-        "phi_total": summary.get("phi_total"),
+        "delta_total": to_serializable(summary.get("delta_total")),
+        "phi_total": to_serializable(summary.get("phi_total")),
         "time_to_stability": int(summary.get("max_day") or 0),
-        "raw_metrics": summary,
+        "max_G_t": to_serializable(summary.get("max_G_t")),
+        "alpha_1": to_serializable(summary.get("alpha_1")),
+        "Mpeak_1": to_serializable(summary.get("Mpeak_1")),
+        "v_1": to_serializable(summary.get("v_1")),
+        "HHIplus_1": to_serializable(summary.get("HHIplus_1")),
+        "raw_metrics": serializable_summary,
     }
 
 
@@ -154,7 +174,12 @@ def save_run_to_supabase(
         param_columns = {"kappa", "concentration", "mu", "outside_mid_ratio", "seed", "regime"}
         for param, value in params.items():
             if param in param_columns:
-                runs_row[param] = float(value) if isinstance(value, (int, float, str)) and param != "regime" else value
+                if param == "seed":
+                    runs_row[param] = int(value) if value is not None else None
+                elif param == "regime":
+                    runs_row[param] = value
+                else:
+                    runs_row[param] = float(value) if isinstance(value, (int, float, str)) else value
 
         # Upsert run
         client.table("runs").upsert(runs_row, on_conflict="run_id").execute()
@@ -162,13 +187,27 @@ def save_run_to_supabase(
 
         # Build and save metrics if we have them
         if metrics.get("delta_total") is not None or metrics.get("phi_total") is not None:
+            # Build raw_metrics with all global metrics from summarize_day_metrics
+            raw_metrics = metrics.get("raw_metrics", {})
+            # Ensure all metrics are in raw_metrics even if they came from top-level
+            raw_metrics.update({
+                "delta_total": metrics.get("delta_total"),
+                "phi_total": metrics.get("phi_total"),
+                "time_to_stability": metrics.get("time_to_stability"),
+                "max_G_t": metrics.get("max_G_t"),
+                "alpha_1": metrics.get("alpha_1"),
+                "Mpeak_1": metrics.get("Mpeak_1"),
+                "v_1": metrics.get("v_1"),
+                "HHIplus_1": metrics.get("HHIplus_1"),
+            })
+
             metrics_row = {
                 "run_id": run_id,
                 "job_id": job_id,
                 "delta_total": metrics.get("delta_total"),
                 "phi_total": metrics.get("phi_total"),
                 "time_to_stability": metrics.get("time_to_stability"),
-                "raw_metrics": metrics.get("raw_metrics", {}),
+                "raw_metrics": raw_metrics,
             }
 
             # Check if metrics exist

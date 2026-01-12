@@ -156,6 +156,22 @@ export $(grep -v '^#' .env | xargs)
 uv run bilancio jobs ls --cloud
 ```
 
+### Supabase CLI
+
+Use the Supabase CLI for database management instead of the web dashboard:
+```bash
+# Push migrations to remote database
+supabase db push --linked
+
+# List migrations
+ls supabase/migrations/
+
+# Create a new migration
+# Create file: supabase/migrations/YYYYMMDD_description.sql
+# Then push with: supabase db push --linked
+```
+
+Migrations are stored in `supabase/migrations/`. The project is linked to the bilancio Supabase project.
 ### Architecture
 
 - **Cloud-only mode (recommended)**: Jobs stored only in Supabase, no local files

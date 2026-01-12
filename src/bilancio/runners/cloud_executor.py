@@ -300,7 +300,10 @@ class CloudExecutor:
         """
         # Apply proxy patch for environments with HTTP CONNECT proxy
         import bilancio.cloud.proxy_patch  # noqa: F401
-        from bilancio.cloud.modal_app import compute_aggregate_metrics as modal_aggregate
+        import modal
+
+        # Get reference to deployed function (same pattern as run_simulation)
+        modal_aggregate = modal.Function.from_name(self.app_name, "compute_aggregate_metrics")
 
         print("Computing aggregate metrics on Modal...", flush=True)
         result = modal_aggregate.remote(
