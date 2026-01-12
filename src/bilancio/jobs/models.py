@@ -101,6 +101,7 @@ class Job:
     description: str
     config: JobConfig
     run_ids: list[str] = field(default_factory=list)
+    modal_call_ids: dict[str, str] = field(default_factory=dict)  # run_id -> modal_call_id
     completed_at: Optional[datetime] = None
     error: Optional[str] = None
     notes: Optional[str] = None
@@ -115,6 +116,7 @@ class Job:
             "description": self.description,
             "config": self.config.to_dict(),
             "run_ids": self.run_ids,
+            "modal_call_ids": self.modal_call_ids,
             "completed_at": self.completed_at.isoformat() if self.completed_at else None,
             "error": self.error,
             "notes": self.notes,
@@ -131,6 +133,7 @@ class Job:
             description=data["description"],
             config=JobConfig.from_dict(data["config"]),
             run_ids=data.get("run_ids", []),
+            modal_call_ids=data.get("modal_call_ids", {}),
             completed_at=(
                 datetime.fromisoformat(data["completed_at"])
                 if data.get("completed_at")

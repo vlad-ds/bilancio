@@ -71,6 +71,10 @@ class BalancedComparisonResult:
     big_entity_loss_passive: Optional[float] = None
     big_entity_pnl_active: Optional[float] = None
 
+    # Modal call IDs for cloud execution debugging
+    passive_modal_call_id: Optional[str] = None
+    active_modal_call_id: Optional[str] = None
+
     @property
     def trading_effect(self) -> Optional[Decimal]:
         """Effect of trading = delta_passive - delta_active.
@@ -503,6 +507,8 @@ class BalancedComparisonRunner:
             dealer_total_pnl=dm.get("dealer_total_pnl"),
             dealer_total_return=dm.get("dealer_total_return"),
             total_trades=dm.get("total_trades"),
+            passive_modal_call_id=passive_result.modal_call_id,
+            active_modal_call_id=active_result.modal_call_id,
         )
 
         # Log comparison

@@ -596,9 +596,15 @@ def sweep_balanced(
             try:
                 for r in results:
                     if r.passive_run_id:
-                        manager.record_progress(job_id, r.passive_run_id)
+                        manager.record_progress(
+                            job_id, r.passive_run_id,
+                            modal_call_id=r.passive_modal_call_id
+                        )
                     if r.active_run_id:
-                        manager.record_progress(job_id, r.active_run_id)
+                        manager.record_progress(
+                            job_id, r.active_run_id,
+                            modal_call_id=r.active_modal_call_id
+                        )
             except Exception as e:
                 click.echo(f"Warning: Failed to record run progress: {e}")
 

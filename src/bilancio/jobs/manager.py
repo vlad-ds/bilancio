@@ -96,6 +96,7 @@ class JobManager:
         job_id: str,
         run_id: str,
         metrics: Optional[dict] = None,
+        modal_call_id: Optional[str] = None,
     ) -> None:
         """Record progress on a job (a run completed).
 
@@ -103,6 +104,7 @@ class JobManager:
             job_id: The job ID
             run_id: The completed run ID
             metrics: Optional metrics from the run
+            modal_call_id: Optional Modal function call ID for debugging
 
         Raises:
             KeyError: If job not found
@@ -112,11 +114,13 @@ class JobManager:
             raise KeyError(f"Job not found: {job_id}")
 
         job.run_ids.append(run_id)
+        if modal_call_id:
+            job.modal_call_ids[run_id] = modal_call_id
         event = JobEvent(
             job_id=job_id,
             event_type="progress",
             timestamp=datetime.utcnow(),
-            details={"run_id": run_id, "metrics": metrics or {}},
+            details={"run_id": run_id, "metrics": metrics or {}, "modal_call_id": modal_call_id},
         )
         job.events.append(event)
         self._save_job(job)

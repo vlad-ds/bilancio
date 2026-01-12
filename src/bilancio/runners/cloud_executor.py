@@ -128,6 +128,7 @@ class CloudExecutor:
             artifacts=result["artifacts"],
             error=result.get("error"),
             execution_time_ms=result.get("execution_time_ms"),
+            modal_call_id=result.get("modal_call_id"),
         )
 
     def execute_batch(
@@ -192,6 +193,7 @@ class CloudExecutor:
                 artifacts=result["artifacts"],
                 error=result.get("error"),
                 execution_time_ms=result.get("execution_time_ms"),
+                modal_call_id=result.get("modal_call_id"),
             )
 
             completed += 1
