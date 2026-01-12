@@ -9,6 +9,7 @@ from .models import (
 from .protocols import ResultStore, RegistryStore
 from .file_store import FileResultStore, FileRegistryStore
 from .artifact_loaders import ArtifactLoader, LocalArtifactLoader
+from .modal_artifact_loader import ModalVolumeArtifactLoader
 
 __all__ = [
     "RunStatus",
@@ -21,4 +22,5 @@ __all__ = [
     "FileRegistryStore",
     "ArtifactLoader",
     "LocalArtifactLoader",
+    "ModalVolumeArtifactLoader",
 ]

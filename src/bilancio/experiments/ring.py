@@ -40,6 +40,8 @@ class RingRunSummary:
     time_to_stability: int
     # Dealer metrics (only populated for treatment runs with dealer enabled)
     dealer_metrics: Optional[Dict[str, Any]] = None
+    # Modal call ID for cloud execution debugging
+    modal_call_id: Optional[str] = None
 
 
 def _decimal_list(spec: str) -> List[Decimal]:
@@ -562,7 +564,10 @@ class RingSweepRunner:
                 },
                 error=result.error,
             )
-            return RingRunSummary(run_id, phase, kappa, concentration, mu, monotonicity, None, None, 0)
+            return RingRunSummary(
+                run_id, phase, kappa, concentration, mu, monotonicity, None, None, 0,
+                modal_call_id=result.modal_call_id
+            )
 
         # Use MetricsComputer for analytics (Plan 027)
         # result.artifacts contains relative paths (e.g., "out/events.jsonl")
@@ -617,7 +622,8 @@ class RingSweepRunner:
 
         return RingRunSummary(
             run_id, phase, kappa, concentration, mu, monotonicity,
-            delta_total, phi_total, time_to_stability, dealer_metrics
+            delta_total, phi_total, time_to_stability, dealer_metrics,
+            modal_call_id=result.modal_call_id
         )
 
     def _rel_path(self, absolute: Path) -> str:

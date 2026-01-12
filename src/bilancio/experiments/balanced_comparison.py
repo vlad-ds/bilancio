@@ -25,6 +25,7 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Tuple
 from pydantic import BaseModel, Field
 
 from bilancio.experiments.ring import RingSweepRunner, RingRunSummary
+from bilancio.runners import SimulationExecutor, LocalExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -69,6 +70,10 @@ class BalancedComparisonResult:
     # Big entity loss metrics
     big_entity_loss_passive: Optional[float] = None
     big_entity_pnl_active: Optional[float] = None
+
+    # Modal call IDs for cloud execution debugging
+    passive_modal_call_id: Optional[str] = None
+    active_modal_call_id: Optional[str] = None
 
     @property
     def trading_effect(self) -> Optional[Decimal]:
@@ -185,9 +190,15 @@ class BalancedComparisonRunner:
         "total_trades",
     ]
 
-    def __init__(self, config: BalancedComparisonConfig, out_dir: Path) -> None:
+    def __init__(
+        self,
+        config: BalancedComparisonConfig,
+        out_dir: Path,
+        executor: Optional[SimulationExecutor] = None,
+    ) -> None:
         self.config = config
         self.base_dir = out_dir
+        self.executor: SimulationExecutor = executor or LocalExecutor()
         self.passive_dir = self.base_dir / "passive"
         self.active_dir = self.base_dir / "active"
         self.aggregate_dir = self.base_dir / "aggregate"
@@ -297,6 +308,7 @@ class BalancedComparisonRunner:
             dealer_share_per_bucket=self.config.dealer_share_per_bucket,
             rollover_enabled=self.config.rollover_enabled,
             detailed_dealer_logging=self.config.detailed_logging,  # Plan 022
+            executor=self.executor,  # Plan 028 cloud support
         )
 
     def _get_active_runner(self, outside_mid_ratio: Decimal) -> RingSweepRunner:
@@ -328,6 +340,7 @@ class BalancedComparisonRunner:
             dealer_share_per_bucket=self.config.dealer_share_per_bucket,
             rollover_enabled=self.config.rollover_enabled,
             detailed_dealer_logging=self.config.detailed_logging,  # Plan 022
+            executor=self.executor,  # Plan 028 cloud support
         )
 
     def run_all(self) -> List[BalancedComparisonResult]:
@@ -397,12 +410,19 @@ class BalancedComparisonRunner:
 
                             # Log completion with timing
                             elapsed = time.time() - self._start_time
-                            print(
-                                f"  Completed in {self._format_time(elapsed / completed_this_run)} avg | "
-                                f"δ_passive={result.delta_passive:.3f}, δ_active={result.delta_active:.3f}, "
-                                f"effect={result.trading_effect:.3f}",
-                                flush=True,
-                            )
+                            if result.delta_passive is not None and result.delta_active is not None:
+                                print(
+                                    f"  Completed in {self._format_time(elapsed / completed_this_run)} avg | "
+                                    f"δ_passive={result.delta_passive:.3f}, δ_active={result.delta_active:.3f}, "
+                                    f"effect={result.trading_effect:.3f}",
+                                    flush=True,
+                                )
+                            else:
+                                print(
+                                    f"  Completed in {self._format_time(elapsed / completed_this_run)} avg | "
+                                    f"(one or both runs failed)",
+                                    flush=True,
+                                )
 
         # Write final summary
         self._write_summary_json()
@@ -487,6 +507,8 @@ class BalancedComparisonRunner:
             dealer_total_pnl=dm.get("dealer_total_pnl"),
             dealer_total_return=dm.get("dealer_total_return"),
             total_trades=dm.get("total_trades"),
+            passive_modal_call_id=passive_result.modal_call_id,
+            active_modal_call_id=active_result.modal_call_id,
         )
 
         # Log comparison

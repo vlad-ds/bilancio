@@ -62,13 +62,14 @@ class ExecutionResult:
     Attributes:
         run_id: Unique identifier for this run.
         status: Final status of the run (COMPLETED, FAILED, etc.).
-        storage_type: Type of storage backend - "local", "s3", or "gcs".
+        storage_type: Type of storage backend - "local", "s3", "gcs".
         storage_base: Base path/URI for artifacts - e.g., "/path/to/run"
             or "s3://bucket/prefix".
         artifacts: Mapping of artifact type to relative path within storage_base.
             Keys are artifact names like "events_jsonl", "balances_csv", etc.
         error: Error message if the run failed.
         execution_time_ms: Execution time in milliseconds.
+        modal_call_id: Modal function call ID (for cloud execution debugging).
     """
 
     run_id: str
@@ -84,3 +85,6 @@ class ExecutionResult:
     # Error info if failed
     error: Optional[str] = None
     execution_time_ms: Optional[int] = None
+
+    # Cloud execution info
+    modal_call_id: Optional[str] = None

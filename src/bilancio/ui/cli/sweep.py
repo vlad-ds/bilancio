@@ -17,6 +17,7 @@ from bilancio.experiments.ring import (
     load_ring_sweep_config,
     _decimal_list,
 )
+from bilancio.jobs import JobManager, JobConfig, generate_job_id
 
 from .utils import console, _as_decimal_list
 
@@ -30,6 +31,7 @@ def sweep():
 @sweep.command("ring")
 @click.option('--config', type=click.Path(path_type=Path), default=None, help='Path to sweep config YAML')
 @click.option('--out-dir', type=click.Path(path_type=Path), default=None, help='Base output directory')
+@click.option('--cloud', is_flag=True, help='Run simulations on Modal cloud')
 @click.option('--grid/--no-grid', default=True, help='Run coarse grid sweep')
 @click.option('--kappas', type=str, default="0.25,0.5,1,2,4", help='Comma list for grid kappa values')
 @click.option('--concentrations', type=str, default="0.2,0.5,1,2,5", help='Comma list for grid Dirichlet concentrations')
@@ -57,11 +59,13 @@ def sweep():
 @click.option('--base-seed', type=int, default=42, help='Base PRNG seed')
 @click.option('--name-prefix', type=str, default='Kalecki Ring Sweep', help='Scenario name prefix')
 @click.option('--default-handling', type=click.Choice(['fail-fast', 'expel-agent']), default='fail-fast', help='Default handling mode for runs')
+@click.option('--job-id', type=str, default=None, help='Job ID (auto-generated if not provided)')
 @click.pass_context
 def sweep_ring(
     ctx,
     config: Optional[Path],
     out_dir: Optional[Path],
+    cloud: bool,
     grid: bool,
     kappas: str,
     concentrations: str,
@@ -89,6 +93,7 @@ def sweep_ring(
     base_seed: int,
     name_prefix: str,
     default_handling: str,
+    job_id: Optional[str],
 ):
     """Run the Kalecki ring experiment sweep."""
     sweep_config: Optional[RingSweepConfig] = None
@@ -186,6 +191,55 @@ def sweep_ring(
 
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    # Generate job ID if not provided
+    if job_id is None:
+        job_id = generate_job_id()
+
+    # Create job manager and job config
+    manager: Optional[JobManager] = None
+    try:
+        manager = JobManager(jobs_dir=out_dir)
+
+        grid_kappas = _as_decimal_list(kappas)
+        grid_concentrations = _as_decimal_list(concentrations)
+        grid_mus = _as_decimal_list(mus)
+
+        job_config = JobConfig(
+            sweep_type="ring",
+            n_agents=n_agents,
+            kappas=grid_kappas,
+            concentrations=grid_concentrations,
+            mus=grid_mus,
+            cloud=cloud,
+            maturity_days=maturity_days,
+            seeds=[base_seed],
+        )
+
+        job = manager.create_job(
+            description=f"Ring sweep (n={n_agents}, cloud={cloud})",
+            config=job_config,
+            job_id=job_id,
+        )
+
+        console.print(f"[cyan]Job ID: {job.job_id}[/cyan]")
+        manager.start_job(job.job_id)
+    except Exception as e:
+        console.print(f"[yellow]Warning: Job tracking initialization failed: {e}[/yellow]")
+        manager = None
+
+    # Create executor based on --cloud flag
+    executor = None
+    if cloud:
+        from bilancio.runners import CloudExecutor
+
+        executor = CloudExecutor(
+            experiment_id=job_id,  # Use job_id as experiment_id for simplicity
+            download_artifacts=True,
+            local_output_dir=out_dir,
+            job_id=job_id,
+        )
+        console.print(f"[cyan]Cloud execution enabled[/cyan]")
+
     q_total_dec = Decimal(str(q_total))
     runner = RingSweepRunner(
         out_dir,
@@ -199,6 +253,7 @@ def sweep_ring(
         default_handling=default_handling,
         dealer_enabled=dealer_enabled,
         dealer_config=dealer_config,
+        executor=executor,
     )
 
     console.print(f"[dim]Output directory: {out_dir}[/dim]")
@@ -208,43 +263,64 @@ def sweep_ring(
     grid_mus = _as_decimal_list(mus)
     grid_monotonicities = _as_decimal_list(monotonicities)
 
-    if grid:
-        total_runs = len(grid_kappas) * len(grid_concentrations) * len(grid_mus) * len(grid_monotonicities)
-        console.print(f"[dim]Running grid sweep: {total_runs} runs[/dim]")
-        runner.run_grid(grid_kappas, grid_concentrations, grid_mus, grid_monotonicities)
+    try:
+        if grid:
+            total_runs = len(grid_kappas) * len(grid_concentrations) * len(grid_mus) * len(grid_monotonicities)
+            console.print(f"[dim]Running grid sweep: {total_runs} runs[/dim]")
+            runner.run_grid(grid_kappas, grid_concentrations, grid_mus, grid_monotonicities)
 
-    if lhs_count > 0:
-        console.print(f"[dim]Running Latin Hypercube ({lhs_count})[/dim]")
-        runner.run_lhs(
-            lhs_count,
-            kappa_range=(Decimal(str(kappa_min)), Decimal(str(kappa_max))),
-            concentration_range=(Decimal(str(c_min)), Decimal(str(c_max))),
-            mu_range=(Decimal(str(mu_min)), Decimal(str(mu_max))),
-            monotonicity_range=(Decimal(str(monotonicity_min)), Decimal(str(monotonicity_max))),
-        )
+        if lhs_count > 0:
+            console.print(f"[dim]Running Latin Hypercube ({lhs_count})[/dim]")
+            runner.run_lhs(
+                lhs_count,
+                kappa_range=(Decimal(str(kappa_min)), Decimal(str(kappa_max))),
+                concentration_range=(Decimal(str(c_min)), Decimal(str(c_max))),
+                mu_range=(Decimal(str(mu_min)), Decimal(str(mu_max))),
+                monotonicity_range=(Decimal(str(monotonicity_min)), Decimal(str(monotonicity_max))),
+            )
 
-    if frontier:
-        console.print(f"[dim]Running frontier search across {len(grid_concentrations) * len(grid_mus) * len(grid_monotonicities)} cells[/dim]")
-        runner.run_frontier(
-            grid_concentrations,
-            grid_mus,
-            grid_monotonicities,
-            kappa_low=Decimal(str(frontier_low)),
-            kappa_high=Decimal(str(frontier_high)),
-            tolerance=Decimal(str(frontier_tolerance)),
-            max_iterations=frontier_iterations,
-        )
+        if frontier:
+            console.print(f"[dim]Running frontier search across {len(grid_concentrations) * len(grid_mus) * len(grid_monotonicities)} cells[/dim]")
+            runner.run_frontier(
+                grid_concentrations,
+                grid_mus,
+                grid_monotonicities,
+                kappa_low=Decimal(str(frontier_low)),
+                kappa_high=Decimal(str(frontier_high)),
+                tolerance=Decimal(str(frontier_tolerance)),
+                max_iterations=frontier_iterations,
+            )
 
-    registry_csv = runner.registry_dir / "experiments.csv"
-    results_csv = runner.aggregate_dir / "results.csv"
-    dashboard_html = runner.aggregate_dir / "dashboard.html"
+        registry_csv = runner.registry_dir / "experiments.csv"
+        results_csv = runner.aggregate_dir / "results.csv"
+        dashboard_html = runner.aggregate_dir / "dashboard.html"
 
-    aggregate_runs(registry_csv, results_csv)
-    render_dashboard(results_csv, dashboard_html)
+        aggregate_runs(registry_csv, results_csv)
+        render_dashboard(results_csv, dashboard_html)
 
-    console.print(f"[green]Sweep complete.[/green] Registry: {registry_csv}")
-    console.print(f"[green]Aggregated results: {results_csv}")
-    console.print(f"[green]Dashboard: {dashboard_html}")
+        # Complete job
+        if manager is not None:
+            try:
+                manager.complete_job(job_id, {
+                    "grid_runs": total_runs if grid else 0,
+                    "lhs_runs": lhs_count,
+                    "frontier": frontier,
+                })
+            except Exception as e:
+                console.print(f"[yellow]Warning: Failed to complete job tracking: {e}[/yellow]")
+
+        console.print(f"[green]Sweep complete.[/green] Registry: {registry_csv}")
+        console.print(f"[green]Aggregated results: {results_csv}")
+        console.print(f"[green]Dashboard: {dashboard_html}")
+
+    except Exception as e:
+        # Fail job on error
+        if manager is not None:
+            try:
+                manager.fail_job(job_id, str(e))
+            except Exception:
+                pass  # Don't let job tracking failure mask the original error
+        raise
 
 
 @sweep.command("comparison")
@@ -407,6 +483,8 @@ def sweep_comparison(
     default=True,
     help="Enable detailed CSV logging (trades.csv, repayment_events.csv, etc.)",
 )
+@click.option('--cloud', is_flag=True, help='Run simulations on Modal cloud')
+@click.option('--job-id', type=str, default=None, help='Job ID (auto-generated if not provided)')
 def sweep_balanced(
     out_dir: Path,
     n_agents: int,
@@ -421,6 +499,8 @@ def sweep_balanced(
     big_entity_share: Decimal,
     default_handling: str,
     detailed_logging: bool,
+    cloud: bool,
+    job_id: Optional[str],
 ) -> None:
     """
     Run balanced C vs D comparison experiments.
@@ -442,6 +522,55 @@ def sweep_balanced(
         BalancedComparisonRunner,
     )
 
+    out_dir = Path(out_dir)
+
+    # Generate job ID if not provided
+    if job_id is None:
+        job_id = generate_job_id()
+
+    # Create job manager
+    manager: Optional[JobManager] = None
+    try:
+        manager = JobManager(jobs_dir=out_dir)
+
+        # Create job config
+        job_config = JobConfig(
+            sweep_type="balanced",
+            n_agents=n_agents,
+            kappas=_decimal_list(kappas),
+            concentrations=_decimal_list(concentrations),
+            mus=_decimal_list(mus),
+            cloud=cloud,
+            outside_mid_ratios=_decimal_list(outside_mid_ratios),
+            maturity_days=maturity_days,
+            seeds=[base_seed],
+        )
+
+        # Create and start job
+        job = manager.create_job(
+            description=f"Balanced comparison sweep (n={n_agents}, cloud={cloud})",
+            config=job_config,
+            job_id=job_id,
+        )
+
+        click.echo(f"Job ID: {job.job_id}")
+        manager.start_job(job.job_id)
+    except Exception as e:
+        click.echo(f"Warning: Job tracking initialization failed: {e}")
+        manager = None
+
+    # Create executor (Plan 028)
+    executor = None
+    if cloud:
+        from bilancio.runners import CloudExecutor
+        executor = CloudExecutor(
+            experiment_id=job_id,  # Use job_id as experiment_id for simplicity
+            download_artifacts=True,
+            local_output_dir=out_dir,
+            job_id=job_id,
+        )
+        click.echo(f"Cloud execution enabled")
+
     config = BalancedComparisonConfig(
         n_agents=n_agents,
         maturity_days=maturity_days,
@@ -457,18 +586,57 @@ def sweep_balanced(
         detailed_logging=detailed_logging,
     )
 
-    runner = BalancedComparisonRunner(config, out_dir)
-    results = runner.run_all()
+    runner = BalancedComparisonRunner(config, out_dir, executor=executor)
 
-    # Print summary
-    completed = sum(1 for r in results if r.trading_effect is not None)
-    improved = sum(1 for r in results if r.trading_effect and r.trading_effect > 0)
+    try:
+        results = runner.run_all()
 
-    click.echo(f"\nBalanced comparison complete!")
-    click.echo(f"  Total pairs: {len(results)}")
-    click.echo(f"  Completed: {completed}")
-    click.echo(f"  Improved with trading: {improved}")
-    click.echo(f"\nResults at: {out_dir / 'aggregate' / 'comparison.csv'}")
+        # Record run IDs from results
+        if manager is not None:
+            try:
+                for r in results:
+                    if r.passive_run_id:
+                        manager.record_progress(
+                            job_id, r.passive_run_id,
+                            modal_call_id=r.passive_modal_call_id
+                        )
+                    if r.active_run_id:
+                        manager.record_progress(
+                            job_id, r.active_run_id,
+                            modal_call_id=r.active_modal_call_id
+                        )
+            except Exception as e:
+                click.echo(f"Warning: Failed to record run progress: {e}")
+
+        # Print summary
+        completed = sum(1 for r in results if r.trading_effect is not None)
+        improved = sum(1 for r in results if r.trading_effect and r.trading_effect > 0)
+
+        # Complete job with summary
+        if manager is not None:
+            try:
+                manager.complete_job(job_id, {
+                    "total_pairs": len(results),
+                    "completed": completed,
+                    "improved_with_trading": improved,
+                })
+            except Exception as e:
+                click.echo(f"Warning: Failed to complete job tracking: {e}")
+
+        click.echo(f"\nBalanced comparison complete!")
+        click.echo(f"  Total pairs: {len(results)}")
+        click.echo(f"  Completed: {completed}")
+        click.echo(f"  Improved with trading: {improved}")
+        click.echo(f"\nResults at: {out_dir / 'aggregate' / 'comparison.csv'}")
+
+    except Exception as e:
+        # Fail job on error
+        if manager is not None:
+            try:
+                manager.fail_job(job_id, str(e))
+            except Exception:
+                pass  # Don't let job tracking failure mask the original error
+        raise
 
 
 @sweep.command("strategy-outcomes")
