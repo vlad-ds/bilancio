@@ -560,8 +560,9 @@ def run_until_stable_mode(
                 # Show events and balances for this specific day
                 # Note: events are stored with 0-based day numbers
                 # Plan 030: show_day_summary_renderable returns [] for show="none"
+                # Always compute display_agent_ids (needed for HTML export even in quiet mode)
+                display_agent_ids = _filter_active_agent_ids(system, agent_ids) if agent_ids is not None else None
                 if not quiet_mode:
-                    display_agent_ids = _filter_active_agent_ids(system, agent_ids) if agent_ids is not None else None
                     renderables = show_day_summary_renderable(system, display_agent_ids, show, day=day_before, t_account=t_account)
                     for renderable in renderables:
                         console.print(renderable)
