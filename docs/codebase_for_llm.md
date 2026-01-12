@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2026-01-12 20:54:33 UTC | Branch: main | Commit: 79a7eee3
+Generated: 2026-01-12 20:56:39 UTC | Branch: main | Commit: 04121f3b
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -33995,6 +33995,12 @@ Complete git history from oldest to newest:
 
 - **79a7eee3** (2026-01-12) by vladgheorghe
   Improve cloud sweep execution
+
+- **9931d58a** (2026-01-12) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **04121f3b** (2026-01-12) by vladgheorghe
+  Update uv lockfiles
 
 ---
 
