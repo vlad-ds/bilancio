@@ -102,8 +102,9 @@ This project is designed to be run by Claude Code on the web (claude.ai/code), w
 > **⚠️ IMPORTANT FOR CLAUDE**: When running any simulation job, you MUST prominently display to the user:
 >
 > **Job ID:** `rumbling-appear-flail-squiggle`
+> **Modal ID:** `fc-01KESDG0PR7329Q0M7D087XCW6`
 >
-> This is how the user will reference results later. Make it impossible to miss.
+> The Job ID is how the user references results. The Modal ID helps debug on modal.com if needed.
 > Do NOT list individual run IDs (there may be dozens in a sweep).
 
 ### Job ID System
