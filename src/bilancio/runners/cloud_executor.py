@@ -68,6 +68,8 @@ class CloudExecutor:
         which allows calling it from outside the Modal app context.
         """
         if self._run_simulation is None:
+            # Apply proxy patch for environments with HTTP CONNECT proxy (e.g., Claude Code web)
+            import bilancio.cloud.proxy_patch  # noqa: F401
             import modal
 
             self._run_simulation = modal.Function.from_name(
