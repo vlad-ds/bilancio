@@ -234,7 +234,7 @@ def sweep_ring(
 
         executor = CloudExecutor(
             experiment_id=job_id,  # Use job_id as experiment_id for simplicity
-            download_artifacts=True,
+            download_artifacts=False,
             local_output_dir=out_dir,
             job_id=job_id,
         )
@@ -571,7 +571,7 @@ def sweep_balanced(
         from bilancio.runners import CloudExecutor
         executor = CloudExecutor(
             experiment_id=job_id,  # Use job_id as experiment_id for simplicity
-            download_artifacts=True,
+            download_artifacts=False,
             local_output_dir=out_dir,
             job_id=job_id,
         )

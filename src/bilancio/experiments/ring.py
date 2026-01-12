@@ -15,14 +15,18 @@ from bilancio.analysis.metrics_computer import MetricsComputer
 from bilancio.config.models import RingExplorerGeneratorConfig
 from bilancio.runners import LocalExecutor, RunOptions, ExecutionResult
 from bilancio.runners.protocols import SimulationExecutor
-from bilancio.storage.artifact_loaders import LocalArtifactLoader
 from bilancio.experiments.sampling import (
     generate_frontier_params,
     generate_grid_params,
     generate_lhs_params,
 )
 from bilancio.scenarios import compile_ring_explorer
-from bilancio.storage import FileRegistryStore, RegistryEntry
+from bilancio.storage import (
+    FileRegistryStore,
+    LocalArtifactLoader,
+    ModalVolumeArtifactLoader,
+    RegistryEntry,
+)
 from bilancio.storage.models import RunStatus
 from bilancio.storage.protocols import RegistryStore
 
@@ -603,7 +607,7 @@ class RingSweepRunner:
         if "balances_csv" in result.artifacts:
             artifacts["balances_csv"] = result.artifacts["balances_csv"]
 
-        loader = LocalArtifactLoader(base_path=Path(result.storage_base))
+        loader = self._artifact_loader_for_result(result)
         computer = MetricsComputer(loader)
         bundle = computer.compute(artifacts)
 
@@ -844,7 +848,7 @@ class RingSweepRunner:
         if "balances_csv" in result.artifacts:
             artifacts["balances_csv"] = result.artifacts["balances_csv"]
 
-        loader = LocalArtifactLoader(base_path=Path(result.storage_base))
+        loader = self._artifact_loader_for_result(result)
         computer = MetricsComputer(loader)
         bundle = computer.compute(artifacts)
 
@@ -895,6 +899,11 @@ class RingSweepRunner:
             return str(Path("..").joinpath(absolute.relative_to(self.base_dir)))
         except ValueError:
             return str(absolute)
+
+    def _artifact_loader_for_result(self, result: ExecutionResult):
+        if result.storage_type == "modal_volume":
+            return ModalVolumeArtifactLoader(base_path=result.storage_base)
+        return LocalArtifactLoader(base_path=Path(result.storage_base))
 
     def _liquidity_allocation_dict(self) -> Dict[str, Any]:
         allocation: Dict[str, Any] = {"mode": self.liquidity_mode}

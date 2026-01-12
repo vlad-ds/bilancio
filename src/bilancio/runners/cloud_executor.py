@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import itertools
 import subprocess
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -138,10 +139,10 @@ class CloudExecutor:
         max_parallel: int = 50,
         progress_callback: Optional[Callable[[int, int], None]] = None,
     ) -> List[ExecutionResult]:
-        """Execute multiple simulations in parallel on Modal using .map().
+        """Execute multiple simulations in parallel on Modal.
 
-        Uses Modal's .map() for maximum parallelism - Modal scales containers
-        automatically to process all inputs concurrently.
+        Modal handles parallelization automatically. This method provides
+        a convenient interface for batch execution.
 
         Args:
             runs: List of (scenario_config, run_id, options) tuples.
@@ -155,87 +156,58 @@ class CloudExecutor:
         run_simulation = self._get_run_simulation()
 
         total = len(runs)
+        results: List[Optional[ExecutionResult]] = [None] * total
 
-        # Prepare argument lists for .map()
-        scenario_configs = []
-        run_ids = []
-        experiment_ids = []
-        options_list = []
-        job_ids = []
+        run_id_to_index = {run_id: idx for idx, (_, run_id, _) in enumerate(runs)}
+        configs = [config for config, _, _ in runs]
+        run_ids = [run_id for _, run_id, _ in runs]
+        options_dicts = [self._options_to_dict(options) for _, _, options in runs]
 
-        for config, run_id, options in runs:
-            scenario_configs.append(config)
-            run_ids.append(run_id)
-            experiment_ids.append(self.experiment_id)
-            options_list.append(self._options_to_dict(options))
-            job_ids.append(self.job_id)
-
-        # Use .map() for maximum parallelism - Modal scales containers automatically
-        # order_outputs=True ensures results come back in input order
-        results: List[ExecutionResult] = []
+        # Collect results as they complete (unordered) so progress doesn't stall
         completed = 0
-
-        for idx, result in enumerate(
-            run_simulation.map(
-                scenario_configs,
-                run_ids,
-                experiment_ids,
-                options_list,
-                job_ids,
-                order_outputs=True,
-                return_exceptions=True,
-                wrap_returned_exceptions=False,
-            )
+        for result in run_simulation.map(
+            configs,
+            run_ids,
+            itertools.repeat(self.experiment_id),
+            options_dicts,
+            itertools.repeat(self.job_id),
+            order_outputs=False,
         ):
-            run_id = run_ids[idx]
+            run_id = result["run_id"]
+            idx = run_id_to_index[run_id]
 
-            # Handle exceptions from Modal
-            if isinstance(result, Exception):
-                results.append(
-                    ExecutionResult(
-                        run_id=run_id,
-                        status=RunStatus.FAILED,
-                        storage_type="none",
-                        storage_base="",
-                        artifacts={},
-                        error=str(result),
-                        execution_time_ms=None,
-                        modal_call_id=None,
-                    )
-                )
+            # Download artifacts if requested and determine storage location
+            if self.download_artifacts and result["status"] == "completed":
+                output_dir = self.local_output_dir / "runs" / run_id
+                self._download_run_artifacts(run_id, output_dir, result["artifacts"])
+                # When downloading, the storage_base should be the local path
+                storage_type = "local"
+                storage_base = str(output_dir.resolve())
             else:
-                # Download artifacts if requested and determine storage location
-                if self.download_artifacts and result["status"] == "completed":
-                    output_dir = self.local_output_dir / "runs" / run_id
-                    self._download_run_artifacts(run_id, output_dir, result["artifacts"])
-                    storage_type = "local"
-                    storage_base = str(output_dir.resolve())
-                else:
-                    storage_type = result["storage_type"]
-                    storage_base = result["storage_base"]
+                # When not downloading, keep the modal_volume reference
+                storage_type = result["storage_type"]
+                storage_base = result["storage_base"]
 
-                results.append(
-                    ExecutionResult(
-                        run_id=result["run_id"],
-                        status=(
-                            RunStatus.COMPLETED
-                            if result["status"] == "completed"
-                            else RunStatus.FAILED
-                        ),
-                        storage_type=storage_type,
-                        storage_base=storage_base,
-                        artifacts=result["artifacts"],
-                        error=result.get("error"),
-                        execution_time_ms=result.get("execution_time_ms"),
-                        modal_call_id=result.get("modal_call_id"),
-                    )
-                )
+            results[idx] = ExecutionResult(
+                run_id=result["run_id"],
+                status=(
+                    RunStatus.COMPLETED
+                    if result["status"] == "completed"
+                    else RunStatus.FAILED
+                ),
+                storage_type=storage_type,
+                storage_base=storage_base,
+                artifacts=result["artifacts"],
+                error=result.get("error"),
+                execution_time_ms=result.get("execution_time_ms"),
+                modal_call_id=result.get("modal_call_id"),
+            )
 
             completed += 1
             if progress_callback:
                 progress_callback(completed, total)
 
-        return results
+        return results  # type: ignore
 
     def _options_to_dict(self, options: RunOptions) -> Dict[str, Any]:
         """Convert RunOptions to serializable dict."""
