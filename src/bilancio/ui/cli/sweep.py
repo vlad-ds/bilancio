@@ -232,14 +232,13 @@ def sweep_ring(
     if cloud:
         from bilancio.runners import CloudExecutor
 
-        experiment_id = out_dir.name
         executor = CloudExecutor(
-            experiment_id=experiment_id,
+            experiment_id=job_id,  # Use job_id as experiment_id for simplicity
             download_artifacts=True,
             local_output_dir=out_dir,
             job_id=job_id,
         )
-        console.print(f"[cyan]Cloud execution enabled[/cyan] (experiment: {experiment_id})")
+        console.print(f"[cyan]Cloud execution enabled[/cyan]")
 
     q_total_dec = Decimal(str(q_total))
     runner = RingSweepRunner(
@@ -564,14 +563,13 @@ def sweep_balanced(
     executor = None
     if cloud:
         from bilancio.runners import CloudExecutor
-        experiment_id = out_dir.name
         executor = CloudExecutor(
-            experiment_id=experiment_id,
+            experiment_id=job_id,  # Use job_id as experiment_id for simplicity
             download_artifacts=True,
             local_output_dir=out_dir,
             job_id=job_id,
         )
-        click.echo(f"Cloud execution enabled (experiment: {experiment_id})")
+        click.echo(f"Cloud execution enabled")
 
     config = BalancedComparisonConfig(
         n_agents=n_agents,

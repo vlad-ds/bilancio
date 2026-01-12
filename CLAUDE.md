@@ -99,11 +99,33 @@ This project is designed to be run by Claude Code on the web (claude.ai/code), w
 4. **Results are persisted** to Modal Volume and/or external database
 5. **User can query results** by Job ID in future conversations
 
-> **⚠️ IMPORTANT FOR CLAUDE**: When running any simulation job, you MUST prominently display the Job ID to the user at the start of execution. Format it clearly like:
+> **⚠️ IMPORTANT FOR CLAUDE**: When running any simulation job, you MUST prominently display the following to the user:
 >
-> **Job ID: `rumbling-appear-flail-squiggle`**
+> ---
+> **🚀 SIMULATION STARTED**
+> - **Job ID:** `rumbling-appear-flail-squiggle`
+> - **Modal Call ID:** `fc-01KESDG0PR7329Q0M7D087XCW6` (for debugging)
+> ---
 >
-> This ID is how the user will reference this job in future conversations. Make it impossible to miss.
+> The **Job ID** is how the user will reference this job in future conversations. Make it impossible to miss.
+> The **Modal Call ID** is useful for debugging via Modal dashboard if something goes wrong.
+
+### ID Structure
+- **Job ID**: Memorable 4-word passphrase (`castle-river-mountain-forest`) - the primary identifier users reference
+- **Run ID**: Individual simulation within a job (`balanced_passive_abc123`) - a sweep job has multiple runs
+- **Modal Call ID**: Modal's internal function call ID (`fc-...`) - for debugging in Modal dashboard
+
+**Why multiple runs per job?** A sweep explores parameter combinations. Example:
+```
+User: "Compare dealers with kappa=0.3, 0.5 and concentration=1"
+
+Job ID: castle-river-mountain-forest
+├── Run: balanced_passive_k0.3  (passive mode, κ=0.3)
+├── Run: balanced_active_k0.3   (active mode, κ=0.3)
+├── Run: balanced_passive_k0.5  (passive mode, κ=0.5)
+└── Run: balanced_active_k0.5   (active mode, κ=0.5)
+```
+The job aggregates results from all runs into `comparison.csv`.
 
 ### Job ID System
 Every simulation job gets a unique, memorable identifier:
