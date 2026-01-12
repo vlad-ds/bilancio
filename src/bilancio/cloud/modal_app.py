@@ -43,7 +43,7 @@ RESULTS_MOUNT_PATH = "/results"
 @app.function(
     image=image,
     volumes={RESULTS_MOUNT_PATH: results_volume},
-    timeout=600,  # 10 minutes max per simulation
+    timeout=1800,  # 30 minutes max per simulation
     memory=2048,  # 2GB RAM
 )
 def run_simulation(

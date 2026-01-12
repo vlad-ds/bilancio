@@ -86,6 +86,53 @@ To authenticate Modal with browser login: `uv run modal token new --profile <wor
 - Artifacts are stored in Modal Volume `bilancio-results` under `<experiment_id>/runs/<run_id>/`
 - Use `--cloud` flag with small parameters first to test (saves credits)
 
+### Parallelism and Performance
+
+Cloud sweeps run simulations in parallel using Modal's `.map()` function. Modal automatically scales containers to process inputs concurrently.
+
+**Current parallelism**: ~5-6 concurrent simulations (Modal's default scaling for the account)
+
+**Performance benchmarks** (100 agents, 10 maturity days):
+- Single simulation: ~30-60 seconds
+- 10 pairs (20 runs): ~4 minutes
+- 25 pairs (50 runs): ~13 minutes
+- 125 pairs (250 runs): ~45-60 minutes (estimated)
+
+### Estimating Duration and Cost
+
+**IMPORTANT**: Before running any cloud sweep, estimate and inform the user of the expected duration and cost.
+
+**Duration formula**:
+```
+estimated_minutes = (num_pairs * 2) / 4
+```
+Where `num_pairs = len(kappas) × len(concentrations) × len(mus) × len(outside_mid_ratios) × len(seeds)`
+
+Example: 5 kappas × 5 concentrations × 5 mus = 125 pairs = 250 runs ≈ 60 minutes
+
+**Cost formula** (Modal pricing as of Jan 2025):
+```
+cost_per_run ≈ $0.0003 (CPU: $0.0000131/core/sec, ~30 sec/run)
+total_cost ≈ num_runs × $0.0003
+```
+
+Example: 250 runs × $0.0003 = ~$0.08
+
+**Before running a sweep, always tell the user**:
+> This sweep has X pairs (Y runs). Estimated duration: ~Z minutes. Estimated cost: ~$W.
+
+### Monitoring Running Jobs
+
+While a sweep is running:
+- Progress is displayed in the terminal: `Progress: 15/50 runs (30%) - ETA: 7.1m`
+- View Modal logs: `uv run modal app logs bilancio-simulations`
+- Check Modal dashboard: https://modal.com/apps/bilancio/main/deployed/bilancio-simulations
+
+If a job fails or times out:
+- Individual run timeout is 30 minutes (configurable in `modal_app.py`)
+- Check Modal logs for error details
+- Failed runs are marked in the job manifest
+
 ---
 
 ## Claude Code Web Workflow (Autonomous Simulation Jobs)

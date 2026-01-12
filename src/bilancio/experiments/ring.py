@@ -44,6 +44,29 @@ class RingRunSummary:
     modal_call_id: Optional[str] = None
 
 
+@dataclass
+class PreparedRun:
+    """Data needed to execute and finalize a prepared run.
+
+    Created by RingSweepRunner._prepare_run(), consumed by _finalize_run().
+    """
+    run_id: str
+    phase: str
+    kappa: Decimal
+    concentration: Decimal
+    mu: Decimal
+    monotonicity: Decimal
+    seed: int
+    scenario_config: Dict[str, Any]
+    options: RunOptions
+    run_dir: Path
+    out_dir: Path
+    scenario_path: Path
+    base_params: Dict[str, Any]
+    S1: Decimal
+    L0: Decimal
+
+
 def _decimal_list(spec: str) -> List[Decimal]:
     out: List[Decimal] = []
     for part in spec.split(','):
@@ -629,6 +652,244 @@ class RingSweepRunner:
             modal_call_id=result.modal_call_id
         )
 
+    def _prepare_run(
+        self,
+        phase: str,
+        kappa: Decimal,
+        concentration: Decimal,
+        mu: Decimal,
+        monotonicity: Decimal,
+        seed: int,
+        label: str = "",
+    ) -> PreparedRun:
+        """Prepare a run without executing it.
+
+        Creates directories, builds scenario config, writes scenario.yaml.
+        Returns PreparedRun that can be passed to execute_batch and then _finalize_run.
+        """
+        run_uuid = uuid.uuid4().hex[:12]
+        run_id = f"{phase}_{label}_{run_uuid}" if label else f"{phase}_{run_uuid}"
+        run_dir = self.runs_dir / run_id
+        run_dir.mkdir(parents=True, exist_ok=True)
+        out_dir = run_dir / "out"
+        out_dir.mkdir(parents=True, exist_ok=True)
+
+        scenario_path = run_dir / "scenario.yaml"
+
+        base_params = {
+            "phase": phase,
+            "seed": seed,
+            "n_agents": self.n_agents,
+            "kappa": str(kappa),
+            "concentration": str(concentration),
+            "mu": str(mu),
+            "monotonicity": str(monotonicity),
+            "maturity_days": self.maturity_days,
+            "Q_total": str(self.Q_total),
+            "default_handling": self.default_handling,
+            "dealer_enabled": self.dealer_enabled,
+        }
+
+        # Initial "running" status
+        self._upsert_registry(
+            run_id=run_id,
+            phase=phase,
+            status=RunStatus.RUNNING,
+            parameters=base_params,
+        )
+
+        generator_data = {
+            "version": 1,
+            "generator": "ring_explorer_v1",
+            "name_prefix": self.name_prefix,
+            "params": {
+                "n_agents": self.n_agents,
+                "seed": seed,
+                "kappa": str(kappa),
+                "Q_total": str(self.Q_total),
+                "inequality": {
+                    "scheme": "dirichlet",
+                    "concentration": str(concentration),
+                    "monotonicity": str(monotonicity),
+                },
+                "maturity": {
+                    "days": self.maturity_days,
+                    "mode": "lead_lag",
+                    "mu": str(mu),
+                },
+                "liquidity": {
+                    "allocation": self._liquidity_allocation_dict(),
+                },
+            },
+            "compile": {"emit_yaml": False},
+        }
+
+        generator_config = RingExplorerGeneratorConfig.model_validate(generator_data)
+
+        if self.balanced_mode:
+            from bilancio.scenarios import compile_ring_explorer_balanced
+            scenario = compile_ring_explorer_balanced(
+                generator_config,
+                face_value=self.face_value,
+                outside_mid_ratio=self.outside_mid_ratio,
+                big_entity_share=self.big_entity_share,
+                vbt_share_per_bucket=self.vbt_share_per_bucket,
+                dealer_share_per_bucket=self.dealer_share_per_bucket,
+                mode="active" if self.dealer_enabled else "passive",
+                rollover_enabled=self.rollover_enabled,
+                source_path=None,
+            )
+        else:
+            scenario = compile_ring_explorer(generator_config, source_path=None)
+
+        if self.dealer_enabled:
+            dealer_section: Dict[str, Any] = {"enabled": True}
+            if self.dealer_config:
+                dealer_section.update(self.dealer_config)
+            else:
+                dealer_section.update({
+                    "ticket_size": 1,
+                    "dealer_share": Decimal("0.25"),
+                    "vbt_share": Decimal("0.50"),
+                })
+            scenario["dealer"] = dealer_section
+
+        if self.default_handling:
+            scenario_run = scenario.setdefault("run", {})
+            scenario_run["default_handling"] = self.default_handling
+
+        # Write scenario.yaml
+        with scenario_path.open("w", encoding="utf-8") as fh:
+            yaml.safe_dump(_to_yaml_ready(scenario), fh, sort_keys=False, allow_unicode=False)
+
+        S1 = Decimal("0")
+        L0 = Decimal("0")
+        for action in scenario.get("initial_actions", []):
+            if "create_payable" in action:
+                S1 += action["create_payable"]["amount"]
+            if "mint_cash" in action:
+                L0 += action["mint_cash"]["amount"]
+
+        regime = "active" if self.dealer_enabled else "passive"
+
+        options = RunOptions(
+            mode="until_stable",
+            max_days=scenario.get("run", {}).get("max_days", 90),
+            quiet_days=scenario.get("run", {}).get("quiet_days", 2),
+            check_invariants="daily",
+            default_handling=self.default_handling,
+            show_events="none" if self.quiet else scenario.get("run", {}).get("show", {}).get("events", "detailed"),
+            show_balances=scenario.get("run", {}).get("show", {}).get("balances"),
+            t_account=False,
+            detailed_dealer_logging=self.detailed_dealer_logging,
+            run_id=run_id,
+            regime=regime,
+        )
+
+        return PreparedRun(
+            run_id=run_id,
+            phase=phase,
+            kappa=kappa,
+            concentration=concentration,
+            mu=mu,
+            monotonicity=monotonicity,
+            seed=seed,
+            scenario_config=_to_yaml_ready(scenario),
+            options=options,
+            run_dir=run_dir,
+            out_dir=out_dir,
+            scenario_path=scenario_path,
+            base_params=base_params,
+            S1=S1,
+            L0=L0,
+        )
+
+    def _finalize_run(
+        self,
+        prepared: PreparedRun,
+        result: ExecutionResult,
+    ) -> RingRunSummary:
+        """Finalize a run after execution completes.
+
+        Computes metrics, updates registry, returns summary.
+        """
+        run_html_path = prepared.run_dir / "run.html"
+        balances_path = prepared.out_dir / "balances.csv"
+        events_path = prepared.out_dir / "events.jsonl"
+
+        # Handle failure case
+        if result.status == RunStatus.FAILED:
+            fail_params = {**prepared.base_params, "S1": str(prepared.S1), "L0": str(prepared.L0)}
+            self._upsert_registry(
+                run_id=prepared.run_id,
+                phase=prepared.phase,
+                status=RunStatus.FAILED,
+                parameters=fail_params,
+                artifact_paths={
+                    "scenario_yaml": self._rel_path(prepared.scenario_path),
+                    "run_html": self._rel_path(run_html_path),
+                },
+                error=result.error,
+            )
+            return RingRunSummary(
+                prepared.run_id, prepared.phase, prepared.kappa, prepared.concentration,
+                prepared.mu, prepared.monotonicity, None, None, 0,
+                modal_call_id=result.modal_call_id
+            )
+
+        # Compute metrics
+        artifacts: Dict[str, str] = {}
+        if "events_jsonl" in result.artifacts:
+            artifacts["events_jsonl"] = result.artifacts["events_jsonl"]
+        if "balances_csv" in result.artifacts:
+            artifacts["balances_csv"] = result.artifacts["balances_csv"]
+
+        loader = LocalArtifactLoader(base_path=Path(result.storage_base))
+        computer = MetricsComputer(loader)
+        bundle = computer.compute(artifacts)
+
+        output_paths = computer.write_outputs(bundle, prepared.out_dir)
+
+        delta_total = bundle.summary.get("delta_total")
+        phi_total = bundle.summary.get("phi_total")
+        time_to_stability = int(bundle.summary.get("max_day") or 0)
+
+        dealer_metrics: Optional[Dict[str, Any]] = None
+        dealer_metrics_path = prepared.out_dir / "dealer_metrics.json"
+        if dealer_metrics_path.exists():
+            import json
+            with dealer_metrics_path.open() as f:
+                dealer_metrics = json.load(f)
+
+        success_params = {**prepared.base_params, "S1": str(prepared.S1), "L0": str(prepared.L0)}
+        success_metrics = {
+            "time_to_stability": time_to_stability,
+            "phi_total": str(phi_total) if phi_total is not None else "",
+            "delta_total": str(delta_total) if delta_total is not None else "",
+        }
+        self._upsert_registry(
+            run_id=prepared.run_id,
+            phase=prepared.phase,
+            status=RunStatus.COMPLETED,
+            parameters=success_params,
+            metrics=success_metrics,
+            artifact_paths={
+                "scenario_yaml": self._rel_path(prepared.scenario_path),
+                "events_jsonl": self._rel_path(events_path),
+                "balances_csv": self._rel_path(balances_path),
+                "metrics_csv": self._rel_path(output_paths["metrics_csv"]),
+                "metrics_html": self._rel_path(output_paths["metrics_html"]),
+                "run_html": self._rel_path(run_html_path),
+            },
+        )
+
+        return RingRunSummary(
+            prepared.run_id, prepared.phase, prepared.kappa, prepared.concentration,
+            prepared.mu, prepared.monotonicity,
+            delta_total, phi_total, time_to_stability, dealer_metrics,
+            modal_call_id=result.modal_call_id
+        )
+
     def _rel_path(self, absolute: Path) -> str:
         try:
             return str(Path("..").joinpath(absolute.relative_to(self.base_dir)))
@@ -645,6 +906,7 @@ class RingSweepRunner:
 __all__ = [
     "RingSweepRunner",
     "RingRunSummary",
+    "PreparedRun",
     "RingSweepConfig",
     "load_ring_sweep_config",
     "_decimal_list",
