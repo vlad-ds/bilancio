@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2026-01-12 20:56:39 UTC | Branch: main | Commit: 04121f3b
+Generated: 2026-01-12 21:16:19 UTC | Branch: main | Commit: 71a97055
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -34002,6 +34002,18 @@ Complete git history from oldest to newest:
 - **04121f3b** (2026-01-12) by vladgheorghe
   Update uv lockfiles
 
+- **d40dae28** (2026-01-12) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **71a97055** (2026-01-12) by vladgheorghe
+  feat(storage): add Supabase persistence for runs and metrics during cloud sweeps
+  - Update sweep commands to use create_job_manager with cloud=True for Supabase storage
+  - Add _persist_run_to_supabase method to BalancedComparisonRunner
+  - Persist runs/metrics in both sequential and batch execution paths
+  - Pass job_id to runner for correct job association
+  - Update CLAUDE.md with env var loading instructions and automatic persistence docs
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
 ---
 
 ## Source Code (src/bilancio)
@@ -50029,6 +50041,8 @@ class BalancedComparisonRunner:
         config: BalancedComparisonConfig,
         out_dir: Path,
         executor: Optional[SimulationExecutor] = None,
+        job_id: Optional[str] = None,
+        enable_supabase: bool = True,
     ) -> None:
         self.config = config
         self.base_dir = out_dir
@@ -50052,6 +50066,21 @@ class BalancedComparisonRunner:
         # For progress tracking
         self._start_time: Optional[float] = None
         self._completed_keys: Set[Tuple[str, str, str, str, str]] = set()
+
+        # Job tracking
+        self.job_id = job_id
+
+        # Supabase registry for persisting runs/metrics
+        self._supabase_store = None
+        if enable_supabase:
+            try:
+                from bilancio.storage.supabase_client import is_supabase_configured
+                if is_supabase_configured():
+                    from bilancio.storage.supabase_registry import SupabaseRegistryStore
+                    self._supabase_store = SupabaseRegistryStore()
+                    logger.info("Supabase registry enabled for run persistence")
+            except Exception as e:
+                logger.warning(f"Failed to initialize Supabase registry: {e}")
 
         # Load existing results for resumption
         self._load_existing_results()
@@ -50351,6 +50380,10 @@ class BalancedComparisonRunner:
             key = self._make_key(kappa, concentration, mu, monotonicity, outside_mid_ratio)
             self._completed_keys.add(key)
 
+            # Persist runs to Supabase (batch path)
+            self._persist_run_to_supabase(passive_summary, "passive", kappa, concentration, mu, outside_mid_ratio, seed)
+            self._persist_run_to_supabase(active_summary, "active", kappa, concentration, mu, outside_mid_ratio, seed)
+
             # Incremental CSV write
             self._write_comparison_csv()
 
@@ -50543,7 +50576,91 @@ class BalancedComparisonRunner:
         else:
             logger.warning("  Comparison: One or both runs failed")
 
+        # Persist runs to Supabase
+        self._persist_run_to_supabase(passive_result, "passive", kappa, concentration, mu, outside_mid_ratio, seed)
+        self._persist_run_to_supabase(active_result, "active", kappa, concentration, mu, outside_mid_ratio, seed)
+
         return result
+
+    def _persist_run_to_supabase(
+        self,
+        run_result: RingRunSummary,
+        regime: str,
+        kappa: Decimal,
+        concentration: Decimal,
+        mu: Decimal,
+        outside_mid_ratio: Decimal,
+        seed: int,
+    ) -> None:
+        """Persist a run and its metrics to Supabase.
+
+        Args:
+            run_result: The run summary from the simulation
+            regime: 'passive' or 'active'
+            kappa: Liquidity ratio parameter
+            concentration: Dirichlet concentration parameter
+            mu: Maturity timing parameter
+            outside_mid_ratio: Outside money ratio
+            seed: Random seed used
+        """
+        if self._supabase_store is None:
+            return
+
+        try:
+            from bilancio.storage.models import RegistryEntry, RunStatus
+
+            # Determine status
+            status = RunStatus.COMPLETED if run_result.delta_total is not None else RunStatus.FAILED
+
+            # Build parameters dict
+            parameters = {
+                "kappa": str(kappa),
+                "concentration": str(concentration),
+                "mu": str(mu),
+                "outside_mid_ratio": str(outside_mid_ratio),
+                "seed": seed,
+                "regime": regime,
+            }
+
+            # Build metrics dict
+            metrics: Dict[str, Any] = {}
+            if run_result.delta_total is not None:
+                metrics["delta_total"] = float(run_result.delta_total)
+            if run_result.phi_total is not None:
+                metrics["phi_total"] = float(run_result.phi_total)
+            if hasattr(run_result, "n_defaults") and run_result.n_defaults is not None:
+                metrics["n_defaults"] = run_result.n_defaults
+            if hasattr(run_result, "n_clears") and run_result.n_clears is not None:
+                metrics["n_clears"] = run_result.n_clears
+            if hasattr(run_result, "time_to_stability") and run_result.time_to_stability is not None:
+                metrics["time_to_stability"] = run_result.time_to_stability
+            if hasattr(run_result, "dealer_metrics") and run_result.dealer_metrics:
+                dm = run_result.dealer_metrics
+                if "total_trades" in dm:
+                    metrics["total_trades"] = dm["total_trades"]
+                if "total_trade_volume" in dm:
+                    metrics["total_trade_volume"] = dm["total_trade_volume"]
+
+            # Build artifact paths (for cloud runs)
+            artifact_paths: Dict[str, str] = {}
+            if hasattr(run_result, "artifact_paths") and run_result.artifact_paths:
+                artifact_paths = run_result.artifact_paths
+
+            entry = RegistryEntry(
+                run_id=run_result.run_id,
+                experiment_id=self.job_id or "unknown",
+                status=status,
+                parameters=parameters,
+                metrics=metrics,
+                artifact_paths=artifact_paths,
+                error=run_result.error if hasattr(run_result, "error") else None,
+            )
+
+            self._supabase_store.upsert(entry)
+            logger.debug(f"Persisted run {run_result.run_id} to Supabase")
+
+        except Exception as e:
+            logger.warning(f"Failed to persist run to Supabase: {e}")
 
     def _write_comparison_csv(self) -> None:
         """Write comparison results to CSV."""
@@ -57512,7 +57629,7 @@ from bilancio.experiments.ring import (
     load_ring_sweep_config,
     _decimal_list,
 )
-from bilancio.jobs import JobManager, JobConfig, generate_job_id
+from bilancio.jobs import JobManager, JobConfig, generate_job_id, create_job_manager
 
 from .utils import console, _as_decimal_list
 
@@ -57693,7 +57810,8 @@ def sweep_ring(
     # Create job manager and job config
     manager: Optional[JobManager] = None
     try:
-        manager = JobManager(jobs_dir=out_dir)
+        # Use create_job_manager to enable Supabase cloud storage
+        manager = create_job_manager(jobs_dir=out_dir, cloud=True, local=True)
 
         grid_kappas = _as_decimal_list(kappas)
         grid_concentrations = _as_decimal_list(concentrations)
@@ -58029,10 +58147,10 @@ def sweep_balanced(
     if job_id is None:
         job_id = generate_job_id()
 
-    # Create job manager
+    # Create job manager with Supabase cloud storage
     manager: Optional[JobManager] = None
     try:
-        manager = JobManager(jobs_dir=out_dir)
+        manager = create_job_manager(jobs_dir=out_dir, cloud=True, local=True)
 
         # Create job config
         job_config = JobConfig(
@@ -58088,7 +58206,7 @@ def sweep_balanced(
         quiet=quiet,  # Plan 030
     )
 
-    runner = BalancedComparisonRunner(config, out_dir, executor=executor)
+    runner = BalancedComparisonRunner(config, out_dir, executor=executor, job_id=job_id)
 
     try:
         results = runner.run_all()
