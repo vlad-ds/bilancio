@@ -10,6 +10,12 @@ from .protocols import ResultStore, RegistryStore
 from .file_store import FileResultStore, FileRegistryStore
 from .artifact_loaders import ArtifactLoader, LocalArtifactLoader
 from .modal_artifact_loader import ModalVolumeArtifactLoader
+from .supabase_client import (
+    get_supabase_client,
+    is_supabase_configured,
+    SupabaseConfigError,
+)
+from .supabase_registry import SupabaseRegistryStore
 
 __all__ = [
     "RunStatus",
@@ -23,4 +29,9 @@ __all__ = [
     "ArtifactLoader",
     "LocalArtifactLoader",
     "ModalVolumeArtifactLoader",
+    # Supabase
+    "get_supabase_client",
+    "is_supabase_configured",
+    "SupabaseConfigError",
+    "SupabaseRegistryStore",
 ]

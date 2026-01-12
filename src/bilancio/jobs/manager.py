@@ -1,24 +1,91 @@
 """Job lifecycle management."""
 
 import json
+import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from .job_id import generate_job_id
 from .models import Job, JobConfig, JobEvent, JobStatus
 
+if TYPE_CHECKING:
+    from .supabase_store import SupabaseJobStore
+
+logger = logging.getLogger(__name__)
+
+
+def create_job_manager(
+    jobs_dir: Optional[Path] = None,
+    cloud: bool = False,
+    local: bool = True,
+) -> "JobManager":
+    """Factory function to create a JobManager with optional cloud storage.
+
+    Args:
+        jobs_dir: Directory to store job manifests. If None and local=True,
+                  jobs are only in-memory.
+        cloud: If True, enable Supabase cloud storage (requires BILANCIO_SUPABASE_*
+               environment variables to be set).
+        local: If False, skip local file storage (useful for memory-constrained VMs).
+               When cloud=True and local=False, jobs are only stored in Supabase.
+
+    Returns:
+        Configured JobManager instance.
+
+    Example:
+        >>> # Cloud-only (no local files)
+        >>> manager = create_job_manager(cloud=True, local=False)
+        >>> job = manager.create_job("Test job", config)
+        >>>
+        >>> # Both local and cloud
+        >>> manager = create_job_manager(Path("./jobs"), cloud=True, local=True)
+    """
+    cloud_store = None
+    if cloud:
+        try:
+            from bilancio.storage.supabase_client import is_supabase_configured
+
+            if is_supabase_configured():
+                from .supabase_store import SupabaseJobStore
+
+                cloud_store = SupabaseJobStore()
+                logger.info("Supabase cloud storage enabled for jobs")
+            else:
+                logger.warning(
+                    "Cloud storage requested but Supabase not configured. "
+                    "Set BILANCIO_SUPABASE_URL and BILANCIO_SUPABASE_ANON_KEY."
+                )
+        except ImportError as e:
+            logger.warning(f"Failed to import Supabase: {e}")
+
+    # If local=False, don't pass jobs_dir to avoid creating local files
+    effective_jobs_dir = jobs_dir if local else None
+
+    return JobManager(jobs_dir=effective_jobs_dir, cloud_store=cloud_store)
+
 
 class JobManager:
-    """Manages job lifecycle and persistence."""
+    """Manages job lifecycle and persistence.
 
-    def __init__(self, jobs_dir: Optional[Path] = None):
+    Supports both local file storage and optional cloud storage via Supabase.
+    When cloud_store is provided, jobs are persisted to both local and cloud.
+    """
+
+    def __init__(
+        self,
+        jobs_dir: Optional[Path] = None,
+        cloud_store: Optional["SupabaseJobStore"] = None,
+    ):
         """Initialize the job manager.
 
         Args:
             jobs_dir: Directory to store job manifests. If None, jobs are only in-memory.
+            cloud_store: Optional Supabase store for cloud persistence. Jobs will be
+                        saved to both local and cloud when provided.
         """
         self.jobs_dir = jobs_dir
+        self.cloud_store = cloud_store
         self._jobs: dict[str, Job] = {}
 
         if jobs_dir:
@@ -66,6 +133,7 @@ class JobManager:
 
         self._jobs[job_id] = job
         self._save_job(job)
+        self._save_event(event)
 
         return job
 
@@ -90,6 +158,7 @@ class JobManager:
         )
         job.events.append(event)
         self._save_job(job)
+        self._save_event(event)
 
     def record_progress(
         self,
@@ -124,6 +193,7 @@ class JobManager:
         )
         job.events.append(event)
         self._save_job(job)
+        self._save_event(event)
 
     def complete_job(self, job_id: str, summary: Optional[dict] = None) -> None:
         """Mark a job as completed.
@@ -151,6 +221,7 @@ class JobManager:
         )
         job.events.append(event)
         self._save_job(job)
+        self._save_event(event)
 
     def fail_job(self, job_id: str, error: str) -> None:
         """Mark a job as failed.
@@ -179,6 +250,7 @@ class JobManager:
         )
         job.events.append(event)
         self._save_job(job)
+        self._save_event(event)
 
     def get_job(self, job_id: str) -> Optional[Job]:
         """Get a job by ID.
@@ -223,20 +295,41 @@ class JobManager:
         return list(self._jobs.values())
 
     def _save_job(self, job: Job) -> None:
-        """Save job manifest to disk.
+        """Save job manifest to disk and optionally to cloud.
 
         Args:
             job: The job to save
         """
-        if self.jobs_dir is None:
-            return
+        # Save to local filesystem
+        if self.jobs_dir is not None:
+            job_dir = self.jobs_dir / job.job_id
+            job_dir.mkdir(parents=True, exist_ok=True)
 
-        job_dir = self.jobs_dir / job.job_id
-        job_dir.mkdir(parents=True, exist_ok=True)
+            manifest_path = job_dir / "job_manifest.json"
+            with open(manifest_path, "w") as f:
+                json.dump(job.to_dict(), f, indent=2)
 
-        manifest_path = job_dir / "job_manifest.json"
-        with open(manifest_path, "w") as f:
-            json.dump(job.to_dict(), f, indent=2)
+        # Save to cloud store if configured
+        if self.cloud_store is not None:
+            try:
+                self.cloud_store.save_job(job)
+            except Exception as e:
+                logger.warning(f"Failed to save job to cloud: {e}")
+
+    def _save_event(self, event: JobEvent) -> None:
+        """Save a job event to cloud storage.
+
+        Events are saved to Supabase for queryable history.
+        Local events are stored in the job manifest itself.
+
+        Args:
+            event: The event to save
+        """
+        if self.cloud_store is not None:
+            try:
+                self.cloud_store.save_event(event)
+            except Exception as e:
+                logger.warning(f"Failed to save event to cloud: {e}")
 
     def _load_job(self, manifest_path: Path) -> Job:
         """Load a job from a manifest file.

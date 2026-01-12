@@ -6,6 +6,8 @@ import click
 
 from .run import run, validate, new, analyze
 from .sweep import sweep
+from .volume import volume
+from .jobs import jobs
 
 
 @click.group()
@@ -20,6 +22,8 @@ cli.add_command(validate)
 cli.add_command(new)
 cli.add_command(analyze)
 cli.add_command(sweep)
+cli.add_command(volume)
+cli.add_command(jobs)
 
 
 def main():

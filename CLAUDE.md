@@ -135,6 +135,90 @@ If a job fails or times out:
 
 ---
 
+## Supabase Cloud Storage (Optional)
+
+Jobs and runs can be persisted to Supabase for queryable, durable storage accessible across conversations.
+
+### Configuration
+
+Set environment variables (already in `.env`):
+```bash
+BILANCIO_SUPABASE_URL=https://xxxx.supabase.co
+BILANCIO_SUPABASE_ANON_KEY=eyJ...
+```
+
+### Architecture
+
+- **Cloud-only mode (recommended)**: Jobs stored only in Supabase, no local files
+- **Hybrid mode**: Jobs saved to both local filesystem AND Supabase
+- **Local-only mode**: Default if Supabase not configured
+
+### Using Cloud Storage in Code
+
+```python
+from bilancio.jobs import create_job_manager
+
+# Cloud-only (recommended for VMs with limited storage)
+manager = create_job_manager(cloud=True, local=False)
+
+# Both local and cloud
+manager = create_job_manager(jobs_dir=Path("./jobs"), cloud=True, local=True)
+
+# Creates job (stored per configuration above)
+job = manager.create_job(description="My sweep", config=config)
+```
+
+### CLI Commands for Querying Jobs
+
+```bash
+# List jobs from Supabase
+bilancio jobs ls --cloud
+
+# Get job details
+bilancio jobs get castle-river-mountain --cloud
+
+# List runs for a job
+bilancio jobs runs castle-river-mountain --cloud
+
+# Show aggregate metrics
+bilancio jobs metrics castle-river-mountain --cloud
+```
+
+### Database Schema
+
+Jobs are stored in Supabase PostgreSQL with these tables:
+- `jobs` - Job metadata (job_id, status, config, timestamps)
+- `runs` - Individual run records (run_id, job_id, parameters, status)
+- `metrics` - Run metrics (delta_total, phi_total, raw_metrics JSONB)
+- `job_events` - Lifecycle events (created, started, progress, completed)
+
+### Supabase Dashboard
+
+View data directly at: https://supabase.com/dashboard/project/vghchkriceqqitbpevtz
+
+---
+
+## Modal Volume Management
+
+Manage artifacts stored in Modal Volume:
+
+```bash
+# List experiments
+bilancio volume ls
+
+# Delete experiments older than 30 days
+bilancio volume cleanup --older-than 30 --dry-run
+bilancio volume cleanup --older-than 30 -y
+
+# Delete by pattern
+bilancio volume cleanup --pattern "test_*" -y
+
+# Delete specific experiment
+bilancio volume rm castle-river-mountain -y
+```
+
+---
+
 ## Claude Code Web Workflow (Autonomous Simulation Jobs)
 
 This project is designed to be run by Claude Code on the web (claude.ai/code), where Claude operates in an Anthropic-managed VM, clones this repo, and runs simulations based on natural language instructions.
@@ -286,10 +370,14 @@ Each job produces:
 ### Retrieving Results
 
 ```bash
-# List all jobs in Modal Volume
-uv run modal volume ls bilancio-results
+# Query jobs from Supabase (if configured)
+bilancio jobs ls --cloud
+bilancio jobs get <job_id> --cloud
 
-# Get specific job results
+# List all jobs in Modal Volume
+bilancio volume ls
+
+# Get specific job results from Modal Volume
 uv run modal volume get bilancio-results <job_id> ./local_results --force
 
 # View aggregate results
