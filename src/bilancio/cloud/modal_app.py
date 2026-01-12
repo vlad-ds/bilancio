@@ -25,7 +25,7 @@ results_volume = modal.Volume.from_name(
 # Set these using: modal secret create bilancio-supabase \
 #   BILANCIO_SUPABASE_URL=https://xxx.supabase.co \
 #   BILANCIO_SUPABASE_ANON_KEY=eyJ...
-supabase_secret = modal.Secret.from_name("bilancio-supabase", required_keys=[
+supabase_secret = modal.Secret.from_name("supabase", required_keys=[
     "BILANCIO_SUPABASE_URL",
     "BILANCIO_SUPABASE_ANON_KEY",
 ])
