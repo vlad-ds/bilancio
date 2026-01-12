@@ -450,28 +450,76 @@ def compute_aggregate_metrics(
                         "seed": params[4],
                         "delta_passive": d_passive,
                         "delta_active": d_active,
+                        "phi_passive": runs["passive"].get("phi"),
+                        "phi_active": runs["active"].get("phi"),
                         "trading_effect": trading_effect,
                         "passive_run_id": runs["passive"]["run_id"],
                         "active_run_id": runs["active"]["run_id"],
                     })
 
         # Compute summary statistics
+        from datetime import datetime, timezone
+        import statistics
+
         if comparisons:
             effects = [c["trading_effect"] for c in comparisons]
+            deltas_passive = [c["delta_passive"] for c in comparisons if c["delta_passive"] is not None]
+            deltas_active = [c["delta_active"] for c in comparisons if c["delta_active"] is not None]
+            phis_passive = [c.get("phi_passive") for c in comparisons if c.get("phi_passive") is not None]
+            phis_active = [c.get("phi_active") for c in comparisons if c.get("phi_active") is not None]
+
+            # Compute standard deviation if we have enough data
+            std_effect = statistics.stdev(effects) if len(effects) > 1 else 0.0
+
             summary = {
                 "n_comparisons": len(comparisons),
+                "n_pairs": len(comparisons),
                 "mean_trading_effect": sum(effects) / len(effects),
                 "min_trading_effect": min(effects),
                 "max_trading_effect": max(effects),
-                "positive_effects": sum(1 for e in effects if e > 0),
-                "negative_effects": sum(1 for e in effects if e < 0),
+                "std_trading_effect": std_effect,
+                "positive_effects": sum(1 for e in effects if e > 0.001),  # dealers help
+                "negative_effects": sum(1 for e in effects if e < -0.001),  # dealers hurt
+                "neutral_effects": sum(1 for e in effects if -0.001 <= e <= 0.001),
+                "mean_delta_passive": sum(deltas_passive) / len(deltas_passive) if deltas_passive else None,
+                "mean_delta_active": sum(deltas_active) / len(deltas_active) if deltas_active else None,
+                "mean_phi_passive": sum(phis_passive) / len(phis_passive) if phis_passive else None,
+                "mean_phi_active": sum(phis_active) / len(phis_active) if phis_active else None,
             }
         else:
-            summary = {"n_comparisons": 0}
+            summary = {"n_comparisons": 0, "n_pairs": 0}
 
-        # Update job with aggregate results
-        from datetime import datetime, timezone
+        # Save to job_metrics table
+        job_metrics_row = {
+            "job_id": job_id,
+            "n_comparisons": summary.get("n_comparisons"),
+            "n_pairs": summary.get("n_pairs"),
+            "mean_trading_effect": summary.get("mean_trading_effect"),
+            "min_trading_effect": summary.get("min_trading_effect"),
+            "max_trading_effect": summary.get("max_trading_effect"),
+            "std_trading_effect": summary.get("std_trading_effect"),
+            "positive_effects": summary.get("positive_effects"),
+            "negative_effects": summary.get("negative_effects"),
+            "neutral_effects": summary.get("neutral_effects"),
+            "mean_delta_passive": summary.get("mean_delta_passive"),
+            "mean_delta_active": summary.get("mean_delta_active"),
+            "mean_phi_passive": summary.get("mean_phi_passive"),
+            "mean_phi_active": summary.get("mean_phi_active"),
+            "raw_summary": summary,
+        }
 
+        # Upsert job_metrics (insert or update if exists)
+        try:
+            existing = client.table("job_metrics").select("id").eq("job_id", job_id).execute()
+            if existing.data:
+                client.table("job_metrics").update(job_metrics_row).eq("job_id", job_id).execute()
+            else:
+                client.table("job_metrics").insert(job_metrics_row).execute()
+            print(f"Saved job_metrics for {job_id}")
+        except Exception as e:
+            print(f"Warning: Failed to save job_metrics: {e}")
+
+        # Update job status
         client.table("jobs").update({
             "completed_at": datetime.now(timezone.utc).isoformat(),
             "status": "completed",
@@ -479,7 +527,8 @@ def compute_aggregate_metrics(
 
         print(f"Aggregate metrics for job {job_id}:")
         print(f"  Comparisons: {summary.get('n_comparisons', 0)}")
-        print(f"  Mean trading effect: {summary.get('mean_trading_effect', 'N/A')}")
+        print(f"  Mean trading effect: {summary.get('mean_trading_effect', 'N/A'):.4f}" if summary.get('mean_trading_effect') else "  Mean trading effect: N/A")
+        print(f"  Positive effects: {summary.get('positive_effects', 0)} | Negative: {summary.get('negative_effects', 0)}")
 
         return {
             "status": "completed",
