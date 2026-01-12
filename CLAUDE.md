@@ -96,6 +96,12 @@ This project is designed to be run by Claude Code on the web (claude.ai/code), w
 4. **Results are persisted** to Modal Volume and/or external database
 5. **User can query results** by Job ID in future conversations
 
+> **⚠️ IMPORTANT FOR CLAUDE**: When running any simulation job, you MUST prominently display the Job ID to the user at the start of execution. Format it clearly like:
+>
+> **Job ID: `rumbling-appear-flail-squiggle`**
+>
+> This ID is how the user will reference this job in future conversations. Make it impossible to miss.
+
 ### Job ID System
 Every simulation job gets a unique, memorable identifier:
 - Format: `word1-word2-word3-word4` (e.g., `bright-ocean-swift-tiger`)
