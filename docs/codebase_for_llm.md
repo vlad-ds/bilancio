@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2026-01-11 17:29:06 UTC | Branch: main | Commit: ded88327
+Generated: 2026-01-12 15:59:29 UTC | Branch: main | Commit: 06140685
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -2350,6 +2350,7 @@ This document contains the complete codebase structure and content for LLM inges
 │   │   ├── 022_enhanced_instrumentation.md
 │   │   ├── 023_default_aware_instrumentation.md
 │   │   ├── 024_dealer_simulation_redesign.md
+│   │   ├── 029_job_system.md
 │   │   └── Kalecki_debt_simulation (1).pdf
 │   ├── prompts
 │   │   ├── 015_expel_sweep_agent_prompt.md
@@ -2358,6 +2359,7 @@ This document contains the complete codebase structure and content for LLM inges
 │   │   ├── 025_phase1_cleanup.md
 │   │   ├── 026_phase4_abstractions.md
 │   │   ├── 027_executor_separation.md
+│   │   ├── 028_cloud_executor.md
 │   │   └── codebase_analysis.md
 │   └── version_1_0_exercises.pdf
 ├── examples
@@ -31715,6 +31717,10 @@ This document contains the complete codebase structure and content for LLM inges
 │       │   │   ├── events.py
 │       │   │   └── phases.py
 │       │   └── visualization_phases.py
+│       ├── cloud
+│       │   ├── __init__.py
+│       │   ├── config.py
+│       │   └── modal_app.py
 │       ├── config
 │       │   ├── __init__.py
 │       │   ├── apply.py
@@ -31782,6 +31788,11 @@ This document contains the complete codebase structure and content for LLM inges
 │       ├── export
 │       │   ├── __init__.py
 │       │   └── writers.py
+│       ├── jobs
+│       │   ├── __init__.py
+│       │   ├── job_id.py
+│       │   ├── manager.py
+│       │   └── models.py
 │       ├── ops
 │       │   ├── __init__.py
 │       │   ├── aliases.py
@@ -31791,6 +31802,7 @@ This document contains the complete codebase structure and content for LLM inges
 │       │   └── primitives_stock.py
 │       ├── runners
 │       │   ├── __init__.py
+│       │   ├── cloud_executor.py
 │       │   ├── local_executor.py
 │       │   ├── models.py
 │       │   └── protocols.py
@@ -31801,6 +31813,7 @@ This document contains the complete codebase structure and content for LLM inges
 │       │   ├── __init__.py
 │       │   ├── artifact_loaders.py
 │       │   ├── file_store.py
+│       │   ├── modal_artifact_loader.py
 │       │   ├── models.py
 │       │   └── protocols.py
 │       └── ui
@@ -31830,6 +31843,10 @@ This document contains the complete codebase structure and content for LLM inges
     │   ├── test_report_aggregate.py
     │   ├── test_t_account_builder.py
     │   └── test_visualization.py
+    ├── cloud
+    │   ├── __init__.py
+    │   ├── test_cloud_executor.py
+    │   └── test_modal_artifact_loader.py
     ├── config
     │   ├── test_apply.py
     │   ├── test_loaders.py
@@ -31881,10 +31898,11 @@ This document contains the complete codebase structure and content for LLM inges
     └── unit
         ├── test_balances.py
         ├── test_domain_system.py
+        ├── test_jobs.py
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-6858 directories, 25016 files
+6861 directories, 25031 files
 
 ```
 
@@ -33793,6 +33811,104 @@ Complete git history from oldest to newest:
 - **ded88327** (2026-01-11) by Vlad Gheorghe
   Merge pull request #24 from vlad-ds/refactor/phase-4-abstractions
   feat: add storage and runner abstraction layers (Phase 4)
+
+- **99280d89** (2026-01-11) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **51674f1a** (2026-01-11) by vladgheorghe
+  feat(cloud): implement Modal cloud executor (Plan 028)
+  Add CloudExecutor for running simulations on Modal's serverless infrastructure.
+  This enables parallel execution of large parameter sweeps in the cloud.
+  Key components:
+  - cloud/modal_app.py: Modal app with run_simulation function
+  - runners/cloud_executor.py: CloudExecutor implementing SimulationExecutor protocol
+  - storage/modal_artifact_loader.py: ModalVolumeArtifactLoader for remote artifacts
+  - CLI --cloud flag for sweep ring command
+  The CloudExecutor:
+  - Submits simulations to deployed Modal function
+  - Downloads artifacts to local disk after completion
+  - Returns correct local paths for MetricsComputer integration
+  - Supports both single execution and batch parallel execution
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **047465f9** (2026-01-12) by vladgheorghe
+  feat(cloud): add cloud execution support to balanced sweep
+  - Add executor parameter to BalancedComparisonRunner
+  - Add --cloud flag to `bilancio sweep balanced` CLI command
+  - Add Modal usage instructions to CLAUDE.md
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **1d9493eb** (2026-01-12) by vladgheorghe
+  feat(jobs): implement job system for tracking simulation runs (Plan 029)
+  - Add memorable 4-word job IDs using xkcdpass library
+  - Create Job, JobConfig, JobEvent models with serialization
+  - Implement JobManager for lifecycle tracking (create/start/progress/complete/fail)
+  - Integrate job tracking into sweep ring and sweep balanced CLI commands
+  - Write job_manifest.json to output directory for each job
+  - Add 39 unit tests for job system
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **88466ae5** (2026-01-12) by vladgheorghe
+  docs: add reminder to prominently display Job ID to users
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **be2c9ee0** (2026-01-12) by vladgheorghe
+  fix: add xkcdpass to Modal image and handle failed runs gracefully
+  - Add xkcdpass dependency to Modal container image
+  - Handle None values in comparison result logging
+  - Add Modal authentication tip to CLAUDE.md
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **522a5f7b** (2026-01-12) by vladgheorghe
+  feat(cloud): display job_id in Modal logs and return modal_call_id
+  - Add job_id parameter to Modal run_simulation function
+  - Print job info banner at start of execution (visible in Modal logs)
+  - Return modal_call_id in execution result
+  - Pass job_id from CLI through CloudExecutor to Modal
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **58e9649e** (2026-01-12) by vladgheorghe
+  docs: clarify ID structure and add instructions to display IDs to user
+  - Add explicit instructions for Claude to display Job ID and Modal Call ID
+  - Explain why jobs have multiple runs (parameter sweeps)
+  - Use job_id as experiment_id to simplify (removes redundancy)
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **63bdeb87** (2026-01-12) by vladgheorghe
+  docs: simplify - just display Job ID to user, not run IDs
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **3f2694f9** (2026-01-12) by vladgheorghe
+  docs: include Modal ID for debugging on modal.com
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **54a0cf63** (2026-01-12) by vladgheorghe
+  feat(jobs): store Modal call IDs in job manifest
+  Propagate modal_call_id from cloud execution through the entire chain
+  to job manifest for debugging purposes:
+  - Add modal_call_id to ExecutionResult (runners/models.py)
+  - Add modal_call_id to RingRunSummary (experiments/ring.py)
+  - Add passive/active_modal_call_id to BalancedComparisonResult
+  - Update JobManager.record_progress to accept modal_call_id
+  - Add modal_call_ids dict to Job model for run_id -> modal_call_id mapping
+  - Update sweep CLI to pass modal_call_ids when recording progress
+  Job manifest now includes modal_call_ids for easy lookup on modal.com.
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **25d02e22** (2026-01-12) by vladgheorghe
+  fix(cloud): address PR review feedback
+  1. Fix execute_batch storage metadata bug - now correctly updates
+     storage_type to "local" and storage_base to local path after
+     downloading artifacts (consistent with execute() behavior)
+  2. Remove dead code - redundant path logic in _download_run_artifacts
+     where both branches did the same thing
+  3. Document volume name limitation - CloudConfig and CloudExecutor now
+     document that volume_name must match the hardcoded value in modal_app.py
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **06140685** (2026-01-12) by Vlad Gheorghe
+  Merge pull request #25 from vlad-ds/feature/cloud-executor
+  feat(cloud): implement Modal cloud executor (Plan 028)
 
 ---
 
@@ -38648,6 +38764,274 @@ def _format_single_event(event: Dict[str, Any], registry, RICH_AVAILABLE: bool) 
         renderables.append(text)
     
     return [renderables[0]] if renderables else []
+```
+
+---
+
+### 📄 src/bilancio/cloud/__init__.py
+
+```python
+"""Cloud execution module for running simulations on Modal."""
+
+from bilancio.cloud.config import CloudConfig
+
+__all__ = ["CloudConfig"]
+
+```
+
+---
+
+### 📄 src/bilancio/cloud/config.py
+
+```python
+"""Configuration for cloud execution."""
+
+from dataclasses import dataclass, field
+import os
+from typing import Optional
+
+
+@dataclass
+class CloudConfig:
+    """Configuration for cloud execution.
+
+    Attributes:
+        volume_name: Name of the Modal Volume for storing results.
+            Note: This must match the volume name in modal_app.py (hardcoded as
+            "bilancio-results"). Changing this without also updating modal_app.py
+            will cause download failures.
+        timeout_seconds: Maximum execution time per simulation.
+        memory_mb: Memory allocation in MB.
+        max_parallel: Maximum concurrent Modal function calls.
+        gpu: Optional GPU type (e.g., "T4", "A10G", "A100").
+    """
+
+    # Note: This must match the volume name hardcoded in modal_app.py
+    volume_name: str = field(
+        default_factory=lambda: os.getenv("BILANCIO_MODAL_VOLUME", "bilancio-results")
+    )
+    timeout_seconds: int = field(
+        default_factory=lambda: int(os.getenv("BILANCIO_CLOUD_TIMEOUT", "600"))
+    )
+    memory_mb: int = field(
+        default_factory=lambda: int(os.getenv("BILANCIO_CLOUD_MEMORY", "2048"))
+    )
+    max_parallel: int = field(
+        default_factory=lambda: int(os.getenv("BILANCIO_CLOUD_MAX_PARALLEL", "50"))
+    )
+
+    # GPU configuration (for future ML workloads)
+    gpu: Optional[str] = None
+
+```
+
+---
+
+### 📄 src/bilancio/cloud/modal_app.py
+
+```python
+"""Modal app definition for cloud simulation execution.
+
+This module defines the Modal app, container image, volume, and remote
+function for running bilancio simulations in the cloud.
+"""
+
+from __future__ import annotations
+
+import modal
+
+# Define the Modal app
+app = modal.App("bilancio-simulations")
+
+# Create a persistent volume for storing results
+# Results persist across function invocations
+results_volume = modal.Volume.from_name(
+    "bilancio-results",
+    create_if_missing=True,
+)
+
+# Define the container image with all bilancio dependencies
+# We add the local source code to the image
+image = (
+    modal.Image.debian_slim(python_version="3.11")
+    .pip_install(
+        "numpy>=1.24.0",
+        "pandas>=2.0.0",
+        "scipy>=1.10.0",
+        "pydantic>=2.0.0",
+        "networkx>=3.0",
+        "pyyaml>=6.0",
+        "rich>=13.0.0",
+        "jinja2>=3.0",
+        "click>=8.0",
+        "xkcdpass>=1.19.0",
+    )
+    .add_local_python_source("bilancio")
+)
+
+RESULTS_MOUNT_PATH = "/results"
+
+
+@app.function(
+    image=image,
+    volumes={RESULTS_MOUNT_PATH: results_volume},
+    timeout=600,  # 10 minutes max per simulation
+    memory=2048,  # 2GB RAM
+)
+def run_simulation(
+    scenario_config: dict,
+    run_id: str,
+    experiment_id: str,
+    options: dict,
+    job_id: str = "",
+) -> dict:
+    """Run a single simulation in the cloud.
+
+    Args:
+        scenario_config: Full scenario YAML as dict
+        run_id: Unique identifier for this run
+        experiment_id: Groups related runs together
+        options: RunOptions as dict (mode, max_days, quiet_days, etc.)
+        job_id: Bilancio job ID (for logging/tracking)
+
+    Returns:
+        Dict with status, artifact paths (relative to volume), metrics, error
+    """
+    import time
+    from pathlib import Path
+
+    import yaml
+
+    start_time = time.time()
+
+    # Log job info prominently at the start (visible in Modal logs)
+    import sys
+    modal_call_id = modal.current_function_call_id()
+    print("=" * 60, flush=True)
+    print(f"BILANCIO SIMULATION", flush=True)
+    print(f"  Job ID:      {job_id or 'N/A'}", flush=True)
+    print(f"  Run ID:      {run_id}", flush=True)
+    print(f"  Experiment:  {experiment_id}", flush=True)
+    print(f"  Modal Call:  {modal_call_id}", flush=True)
+    print("=" * 60, flush=True)
+    sys.stdout.flush()
+
+    # Create output directory on the volume
+    run_dir = Path(RESULTS_MOUNT_PATH) / experiment_id / "runs" / run_id
+    run_dir.mkdir(parents=True, exist_ok=True)
+    out_dir = run_dir / "out"
+    out_dir.mkdir(exist_ok=True)
+
+    # Write scenario YAML
+    scenario_path = run_dir / "scenario.yaml"
+    scenario_path.write_text(yaml.dump(scenario_config, default_flow_style=False))
+
+    try:
+        # Import bilancio inside the function (container context)
+        from bilancio.ui.run import run_scenario
+
+        # Execute simulation
+        run_scenario(
+            path=scenario_path,
+            mode=options.get("mode", "until_stable"),
+            max_days=options.get("max_days", 90),
+            quiet_days=options.get("quiet_days", 2),
+            show=options.get("show_events", "detailed"),
+            check_invariants=options.get("check_invariants", "daily"),
+            default_handling=options.get("default_handling", "fail-fast"),
+            export={
+                "balances_csv": str(out_dir / "balances.csv"),
+                "events_jsonl": str(out_dir / "events.jsonl"),
+            },
+            html_output=run_dir / "run.html",
+            t_account=options.get("t_account", False),
+            detailed_dealer_logging=options.get("detailed_dealer_logging", False),
+            run_id=run_id,
+            regime=options.get("regime", ""),
+        )
+
+        # Commit changes to volume
+        results_volume.commit()
+
+        execution_time_ms = int((time.time() - start_time) * 1000)
+
+        # Build artifact paths (relative to run directory within volume)
+        artifacts = {
+            "scenario_yaml": "scenario.yaml",
+            "events_jsonl": "out/events.jsonl",
+            "balances_csv": "out/balances.csv",
+            "run_html": "run.html",
+        }
+
+        return {
+            "run_id": run_id,
+            "status": "completed",
+            "storage_type": "modal_volume",
+            "storage_base": f"{experiment_id}/runs/{run_id}",
+            "artifacts": artifacts,
+            "execution_time_ms": execution_time_ms,
+            "error": None,
+            "modal_call_id": modal_call_id,
+        }
+
+    except Exception as e:
+        execution_time_ms = int((time.time() - start_time) * 1000)
+
+        # Still commit to preserve any partial output
+        results_volume.commit()
+
+        return {
+            "run_id": run_id,
+            "status": "failed",
+            "storage_type": "modal_volume",
+            "storage_base": f"{experiment_id}/runs/{run_id}",
+            "artifacts": {},
+            "execution_time_ms": execution_time_ms,
+            "error": str(e),
+            "modal_call_id": modal_call_id,
+        }
+
+
+@app.function(
+    image=image,
+    timeout=60,
+    memory=256,
+)
+def health_check() -> dict:
+    """Simple health check to verify Modal deployment.
+
+    Returns:
+        Dict with status and bilancio version info.
+    """
+    try:
+        import bilancio
+
+        return {
+            "status": "ok",
+            "bilancio_available": True,
+            "version": getattr(bilancio, "__version__", "unknown"),
+        }
+    except ImportError as e:
+        return {
+            "status": "error",
+            "bilancio_available": False,
+            "error": str(e),
+        }
+
+
+# Local entrypoint for testing
+@app.local_entrypoint()
+def main():
+    """Test the Modal deployment with a health check."""
+    print("Running health check...")
+    result = health_check.remote()
+    print(f"Health check result: {result}")
+
+    if result["status"] == "ok":
+        print("Modal deployment is healthy!")
+    else:
+        print(f"Modal deployment has issues: {result.get('error', 'unknown')}")
+
 ```
 
 ---
@@ -49377,6 +49761,7 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Tuple
 from pydantic import BaseModel, Field
 
 from bilancio.experiments.ring import RingSweepRunner, RingRunSummary
+from bilancio.runners import SimulationExecutor, LocalExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -49421,6 +49806,10 @@ class BalancedComparisonResult:
     # Big entity loss metrics
     big_entity_loss_passive: Optional[float] = None
     big_entity_pnl_active: Optional[float] = None
+
+    # Modal call IDs for cloud execution debugging
+    passive_modal_call_id: Optional[str] = None
+    active_modal_call_id: Optional[str] = None
 
     @property
     def trading_effect(self) -> Optional[Decimal]:
@@ -49537,9 +49926,15 @@ class BalancedComparisonRunner:
         "total_trades",
     ]
 
-    def __init__(self, config: BalancedComparisonConfig, out_dir: Path) -> None:
+    def __init__(
+        self,
+        config: BalancedComparisonConfig,
+        out_dir: Path,
+        executor: Optional[SimulationExecutor] = None,
+    ) -> None:
         self.config = config
         self.base_dir = out_dir
+        self.executor: SimulationExecutor = executor or LocalExecutor()
         self.passive_dir = self.base_dir / "passive"
         self.active_dir = self.base_dir / "active"
         self.aggregate_dir = self.base_dir / "aggregate"
@@ -49649,6 +50044,7 @@ class BalancedComparisonRunner:
             dealer_share_per_bucket=self.config.dealer_share_per_bucket,
             rollover_enabled=self.config.rollover_enabled,
             detailed_dealer_logging=self.config.detailed_logging,  # Plan 022
+            executor=self.executor,  # Plan 028 cloud support
         )
 
     def _get_active_runner(self, outside_mid_ratio: Decimal) -> RingSweepRunner:
@@ -49680,6 +50076,7 @@ class BalancedComparisonRunner:
             dealer_share_per_bucket=self.config.dealer_share_per_bucket,
             rollover_enabled=self.config.rollover_enabled,
             detailed_dealer_logging=self.config.detailed_logging,  # Plan 022
+            executor=self.executor,  # Plan 028 cloud support
         )
 
     def run_all(self) -> List[BalancedComparisonResult]:
@@ -49749,12 +50146,19 @@ class BalancedComparisonRunner:
 
                             # Log completion with timing
                             elapsed = time.time() - self._start_time
-                            print(
-                                f"  Completed in {self._format_time(elapsed / completed_this_run)} avg | "
-                                f"δ_passive={result.delta_passive:.3f}, δ_active={result.delta_active:.3f}, "
-                                f"effect={result.trading_effect:.3f}",
-                                flush=True,
-                            )
+                            if result.delta_passive is not None and result.delta_active is not None:
+                                print(
+                                    f"  Completed in {self._format_time(elapsed / completed_this_run)} avg | "
+                                    f"δ_passive={result.delta_passive:.3f}, δ_active={result.delta_active:.3f}, "
+                                    f"effect={result.trading_effect:.3f}",
+                                    flush=True,
+                                )
+                            else:
+                                print(
+                                    f"  Completed in {self._format_time(elapsed / completed_this_run)} avg | "
+                                    f"(one or both runs failed)",
+                                    flush=True,
+                                )
 
         # Write final summary
         self._write_summary_json()
@@ -49839,6 +50243,8 @@ class BalancedComparisonRunner:
             dealer_total_pnl=dm.get("dealer_total_pnl"),
             dealer_total_return=dm.get("dealer_total_return"),
             total_trades=dm.get("total_trades"),
+            passive_modal_call_id=passive_result.modal_call_id,
+            active_modal_call_id=active_result.modal_call_id,
         )
 
         # Log comparison
@@ -50604,6 +51010,8 @@ class RingRunSummary:
     time_to_stability: int
     # Dealer metrics (only populated for treatment runs with dealer enabled)
     dealer_metrics: Optional[Dict[str, Any]] = None
+    # Modal call ID for cloud execution debugging
+    modal_call_id: Optional[str] = None
 
 
 def _decimal_list(spec: str) -> List[Decimal]:
@@ -51126,7 +51534,10 @@ class RingSweepRunner:
                 },
                 error=result.error,
             )
-            return RingRunSummary(run_id, phase, kappa, concentration, mu, monotonicity, None, None, 0)
+            return RingRunSummary(
+                run_id, phase, kappa, concentration, mu, monotonicity, None, None, 0,
+                modal_call_id=result.modal_call_id
+            )
 
         # Use MetricsComputer for analytics (Plan 027)
         # result.artifacts contains relative paths (e.g., "out/events.jsonl")
@@ -51181,7 +51592,8 @@ class RingSweepRunner:
 
         return RingRunSummary(
             run_id, phase, kappa, concentration, mu, monotonicity,
-            delta_total, phi_total, time_to_stability, dealer_metrics
+            delta_total, phi_total, time_to_stability, dealer_metrics,
+            modal_call_id=result.modal_call_id
         )
 
     def _rel_path(self, absolute: Path) -> str:
@@ -51712,6 +52124,491 @@ def write_balances_snapshot(
 
 ---
 
+### 📄 src/bilancio/jobs/__init__.py
+
+```python
+"""Job management for simulation runs."""
+
+from .job_id import generate_job_id, validate_job_id
+from .manager import JobManager
+from .models import Job, JobConfig, JobEvent, JobStatus
+
+__all__ = [
+    "generate_job_id",
+    "validate_job_id",
+    "Job",
+    "JobConfig",
+    "JobEvent",
+    "JobManager",
+    "JobStatus",
+]
+
+```
+
+---
+
+### 📄 src/bilancio/jobs/job_id.py
+
+```python
+"""Job ID generation for memorable simulation job identifiers."""
+
+from xkcdpass import xkcd_password as xp
+
+# Use the EFF large wordlist (7776 words, designed for memorability)
+_wordlist = xp.generate_wordlist(wordfile=xp.locate_wordfile())
+
+
+def generate_job_id(num_words: int = 4) -> str:
+    """Generate a memorable job ID as a hyphen-separated passphrase.
+
+    Uses the EFF wordlist via xkcdpass for high-quality memorable words.
+
+    Args:
+        num_words: Number of words in the passphrase (default 4)
+
+    Returns:
+        A job ID like "castle-river-mountain-forest"
+
+    Example:
+        >>> job_id = generate_job_id()
+        >>> print(job_id)  # "correct-horse-battery-staple"
+    """
+    return xp.generate_xkcdpassword(_wordlist, numwords=num_words, delimiter="-")
+
+
+def validate_job_id(job_id: str) -> bool:
+    """Validate that a job ID has the correct format.
+
+    Args:
+        job_id: The job ID to validate
+
+    Returns:
+        True if valid format (hyphen-separated words), False otherwise
+    """
+    if not job_id:
+        return False
+    parts = job_id.split("-")
+    if len(parts) < 2:  # At least 2 words
+        return False
+    return all(part.isalpha() and part.islower() for part in parts)
+
+```
+
+---
+
+### 📄 src/bilancio/jobs/manager.py
+
+```python
+"""Job lifecycle management."""
+
+import json
+from datetime import datetime
+from pathlib import Path
+from typing import Optional
+
+from .job_id import generate_job_id
+from .models import Job, JobConfig, JobEvent, JobStatus
+
+
+class JobManager:
+    """Manages job lifecycle and persistence."""
+
+    def __init__(self, jobs_dir: Optional[Path] = None):
+        """Initialize the job manager.
+
+        Args:
+            jobs_dir: Directory to store job manifests. If None, jobs are only in-memory.
+        """
+        self.jobs_dir = jobs_dir
+        self._jobs: dict[str, Job] = {}
+
+        if jobs_dir:
+            jobs_dir.mkdir(parents=True, exist_ok=True)
+
+    def create_job(
+        self,
+        description: str,
+        config: JobConfig,
+        job_id: Optional[str] = None,
+        notes: Optional[str] = None,
+    ) -> Job:
+        """Create a new job.
+
+        Args:
+            description: User's description of the simulation request
+            config: Job configuration
+            job_id: Optional custom job ID (auto-generated if not provided)
+            notes: Optional additional notes
+
+        Returns:
+            The created Job instance
+        """
+        if job_id is None:
+            job_id = generate_job_id()
+
+        now = datetime.utcnow()
+        job = Job(
+            job_id=job_id,
+            created_at=now,
+            status=JobStatus.PENDING,
+            description=description,
+            config=config,
+            notes=notes,
+        )
+
+        # Record creation event
+        event = JobEvent(
+            job_id=job_id,
+            event_type="created",
+            timestamp=now,
+            details={"config": config.to_dict()},
+        )
+        job.events.append(event)
+
+        self._jobs[job_id] = job
+        self._save_job(job)
+
+        return job
+
+    def start_job(self, job_id: str) -> None:
+        """Mark a job as started.
+
+        Args:
+            job_id: The job ID to start
+
+        Raises:
+            KeyError: If job not found
+        """
+        job = self.get_job(job_id)
+        if job is None:
+            raise KeyError(f"Job not found: {job_id}")
+
+        job.status = JobStatus.RUNNING
+        event = JobEvent(
+            job_id=job_id,
+            event_type="started",
+            timestamp=datetime.utcnow(),
+        )
+        job.events.append(event)
+        self._save_job(job)
+
+    def record_progress(
+        self,
+        job_id: str,
+        run_id: str,
+        metrics: Optional[dict] = None,
+        modal_call_id: Optional[str] = None,
+    ) -> None:
+        """Record progress on a job (a run completed).
+
+        Args:
+            job_id: The job ID
+            run_id: The completed run ID
+            metrics: Optional metrics from the run
+            modal_call_id: Optional Modal function call ID for debugging
+
+        Raises:
+            KeyError: If job not found
+        """
+        job = self.get_job(job_id)
+        if job is None:
+            raise KeyError(f"Job not found: {job_id}")
+
+        job.run_ids.append(run_id)
+        if modal_call_id:
+            job.modal_call_ids[run_id] = modal_call_id
+        event = JobEvent(
+            job_id=job_id,
+            event_type="progress",
+            timestamp=datetime.utcnow(),
+            details={"run_id": run_id, "metrics": metrics or {}, "modal_call_id": modal_call_id},
+        )
+        job.events.append(event)
+        self._save_job(job)
+
+    def complete_job(self, job_id: str, summary: Optional[dict] = None) -> None:
+        """Mark a job as completed.
+
+        Args:
+            job_id: The job ID
+            summary: Optional summary statistics
+
+        Raises:
+            KeyError: If job not found
+        """
+        job = self.get_job(job_id)
+        if job is None:
+            raise KeyError(f"Job not found: {job_id}")
+
+        now = datetime.utcnow()
+        job.status = JobStatus.COMPLETED
+        job.completed_at = now
+
+        event = JobEvent(
+            job_id=job_id,
+            event_type="completed",
+            timestamp=now,
+            details={"summary": summary or {}},
+        )
+        job.events.append(event)
+        self._save_job(job)
+
+    def fail_job(self, job_id: str, error: str) -> None:
+        """Mark a job as failed.
+
+        Args:
+            job_id: The job ID
+            error: Error message
+
+        Raises:
+            KeyError: If job not found
+        """
+        job = self.get_job(job_id)
+        if job is None:
+            raise KeyError(f"Job not found: {job_id}")
+
+        now = datetime.utcnow()
+        job.status = JobStatus.FAILED
+        job.completed_at = now
+        job.error = error
+
+        event = JobEvent(
+            job_id=job_id,
+            event_type="failed",
+            timestamp=now,
+            details={"error": error},
+        )
+        job.events.append(event)
+        self._save_job(job)
+
+    def get_job(self, job_id: str) -> Optional[Job]:
+        """Get a job by ID.
+
+        Args:
+            job_id: The job ID
+
+        Returns:
+            The Job instance or None if not found
+        """
+        # Check in-memory cache first
+        if job_id in self._jobs:
+            return self._jobs[job_id]
+
+        # Try to load from disk
+        if self.jobs_dir:
+            manifest_path = self.jobs_dir / job_id / "job_manifest.json"
+            if manifest_path.exists():
+                job = self._load_job(manifest_path)
+                self._jobs[job_id] = job
+                return job
+
+        return None
+
+    def list_jobs(self) -> list[Job]:
+        """List all known jobs.
+
+        Returns:
+            List of Job instances
+        """
+        # Load any jobs from disk that aren't in memory
+        if self.jobs_dir and self.jobs_dir.exists():
+            for job_dir in self.jobs_dir.iterdir():
+                if job_dir.is_dir():
+                    job_id = job_dir.name
+                    if job_id not in self._jobs:
+                        manifest_path = job_dir / "job_manifest.json"
+                        if manifest_path.exists():
+                            job = self._load_job(manifest_path)
+                            self._jobs[job_id] = job
+
+        return list(self._jobs.values())
+
+    def _save_job(self, job: Job) -> None:
+        """Save job manifest to disk.
+
+        Args:
+            job: The job to save
+        """
+        if self.jobs_dir is None:
+            return
+
+        job_dir = self.jobs_dir / job.job_id
+        job_dir.mkdir(parents=True, exist_ok=True)
+
+        manifest_path = job_dir / "job_manifest.json"
+        with open(manifest_path, "w") as f:
+            json.dump(job.to_dict(), f, indent=2)
+
+    def _load_job(self, manifest_path: Path) -> Job:
+        """Load a job from a manifest file.
+
+        Args:
+            manifest_path: Path to job_manifest.json
+
+        Returns:
+            The loaded Job instance
+        """
+        with open(manifest_path) as f:
+            data = json.load(f)
+        return Job.from_dict(data)
+
+```
+
+---
+
+### 📄 src/bilancio/jobs/models.py
+
+```python
+"""Job system data models."""
+
+from dataclasses import dataclass, field
+from datetime import datetime
+from decimal import Decimal
+from enum import Enum
+from typing import Optional
+
+
+class JobStatus(Enum):
+    """Status of a simulation job."""
+
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+@dataclass
+class JobConfig:
+    """Configuration for a simulation job."""
+
+    sweep_type: str  # "ring", "balanced", "single"
+    n_agents: int
+    kappas: list[Decimal]
+    concentrations: list[Decimal]
+    mus: list[Decimal]
+    cloud: bool = False
+    outside_mid_ratios: list[Decimal] = field(default_factory=lambda: [Decimal("1")])
+    maturity_days: int = 5
+    seeds: list[int] = field(default_factory=lambda: [42])
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary for serialization."""
+        return {
+            "sweep_type": self.sweep_type,
+            "n_agents": self.n_agents,
+            "kappas": [str(k) for k in self.kappas],
+            "concentrations": [str(c) for c in self.concentrations],
+            "mus": [str(m) for m in self.mus],
+            "cloud": self.cloud,
+            "outside_mid_ratios": [str(r) for r in self.outside_mid_ratios],
+            "maturity_days": self.maturity_days,
+            "seeds": self.seeds,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "JobConfig":
+        """Create from dictionary."""
+        return cls(
+            sweep_type=data["sweep_type"],
+            n_agents=data["n_agents"],
+            kappas=[Decimal(k) for k in data["kappas"]],
+            concentrations=[Decimal(c) for c in data["concentrations"]],
+            mus=[Decimal(m) for m in data["mus"]],
+            cloud=data.get("cloud", False),
+            outside_mid_ratios=[
+                Decimal(r) for r in data.get("outside_mid_ratios", ["1"])
+            ],
+            maturity_days=data.get("maturity_days", 5),
+            seeds=data.get("seeds", [42]),
+        )
+
+
+@dataclass
+class JobEvent:
+    """An event in the job lifecycle."""
+
+    job_id: str
+    event_type: str  # "created", "started", "progress", "completed", "failed"
+    timestamp: datetime
+    details: dict = field(default_factory=dict)
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary for serialization."""
+        return {
+            "job_id": self.job_id,
+            "event_type": self.event_type,
+            "timestamp": self.timestamp.isoformat(),
+            "details": self.details,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "JobEvent":
+        """Create from dictionary."""
+        return cls(
+            job_id=data["job_id"],
+            event_type=data["event_type"],
+            timestamp=datetime.fromisoformat(data["timestamp"]),
+            details=data.get("details", {}),
+        )
+
+
+@dataclass
+class Job:
+    """A simulation job with lifecycle tracking."""
+
+    job_id: str
+    created_at: datetime
+    status: JobStatus
+    description: str
+    config: JobConfig
+    run_ids: list[str] = field(default_factory=list)
+    modal_call_ids: dict[str, str] = field(default_factory=dict)  # run_id -> modal_call_id
+    completed_at: Optional[datetime] = None
+    error: Optional[str] = None
+    notes: Optional[str] = None
+    events: list[JobEvent] = field(default_factory=list)
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary for serialization."""
+        return {
+            "job_id": self.job_id,
+            "created_at": self.created_at.isoformat(),
+            "status": self.status.value,
+            "description": self.description,
+            "config": self.config.to_dict(),
+            "run_ids": self.run_ids,
+            "modal_call_ids": self.modal_call_ids,
+            "completed_at": self.completed_at.isoformat() if self.completed_at else None,
+            "error": self.error,
+            "notes": self.notes,
+            "events": [e.to_dict() for e in self.events],
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "Job":
+        """Create from dictionary."""
+        return cls(
+            job_id=data["job_id"],
+            created_at=datetime.fromisoformat(data["created_at"]),
+            status=JobStatus(data["status"]),
+            description=data["description"],
+            config=JobConfig.from_dict(data["config"]),
+            run_ids=data.get("run_ids", []),
+            modal_call_ids=data.get("modal_call_ids", {}),
+            completed_at=(
+                datetime.fromisoformat(data["completed_at"])
+                if data.get("completed_at")
+                else None
+            ),
+            error=data.get("error"),
+            notes=data.get("notes"),
+            events=[JobEvent.from_dict(e) for e in data.get("events", [])],
+        )
+
+```
+
+---
+
 ### 📄 src/bilancio/ops/__init__.py
 
 ```python
@@ -52176,15 +53073,297 @@ def consume_stock(system: 'System', stock_id: InstrId, quantity: int) -> None:
 
 from .protocols import SimulationExecutor, JobExecutor
 from .local_executor import LocalExecutor
+from .cloud_executor import CloudExecutor
 from .models import RunOptions, ExecutionResult
 
 __all__ = [
     "SimulationExecutor",
     "JobExecutor",
     "LocalExecutor",
+    "CloudExecutor",
     "RunOptions",
     "ExecutionResult",
 ]
+
+```
+
+---
+
+### 📄 src/bilancio/runners/cloud_executor.py
+
+```python
+"""Cloud executor using Modal for remote simulation execution."""
+
+from __future__ import annotations
+
+import subprocess
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Tuple
+
+from bilancio.runners.models import ExecutionResult, RunOptions
+from bilancio.storage.models import RunStatus
+
+
+class CloudExecutor:
+    """Execute simulations on Modal cloud infrastructure.
+
+    Results are stored on a Modal Volume and optionally downloaded to local disk
+    after execution completes.
+
+    This executor implements the SimulationExecutor protocol from
+    bilancio.runners.protocols.
+
+    Example:
+        executor = CloudExecutor(experiment_id="my_sweep", job_id="castle-river-forest-mountain")
+        result = executor.execute(
+            scenario_config=scenario,
+            run_id="run_001",
+            output_dir=Path("./output"),
+            options=RunOptions(max_days=30),
+        )
+    """
+
+    def __init__(
+        self,
+        experiment_id: str,
+        download_artifacts: bool = True,
+        local_output_dir: Optional[Path] = None,
+        volume_name: str = "bilancio-results",
+        job_id: str = "",
+    ):
+        """Initialize cloud executor.
+
+        Args:
+            experiment_id: Identifier for this experiment (groups runs together).
+            download_artifacts: Whether to download results to local disk after execution.
+            local_output_dir: Where to download artifacts. Defaults to
+                out/experiments/{experiment_id}.
+            volume_name: Name of the Modal Volume for result storage. Note: This must
+                match the volume name hardcoded in modal_app.py ("bilancio-results").
+            job_id: Bilancio job ID for tracking (displayed in Modal logs).
+        """
+        self.experiment_id = experiment_id
+        self.download_artifacts = download_artifacts
+        self.local_output_dir = local_output_dir or Path(
+            f"out/experiments/{experiment_id}"
+        )
+        self.volume_name = volume_name
+        self.app_name = "bilancio-simulations"
+        self.job_id = job_id
+
+        # Lazy reference to deployed function
+        self._run_simulation = None
+
+    def _get_run_simulation(self):
+        """Get reference to the deployed Modal function.
+
+        Uses Function.from_name() to reference the deployed function,
+        which allows calling it from outside the Modal app context.
+        """
+        if self._run_simulation is None:
+            import modal
+
+            self._run_simulation = modal.Function.from_name(
+                self.app_name, "run_simulation"
+            )
+        return self._run_simulation
+
+    def execute(
+        self,
+        scenario_config: Dict[str, Any],
+        run_id: str,
+        output_dir: Path,
+        options: RunOptions,
+    ) -> ExecutionResult:
+        """Execute simulation on Modal cloud.
+
+        Args:
+            scenario_config: Full scenario configuration dict.
+            run_id: Unique run identifier.
+            output_dir: Local directory for results (used if download_artifacts=True).
+            options: Simulation run options.
+
+        Returns:
+            ExecutionResult with status and artifact references.
+        """
+        run_simulation = self._get_run_simulation()
+
+        # Convert options to dict for serialization
+        options_dict = self._options_to_dict(options)
+
+        # Execute remotely (blocks until complete)
+        result = run_simulation.remote(
+            scenario_config=scenario_config,
+            run_id=run_id,
+            experiment_id=self.experiment_id,
+            options=options_dict,
+            job_id=self.job_id,
+        )
+
+        # Download artifacts if requested and determine storage location
+        if self.download_artifacts and result["status"] == "completed":
+            self._download_run_artifacts(run_id, output_dir, result["artifacts"])
+            # When downloading, the storage_base should be the local path
+            storage_type = "local"
+            storage_base = str(output_dir.resolve())
+        else:
+            # When not downloading, keep the modal_volume reference
+            storage_type = result["storage_type"]
+            storage_base = result["storage_base"]
+
+        return ExecutionResult(
+            run_id=result["run_id"],
+            status=(
+                RunStatus.COMPLETED
+                if result["status"] == "completed"
+                else RunStatus.FAILED
+            ),
+            storage_type=storage_type,
+            storage_base=storage_base,
+            artifacts=result["artifacts"],
+            error=result.get("error"),
+            execution_time_ms=result.get("execution_time_ms"),
+            modal_call_id=result.get("modal_call_id"),
+        )
+
+    def execute_batch(
+        self,
+        runs: List[Tuple[Dict[str, Any], str, RunOptions]],
+        max_parallel: int = 50,
+        progress_callback: Optional[Callable[[int, int], None]] = None,
+    ) -> List[ExecutionResult]:
+        """Execute multiple simulations in parallel on Modal.
+
+        Modal handles parallelization automatically. This method provides
+        a convenient interface for batch execution.
+
+        Args:
+            runs: List of (scenario_config, run_id, options) tuples.
+            max_parallel: Maximum concurrent Modal function calls (unused,
+                Modal handles this internally).
+            progress_callback: Called with (completed, total) after each completion.
+
+        Returns:
+            List of ExecutionResult in same order as input.
+        """
+        run_simulation = self._get_run_simulation()
+
+        total = len(runs)
+        results: List[Optional[ExecutionResult]] = [None] * total
+
+        # Submit all jobs to Modal (Modal handles queuing)
+        futures = []
+        for idx, (config, run_id, options) in enumerate(runs):
+            options_dict = self._options_to_dict(options)
+
+            # .spawn() returns a FunctionCall that we can await later
+            future = run_simulation.spawn(
+                scenario_config=config,
+                run_id=run_id,
+                experiment_id=self.experiment_id,
+                options=options_dict,
+                job_id=self.job_id,
+            )
+            futures.append((idx, run_id, future))
+
+        # Collect results as they complete
+        completed = 0
+        for idx, run_id, future in futures:
+            result = future.get()  # Blocks until this specific run completes
+
+            # Download artifacts if requested and determine storage location
+            if self.download_artifacts and result["status"] == "completed":
+                output_dir = self.local_output_dir / "runs" / run_id
+                self._download_run_artifacts(run_id, output_dir, result["artifacts"])
+                # When downloading, the storage_base should be the local path
+                storage_type = "local"
+                storage_base = str(output_dir.resolve())
+            else:
+                # When not downloading, keep the modal_volume reference
+                storage_type = result["storage_type"]
+                storage_base = result["storage_base"]
+
+            results[idx] = ExecutionResult(
+                run_id=result["run_id"],
+                status=(
+                    RunStatus.COMPLETED
+                    if result["status"] == "completed"
+                    else RunStatus.FAILED
+                ),
+                storage_type=storage_type,
+                storage_base=storage_base,
+                artifacts=result["artifacts"],
+                error=result.get("error"),
+                execution_time_ms=result.get("execution_time_ms"),
+                modal_call_id=result.get("modal_call_id"),
+            )
+
+            completed += 1
+            if progress_callback:
+                progress_callback(completed, total)
+
+        return results  # type: ignore
+
+    def _options_to_dict(self, options: RunOptions) -> Dict[str, Any]:
+        """Convert RunOptions to serializable dict."""
+        return {
+            "mode": options.mode,
+            "max_days": options.max_days,
+            "quiet_days": options.quiet_days,
+            "check_invariants": options.check_invariants,
+            "default_handling": options.default_handling,
+            "show_events": options.show_events,
+            "t_account": options.t_account,
+            "detailed_dealer_logging": options.detailed_dealer_logging,
+            "regime": options.regime or "",
+        }
+
+    def _download_run_artifacts(
+        self,
+        run_id: str,
+        output_dir: Path,
+        artifacts: Dict[str, str],
+    ) -> None:
+        """Download artifacts from Modal Volume to local disk.
+
+        Args:
+            run_id: The run identifier.
+            output_dir: Local directory to download to.
+            artifacts: Dict mapping artifact names to relative paths.
+        """
+        output_dir.mkdir(parents=True, exist_ok=True)
+        out_subdir = output_dir / "out"
+        out_subdir.mkdir(exist_ok=True)
+
+        remote_base = f"{self.experiment_id}/runs/{run_id}"
+
+        for artifact_name, artifact_path in artifacts.items():
+            remote_path = f"{remote_base}/{artifact_path}"
+            local_path = output_dir / artifact_path
+
+            # Ensure parent directory exists
+            local_path.parent.mkdir(parents=True, exist_ok=True)
+
+            # Use Modal CLI to download
+            try:
+                subprocess.run(
+                    [
+                        "modal",
+                        "volume",
+                        "get",
+                        self.volume_name,
+                        remote_path,
+                        str(local_path),
+                        "--force",  # Overwrite existing files
+                    ],
+                    check=True,
+                    capture_output=True,
+                )
+            except subprocess.CalledProcessError as e:
+                # Log but don't fail - artifact might be optional
+                print(
+                    f"Warning: Failed to download {artifact_name}: {e.stderr.decode()}"
+                )
 
 ```
 
@@ -52390,13 +53569,14 @@ class ExecutionResult:
     Attributes:
         run_id: Unique identifier for this run.
         status: Final status of the run (COMPLETED, FAILED, etc.).
-        storage_type: Type of storage backend - "local", "s3", or "gcs".
+        storage_type: Type of storage backend - "local", "s3", "gcs".
         storage_base: Base path/URI for artifacts - e.g., "/path/to/run"
             or "s3://bucket/prefix".
         artifacts: Mapping of artifact type to relative path within storage_base.
             Keys are artifact names like "events_jsonl", "balances_csv", etc.
         error: Error message if the run failed.
         execution_time_ms: Execution time in milliseconds.
+        modal_call_id: Modal function call ID (for cloud execution debugging).
     """
 
     run_id: str
@@ -52412,6 +53592,9 @@ class ExecutionResult:
     # Error info if failed
     error: Optional[str] = None
     execution_time_ms: Optional[int] = None
+
+    # Cloud execution info
+    modal_call_id: Optional[str] = None
 
 ```
 
@@ -53274,6 +54457,7 @@ from .models import (
 from .protocols import ResultStore, RegistryStore
 from .file_store import FileResultStore, FileRegistryStore
 from .artifact_loaders import ArtifactLoader, LocalArtifactLoader
+from .modal_artifact_loader import ModalVolumeArtifactLoader
 
 __all__ = [
     "RunStatus",
@@ -53286,6 +54470,7 @@ __all__ = [
     "FileRegistryStore",
     "ArtifactLoader",
     "LocalArtifactLoader",
+    "ModalVolumeArtifactLoader",
 ]
 
 ```
@@ -53738,6 +54923,178 @@ class FileRegistryStore:
             artifact_paths=artifact_paths,
             error=row.get("error") or None,
         )
+
+```
+
+---
+
+### 📄 src/bilancio/storage/modal_artifact_loader.py
+
+```python
+"""Artifact loader for Modal Volume storage."""
+
+from __future__ import annotations
+
+import subprocess
+import tempfile
+from pathlib import Path
+from typing import Optional
+
+
+class ModalVolumeArtifactLoader:
+    """Load artifacts from a Modal Volume.
+
+    Uses the Modal CLI to download files on demand.
+    Implements caching to avoid repeated downloads.
+
+    Example:
+        loader = ModalVolumeArtifactLoader(
+            volume_name="bilancio-results",
+            base_path="my_experiment/runs/run_001",
+        )
+        events_text = loader.load_text("out/events.jsonl")
+        html_bytes = loader.load_bytes("run.html")
+    """
+
+    def __init__(
+        self,
+        volume_name: str = "bilancio-results",
+        base_path: str = "",
+        cache_dir: Optional[Path] = None,
+    ):
+        """Initialize loader.
+
+        Args:
+            volume_name: Name of the Modal Volume.
+            base_path: Base path within the volume (e.g., "experiment_001/runs/run_001").
+            cache_dir: Local directory for caching downloads. If None, uses a
+                temporary directory.
+        """
+        self.volume_name = volume_name
+        self.base_path = base_path
+        self._cache_dir = cache_dir
+        self._temp_dir: Optional[tempfile.TemporaryDirectory] = None
+
+    @property
+    def cache_dir(self) -> Path:
+        """Get the cache directory, creating it if necessary."""
+        if self._cache_dir is not None:
+            self._cache_dir.mkdir(parents=True, exist_ok=True)
+            return self._cache_dir
+
+        if self._temp_dir is None:
+            self._temp_dir = tempfile.TemporaryDirectory(prefix="modal_cache_")
+        return Path(self._temp_dir.name)
+
+    def load_bytes(self, reference: str) -> bytes:
+        """Load artifact as bytes.
+
+        Args:
+            reference: Relative path to artifact within base_path.
+
+        Returns:
+            File contents as bytes.
+
+        Raises:
+            FileNotFoundError: If the artifact doesn't exist.
+            subprocess.CalledProcessError: If download fails.
+        """
+        local_path = self._ensure_downloaded(reference)
+        return local_path.read_bytes()
+
+    def load_text(self, reference: str, encoding: str = "utf-8") -> str:
+        """Load artifact as text.
+
+        Args:
+            reference: Relative path to artifact within base_path.
+            encoding: Text encoding (default: utf-8).
+
+        Returns:
+            File contents as string.
+
+        Raises:
+            FileNotFoundError: If the artifact doesn't exist.
+            subprocess.CalledProcessError: If download fails.
+        """
+        local_path = self._ensure_downloaded(reference)
+        return local_path.read_text(encoding=encoding)
+
+    def exists(self, reference: str) -> bool:
+        """Check if artifact exists on volume.
+
+        Args:
+            reference: Relative path to artifact within base_path.
+
+        Returns:
+            True if the file exists, False otherwise.
+        """
+        remote_path = f"{self.base_path}/{reference}" if self.base_path else reference
+
+        result = subprocess.run(
+            ["modal", "volume", "ls", self.volume_name, remote_path],
+            capture_output=True,
+            text=True,
+        )
+        return result.returncode == 0
+
+    def get_local_path(self, reference: str) -> Path:
+        """Get local path to cached artifact, downloading if necessary.
+
+        Args:
+            reference: Relative path to artifact within base_path.
+
+        Returns:
+            Path to the locally cached file.
+        """
+        return self._ensure_downloaded(reference)
+
+    def _ensure_downloaded(self, reference: str) -> Path:
+        """Download artifact if not already cached.
+
+        Args:
+            reference: Relative path to artifact within base_path.
+
+        Returns:
+            Path to the locally cached file.
+
+        Raises:
+            subprocess.CalledProcessError: If download fails.
+        """
+        # Create cache path maintaining directory structure
+        cache_path = self.cache_dir / reference
+
+        if cache_path.exists():
+            return cache_path
+
+        # Ensure parent directory exists
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Download from Modal Volume
+        remote_path = f"{self.base_path}/{reference}" if self.base_path else reference
+
+        subprocess.run(
+            ["modal", "volume", "get", self.volume_name, remote_path, str(cache_path)],
+            check=True,
+            capture_output=True,
+        )
+
+        return cache_path
+
+    def clear_cache(self) -> None:
+        """Clear all cached files."""
+        if self._temp_dir is not None:
+            self._temp_dir.cleanup()
+            self._temp_dir = None
+        elif self._cache_dir is not None and self._cache_dir.exists():
+            import shutil
+
+            shutil.rmtree(self._cache_dir)
+            self._cache_dir.mkdir(parents=True, exist_ok=True)
+
+    def __del__(self):
+        """Cleanup temporary directory on deletion."""
+        if self._temp_dir is not None:
+            self._temp_dir.cleanup()
 
 ```
 
@@ -54265,6 +55622,7 @@ from bilancio.experiments.ring import (
     load_ring_sweep_config,
     _decimal_list,
 )
+from bilancio.jobs import JobManager, JobConfig, generate_job_id
 
 from .utils import console, _as_decimal_list
 
@@ -54278,6 +55636,7 @@ def sweep():
 @sweep.command("ring")
 @click.option('--config', type=click.Path(path_type=Path), default=None, help='Path to sweep config YAML')
 @click.option('--out-dir', type=click.Path(path_type=Path), default=None, help='Base output directory')
+@click.option('--cloud', is_flag=True, help='Run simulations on Modal cloud')
 @click.option('--grid/--no-grid', default=True, help='Run coarse grid sweep')
 @click.option('--kappas', type=str, default="0.25,0.5,1,2,4", help='Comma list for grid kappa values')
 @click.option('--concentrations', type=str, default="0.2,0.5,1,2,5", help='Comma list for grid Dirichlet concentrations')
@@ -54305,11 +55664,13 @@ def sweep():
 @click.option('--base-seed', type=int, default=42, help='Base PRNG seed')
 @click.option('--name-prefix', type=str, default='Kalecki Ring Sweep', help='Scenario name prefix')
 @click.option('--default-handling', type=click.Choice(['fail-fast', 'expel-agent']), default='fail-fast', help='Default handling mode for runs')
+@click.option('--job-id', type=str, default=None, help='Job ID (auto-generated if not provided)')
 @click.pass_context
 def sweep_ring(
     ctx,
     config: Optional[Path],
     out_dir: Optional[Path],
+    cloud: bool,
     grid: bool,
     kappas: str,
     concentrations: str,
@@ -54337,6 +55698,7 @@ def sweep_ring(
     base_seed: int,
     name_prefix: str,
     default_handling: str,
+    job_id: Optional[str],
 ):
     """Run the Kalecki ring experiment sweep."""
     sweep_config: Optional[RingSweepConfig] = None
@@ -54434,6 +55796,55 @@ def sweep_ring(
 
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    # Generate job ID if not provided
+    if job_id is None:
+        job_id = generate_job_id()
+
+    # Create job manager and job config
+    manager: Optional[JobManager] = None
+    try:
+        manager = JobManager(jobs_dir=out_dir)
+
+        grid_kappas = _as_decimal_list(kappas)
+        grid_concentrations = _as_decimal_list(concentrations)
+        grid_mus = _as_decimal_list(mus)
+
+        job_config = JobConfig(
+            sweep_type="ring",
+            n_agents=n_agents,
+            kappas=grid_kappas,
+            concentrations=grid_concentrations,
+            mus=grid_mus,
+            cloud=cloud,
+            maturity_days=maturity_days,
+            seeds=[base_seed],
+        )
+
+        job = manager.create_job(
+            description=f"Ring sweep (n={n_agents}, cloud={cloud})",
+            config=job_config,
+            job_id=job_id,
+        )
+
+        console.print(f"[cyan]Job ID: {job.job_id}[/cyan]")
+        manager.start_job(job.job_id)
+    except Exception as e:
+        console.print(f"[yellow]Warning: Job tracking initialization failed: {e}[/yellow]")
+        manager = None
+
+    # Create executor based on --cloud flag
+    executor = None
+    if cloud:
+        from bilancio.runners import CloudExecutor
+
+        executor = CloudExecutor(
+            experiment_id=job_id,  # Use job_id as experiment_id for simplicity
+            download_artifacts=True,
+            local_output_dir=out_dir,
+            job_id=job_id,
+        )
+        console.print(f"[cyan]Cloud execution enabled[/cyan]")
+
     q_total_dec = Decimal(str(q_total))
     runner = RingSweepRunner(
         out_dir,
@@ -54447,6 +55858,7 @@ def sweep_ring(
         default_handling=default_handling,
         dealer_enabled=dealer_enabled,
         dealer_config=dealer_config,
+        executor=executor,
     )
 
     console.print(f"[dim]Output directory: {out_dir}[/dim]")
@@ -54456,43 +55868,64 @@ def sweep_ring(
     grid_mus = _as_decimal_list(mus)
     grid_monotonicities = _as_decimal_list(monotonicities)
 
-    if grid:
-        total_runs = len(grid_kappas) * len(grid_concentrations) * len(grid_mus) * len(grid_monotonicities)
-        console.print(f"[dim]Running grid sweep: {total_runs} runs[/dim]")
-        runner.run_grid(grid_kappas, grid_concentrations, grid_mus, grid_monotonicities)
+    try:
+        if grid:
+            total_runs = len(grid_kappas) * len(grid_concentrations) * len(grid_mus) * len(grid_monotonicities)
+            console.print(f"[dim]Running grid sweep: {total_runs} runs[/dim]")
+            runner.run_grid(grid_kappas, grid_concentrations, grid_mus, grid_monotonicities)
 
-    if lhs_count > 0:
-        console.print(f"[dim]Running Latin Hypercube ({lhs_count})[/dim]")
-        runner.run_lhs(
-            lhs_count,
-            kappa_range=(Decimal(str(kappa_min)), Decimal(str(kappa_max))),
-            concentration_range=(Decimal(str(c_min)), Decimal(str(c_max))),
-            mu_range=(Decimal(str(mu_min)), Decimal(str(mu_max))),
-            monotonicity_range=(Decimal(str(monotonicity_min)), Decimal(str(monotonicity_max))),
-        )
+        if lhs_count > 0:
+            console.print(f"[dim]Running Latin Hypercube ({lhs_count})[/dim]")
+            runner.run_lhs(
+                lhs_count,
+                kappa_range=(Decimal(str(kappa_min)), Decimal(str(kappa_max))),
+                concentration_range=(Decimal(str(c_min)), Decimal(str(c_max))),
+                mu_range=(Decimal(str(mu_min)), Decimal(str(mu_max))),
+                monotonicity_range=(Decimal(str(monotonicity_min)), Decimal(str(monotonicity_max))),
+            )
 
-    if frontier:
-        console.print(f"[dim]Running frontier search across {len(grid_concentrations) * len(grid_mus) * len(grid_monotonicities)} cells[/dim]")
-        runner.run_frontier(
-            grid_concentrations,
-            grid_mus,
-            grid_monotonicities,
-            kappa_low=Decimal(str(frontier_low)),
-            kappa_high=Decimal(str(frontier_high)),
-            tolerance=Decimal(str(frontier_tolerance)),
-            max_iterations=frontier_iterations,
-        )
+        if frontier:
+            console.print(f"[dim]Running frontier search across {len(grid_concentrations) * len(grid_mus) * len(grid_monotonicities)} cells[/dim]")
+            runner.run_frontier(
+                grid_concentrations,
+                grid_mus,
+                grid_monotonicities,
+                kappa_low=Decimal(str(frontier_low)),
+                kappa_high=Decimal(str(frontier_high)),
+                tolerance=Decimal(str(frontier_tolerance)),
+                max_iterations=frontier_iterations,
+            )
 
-    registry_csv = runner.registry_dir / "experiments.csv"
-    results_csv = runner.aggregate_dir / "results.csv"
-    dashboard_html = runner.aggregate_dir / "dashboard.html"
+        registry_csv = runner.registry_dir / "experiments.csv"
+        results_csv = runner.aggregate_dir / "results.csv"
+        dashboard_html = runner.aggregate_dir / "dashboard.html"
 
-    aggregate_runs(registry_csv, results_csv)
-    render_dashboard(results_csv, dashboard_html)
+        aggregate_runs(registry_csv, results_csv)
+        render_dashboard(results_csv, dashboard_html)
 
-    console.print(f"[green]Sweep complete.[/green] Registry: {registry_csv}")
-    console.print(f"[green]Aggregated results: {results_csv}")
-    console.print(f"[green]Dashboard: {dashboard_html}")
+        # Complete job
+        if manager is not None:
+            try:
+                manager.complete_job(job_id, {
+                    "grid_runs": total_runs if grid else 0,
+                    "lhs_runs": lhs_count,
+                    "frontier": frontier,
+                })
+            except Exception as e:
+                console.print(f"[yellow]Warning: Failed to complete job tracking: {e}[/yellow]")
+
+        console.print(f"[green]Sweep complete.[/green] Registry: {registry_csv}")
+        console.print(f"[green]Aggregated results: {results_csv}")
+        console.print(f"[green]Dashboard: {dashboard_html}")
+
+    except Exception as e:
+        # Fail job on error
+        if manager is not None:
+            try:
+                manager.fail_job(job_id, str(e))
+            except Exception:
+                pass  # Don't let job tracking failure mask the original error
+        raise
 
 
 @sweep.command("comparison")
@@ -54655,6 +56088,8 @@ def sweep_comparison(
     default=True,
     help="Enable detailed CSV logging (trades.csv, repayment_events.csv, etc.)",
 )
+@click.option('--cloud', is_flag=True, help='Run simulations on Modal cloud')
+@click.option('--job-id', type=str, default=None, help='Job ID (auto-generated if not provided)')
 def sweep_balanced(
     out_dir: Path,
     n_agents: int,
@@ -54669,6 +56104,8 @@ def sweep_balanced(
     big_entity_share: Decimal,
     default_handling: str,
     detailed_logging: bool,
+    cloud: bool,
+    job_id: Optional[str],
 ) -> None:
     """
     Run balanced C vs D comparison experiments.
@@ -54690,6 +56127,55 @@ def sweep_balanced(
         BalancedComparisonRunner,
     )
 
+    out_dir = Path(out_dir)
+
+    # Generate job ID if not provided
+    if job_id is None:
+        job_id = generate_job_id()
+
+    # Create job manager
+    manager: Optional[JobManager] = None
+    try:
+        manager = JobManager(jobs_dir=out_dir)
+
+        # Create job config
+        job_config = JobConfig(
+            sweep_type="balanced",
+            n_agents=n_agents,
+            kappas=_decimal_list(kappas),
+            concentrations=_decimal_list(concentrations),
+            mus=_decimal_list(mus),
+            cloud=cloud,
+            outside_mid_ratios=_decimal_list(outside_mid_ratios),
+            maturity_days=maturity_days,
+            seeds=[base_seed],
+        )
+
+        # Create and start job
+        job = manager.create_job(
+            description=f"Balanced comparison sweep (n={n_agents}, cloud={cloud})",
+            config=job_config,
+            job_id=job_id,
+        )
+
+        click.echo(f"Job ID: {job.job_id}")
+        manager.start_job(job.job_id)
+    except Exception as e:
+        click.echo(f"Warning: Job tracking initialization failed: {e}")
+        manager = None
+
+    # Create executor (Plan 028)
+    executor = None
+    if cloud:
+        from bilancio.runners import CloudExecutor
+        executor = CloudExecutor(
+            experiment_id=job_id,  # Use job_id as experiment_id for simplicity
+            download_artifacts=True,
+            local_output_dir=out_dir,
+            job_id=job_id,
+        )
+        click.echo(f"Cloud execution enabled")
+
     config = BalancedComparisonConfig(
         n_agents=n_agents,
         maturity_days=maturity_days,
@@ -54705,18 +56191,57 @@ def sweep_balanced(
         detailed_logging=detailed_logging,
     )
 
-    runner = BalancedComparisonRunner(config, out_dir)
-    results = runner.run_all()
+    runner = BalancedComparisonRunner(config, out_dir, executor=executor)
 
-    # Print summary
-    completed = sum(1 for r in results if r.trading_effect is not None)
-    improved = sum(1 for r in results if r.trading_effect and r.trading_effect > 0)
+    try:
+        results = runner.run_all()
 
-    click.echo(f"\nBalanced comparison complete!")
-    click.echo(f"  Total pairs: {len(results)}")
-    click.echo(f"  Completed: {completed}")
-    click.echo(f"  Improved with trading: {improved}")
-    click.echo(f"\nResults at: {out_dir / 'aggregate' / 'comparison.csv'}")
+        # Record run IDs from results
+        if manager is not None:
+            try:
+                for r in results:
+                    if r.passive_run_id:
+                        manager.record_progress(
+                            job_id, r.passive_run_id,
+                            modal_call_id=r.passive_modal_call_id
+                        )
+                    if r.active_run_id:
+                        manager.record_progress(
+                            job_id, r.active_run_id,
+                            modal_call_id=r.active_modal_call_id
+                        )
+            except Exception as e:
+                click.echo(f"Warning: Failed to record run progress: {e}")
+
+        # Print summary
+        completed = sum(1 for r in results if r.trading_effect is not None)
+        improved = sum(1 for r in results if r.trading_effect and r.trading_effect > 0)
+
+        # Complete job with summary
+        if manager is not None:
+            try:
+                manager.complete_job(job_id, {
+                    "total_pairs": len(results),
+                    "completed": completed,
+                    "improved_with_trading": improved,
+                })
+            except Exception as e:
+                click.echo(f"Warning: Failed to complete job tracking: {e}")
+
+        click.echo(f"\nBalanced comparison complete!")
+        click.echo(f"  Total pairs: {len(results)}")
+        click.echo(f"  Completed: {completed}")
+        click.echo(f"  Improved with trading: {improved}")
+        click.echo(f"\nResults at: {out_dir / 'aggregate' / 'comparison.csv'}")
+
+    except Exception as e:
+        # Fail job on error
+        if manager is not None:
+            try:
+                manager.fail_job(job_id, str(e))
+            except Exception:
+                pass  # Don't let job tracking failure mask the original error
+        raise
 
 
 @sweep.command("strategy-outcomes")
@@ -58826,6 +60351,309 @@ class TestVisualizationIntegration:
         # Verify both outputs were generated
         assert len(initial_output) > 0
         assert len(after_output) > 0
+
+```
+
+---
+
+### 🧪 tests/cloud/__init__.py
+
+```python
+"""Tests for cloud execution module."""
+
+```
+
+---
+
+### 🧪 tests/cloud/test_cloud_executor.py
+
+```python
+"""Unit tests for CloudExecutor (mocked Modal)."""
+
+import sys
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import pytest
+
+from bilancio.runners.cloud_executor import CloudExecutor
+from bilancio.runners.models import RunOptions
+from bilancio.storage.models import RunStatus
+
+
+class TestCloudExecutor:
+    """Unit tests for CloudExecutor with mocked Modal functions."""
+
+    def test_execute_success(self, tmp_path):
+        """Test successful cloud execution."""
+        # Setup mock function
+        mock_func = MagicMock()
+        mock_func.remote.return_value = {
+            "run_id": "test_001",
+            "status": "completed",
+            "storage_type": "modal_volume",
+            "storage_base": "exp/runs/test_001",
+            "artifacts": {
+                "events_jsonl": "out/events.jsonl",
+                "balances_csv": "out/balances.csv",
+            },
+            "execution_time_ms": 5000,
+            "error": None,
+        }
+
+        # Mock modal module
+        mock_modal = MagicMock()
+        mock_modal.Function.from_name.return_value = mock_func
+
+        with patch.dict(sys.modules, {"modal": mock_modal}):
+            executor = CloudExecutor(
+                experiment_id="exp",
+                download_artifacts=False,  # Don't try to download
+            )
+
+            result = executor.execute(
+                scenario_config={"agents": []},
+                run_id="test_001",
+                output_dir=tmp_path / "test_001",
+                options=RunOptions(),
+            )
+
+        assert result.status == RunStatus.COMPLETED
+        assert result.run_id == "test_001"
+        assert "events_jsonl" in result.artifacts
+
+    def test_execute_failure(self, tmp_path):
+        """Test failed cloud execution."""
+        mock_func = MagicMock()
+        mock_func.remote.return_value = {
+            "run_id": "test_001",
+            "status": "failed",
+            "storage_type": "modal_volume",
+            "storage_base": "exp/runs/test_001",
+            "artifacts": {},
+            "execution_time_ms": 1000,
+            "error": "Simulation diverged",
+        }
+
+        mock_modal = MagicMock()
+        mock_modal.Function.from_name.return_value = mock_func
+
+        with patch.dict(sys.modules, {"modal": mock_modal}):
+            executor = CloudExecutor(
+                experiment_id="exp",
+                download_artifacts=False,
+            )
+
+            result = executor.execute(
+                scenario_config={"agents": []},
+                run_id="test_001",
+                output_dir=tmp_path / "test_001",
+                options=RunOptions(),
+            )
+
+        assert result.status == RunStatus.FAILED
+        assert result.error == "Simulation diverged"
+
+    def test_options_serialization(self, tmp_path):
+        """Test that RunOptions are properly serialized."""
+        mock_func = MagicMock()
+        mock_func.remote.return_value = {
+            "run_id": "test_001",
+            "status": "completed",
+            "storage_type": "modal_volume",
+            "storage_base": "exp/runs/test_001",
+            "artifacts": {},
+            "execution_time_ms": 1000,
+            "error": None,
+        }
+
+        mock_modal = MagicMock()
+        mock_modal.Function.from_name.return_value = mock_func
+
+        with patch.dict(sys.modules, {"modal": mock_modal}):
+            executor = CloudExecutor(
+                experiment_id="exp",
+                download_artifacts=False,
+            )
+
+            options = RunOptions(
+                mode="fixed_days",
+                max_days=10,
+                quiet_days=3,
+                check_invariants="end",
+            )
+
+            executor.execute(
+                scenario_config={"agents": []},
+                run_id="test_001",
+                output_dir=tmp_path / "test_001",
+                options=options,
+            )
+
+        # Verify the options were serialized correctly
+        call_kwargs = mock_func.remote.call_args[1]
+        assert call_kwargs["options"]["mode"] == "fixed_days"
+        assert call_kwargs["options"]["max_days"] == 10
+        assert call_kwargs["options"]["quiet_days"] == 3
+        assert call_kwargs["options"]["check_invariants"] == "end"
+
+
+class TestCloudConfig:
+    """Tests for CloudConfig dataclass."""
+
+    def test_default_values(self):
+        """Test default configuration values."""
+        from bilancio.cloud.config import CloudConfig
+
+        config = CloudConfig()
+        assert config.volume_name == "bilancio-results"
+        assert config.timeout_seconds == 600
+        assert config.memory_mb == 2048
+        assert config.max_parallel == 50
+        assert config.gpu is None
+
+    def test_env_override(self, monkeypatch):
+        """Test environment variable overrides."""
+        from bilancio.cloud.config import CloudConfig
+
+        monkeypatch.setenv("BILANCIO_MODAL_VOLUME", "custom-volume")
+        monkeypatch.setenv("BILANCIO_CLOUD_TIMEOUT", "1200")
+        monkeypatch.setenv("BILANCIO_CLOUD_MEMORY", "4096")
+
+        config = CloudConfig()
+        assert config.volume_name == "custom-volume"
+        assert config.timeout_seconds == 1200
+        assert config.memory_mb == 4096
+
+```
+
+---
+
+### 🧪 tests/cloud/test_modal_artifact_loader.py
+
+```python
+"""Tests for ModalVolumeArtifactLoader."""
+
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+import subprocess
+
+import pytest
+
+from bilancio.storage.modal_artifact_loader import ModalVolumeArtifactLoader
+
+
+class TestModalVolumeArtifactLoader:
+    """Tests for ModalVolumeArtifactLoader."""
+
+    def test_init_defaults(self):
+        """Test default initialization."""
+        loader = ModalVolumeArtifactLoader()
+        assert loader.volume_name == "bilancio-results"
+        assert loader.base_path == ""
+
+    def test_init_custom(self, tmp_path):
+        """Test custom initialization."""
+        loader = ModalVolumeArtifactLoader(
+            volume_name="custom-volume",
+            base_path="exp/runs/run_001",
+            cache_dir=tmp_path / "cache",
+        )
+        assert loader.volume_name == "custom-volume"
+        assert loader.base_path == "exp/runs/run_001"
+
+    @patch("bilancio.storage.modal_artifact_loader.subprocess.run")
+    def test_load_text(self, mock_run, tmp_path):
+        """Test loading text file."""
+        cache_dir = tmp_path / "cache"
+        cache_dir.mkdir()
+
+        # Create cached file
+        test_file = cache_dir / "out" / "events.jsonl"
+        test_file.parent.mkdir(parents=True)
+        test_file.write_text('{"event": "test"}\n')
+
+        loader = ModalVolumeArtifactLoader(
+            volume_name="test-volume",
+            base_path="exp/runs/run_001",
+            cache_dir=cache_dir,
+        )
+
+        # File exists in cache, so no download should happen
+        content = loader.load_text("out/events.jsonl")
+        assert content == '{"event": "test"}\n'
+        mock_run.assert_not_called()
+
+    @patch("bilancio.storage.modal_artifact_loader.subprocess.run")
+    def test_load_text_downloads_if_not_cached(self, mock_run, tmp_path):
+        """Test that file is downloaded if not in cache."""
+        cache_dir = tmp_path / "cache"
+        cache_dir.mkdir()
+
+        # Mock successful download
+        def side_effect(cmd, check, capture_output):
+            # Create the file when modal volume get is called
+            target = Path(cmd[5])  # The local path argument
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text("downloaded content")
+            return MagicMock(returncode=0)
+
+        mock_run.side_effect = side_effect
+
+        loader = ModalVolumeArtifactLoader(
+            volume_name="test-volume",
+            base_path="exp/runs/run_001",
+            cache_dir=cache_dir,
+        )
+
+        content = loader.load_text("test.txt")
+        assert content == "downloaded content"
+
+        # Verify modal CLI was called
+        mock_run.assert_called_once()
+        call_args = mock_run.call_args[0][0]
+        assert call_args[0] == "modal"
+        assert call_args[1] == "volume"
+        assert call_args[2] == "get"
+        assert call_args[3] == "test-volume"
+        assert "exp/runs/run_001/test.txt" in call_args[4]
+
+    @patch("bilancio.storage.modal_artifact_loader.subprocess.run")
+    def test_exists_true(self, mock_run):
+        """Test exists returns True when file exists."""
+        mock_run.return_value = MagicMock(returncode=0)
+
+        loader = ModalVolumeArtifactLoader(
+            volume_name="test-volume",
+            base_path="exp/runs/run_001",
+        )
+
+        assert loader.exists("test.txt") is True
+
+    @patch("bilancio.storage.modal_artifact_loader.subprocess.run")
+    def test_exists_false(self, mock_run):
+        """Test exists returns False when file doesn't exist."""
+        mock_run.return_value = MagicMock(returncode=1)
+
+        loader = ModalVolumeArtifactLoader(
+            volume_name="test-volume",
+            base_path="exp/runs/run_001",
+        )
+
+        assert loader.exists("nonexistent.txt") is False
+
+    def test_clear_cache(self, tmp_path):
+        """Test cache clearing."""
+        cache_dir = tmp_path / "cache"
+        cache_dir.mkdir()
+        (cache_dir / "test.txt").write_text("cached")
+
+        loader = ModalVolumeArtifactLoader(cache_dir=cache_dir)
+        loader.clear_cache()
+
+        # Directory should still exist but be empty
+        assert cache_dir.exists()
+        assert list(cache_dir.iterdir()) == []
 
 ```
 
@@ -69750,6 +71578,675 @@ def test_policy_allows_and_blocks_expected_cases():
 
 ---
 
+### 🧪 tests/unit/test_jobs.py
+
+```python
+"""Unit tests for the job system."""
+
+import json
+import tempfile
+from datetime import datetime
+from decimal import Decimal
+from pathlib import Path
+
+import pytest
+
+from bilancio.jobs import (
+    Job,
+    JobConfig,
+    JobEvent,
+    JobManager,
+    JobStatus,
+    generate_job_id,
+    validate_job_id,
+)
+
+
+class TestJobId:
+    """Tests for job ID generation and validation."""
+
+    def test_generate_job_id_format(self):
+        """Test generate_job_id returns correct format (4 words, hyphen-separated)."""
+        job_id = generate_job_id()
+        parts = job_id.split("-")
+        assert len(parts) == 4
+        assert all(part.isalpha() and part.islower() for part in parts)
+
+    def test_validate_job_id_accepts_valid_ids(self):
+        """Test validate_job_id accepts valid IDs."""
+        assert validate_job_id("castle-river-mountain-forest") is True
+        assert validate_job_id("bright-ocean-swift-tiger") is True
+        assert validate_job_id("alpha-beta") is True  # Minimum 2 words
+
+    def test_validate_job_id_rejects_empty(self):
+        """Test validate_job_id rejects empty strings."""
+        assert validate_job_id("") is False
+
+    def test_validate_job_id_rejects_single_word(self):
+        """Test validate_job_id rejects single word IDs."""
+        assert validate_job_id("castle") is False
+        assert validate_job_id("river") is False
+
+    def test_validate_job_id_rejects_uppercase(self):
+        """Test validate_job_id rejects IDs with uppercase letters."""
+        assert validate_job_id("Castle-river-mountain-forest") is False
+        assert validate_job_id("castle-RIVER-mountain-forest") is False
+        assert validate_job_id("CASTLE-RIVER-MOUNTAIN-FOREST") is False
+
+    def test_validate_job_id_rejects_numbers(self):
+        """Test validate_job_id rejects IDs with numbers."""
+        assert validate_job_id("castle-river-123-forest") is False
+        assert validate_job_id("castle1-river-mountain-forest") is False
+        assert validate_job_id("1castle-river-mountain-forest") is False
+
+    def test_validate_job_id_rejects_special_characters(self):
+        """Test validate_job_id rejects IDs with special characters."""
+        assert validate_job_id("castle_river_mountain_forest") is False
+        assert validate_job_id("castle.river.mountain.forest") is False
+        assert validate_job_id("castle river mountain forest") is False
+
+    def test_uniqueness_over_multiple_generations(self):
+        """Test uniqueness over multiple generations."""
+        # Generate many IDs and check for uniqueness
+        job_ids = [generate_job_id() for _ in range(100)]
+        # With 597 words choosing 4, there are many combinations
+        # 100 IDs should all be unique (collision probability is very low)
+        assert len(set(job_ids)) == len(job_ids)
+
+    def test_generated_ids_are_valid(self):
+        """Test that all generated IDs pass validation."""
+        for _ in range(20):
+            job_id = generate_job_id()
+            assert validate_job_id(job_id) is True
+
+
+class TestJobConfig:
+    """Tests for JobConfig serialization."""
+
+    def test_to_dict_from_dict_round_trip(self):
+        """Test to_dict/from_dict round-trip preserves data."""
+        config = JobConfig(
+            sweep_type="balanced",
+            n_agents=100,
+            kappas=[Decimal("0.5"), Decimal("1.0"), Decimal("2.0")],
+            concentrations=[Decimal("0.5"), Decimal("1.0")],
+            mus=[Decimal("0"), Decimal("0.5"), Decimal("1.0")],
+            cloud=True,
+            outside_mid_ratios=[Decimal("0.8"), Decimal("1.0")],
+            maturity_days=10,
+            seeds=[42, 123, 456],
+        )
+
+        data = config.to_dict()
+        restored = JobConfig.from_dict(data)
+
+        assert restored.sweep_type == config.sweep_type
+        assert restored.n_agents == config.n_agents
+        assert restored.kappas == config.kappas
+        assert restored.concentrations == config.concentrations
+        assert restored.mus == config.mus
+        assert restored.cloud == config.cloud
+        assert restored.outside_mid_ratios == config.outside_mid_ratios
+        assert restored.maturity_days == config.maturity_days
+        assert restored.seeds == config.seeds
+
+    def test_defaults(self):
+        """Test JobConfig defaults are applied correctly."""
+        config = JobConfig(
+            sweep_type="ring",
+            n_agents=50,
+            kappas=[Decimal("1")],
+            concentrations=[Decimal("1")],
+            mus=[Decimal("0.5")],
+        )
+
+        assert config.cloud is False
+        assert config.outside_mid_ratios == [Decimal("1")]
+        assert config.maturity_days == 5
+        assert config.seeds == [42]
+
+    def test_from_dict_uses_defaults_for_missing_keys(self):
+        """Test from_dict uses defaults for missing optional keys."""
+        data = {
+            "sweep_type": "ring",
+            "n_agents": 50,
+            "kappas": ["1"],
+            "concentrations": ["1"],
+            "mus": ["0.5"],
+        }
+
+        config = JobConfig.from_dict(data)
+
+        assert config.cloud is False
+        assert config.outside_mid_ratios == [Decimal("1")]
+        assert config.maturity_days == 5
+        assert config.seeds == [42]
+
+    def test_to_dict_serializes_decimals_as_strings(self):
+        """Test to_dict converts Decimals to strings for JSON compatibility."""
+        config = JobConfig(
+            sweep_type="ring",
+            n_agents=50,
+            kappas=[Decimal("0.25")],
+            concentrations=[Decimal("0.5")],
+            mus=[Decimal("0.75")],
+            outside_mid_ratios=[Decimal("0.9")],
+        )
+
+        data = config.to_dict()
+
+        assert data["kappas"] == ["0.25"]
+        assert data["concentrations"] == ["0.5"]
+        assert data["mus"] == ["0.75"]
+        assert data["outside_mid_ratios"] == ["0.9"]
+
+
+class TestJobEvent:
+    """Tests for JobEvent serialization."""
+
+    def test_to_dict_from_dict_round_trip(self):
+        """Test to_dict/from_dict round-trip preserves data."""
+        timestamp = datetime(2025, 1, 12, 10, 30, 45)
+        event = JobEvent(
+            job_id="castle-river-mountain-forest",
+            event_type="progress",
+            timestamp=timestamp,
+            details={"run_id": "run_001", "metrics": {"delta_total": 0.05}},
+        )
+
+        data = event.to_dict()
+        restored = JobEvent.from_dict(data)
+
+        assert restored.job_id == event.job_id
+        assert restored.event_type == event.event_type
+        assert restored.timestamp == event.timestamp
+        assert restored.details == event.details
+
+    def test_to_dict_serializes_timestamp_as_iso(self):
+        """Test to_dict converts timestamp to ISO format string."""
+        timestamp = datetime(2025, 1, 12, 10, 30, 45)
+        event = JobEvent(
+            job_id="test-job",
+            event_type="created",
+            timestamp=timestamp,
+        )
+
+        data = event.to_dict()
+
+        assert data["timestamp"] == "2025-01-12T10:30:45"
+
+    def test_from_dict_uses_empty_dict_for_missing_details(self):
+        """Test from_dict uses empty dict when details is missing."""
+        data = {
+            "job_id": "test-job",
+            "event_type": "started",
+            "timestamp": "2025-01-12T10:30:45",
+        }
+
+        event = JobEvent.from_dict(data)
+
+        assert event.details == {}
+
+
+class TestJob:
+    """Tests for Job serialization."""
+
+    def _create_sample_config(self) -> JobConfig:
+        """Create a sample JobConfig for testing."""
+        return JobConfig(
+            sweep_type="balanced",
+            n_agents=100,
+            kappas=[Decimal("0.5"), Decimal("1.0")],
+            concentrations=[Decimal("1.0")],
+            mus=[Decimal("0.5")],
+            cloud=True,
+        )
+
+    def test_to_dict_from_dict_round_trip(self):
+        """Test to_dict/from_dict round-trip preserves data."""
+        config = self._create_sample_config()
+        created_at = datetime(2025, 1, 12, 10, 0, 0)
+        completed_at = datetime(2025, 1, 12, 11, 30, 0)
+
+        event = JobEvent(
+            job_id="test-id",
+            event_type="created",
+            timestamp=created_at,
+        )
+
+        job = Job(
+            job_id="test-id",
+            created_at=created_at,
+            status=JobStatus.COMPLETED,
+            description="Test simulation",
+            config=config,
+            run_ids=["run_001", "run_002"],
+            completed_at=completed_at,
+            error=None,
+            notes="Some notes",
+            events=[event],
+        )
+
+        data = job.to_dict()
+        restored = Job.from_dict(data)
+
+        assert restored.job_id == job.job_id
+        assert restored.created_at == job.created_at
+        assert restored.status == job.status
+        assert restored.description == job.description
+        assert restored.config.sweep_type == job.config.sweep_type
+        assert restored.config.n_agents == job.config.n_agents
+        assert restored.run_ids == job.run_ids
+        assert restored.completed_at == job.completed_at
+        assert restored.error == job.error
+        assert restored.notes == job.notes
+        assert len(restored.events) == len(job.events)
+        assert restored.events[0].event_type == job.events[0].event_type
+
+    def test_to_dict_handles_none_values(self):
+        """Test to_dict correctly handles None for optional fields."""
+        config = self._create_sample_config()
+        job = Job(
+            job_id="test-id",
+            created_at=datetime(2025, 1, 12, 10, 0, 0),
+            status=JobStatus.PENDING,
+            description="Test",
+            config=config,
+        )
+
+        data = job.to_dict()
+
+        assert data["completed_at"] is None
+        assert data["error"] is None
+        assert data["notes"] is None
+        assert data["run_ids"] == []
+        assert data["events"] == []
+
+    def test_from_dict_handles_missing_optional_fields(self):
+        """Test from_dict handles missing optional fields."""
+        config = self._create_sample_config()
+        data = {
+            "job_id": "test-id",
+            "created_at": "2025-01-12T10:00:00",
+            "status": "pending",
+            "description": "Test",
+            "config": config.to_dict(),
+        }
+
+        job = Job.from_dict(data)
+
+        assert job.run_ids == []
+        assert job.completed_at is None
+        assert job.error is None
+        assert job.notes is None
+        assert job.events == []
+
+    def test_status_serialization(self):
+        """Test JobStatus is serialized/deserialized correctly."""
+        config = self._create_sample_config()
+
+        for status in JobStatus:
+            job = Job(
+                job_id="test-id",
+                created_at=datetime(2025, 1, 12, 10, 0, 0),
+                status=status,
+                description="Test",
+                config=config,
+            )
+
+            data = job.to_dict()
+            assert data["status"] == status.value
+
+            restored = Job.from_dict(data)
+            assert restored.status == status
+
+
+class TestJobManager:
+    """Tests for JobManager functionality."""
+
+    def _create_sample_config(self) -> JobConfig:
+        """Create a sample JobConfig for testing."""
+        return JobConfig(
+            sweep_type="ring",
+            n_agents=50,
+            kappas=[Decimal("1.0")],
+            concentrations=[Decimal("1.0")],
+            mus=[Decimal("0.5")],
+        )
+
+    def test_create_job_auto_generates_id(self):
+        """Test create_job auto-generates ID when not provided."""
+        manager = JobManager()
+        config = self._create_sample_config()
+
+        job = manager.create_job(
+            description="Test simulation",
+            config=config,
+        )
+
+        # Should have a valid auto-generated ID
+        assert validate_job_id(job.job_id) is True
+        assert job.status == JobStatus.PENDING
+        assert job.description == "Test simulation"
+
+    def test_create_job_with_custom_id(self):
+        """Test create_job with custom ID."""
+        manager = JobManager()
+        config = self._create_sample_config()
+
+        job = manager.create_job(
+            description="Test simulation",
+            config=config,
+            job_id="custom-test-job-id",
+        )
+
+        assert job.job_id == "custom-test-job-id"
+
+    def test_create_job_adds_created_event(self):
+        """Test create_job adds a 'created' event."""
+        manager = JobManager()
+        config = self._create_sample_config()
+
+        job = manager.create_job(
+            description="Test simulation",
+            config=config,
+        )
+
+        assert len(job.events) == 1
+        assert job.events[0].event_type == "created"
+        assert job.events[0].job_id == job.job_id
+
+    def test_start_job_updates_status(self):
+        """Test start_job updates status to RUNNING."""
+        manager = JobManager()
+        config = self._create_sample_config()
+
+        job = manager.create_job(
+            description="Test",
+            config=config,
+        )
+        assert job.status == JobStatus.PENDING
+
+        manager.start_job(job.job_id)
+
+        updated_job = manager.get_job(job.job_id)
+        assert updated_job.status == JobStatus.RUNNING
+        assert len(updated_job.events) == 2
+        assert updated_job.events[1].event_type == "started"
+
+    def test_start_job_raises_for_unknown_id(self):
+        """Test start_job raises KeyError for unknown job ID."""
+        manager = JobManager()
+
+        with pytest.raises(KeyError, match="Job not found"):
+            manager.start_job("nonexistent-job-id")
+
+    def test_record_progress_adds_run_id(self):
+        """Test record_progress adds run_id to the job."""
+        manager = JobManager()
+        config = self._create_sample_config()
+
+        job = manager.create_job(
+            description="Test",
+            config=config,
+        )
+        manager.start_job(job.job_id)
+
+        manager.record_progress(job.job_id, "run_001", {"delta_total": 0.05})
+        manager.record_progress(job.job_id, "run_002", {"delta_total": 0.03})
+
+        updated_job = manager.get_job(job.job_id)
+        assert updated_job.run_ids == ["run_001", "run_002"]
+        assert len(updated_job.events) == 4  # created, started, progress, progress
+        assert updated_job.events[2].event_type == "progress"
+        assert updated_job.events[2].details["run_id"] == "run_001"
+
+    def test_record_progress_raises_for_unknown_id(self):
+        """Test record_progress raises KeyError for unknown job ID."""
+        manager = JobManager()
+
+        with pytest.raises(KeyError, match="Job not found"):
+            manager.record_progress("nonexistent-job-id", "run_001")
+
+    def test_complete_job_sets_completed_at(self):
+        """Test complete_job sets completed_at timestamp."""
+        manager = JobManager()
+        config = self._create_sample_config()
+
+        job = manager.create_job(
+            description="Test",
+            config=config,
+        )
+        manager.start_job(job.job_id)
+
+        manager.complete_job(job.job_id, {"total_runs": 10})
+
+        updated_job = manager.get_job(job.job_id)
+        assert updated_job.status == JobStatus.COMPLETED
+        assert updated_job.completed_at is not None
+        assert updated_job.events[-1].event_type == "completed"
+        assert updated_job.events[-1].details["summary"] == {"total_runs": 10}
+
+    def test_complete_job_raises_for_unknown_id(self):
+        """Test complete_job raises KeyError for unknown job ID."""
+        manager = JobManager()
+
+        with pytest.raises(KeyError, match="Job not found"):
+            manager.complete_job("nonexistent-job-id")
+
+    def test_fail_job_sets_error(self):
+        """Test fail_job sets error message and status."""
+        manager = JobManager()
+        config = self._create_sample_config()
+
+        job = manager.create_job(
+            description="Test",
+            config=config,
+        )
+        manager.start_job(job.job_id)
+
+        manager.fail_job(job.job_id, "Connection timeout")
+
+        updated_job = manager.get_job(job.job_id)
+        assert updated_job.status == JobStatus.FAILED
+        assert updated_job.error == "Connection timeout"
+        assert updated_job.completed_at is not None
+        assert updated_job.events[-1].event_type == "failed"
+        assert updated_job.events[-1].details["error"] == "Connection timeout"
+
+    def test_fail_job_raises_for_unknown_id(self):
+        """Test fail_job raises KeyError for unknown job ID."""
+        manager = JobManager()
+
+        with pytest.raises(KeyError, match="Job not found"):
+            manager.fail_job("nonexistent-job-id", "Some error")
+
+    def test_get_job_returns_none_for_unknown_id(self):
+        """Test get_job returns None for unknown ID."""
+        manager = JobManager()
+
+        result = manager.get_job("nonexistent-job-id")
+
+        assert result is None
+
+    def test_get_job_returns_job_by_id(self):
+        """Test get_job returns the correct job by ID."""
+        manager = JobManager()
+        config = self._create_sample_config()
+
+        job1 = manager.create_job(description="Job 1", config=config)
+        job2 = manager.create_job(description="Job 2", config=config)
+
+        retrieved = manager.get_job(job1.job_id)
+        assert retrieved.job_id == job1.job_id
+        assert retrieved.description == "Job 1"
+
+        retrieved = manager.get_job(job2.job_id)
+        assert retrieved.job_id == job2.job_id
+        assert retrieved.description == "Job 2"
+
+    def test_list_jobs_returns_all_jobs(self):
+        """Test list_jobs returns all created jobs."""
+        manager = JobManager()
+        config = self._create_sample_config()
+
+        job1 = manager.create_job(description="Job 1", config=config)
+        job2 = manager.create_job(description="Job 2", config=config)
+        job3 = manager.create_job(description="Job 3", config=config)
+
+        jobs = manager.list_jobs()
+
+        assert len(jobs) == 3
+        job_ids = {j.job_id for j in jobs}
+        assert job1.job_id in job_ids
+        assert job2.job_id in job_ids
+        assert job3.job_id in job_ids
+
+
+class TestJobManagerPersistence:
+    """Tests for JobManager persistence to disk."""
+
+    def _create_sample_config(self) -> JobConfig:
+        """Create a sample JobConfig for testing."""
+        return JobConfig(
+            sweep_type="ring",
+            n_agents=50,
+            kappas=[Decimal("1.0")],
+            concentrations=[Decimal("1.0")],
+            mus=[Decimal("0.5")],
+        )
+
+    def test_save_and_load_job_from_disk(self):
+        """Test persistence: save job and load from disk."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jobs_dir = Path(tmpdir)
+            config = self._create_sample_config()
+
+            # Create job with first manager
+            manager1 = JobManager(jobs_dir=jobs_dir)
+            job = manager1.create_job(
+                description="Persistent job",
+                config=config,
+                job_id="test-persistent-job-id",
+            )
+            manager1.start_job(job.job_id)
+            manager1.record_progress(job.job_id, "run_001")
+            manager1.complete_job(job.job_id)
+
+            # Verify manifest file was created
+            manifest_path = jobs_dir / "test-persistent-job-id" / "job_manifest.json"
+            assert manifest_path.exists()
+
+            # Load with new manager instance
+            manager2 = JobManager(jobs_dir=jobs_dir)
+            loaded_job = manager2.get_job("test-persistent-job-id")
+
+            assert loaded_job is not None
+            assert loaded_job.job_id == "test-persistent-job-id"
+            assert loaded_job.description == "Persistent job"
+            assert loaded_job.status == JobStatus.COMPLETED
+            assert loaded_job.run_ids == ["run_001"]
+            assert len(loaded_job.events) == 4  # created, started, progress, completed
+
+    def test_list_jobs_loads_from_disk(self):
+        """Test list_jobs loads jobs from disk."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jobs_dir = Path(tmpdir)
+            config = self._create_sample_config()
+
+            # Create jobs with first manager
+            manager1 = JobManager(jobs_dir=jobs_dir)
+            manager1.create_job(description="Job A", config=config, job_id="job-a-id")
+            manager1.create_job(description="Job B", config=config, job_id="job-b-id")
+
+            # List with new manager instance (should load from disk)
+            manager2 = JobManager(jobs_dir=jobs_dir)
+            jobs = manager2.list_jobs()
+
+            assert len(jobs) == 2
+            job_ids = {j.job_id for j in jobs}
+            assert "job-a-id" in job_ids
+            assert "job-b-id" in job_ids
+
+    def test_manifest_json_structure(self):
+        """Test manifest JSON file has correct structure."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jobs_dir = Path(tmpdir)
+            config = self._create_sample_config()
+
+            manager = JobManager(jobs_dir=jobs_dir)
+            job = manager.create_job(
+                description="Test job",
+                config=config,
+                job_id="test-structure-job",
+                notes="Test notes",
+            )
+
+            manifest_path = jobs_dir / "test-structure-job" / "job_manifest.json"
+            with open(manifest_path) as f:
+                data = json.load(f)
+
+            assert data["job_id"] == "test-structure-job"
+            assert data["description"] == "Test job"
+            assert data["status"] == "pending"
+            assert data["notes"] == "Test notes"
+            assert "config" in data
+            assert data["config"]["sweep_type"] == "ring"
+            assert data["config"]["n_agents"] == 50
+            assert "created_at" in data
+            assert "events" in data
+
+    def test_in_memory_only_when_no_jobs_dir(self):
+        """Test jobs are in-memory only when jobs_dir is None."""
+        config = self._create_sample_config()
+
+        manager = JobManager(jobs_dir=None)
+        job = manager.create_job(
+            description="In-memory job",
+            config=config,
+        )
+
+        # Should be retrievable from in-memory cache
+        retrieved = manager.get_job(job.job_id)
+        assert retrieved is not None
+        assert retrieved.description == "In-memory job"
+
+    def test_updates_persist_to_disk(self):
+        """Test that job updates are persisted to disk."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jobs_dir = Path(tmpdir)
+            config = self._create_sample_config()
+
+            manager = JobManager(jobs_dir=jobs_dir)
+            job = manager.create_job(
+                description="Test",
+                config=config,
+                job_id="test-updates-id",
+            )
+
+            # Initial state
+            manifest_path = jobs_dir / "test-updates-id" / "job_manifest.json"
+            with open(manifest_path) as f:
+                data = json.load(f)
+            assert data["status"] == "pending"
+
+            # After start
+            manager.start_job(job.job_id)
+            with open(manifest_path) as f:
+                data = json.load(f)
+            assert data["status"] == "running"
+
+            # After completion
+            manager.complete_job(job.job_id)
+            with open(manifest_path) as f:
+                data = json.load(f)
+            assert data["status"] == "completed"
+            assert data["completed_at"] is not None
+
+```
+
+---
+
 ### 🧪 tests/unit/test_reserves.py
 
 ```python
@@ -70489,5 +72986,5 @@ def test_settle_multiple_obligations():
 ## End of Codebase
 
 Generated from: /home/runner/work/bilancio/bilancio
-Total source files: 103
-Total test files: 48
+Total source files: 112
+Total test files: 52
