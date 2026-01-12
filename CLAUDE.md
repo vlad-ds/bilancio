@@ -62,3 +62,23 @@
   5. Think carefully about what might be missing
 - **Verify visual output**: Read the generated HTML file to ensure events, tables, and formatting display correctly
 - **Test with real scenarios**: Use actual scenario files to test rendering changes, not just unit tests
+
+## Modal Cloud Execution
+Cloud simulations run on Modal. Always use `uv run modal` to access the CLI.
+
+### Key Commands
+- **View logs**: `uv run modal app logs bilancio-simulations` - streams logs from running/recent executions
+- **List volume contents**: `uv run modal volume ls bilancio-results [path]` - path is optional subdirectory
+  - Example: `uv run modal volume ls bilancio-results` - list experiment folders
+  - Example: `uv run modal volume ls bilancio-results my_experiment/runs` - list runs in experiment
+- **Download artifacts**: `uv run modal volume get bilancio-results <remote_path> <local_path> --force`
+- **Deploy app**: `uv run modal deploy src/bilancio/cloud/modal_app.py` - redeploy after code changes
+
+### Running Cloud Sweeps
+- Ring sweep: `uv run bilancio sweep ring --cloud --out-dir out/experiments/my_sweep ...`
+- Balanced comparison: `uv run bilancio sweep balanced --cloud --out-dir out/experiments/my_sweep ...`
+
+### Important Notes
+- Always redeploy after changing `modal_app.py`: the deployed function runs the version on Modal, not local code
+- Artifacts are stored in Modal Volume `bilancio-results` under `<experiment_id>/runs/<run_id>/`
+- Use `--cloud` flag with small parameters first to test (saves credits)

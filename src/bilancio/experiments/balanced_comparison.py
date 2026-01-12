@@ -25,6 +25,7 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Tuple
 from pydantic import BaseModel, Field
 
 from bilancio.experiments.ring import RingSweepRunner, RingRunSummary
+from bilancio.runners import SimulationExecutor, LocalExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -185,9 +186,15 @@ class BalancedComparisonRunner:
         "total_trades",
     ]
 
-    def __init__(self, config: BalancedComparisonConfig, out_dir: Path) -> None:
+    def __init__(
+        self,
+        config: BalancedComparisonConfig,
+        out_dir: Path,
+        executor: Optional[SimulationExecutor] = None,
+    ) -> None:
         self.config = config
         self.base_dir = out_dir
+        self.executor: SimulationExecutor = executor or LocalExecutor()
         self.passive_dir = self.base_dir / "passive"
         self.active_dir = self.base_dir / "active"
         self.aggregate_dir = self.base_dir / "aggregate"
@@ -297,6 +304,7 @@ class BalancedComparisonRunner:
             dealer_share_per_bucket=self.config.dealer_share_per_bucket,
             rollover_enabled=self.config.rollover_enabled,
             detailed_dealer_logging=self.config.detailed_logging,  # Plan 022
+            executor=self.executor,  # Plan 028 cloud support
         )
 
     def _get_active_runner(self, outside_mid_ratio: Decimal) -> RingSweepRunner:
@@ -328,6 +336,7 @@ class BalancedComparisonRunner:
             dealer_share_per_bucket=self.config.dealer_share_per_bucket,
             rollover_enabled=self.config.rollover_enabled,
             detailed_dealer_logging=self.config.detailed_logging,  # Plan 022
+            executor=self.executor,  # Plan 028 cloud support
         )
 
     def run_all(self) -> List[BalancedComparisonResult]:

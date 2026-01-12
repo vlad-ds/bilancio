@@ -423,6 +423,7 @@ def sweep_comparison(
     default=True,
     help="Enable detailed CSV logging (trades.csv, repayment_events.csv, etc.)",
 )
+@click.option('--cloud', is_flag=True, help='Run simulations on Modal cloud')
 def sweep_balanced(
     out_dir: Path,
     n_agents: int,
@@ -437,6 +438,7 @@ def sweep_balanced(
     big_entity_share: Decimal,
     default_handling: str,
     detailed_logging: bool,
+    cloud: bool,
 ) -> None:
     """
     Run balanced C vs D comparison experiments.
@@ -458,6 +460,18 @@ def sweep_balanced(
         BalancedComparisonRunner,
     )
 
+    # Create executor (Plan 028)
+    executor = None
+    if cloud:
+        from bilancio.runners import CloudExecutor
+        experiment_id = out_dir.name
+        executor = CloudExecutor(
+            experiment_id=experiment_id,
+            download_artifacts=True,
+            local_output_dir=out_dir,
+        )
+        click.echo(f"Cloud execution enabled (experiment: {experiment_id})")
+
     config = BalancedComparisonConfig(
         n_agents=n_agents,
         maturity_days=maturity_days,
@@ -473,7 +487,7 @@ def sweep_balanced(
         detailed_logging=detailed_logging,
     )
 
-    runner = BalancedComparisonRunner(config, out_dir)
+    runner = BalancedComparisonRunner(config, out_dir, executor=executor)
     results = runner.run_all()
 
     # Print summary
