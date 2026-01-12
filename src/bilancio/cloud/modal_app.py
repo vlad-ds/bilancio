@@ -51,6 +51,7 @@ def run_simulation(
     run_id: str,
     experiment_id: str,
     options: dict,
+    job_id: str = "",
 ) -> dict:
     """Run a single simulation in the cloud.
 
@@ -59,6 +60,7 @@ def run_simulation(
         run_id: Unique identifier for this run
         experiment_id: Groups related runs together
         options: RunOptions as dict (mode, max_days, quiet_days, etc.)
+        job_id: Bilancio job ID (for logging/tracking)
 
     Returns:
         Dict with status, artifact paths (relative to volume), metrics, error
@@ -69,6 +71,18 @@ def run_simulation(
     import yaml
 
     start_time = time.time()
+
+    # Log job info prominently at the start (visible in Modal logs)
+    import sys
+    modal_call_id = modal.current_function_call_id()
+    print("=" * 60, flush=True)
+    print(f"BILANCIO SIMULATION", flush=True)
+    print(f"  Job ID:      {job_id or 'N/A'}", flush=True)
+    print(f"  Run ID:      {run_id}", flush=True)
+    print(f"  Experiment:  {experiment_id}", flush=True)
+    print(f"  Modal Call:  {modal_call_id}", flush=True)
+    print("=" * 60, flush=True)
+    sys.stdout.flush()
 
     # Create output directory on the volume
     run_dir = Path(RESULTS_MOUNT_PATH) / experiment_id / "runs" / run_id
@@ -125,6 +139,7 @@ def run_simulation(
             "artifacts": artifacts,
             "execution_time_ms": execution_time_ms,
             "error": None,
+            "modal_call_id": modal_call_id,
         }
 
     except Exception as e:
@@ -141,6 +156,7 @@ def run_simulation(
             "artifacts": {},
             "execution_time_ms": execution_time_ms,
             "error": str(e),
+            "modal_call_id": modal_call_id,
         }
 
 

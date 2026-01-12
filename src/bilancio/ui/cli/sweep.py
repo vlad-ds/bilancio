@@ -237,6 +237,7 @@ def sweep_ring(
             experiment_id=experiment_id,
             download_artifacts=True,
             local_output_dir=out_dir,
+            job_id=job_id,
         )
         console.print(f"[cyan]Cloud execution enabled[/cyan] (experiment: {experiment_id})")
 
@@ -568,6 +569,7 @@ def sweep_balanced(
             experiment_id=experiment_id,
             download_artifacts=True,
             local_output_dir=out_dir,
+            job_id=job_id,
         )
         click.echo(f"Cloud execution enabled (experiment: {experiment_id})")
 

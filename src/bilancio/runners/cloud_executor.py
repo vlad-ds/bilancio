@@ -20,7 +20,7 @@ class CloudExecutor:
     bilancio.runners.protocols.
 
     Example:
-        executor = CloudExecutor(experiment_id="my_sweep")
+        executor = CloudExecutor(experiment_id="my_sweep", job_id="castle-river-forest-mountain")
         result = executor.execute(
             scenario_config=scenario,
             run_id="run_001",
@@ -35,6 +35,7 @@ class CloudExecutor:
         download_artifacts: bool = True,
         local_output_dir: Optional[Path] = None,
         volume_name: str = "bilancio-results",
+        job_id: str = "",
     ):
         """Initialize cloud executor.
 
@@ -44,6 +45,7 @@ class CloudExecutor:
             local_output_dir: Where to download artifacts. Defaults to
                 out/experiments/{experiment_id}.
             volume_name: Name of the Modal Volume for result storage.
+            job_id: Bilancio job ID for tracking (displayed in Modal logs).
         """
         self.experiment_id = experiment_id
         self.download_artifacts = download_artifacts
@@ -52,6 +54,7 @@ class CloudExecutor:
         )
         self.volume_name = volume_name
         self.app_name = "bilancio-simulations"
+        self.job_id = job_id
 
         # Lazy reference to deployed function
         self._run_simulation = None
@@ -99,6 +102,7 @@ class CloudExecutor:
             run_id=run_id,
             experiment_id=self.experiment_id,
             options=options_dict,
+            job_id=self.job_id,
         )
 
         # Download artifacts if requested and determine storage location
@@ -162,6 +166,7 @@ class CloudExecutor:
                 run_id=run_id,
                 experiment_id=self.experiment_id,
                 options=options_dict,
+                job_id=self.job_id,
             )
             futures.append((idx, run_id, future))
 
