@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.11"
 resolution-markers = [
     "python_full_version >= '3.14'",
@@ -343,6 +343,7 @@ dependencies = [
     { name = "scipy" },
     { name = "seaborn" },
     { name = "streamlit" },
+    { name = "xkcdpass" },
 ]
 
 [package.optional-dependencies]
@@ -405,6 +406,7 @@ requires-dist = [
     { name = "sphinx", marker = "extra == 'docs'", specifier = ">=6.2.0" },
     { name = "sphinx-rtd-theme", marker = "extra == 'docs'", specifier = ">=1.2.0" },
     { name = "streamlit", specifier = ">=1.40.0" },
+    { name = "xkcdpass", specifier = ">=1.30.0" },
 ]
 provides-extras = ["dev", "docs", "examples"]
 
@@ -3892,6 +3894,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/41/53/2e0253c5efd69c9656b1843892052a31c36d37ad42812b5da45c62191f7e/widgetsnbextension-4.0.14.tar.gz", hash = "sha256:a3629b04e3edb893212df862038c7232f62973373869db5084aed739b437b5af", size = 1097428, upload-time = "2025-04-10T13:01:25.628Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ca/51/5447876806d1088a0f8f71e16542bf350918128d0a69437df26047c8e46f/widgetsnbextension-4.0.14-py3-none-any.whl", hash = "sha256:4875a9eaf72fbf5079dc372a51a9f268fc38d46f767cbf85c43a36da5cb9b575", size = 2196503, upload-time = "2025-04-10T13:01:23.086Z" },
+]
+
+[[package]]
+name = "xkcdpass"
+version = "1.30.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/18/98/bdd7df66d995eab38887a8eb0afb023750b0c590eb7d8545a7b722f683ef/xkcdpass-1.30.0.tar.gz", hash = "sha256:8a3a6b60255da40d0e5c812458280278c82d2c1cb90e48afbd6777dbbf8795c3", size = 2763380, upload-time = "2026-01-11T16:09:15.567Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6b/be/ea93adc1b4597b62c236d61dc6cf0e26ca8a729cb5afae4dc5acc5b33fa8/xkcdpass-1.30.0-py3-none-any.whl", hash = "sha256:3653a4a1e13de230808bcaf11f8c04207a5d3df8e2f7e1de698e11c262b5b797", size = 2746372, upload-time = "2026-01-12T14:48:30.627Z" },
 ]
 
 [[package]]
