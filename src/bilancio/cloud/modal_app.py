@@ -32,6 +32,7 @@ image = (
         "rich>=13.0.0",
         "jinja2>=3.0",
         "click>=8.0",
+        "xkcdpass>=1.19.0",
     )
     .add_local_python_source("bilancio")
 )

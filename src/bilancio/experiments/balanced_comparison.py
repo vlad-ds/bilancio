@@ -406,12 +406,19 @@ class BalancedComparisonRunner:
 
                             # Log completion with timing
                             elapsed = time.time() - self._start_time
-                            print(
-                                f"  Completed in {self._format_time(elapsed / completed_this_run)} avg | "
-                                f"δ_passive={result.delta_passive:.3f}, δ_active={result.delta_active:.3f}, "
-                                f"effect={result.trading_effect:.3f}",
-                                flush=True,
-                            )
+                            if result.delta_passive is not None and result.delta_active is not None:
+                                print(
+                                    f"  Completed in {self._format_time(elapsed / completed_this_run)} avg | "
+                                    f"δ_passive={result.delta_passive:.3f}, δ_active={result.delta_active:.3f}, "
+                                    f"effect={result.trading_effect:.3f}",
+                                    flush=True,
+                                )
+                            else:
+                                print(
+                                    f"  Completed in {self._format_time(elapsed / completed_this_run)} avg | "
+                                    f"(one or both runs failed)",
+                                    flush=True,
+                                )
 
         # Write final summary
         self._write_summary_json()

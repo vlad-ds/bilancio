@@ -66,6 +66,9 @@
 ## Modal Cloud Execution
 Cloud simulations run on Modal. Always use `uv run modal` to access the CLI.
 
+### Authentication
+To authenticate Modal with browser login: `uv run modal token new --profile <workspace-name>`
+
 ### Key Commands
 - **View logs**: `uv run modal app logs bilancio-simulations` - streams logs from running/recent executions
 - **List volume contents**: `uv run modal volume ls bilancio-results [path]` - path is optional subdirectory
