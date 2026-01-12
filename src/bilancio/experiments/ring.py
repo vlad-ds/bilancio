@@ -570,6 +570,12 @@ class RingSweepRunner:
             detailed_dealer_logging=self.detailed_dealer_logging,
             run_id=run_id,
             regime=regime,
+            # Run parameters for Supabase tracking
+            kappa=float(kappa),
+            concentration=float(concentration),
+            mu=float(mu),
+            outside_mid_ratio=float(self.outside_mid_ratio) if self.outside_mid_ratio else 1.0,
+            seed=seed,
         )
 
         # Delegate simulation to executor (Plan 027)
@@ -788,6 +794,12 @@ class RingSweepRunner:
             detailed_dealer_logging=self.detailed_dealer_logging,
             run_id=run_id,
             regime=regime,
+            # Run parameters for Supabase tracking
+            kappa=float(kappa),
+            concentration=float(concentration),
+            mu=float(mu),
+            outside_mid_ratio=float(self.outside_mid_ratio) if self.outside_mid_ratio else 1.0,
+            seed=seed,
         )
 
         return PreparedRun(

@@ -2,6 +2,9 @@
 
 This module defines the Modal app, container image, volume, and remote
 function for running bilancio simulations in the cloud.
+
+Simulations run on Modal compute metrics locally and save results directly
+to Supabase, eliminating the need to download artifacts.
 """
 
 from __future__ import annotations
@@ -18,6 +21,15 @@ results_volume = modal.Volume.from_name(
     create_if_missing=True,
 )
 
+# Supabase secrets for direct database writes from Modal
+# Set these using: modal secret create bilancio-supabase \
+#   BILANCIO_SUPABASE_URL=https://xxx.supabase.co \
+#   BILANCIO_SUPABASE_ANON_KEY=eyJ...
+supabase_secret = modal.Secret.from_name("bilancio-supabase", required_keys=[
+    "BILANCIO_SUPABASE_URL",
+    "BILANCIO_SUPABASE_ANON_KEY",
+])
+
 # Define the container image with all bilancio dependencies
 # We add the local source code to the image
 image = (
@@ -33,6 +45,7 @@ image = (
         "jinja2>=3.0",
         "click>=8.0",
         "xkcdpass>=1.19.0",
+        "supabase>=2.0.0",  # For direct Supabase writes
     )
     .add_local_python_source("bilancio")
 )
@@ -40,9 +53,145 @@ image = (
 RESULTS_MOUNT_PATH = "/results"
 
 
+def compute_metrics_from_events(events_path: str) -> dict:
+    """Compute metrics from events.jsonl file.
+
+    Args:
+        events_path: Path to events.jsonl file.
+
+    Returns:
+        Dict with delta_total, phi_total, time_to_stability, and raw metrics.
+    """
+    import json
+    from pathlib import Path
+
+    # Read events
+    events = []
+    with open(events_path) as f:
+        for line in f:
+            if line.strip():
+                events.append(json.loads(line))
+
+    if not events:
+        return {
+            "delta_total": None,
+            "phi_total": None,
+            "time_to_stability": None,
+            "raw_metrics": {},
+        }
+
+    # Use bilancio's metrics computation
+    from bilancio.analysis.report import compute_day_metrics, summarize_day_metrics
+
+    result = compute_day_metrics(events=events, balances_rows=None, day_list=None)
+    summary = summarize_day_metrics(result["day_metrics"])
+
+    return {
+        "delta_total": summary.get("delta_total"),
+        "phi_total": summary.get("phi_total"),
+        "time_to_stability": int(summary.get("max_day") or 0),
+        "raw_metrics": summary,
+    }
+
+
+def save_run_to_supabase(
+    run_id: str,
+    job_id: str,
+    status: str,
+    metrics: dict,
+    params: dict,
+    execution_time_ms: int,
+    modal_call_id: str,
+    modal_volume_path: str,
+    error: str | None = None,
+) -> bool:
+    """Save run and metrics to Supabase.
+
+    Args:
+        run_id: Unique run identifier.
+        job_id: Job/experiment ID.
+        status: Run status (completed, failed).
+        metrics: Computed metrics dict.
+        params: Run parameters (kappa, concentration, etc.).
+        execution_time_ms: Execution time in milliseconds.
+        modal_call_id: Modal function call ID.
+        modal_volume_path: Path to artifacts in Modal volume.
+        error: Error message if failed.
+
+    Returns:
+        True if save succeeded, False otherwise.
+    """
+    import os
+    from datetime import datetime, timezone
+
+    try:
+        from supabase import create_client
+
+        url = os.environ.get("BILANCIO_SUPABASE_URL")
+        key = os.environ.get("BILANCIO_SUPABASE_ANON_KEY")
+
+        if not url or not key:
+            print("Supabase credentials not configured, skipping save")
+            return False
+
+        client = create_client(url, key)
+        now = datetime.now(timezone.utc).isoformat()
+
+        # Build runs table row
+        runs_row = {
+            "run_id": run_id,
+            "job_id": job_id,
+            "status": status,
+            "created_at": now,
+            "completed_at": now if status in ("completed", "failed") else None,
+            "execution_time_ms": execution_time_ms,
+            "modal_call_id": modal_call_id,
+            "modal_volume_path": modal_volume_path,
+            "error": error,
+        }
+
+        # Add parameters
+        param_columns = {"kappa", "concentration", "mu", "outside_mid_ratio", "seed", "regime"}
+        for param, value in params.items():
+            if param in param_columns:
+                runs_row[param] = float(value) if isinstance(value, (int, float, str)) and param != "regime" else value
+
+        # Upsert run
+        client.table("runs").upsert(runs_row, on_conflict="run_id").execute()
+        print(f"Saved run {run_id} to Supabase")
+
+        # Build and save metrics if we have them
+        if metrics.get("delta_total") is not None or metrics.get("phi_total") is not None:
+            metrics_row = {
+                "run_id": run_id,
+                "job_id": job_id,
+                "delta_total": metrics.get("delta_total"),
+                "phi_total": metrics.get("phi_total"),
+                "time_to_stability": metrics.get("time_to_stability"),
+                "raw_metrics": metrics.get("raw_metrics", {}),
+            }
+
+            # Check if metrics exist
+            existing = client.table("metrics").select("id").eq("run_id", run_id).execute()
+
+            if existing.data:
+                client.table("metrics").update(metrics_row).eq("run_id", run_id).execute()
+            else:
+                client.table("metrics").insert(metrics_row).execute()
+
+            print(f"Saved metrics for {run_id}: δ={metrics.get('delta_total')}, φ={metrics.get('phi_total')}")
+
+        return True
+
+    except Exception as e:
+        print(f"Failed to save to Supabase: {e}")
+        return False
+
+
 @app.function(
     image=image,
     volumes={RESULTS_MOUNT_PATH: results_volume},
+    secrets=[supabase_secret],
     timeout=1800,  # 30 minutes max per simulation
     memory=2048,  # 2GB RAM
 )
@@ -94,6 +243,16 @@ def run_simulation(
     scenario_path = run_dir / "scenario.yaml"
     scenario_path.write_text(yaml.dump(scenario_config, default_flow_style=False))
 
+    # Extract run parameters from options for Supabase
+    run_params = {
+        "kappa": options.get("kappa"),
+        "concentration": options.get("concentration"),
+        "mu": options.get("mu"),
+        "outside_mid_ratio": options.get("outside_mid_ratio"),
+        "seed": options.get("seed"),
+        "regime": options.get("regime", ""),
+    }
+
     try:
         # Import bilancio inside the function (container context)
         from bilancio.ui.run import run_scenario
@@ -123,6 +282,14 @@ def run_simulation(
 
         execution_time_ms = int((time.time() - start_time) * 1000)
 
+        # Compute metrics from events
+        events_path = out_dir / "events.jsonl"
+        metrics = {}
+        if events_path.exists():
+            print("Computing metrics from events...", flush=True)
+            metrics = compute_metrics_from_events(str(events_path))
+            print(f"Metrics: δ={metrics.get('delta_total')}, φ={metrics.get('phi_total')}", flush=True)
+
         # Build artifact paths (relative to run directory within volume)
         artifacts = {
             "scenario_yaml": "scenario.yaml",
@@ -131,15 +298,30 @@ def run_simulation(
             "run_html": "run.html",
         }
 
+        modal_volume_path = f"{experiment_id}/runs/{run_id}"
+
+        # Save to Supabase
+        save_run_to_supabase(
+            run_id=run_id,
+            job_id=job_id,
+            status="completed",
+            metrics=metrics,
+            params=run_params,
+            execution_time_ms=execution_time_ms,
+            modal_call_id=modal_call_id,
+            modal_volume_path=modal_volume_path,
+        )
+
         return {
             "run_id": run_id,
             "status": "completed",
             "storage_type": "modal_volume",
-            "storage_base": f"{experiment_id}/runs/{run_id}",
+            "storage_base": modal_volume_path,
             "artifacts": artifacts,
             "execution_time_ms": execution_time_ms,
             "error": None,
             "modal_call_id": modal_call_id,
+            "metrics": metrics,  # Include computed metrics in return
         }
 
     except Exception as e:
@@ -148,16 +330,167 @@ def run_simulation(
         # Still commit to preserve any partial output
         results_volume.commit()
 
+        modal_volume_path = f"{experiment_id}/runs/{run_id}"
+
+        # Save failed run to Supabase
+        save_run_to_supabase(
+            run_id=run_id,
+            job_id=job_id,
+            status="failed",
+            metrics={},
+            params=run_params,
+            execution_time_ms=execution_time_ms,
+            modal_call_id=modal_call_id,
+            modal_volume_path=modal_volume_path,
+            error=str(e),
+        )
+
         return {
             "run_id": run_id,
             "status": "failed",
             "storage_type": "modal_volume",
-            "storage_base": f"{experiment_id}/runs/{run_id}",
+            "storage_base": modal_volume_path,
             "artifacts": {},
             "execution_time_ms": execution_time_ms,
             "error": str(e),
             "modal_call_id": modal_call_id,
+            "metrics": {},
         }
+
+
+@app.function(
+    image=image,
+    secrets=[supabase_secret],
+    timeout=300,  # 5 minutes for aggregate computation
+    memory=1024,
+)
+def compute_aggregate_metrics(
+    job_id: str,
+    run_ids: list[str],
+) -> dict:
+    """Compute aggregate/comparison metrics for a sweep and save to Supabase.
+
+    This function is called after all runs complete to compute:
+    - Trading effect (δ_passive - δ_active) for each parameter combination
+    - Summary statistics across the sweep
+
+    Args:
+        job_id: The job/experiment ID.
+        run_ids: List of run IDs to aggregate.
+
+    Returns:
+        Dict with aggregate metrics and status.
+    """
+    import os
+    from collections import defaultdict
+
+    try:
+        from supabase import create_client
+
+        url = os.environ.get("BILANCIO_SUPABASE_URL")
+        key = os.environ.get("BILANCIO_SUPABASE_ANON_KEY")
+
+        if not url or not key:
+            return {"status": "error", "error": "Supabase not configured"}
+
+        client = create_client(url, key)
+
+        # Fetch all runs with metrics for this job
+        result = client.table("runs").select(
+            "run_id, kappa, concentration, mu, outside_mid_ratio, seed, regime, metrics(*)"
+        ).eq("job_id", job_id).in_("run_id", run_ids).execute()
+
+        if not result.data:
+            return {"status": "error", "error": "No runs found"}
+
+        # Group runs by parameters (excluding regime)
+        grouped = defaultdict(lambda: {"passive": None, "active": None})
+
+        for row in result.data:
+            key = (
+                row.get("kappa"),
+                row.get("concentration"),
+                row.get("mu"),
+                row.get("outside_mid_ratio"),
+                row.get("seed"),
+            )
+            regime = row.get("regime", "")
+            metrics_data = row.get("metrics")
+
+            if metrics_data:
+                # metrics is a list from join, take first
+                if isinstance(metrics_data, list) and metrics_data:
+                    metrics = metrics_data[0]
+                else:
+                    metrics = metrics_data
+
+                delta = metrics.get("delta_total")
+                phi = metrics.get("phi_total")
+
+                if "passive" in regime or regime == "":
+                    grouped[key]["passive"] = {"delta": delta, "phi": phi, "run_id": row["run_id"]}
+                elif "active" in regime:
+                    grouped[key]["active"] = {"delta": delta, "phi": phi, "run_id": row["run_id"]}
+
+        # Compute trading effects
+        comparisons = []
+        for params, runs in grouped.items():
+            if runs["passive"] and runs["active"]:
+                d_passive = runs["passive"]["delta"]
+                d_active = runs["active"]["delta"]
+
+                if d_passive is not None and d_active is not None:
+                    trading_effect = d_passive - d_active
+
+                    comparisons.append({
+                        "kappa": params[0],
+                        "concentration": params[1],
+                        "mu": params[2],
+                        "outside_mid_ratio": params[3],
+                        "seed": params[4],
+                        "delta_passive": d_passive,
+                        "delta_active": d_active,
+                        "trading_effect": trading_effect,
+                        "passive_run_id": runs["passive"]["run_id"],
+                        "active_run_id": runs["active"]["run_id"],
+                    })
+
+        # Compute summary statistics
+        if comparisons:
+            effects = [c["trading_effect"] for c in comparisons]
+            summary = {
+                "n_comparisons": len(comparisons),
+                "mean_trading_effect": sum(effects) / len(effects),
+                "min_trading_effect": min(effects),
+                "max_trading_effect": max(effects),
+                "positive_effects": sum(1 for e in effects if e > 0),
+                "negative_effects": sum(1 for e in effects if e < 0),
+            }
+        else:
+            summary = {"n_comparisons": 0}
+
+        # Update job with aggregate results
+        from datetime import datetime, timezone
+
+        client.table("jobs").update({
+            "completed_at": datetime.now(timezone.utc).isoformat(),
+            "status": "completed",
+        }).eq("job_id", job_id).execute()
+
+        print(f"Aggregate metrics for job {job_id}:")
+        print(f"  Comparisons: {summary.get('n_comparisons', 0)}")
+        print(f"  Mean trading effect: {summary.get('mean_trading_effect', 'N/A')}")
+
+        return {
+            "status": "completed",
+            "job_id": job_id,
+            "summary": summary,
+            "comparisons": comparisons,
+        }
+
+    except Exception as e:
+        print(f"Failed to compute aggregate metrics: {e}")
+        return {"status": "error", "error": str(e)}
 
 
 @app.function(
