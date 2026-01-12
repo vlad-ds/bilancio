@@ -141,17 +141,21 @@ def run_scenario(
     if not export.get('events_jsonl') and config.run.export.events_jsonl:
         export['events_jsonl'] = config.run.export.events_jsonl
     
-    # Show scenario header with agent list
-    header_renderables = show_scenario_header_renderable(config.name, config.description, config.agents)
-    for renderable in header_renderables:
-        console.print(renderable)
-    console.print(f"[dim]Default handling mode: {effective_default_handling}[/dim]")
-    
-    # Show initial state
-    console.print("\n[bold cyan]📅 Day 0 (After Setup)[/bold cyan]")
-    renderables = show_day_summary_renderable(system, agent_ids, show, t_account=t_account)
-    for renderable in renderables:
-        console.print(renderable)
+    # Plan 030: Check for quiet mode (show="none") to suppress verbose output
+    quiet_mode = show == "none"
+
+    # Show scenario header with agent list (skip in quiet mode)
+    if not quiet_mode:
+        header_renderables = show_scenario_header_renderable(config.name, config.description, config.agents)
+        for renderable in header_renderables:
+            console.print(renderable)
+        console.print(f"[dim]Default handling mode: {effective_default_handling}[/dim]")
+
+        # Show initial state
+        console.print("\n[bold cyan]📅 Day 0 (After Setup)[/bold cyan]")
+        renderables = show_day_summary_renderable(system, agent_ids, show, t_account=t_account)
+        for renderable in renderables:
+            console.print(renderable)
     
     # Capture initial balance state for HTML export
     initial_balances: Dict[str, Any] = {}
@@ -494,7 +498,10 @@ def run_until_stable_mode(
     Returns:
         List of day data dictionaries
     """
-    console.print(f"\n[dim]Running simulation until stable (max {max_days} days)...[/dim]\n")
+    # Plan 030: Skip verbose output in quiet mode (show="none")
+    quiet_mode = show == "none"
+    if not quiet_mode:
+        console.print(f"\n[dim]Running simulation until stable (max {max_days} days)...[/dim]\n")
 
     try:
         # Run simulation day by day to capture correct balance snapshots
@@ -538,21 +545,26 @@ def run_until_stable_mode(
                     })
             if day_before >= 1:
                 # Display this day's results immediately (with correct balance state)
-                console.print(f"[bold cyan]📅 Day {day_before}[/bold cyan]")
-                
+                # Plan 030: Skip day headers in quiet mode
+                if not quiet_mode:
+                    console.print(f"[bold cyan]📅 Day {day_before}[/bold cyan]")
+
                 # Check invariants if requested
                 if check_invariants == "daily":
                     try:
                         system.assert_invariants()
                     except Exception as e:
-                        console.print(f"[yellow]⚠ Invariant check failed: {e}[/yellow]")
-                
+                        if not quiet_mode:
+                            console.print(f"[yellow]⚠ Invariant check failed: {e}[/yellow]")
+
                 # Show events and balances for this specific day
                 # Note: events are stored with 0-based day numbers
-                display_agent_ids = _filter_active_agent_ids(system, agent_ids) if agent_ids is not None else None
-                renderables = show_day_summary_renderable(system, display_agent_ids, show, day=day_before, t_account=t_account)
-                for renderable in renderables:
-                    console.print(renderable)
+                # Plan 030: show_day_summary_renderable returns [] for show="none"
+                if not quiet_mode:
+                    display_agent_ids = _filter_active_agent_ids(system, agent_ids) if agent_ids is not None else None
+                    renderables = show_day_summary_renderable(system, display_agent_ids, show, day=day_before, t_account=t_account)
+                    for renderable in renderables:
+                        console.print(renderable)
                 
                 # Collect day data for HTML export
                 # We want simulation events from the day that was just displayed
@@ -599,16 +611,17 @@ def run_until_stable_mode(
                     'agent_ids': active_agents_for_day if active_agents_for_day is not None else [],
                 })
                 
-                # Show activity summary
-                if report.impacted > 0:
-                    console.print(f"[dim]Activity: {report.impacted} impactful events[/dim]")
-                else:
-                    console.print("[dim]→ Quiet day (no activity)[/dim]")
-                
-                if report.notes:
-                    console.print(f"[dim]Note: {report.notes}[/dim]")
-                
-                console.print()
+                # Show activity summary (Plan 030: skip in quiet mode)
+                if not quiet_mode:
+                    if report.impacted > 0:
+                        console.print(f"[dim]Activity: {report.impacted} impactful events[/dim]")
+                    else:
+                        console.print("[dim]→ Quiet day (no activity)[/dim]")
+
+                    if report.notes:
+                        console.print(f"[dim]Note: {report.notes}[/dim]")
+
+                    console.print()
             
             # Check for stable state
             if impacted == 0:

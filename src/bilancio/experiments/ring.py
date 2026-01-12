@@ -217,6 +217,7 @@ class RingSweepRunner:
         detailed_dealer_logging: bool = False,  # Plan 022
         registry_store: Optional[RegistryStore] = None,  # Plan 026
         executor: Optional[SimulationExecutor] = None,  # Plan 027
+        quiet: bool = True,  # Plan 030: suppress verbose output for sweeps
     ) -> None:
         self.base_dir = out_dir
         self.registry_dir = self.base_dir / "registry"
@@ -240,6 +241,7 @@ class RingSweepRunner:
         self.dealer_share_per_bucket = dealer_share_per_bucket or Decimal("0.125")
         self.rollover_enabled = rollover_enabled
         self.detailed_dealer_logging = detailed_dealer_logging  # Plan 022
+        self.quiet = quiet  # Plan 030: suppress verbose output
 
         # Use provided registry store or create default file-based store
         self.registry_store: RegistryStore = registry_store or FileRegistryStore(self.base_dir)
@@ -534,7 +536,8 @@ class RingSweepRunner:
             quiet_days=scenario.get("run", {}).get("quiet_days", 2),
             check_invariants="daily",
             default_handling=self.default_handling,
-            show_events=scenario.get("run", {}).get("show", {}).get("events", "detailed"),
+            # Plan 030: Use "none" for quiet mode to suppress verbose console output
+            show_events="none" if self.quiet else scenario.get("run", {}).get("show", {}).get("events", "detailed"),
             show_balances=scenario.get("run", {}).get("show", {}).get("balances"),
             t_account=False,
             detailed_dealer_logging=self.detailed_dealer_logging,

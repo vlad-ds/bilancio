@@ -102,18 +102,22 @@ def show_day_summary_renderable(
     t_account: bool = False
 ) -> List[RenderableType]:
     """Return renderables for a simulation day summary.
-    
+
     Args:
         system: System instance
         agent_ids: Agent IDs to show balances for
-        event_mode: "summary" or "detailed"
+        event_mode: "summary", "detailed", "table", or "none"
         day: Day number to display events for (None for all)
-        
+
     Returns:
-        List of renderables
+        List of renderables (empty list if event_mode="none")
     """
+    # Plan 030: "none" mode suppresses all output for sweep performance
+    if event_mode == "none":
+        return []
+
     renderables = []
-    
+
     # Show events
     if day is not None:
         # Show events for specific day

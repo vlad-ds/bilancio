@@ -146,6 +146,12 @@ class BalancedComparisonConfig(BaseModel):
         description="Enable continuous rollover of matured claims"
     )
 
+    # Plan 030: Quiet mode for faster sweeps
+    quiet: bool = Field(
+        default=True,
+        description="Suppress verbose console output during sweeps"
+    )
+
     # VBT configuration (for active mode)
     vbt_share: Decimal = Field(default=Decimal("0.50"), description="VBT capital as fraction of system cash")
 
@@ -309,6 +315,7 @@ class BalancedComparisonRunner:
             rollover_enabled=self.config.rollover_enabled,
             detailed_dealer_logging=self.config.detailed_logging,  # Plan 022
             executor=self.executor,  # Plan 028 cloud support
+            quiet=self.config.quiet,  # Plan 030
         )
 
     def _get_active_runner(self, outside_mid_ratio: Decimal) -> RingSweepRunner:
@@ -341,6 +348,7 @@ class BalancedComparisonRunner:
             rollover_enabled=self.config.rollover_enabled,
             detailed_dealer_logging=self.config.detailed_logging,  # Plan 022
             executor=self.executor,  # Plan 028 cloud support
+            quiet=self.config.quiet,  # Plan 030
         )
 
     def run_all(self) -> List[BalancedComparisonResult]:
