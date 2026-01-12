@@ -485,6 +485,11 @@ def sweep_comparison(
 )
 @click.option('--cloud', is_flag=True, help='Run simulations on Modal cloud')
 @click.option('--job-id', type=str, default=None, help='Job ID (auto-generated if not provided)')
+@click.option(
+    '--quiet/--verbose',
+    default=True,
+    help='Suppress verbose console output during sweeps (default: quiet)',
+)
 def sweep_balanced(
     out_dir: Path,
     n_agents: int,
@@ -501,6 +506,7 @@ def sweep_balanced(
     detailed_logging: bool,
     cloud: bool,
     job_id: Optional[str],
+    quiet: bool,
 ) -> None:
     """
     Run balanced C vs D comparison experiments.
@@ -584,6 +590,7 @@ def sweep_balanced(
         big_entity_share=big_entity_share,
         default_handling=default_handling,
         detailed_logging=detailed_logging,
+        quiet=quiet,  # Plan 030
     )
 
     runner = BalancedComparisonRunner(config, out_dir, executor=executor)
