@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2026-01-12 15:59:29 UTC | Branch: main | Commit: 06140685
+Generated: 2026-01-12 17:39:37 UTC | Branch: main | Commit: 5d1c8fd8
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -33910,6 +33910,51 @@ Complete git history from oldest to newest:
   Merge pull request #25 from vlad-ds/feature/cloud-executor
   feat(cloud): implement Modal cloud executor (Plan 028)
 
+- **84f6f7c6** (2026-01-12) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **986503ff** (2026-01-12) by vladgheorghe
+  feat(sweeps): add quiet mode for faster sweep execution (Plan 030)
+  Add quiet mode that suppresses verbose console output during sweeps.
+  This dramatically reduces IO overhead for batch runs while preserving
+  all artifacts (events.jsonl, balances.csv, run.html, metrics).
+  Changes:
+  - Add quiet parameter to RingSweepRunner (default: True)
+  - Add quiet field to BalancedComparisonConfig (default: True)
+  - Add --quiet/--verbose CLI flag to sweep balanced command
+  - Update show_day_summary_renderable to return [] for event_mode="none"
+  - Update run_until_stable_mode to skip console.print in quiet mode
+  Usage:
+    # Default: quiet mode (fast)
+    bilancio sweep balanced --out-dir out/sweep ...
+    # Verbose mode (for debugging)
+    bilancio sweep balanced --verbose --out-dir out/sweep ...
+  Performance impact:
+    - Previous 22-hour sweep now runs in minutes with quiet mode
+    - All data artifacts still generated, only console output suppressed
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **fbb80b9a** (2026-01-12) by vladgheorghe
+  feat(cloud): add parallel batch execution with Modal .map()
+  - Use Modal's .map() for maximum parallelism instead of spawn/get
+  - Add PreparedRun dataclass for batch execution workflow
+  - Increase Modal timeout from 10 to 30 minutes
+  - Add _run_all_batch() method for parallel sweep execution
+  - Document parallelism, cost estimation, and monitoring in CLAUDE.md
+  Performance: 25 pairs (50 runs) now complete in ~13 min vs ~22 hours local
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **a47838f8** (2026-01-12) by vladgheorghe
+  fix(ui): prevent UnboundLocalError in quiet mode
+  Move display_agent_ids computation outside quiet_mode check to prevent
+  UnboundLocalError when agent_ids is set but quiet_mode is True.
+  Fixes bug identified by Codex review.
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **5d1c8fd8** (2026-01-12) by Vlad Gheorghe
+  Merge pull request #26 from vlad-ds/feature/quiet-mode
+  feat(sweeps): add quiet mode and parallel cloud execution
+
 ---
 
 ## Source Code (src/bilancio)
@@ -38875,7 +38920,7 @@ RESULTS_MOUNT_PATH = "/results"
 @app.function(
     image=image,
     volumes={RESULTS_MOUNT_PATH: results_volume},
-    timeout=600,  # 10 minutes max per simulation
+    timeout=1800,  # 30 minutes max per simulation
     memory=2048,  # 2GB RAM
 )
 def run_simulation(
@@ -49760,8 +49805,8 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Tuple
 
 from pydantic import BaseModel, Field
 
-from bilancio.experiments.ring import RingSweepRunner, RingRunSummary
-from bilancio.runners import SimulationExecutor, LocalExecutor
+from bilancio.experiments.ring import RingSweepRunner, RingRunSummary, PreparedRun
+from bilancio.runners import SimulationExecutor, LocalExecutor, RunOptions
 
 logger = logging.getLogger(__name__)
 
@@ -49880,6 +49925,12 @@ class BalancedComparisonConfig(BaseModel):
     rollover_enabled: bool = Field(
         default=True,
         description="Enable continuous rollover of matured claims"
+    )
+
+    # Plan 030: Quiet mode for faster sweeps
+    quiet: bool = Field(
+        default=True,
+        description="Suppress verbose console output during sweeps"
     )
 
     # VBT configuration (for active mode)
@@ -50045,6 +50096,7 @@ class BalancedComparisonRunner:
             rollover_enabled=self.config.rollover_enabled,
             detailed_dealer_logging=self.config.detailed_logging,  # Plan 022
             executor=self.executor,  # Plan 028 cloud support
+            quiet=self.config.quiet,  # Plan 030
         )
 
     def _get_active_runner(self, outside_mid_ratio: Decimal) -> RingSweepRunner:
@@ -50077,10 +50129,195 @@ class BalancedComparisonRunner:
             rollover_enabled=self.config.rollover_enabled,
             detailed_dealer_logging=self.config.detailed_logging,  # Plan 022
             executor=self.executor,  # Plan 028 cloud support
+            quiet=self.config.quiet,  # Plan 030
         )
 
     def run_all(self) -> List[BalancedComparisonResult]:
-        """Execute all passive/active pairs and return comparison results."""
+        """Execute all passive/active pairs and return comparison results.
+
+        Uses batch execution if the executor supports it (CloudExecutor),
+        otherwise falls back to sequential execution (LocalExecutor).
+        """
+        # Check if executor supports batch execution
+        if hasattr(self.executor, 'execute_batch'):
+            return self._run_all_batch()
+        else:
+            return self._run_all_sequential()
+
+    def _run_all_batch(self) -> List[BalancedComparisonResult]:
+        """Execute all pairs using batch execution (parallel on Modal)."""
+        total_pairs = (
+            len(self.config.kappas)
+            * len(self.config.concentrations)
+            * len(self.config.mus)
+            * len(self.config.monotonicities)
+            * len(self.config.outside_mid_ratios)
+        )
+
+        skipped = len(self._completed_keys)
+        remaining = total_pairs - skipped
+
+        logger.info(
+            "Starting BATCH balanced comparison sweep: %d kappas × %d concentrations × %d mus × %d ρ = %d pairs",
+            len(self.config.kappas),
+            len(self.config.concentrations),
+            len(self.config.mus),
+            len(self.config.outside_mid_ratios),
+            total_pairs,
+        )
+
+        if skipped > 0:
+            print(f"Resuming: {skipped} pairs already completed, {remaining} remaining", flush=True)
+
+        self._start_time = time.time()
+
+        # Phase 1: Prepare all runs
+        print(f"Preparing {remaining * 2} runs...", flush=True)
+        prepared_runs: List[Tuple[PreparedRun, PreparedRun, Decimal, Decimal, Decimal, Decimal, Decimal, int]] = []
+
+        for outside_mid_ratio in self.config.outside_mid_ratios:
+            passive_runner = self._get_passive_runner(outside_mid_ratio)
+            active_runner = self._get_active_runner(outside_mid_ratio)
+
+            for kappa in self.config.kappas:
+                for concentration in self.config.concentrations:
+                    for mu in self.config.mus:
+                        for monotonicity in self.config.monotonicities:
+                            key = self._make_key(kappa, concentration, mu, monotonicity, outside_mid_ratio)
+                            if key in self._completed_keys:
+                                continue
+
+                            seed = self._next_seed()
+
+                            # Prepare passive run
+                            passive_prep = passive_runner._prepare_run(
+                                phase="balanced_passive",
+                                kappa=kappa,
+                                concentration=concentration,
+                                mu=mu,
+                                monotonicity=monotonicity,
+                                seed=seed,
+                            )
+
+                            # Prepare active run
+                            active_prep = active_runner._prepare_run(
+                                phase="balanced_active",
+                                kappa=kappa,
+                                concentration=concentration,
+                                mu=mu,
+                                monotonicity=monotonicity,
+                                seed=seed,
+                            )
+
+                            prepared_runs.append((
+                                passive_prep, active_prep,
+                                kappa, concentration, mu, monotonicity, outside_mid_ratio, seed
+                            ))
+
+        if not prepared_runs:
+            print("All pairs already completed!", flush=True)
+            return self.comparison_results
+
+        # Phase 2: Build batch and execute
+        print(f"Submitting {len(prepared_runs) * 2} runs to Modal (parallel execution)...", flush=True)
+
+        # Build flat list for batch execution
+        batch_runs: List[Tuple[Dict[str, Any], str, RunOptions, Path]] = []
+        run_index_map: Dict[str, int] = {}  # run_id -> index in prepared_runs
+
+        for idx, (passive_prep, active_prep, *_) in enumerate(prepared_runs):
+            batch_runs.append((
+                passive_prep.scenario_config,
+                passive_prep.run_id,
+                passive_prep.options,
+            ))
+            run_index_map[passive_prep.run_id] = idx * 2  # even indices are passive
+
+            batch_runs.append((
+                active_prep.scenario_config,
+                active_prep.run_id,
+                active_prep.options,
+            ))
+            run_index_map[active_prep.run_id] = idx * 2 + 1  # odd indices are active
+
+        # Execute batch with progress callback
+        completed = [0]
+
+        def progress_callback(done: int, total: int):
+            completed[0] = done
+            elapsed = time.time() - self._start_time
+            if done > 0:
+                eta = elapsed / done * (total - done)
+                print(f"\r  Progress: {done}/{total} runs ({done * 100 // total}%) - ETA: {self._format_time(eta)}    ", end="", flush=True)
+
+        results = self.executor.execute_batch(
+            [(config, run_id, opts) for config, run_id, opts, *_ in batch_runs],
+            progress_callback=progress_callback,
+        )
+        print()  # newline after progress
+
+        # Phase 3: Finalize runs and build results
+        print("Finalizing results...", flush=True)
+
+        for idx, (passive_prep, active_prep, kappa, concentration, mu, monotonicity, outside_mid_ratio, seed) in enumerate(prepared_runs):
+            passive_result = results[idx * 2]
+            active_result = results[idx * 2 + 1]
+
+            # Get runners for finalization
+            passive_runner = self._get_passive_runner(outside_mid_ratio)
+            active_runner = self._get_active_runner(outside_mid_ratio)
+
+            # Finalize runs
+            passive_summary = passive_runner._finalize_run(passive_prep, passive_result)
+            active_summary = active_runner._finalize_run(active_prep, active_result)
+
+            # Extract dealer metrics
+            dm = active_summary.dealer_metrics or {}
+
+            result = BalancedComparisonResult(
+                kappa=kappa,
+                concentration=concentration,
+                mu=mu,
+                monotonicity=monotonicity,
+                seed=seed,
+                face_value=self.config.face_value,
+                outside_mid_ratio=outside_mid_ratio,
+                big_entity_share=self.config.big_entity_share,
+                vbt_share_per_bucket=self.config.vbt_share_per_bucket,
+                dealer_share_per_bucket=self.config.dealer_share_per_bucket,
+                delta_passive=passive_summary.delta_total,
+                phi_passive=passive_summary.phi_total,
+                passive_run_id=passive_summary.run_id,
+                passive_status="completed" if passive_summary.delta_total is not None else "failed",
+                delta_active=active_summary.delta_total,
+                phi_active=active_summary.phi_total,
+                active_run_id=active_summary.run_id,
+                active_status="completed" if active_summary.delta_total is not None else "failed",
+                dealer_total_pnl=dm.get("dealer_total_pnl"),
+                dealer_total_return=dm.get("dealer_total_return"),
+                total_trades=dm.get("total_trades"),
+                passive_modal_call_id=passive_summary.modal_call_id,
+                active_modal_call_id=active_summary.modal_call_id,
+            )
+
+            self.comparison_results.append(result)
+            key = self._make_key(kappa, concentration, mu, monotonicity, outside_mid_ratio)
+            self._completed_keys.add(key)
+
+            # Incremental CSV write
+            self._write_comparison_csv()
+
+        # Write final summary
+        self._write_summary_json()
+
+        total_time = time.time() - self._start_time
+        print(f"\nSweep complete! {len(prepared_runs)} pairs in {self._format_time(total_time)}", flush=True)
+        print(f"Results at: {self.aggregate_dir}", flush=True)
+
+        return self.comparison_results
+
+    def _run_all_sequential(self) -> List[BalancedComparisonResult]:
+        """Execute all pairs sequentially (fallback for LocalExecutor)."""
         total_pairs = (
             len(self.config.kappas)
             * len(self.config.concentrations)
@@ -51014,6 +51251,29 @@ class RingRunSummary:
     modal_call_id: Optional[str] = None
 
 
+@dataclass
+class PreparedRun:
+    """Data needed to execute and finalize a prepared run.
+
+    Created by RingSweepRunner._prepare_run(), consumed by _finalize_run().
+    """
+    run_id: str
+    phase: str
+    kappa: Decimal
+    concentration: Decimal
+    mu: Decimal
+    monotonicity: Decimal
+    seed: int
+    scenario_config: Dict[str, Any]
+    options: RunOptions
+    run_dir: Path
+    out_dir: Path
+    scenario_path: Path
+    base_params: Dict[str, Any]
+    S1: Decimal
+    L0: Decimal
+
+
 def _decimal_list(spec: str) -> List[Decimal]:
     out: List[Decimal] = []
     for part in spec.split(','):
@@ -51187,6 +51447,7 @@ class RingSweepRunner:
         detailed_dealer_logging: bool = False,  # Plan 022
         registry_store: Optional[RegistryStore] = None,  # Plan 026
         executor: Optional[SimulationExecutor] = None,  # Plan 027
+        quiet: bool = True,  # Plan 030: suppress verbose output for sweeps
     ) -> None:
         self.base_dir = out_dir
         self.registry_dir = self.base_dir / "registry"
@@ -51210,6 +51471,7 @@ class RingSweepRunner:
         self.dealer_share_per_bucket = dealer_share_per_bucket or Decimal("0.125")
         self.rollover_enabled = rollover_enabled
         self.detailed_dealer_logging = detailed_dealer_logging  # Plan 022
+        self.quiet = quiet  # Plan 030: suppress verbose output
 
         # Use provided registry store or create default file-based store
         self.registry_store: RegistryStore = registry_store or FileRegistryStore(self.base_dir)
@@ -51504,7 +51766,8 @@ class RingSweepRunner:
             quiet_days=scenario.get("run", {}).get("quiet_days", 2),
             check_invariants="daily",
             default_handling=self.default_handling,
-            show_events=scenario.get("run", {}).get("show", {}).get("events", "detailed"),
+            # Plan 030: Use "none" for quiet mode to suppress verbose console output
+            show_events="none" if self.quiet else scenario.get("run", {}).get("show", {}).get("events", "detailed"),
             show_balances=scenario.get("run", {}).get("show", {}).get("balances"),
             t_account=False,
             detailed_dealer_logging=self.detailed_dealer_logging,
@@ -51596,6 +51859,244 @@ class RingSweepRunner:
             modal_call_id=result.modal_call_id
         )
 
+    def _prepare_run(
+        self,
+        phase: str,
+        kappa: Decimal,
+        concentration: Decimal,
+        mu: Decimal,
+        monotonicity: Decimal,
+        seed: int,
+        label: str = "",
+    ) -> PreparedRun:
+        """Prepare a run without executing it.
+
+        Creates directories, builds scenario config, writes scenario.yaml.
+        Returns PreparedRun that can be passed to execute_batch and then _finalize_run.
+        """
+        run_uuid = uuid.uuid4().hex[:12]
+        run_id = f"{phase}_{label}_{run_uuid}" if label else f"{phase}_{run_uuid}"
+        run_dir = self.runs_dir / run_id
+        run_dir.mkdir(parents=True, exist_ok=True)
+        out_dir = run_dir / "out"
+        out_dir.mkdir(parents=True, exist_ok=True)
+
+        scenario_path = run_dir / "scenario.yaml"
+
+        base_params = {
+            "phase": phase,
+            "seed": seed,
+            "n_agents": self.n_agents,
+            "kappa": str(kappa),
+            "concentration": str(concentration),
+            "mu": str(mu),
+            "monotonicity": str(monotonicity),
+            "maturity_days": self.maturity_days,
+            "Q_total": str(self.Q_total),
+            "default_handling": self.default_handling,
+            "dealer_enabled": self.dealer_enabled,
+        }
+
+        # Initial "running" status
+        self._upsert_registry(
+            run_id=run_id,
+            phase=phase,
+            status=RunStatus.RUNNING,
+            parameters=base_params,
+        )
+
+        generator_data = {
+            "version": 1,
+            "generator": "ring_explorer_v1",
+            "name_prefix": self.name_prefix,
+            "params": {
+                "n_agents": self.n_agents,
+                "seed": seed,
+                "kappa": str(kappa),
+                "Q_total": str(self.Q_total),
+                "inequality": {
+                    "scheme": "dirichlet",
+                    "concentration": str(concentration),
+                    "monotonicity": str(monotonicity),
+                },
+                "maturity": {
+                    "days": self.maturity_days,
+                    "mode": "lead_lag",
+                    "mu": str(mu),
+                },
+                "liquidity": {
+                    "allocation": self._liquidity_allocation_dict(),
+                },
+            },
+            "compile": {"emit_yaml": False},
+        }
+
+        generator_config = RingExplorerGeneratorConfig.model_validate(generator_data)
+
+        if self.balanced_mode:
+            from bilancio.scenarios import compile_ring_explorer_balanced
+            scenario = compile_ring_explorer_balanced(
+                generator_config,
+                face_value=self.face_value,
+                outside_mid_ratio=self.outside_mid_ratio,
+                big_entity_share=self.big_entity_share,
+                vbt_share_per_bucket=self.vbt_share_per_bucket,
+                dealer_share_per_bucket=self.dealer_share_per_bucket,
+                mode="active" if self.dealer_enabled else "passive",
+                rollover_enabled=self.rollover_enabled,
+                source_path=None,
+            )
+        else:
+            scenario = compile_ring_explorer(generator_config, source_path=None)
+
+        if self.dealer_enabled:
+            dealer_section: Dict[str, Any] = {"enabled": True}
+            if self.dealer_config:
+                dealer_section.update(self.dealer_config)
+            else:
+                dealer_section.update({
+                    "ticket_size": 1,
+                    "dealer_share": Decimal("0.25"),
+                    "vbt_share": Decimal("0.50"),
+                })
+            scenario["dealer"] = dealer_section
+
+        if self.default_handling:
+            scenario_run = scenario.setdefault("run", {})
+            scenario_run["default_handling"] = self.default_handling
+
+        # Write scenario.yaml
+        with scenario_path.open("w", encoding="utf-8") as fh:
+            yaml.safe_dump(_to_yaml_ready(scenario), fh, sort_keys=False, allow_unicode=False)
+
+        S1 = Decimal("0")
+        L0 = Decimal("0")
+        for action in scenario.get("initial_actions", []):
+            if "create_payable" in action:
+                S1 += action["create_payable"]["amount"]
+            if "mint_cash" in action:
+                L0 += action["mint_cash"]["amount"]
+
+        regime = "active" if self.dealer_enabled else "passive"
+
+        options = RunOptions(
+            mode="until_stable",
+            max_days=scenario.get("run", {}).get("max_days", 90),
+            quiet_days=scenario.get("run", {}).get("quiet_days", 2),
+            check_invariants="daily",
+            default_handling=self.default_handling,
+            show_events="none" if self.quiet else scenario.get("run", {}).get("show", {}).get("events", "detailed"),
+            show_balances=scenario.get("run", {}).get("show", {}).get("balances"),
+            t_account=False,
+            detailed_dealer_logging=self.detailed_dealer_logging,
+            run_id=run_id,
+            regime=regime,
+        )
+
+        return PreparedRun(
+            run_id=run_id,
+            phase=phase,
+            kappa=kappa,
+            concentration=concentration,
+            mu=mu,
+            monotonicity=monotonicity,
+            seed=seed,
+            scenario_config=_to_yaml_ready(scenario),
+            options=options,
+            run_dir=run_dir,
+            out_dir=out_dir,
+            scenario_path=scenario_path,
+            base_params=base_params,
+            S1=S1,
+            L0=L0,
+        )
+
+    def _finalize_run(
+        self,
+        prepared: PreparedRun,
+        result: ExecutionResult,
+    ) -> RingRunSummary:
+        """Finalize a run after execution completes.
+
+        Computes metrics, updates registry, returns summary.
+        """
+        run_html_path = prepared.run_dir / "run.html"
+        balances_path = prepared.out_dir / "balances.csv"
+        events_path = prepared.out_dir / "events.jsonl"
+
+        # Handle failure case
+        if result.status == RunStatus.FAILED:
+            fail_params = {**prepared.base_params, "S1": str(prepared.S1), "L0": str(prepared.L0)}
+            self._upsert_registry(
+                run_id=prepared.run_id,
+                phase=prepared.phase,
+                status=RunStatus.FAILED,
+                parameters=fail_params,
+                artifact_paths={
+                    "scenario_yaml": self._rel_path(prepared.scenario_path),
+                    "run_html": self._rel_path(run_html_path),
+                },
+                error=result.error,
+            )
+            return RingRunSummary(
+                prepared.run_id, prepared.phase, prepared.kappa, prepared.concentration,
+                prepared.mu, prepared.monotonicity, None, None, 0,
+                modal_call_id=result.modal_call_id
+            )
+
+        # Compute metrics
+        artifacts: Dict[str, str] = {}
+        if "events_jsonl" in result.artifacts:
+            artifacts["events_jsonl"] = result.artifacts["events_jsonl"]
+        if "balances_csv" in result.artifacts:
+            artifacts["balances_csv"] = result.artifacts["balances_csv"]
+
+        loader = LocalArtifactLoader(base_path=Path(result.storage_base))
+        computer = MetricsComputer(loader)
+        bundle = computer.compute(artifacts)
+
+        output_paths = computer.write_outputs(bundle, prepared.out_dir)
+
+        delta_total = bundle.summary.get("delta_total")
+        phi_total = bundle.summary.get("phi_total")
+        time_to_stability = int(bundle.summary.get("max_day") or 0)
+
+        dealer_metrics: Optional[Dict[str, Any]] = None
+        dealer_metrics_path = prepared.out_dir / "dealer_metrics.json"
+        if dealer_metrics_path.exists():
+            import json
+            with dealer_metrics_path.open() as f:
+                dealer_metrics = json.load(f)
+
+        success_params = {**prepared.base_params, "S1": str(prepared.S1), "L0": str(prepared.L0)}
+        success_metrics = {
+            "time_to_stability": time_to_stability,
+            "phi_total": str(phi_total) if phi_total is not None else "",
+            "delta_total": str(delta_total) if delta_total is not None else "",
+        }
+        self._upsert_registry(
+            run_id=prepared.run_id,
+            phase=prepared.phase,
+            status=RunStatus.COMPLETED,
+            parameters=success_params,
+            metrics=success_metrics,
+            artifact_paths={
+                "scenario_yaml": self._rel_path(prepared.scenario_path),
+                "events_jsonl": self._rel_path(events_path),
+                "balances_csv": self._rel_path(balances_path),
+                "metrics_csv": self._rel_path(output_paths["metrics_csv"]),
+                "metrics_html": self._rel_path(output_paths["metrics_html"]),
+                "run_html": self._rel_path(run_html_path),
+            },
+        )
+
+        return RingRunSummary(
+            prepared.run_id, prepared.phase, prepared.kappa, prepared.concentration,
+            prepared.mu, prepared.monotonicity,
+            delta_total, phi_total, time_to_stability, dealer_metrics,
+            modal_call_id=result.modal_call_id
+        )
+
     def _rel_path(self, absolute: Path) -> str:
         try:
             return str(Path("..").joinpath(absolute.relative_to(self.base_dir)))
@@ -51612,6 +52113,7 @@ class RingSweepRunner:
 __all__ = [
     "RingSweepRunner",
     "RingRunSummary",
+    "PreparedRun",
     "RingSweepConfig",
     "load_ring_sweep_config",
     "_decimal_list",
@@ -53232,10 +53734,10 @@ class CloudExecutor:
         max_parallel: int = 50,
         progress_callback: Optional[Callable[[int, int], None]] = None,
     ) -> List[ExecutionResult]:
-        """Execute multiple simulations in parallel on Modal.
+        """Execute multiple simulations in parallel on Modal using .map().
 
-        Modal handles parallelization automatically. This method provides
-        a convenient interface for batch execution.
+        Uses Modal's .map() for maximum parallelism - Modal scales containers
+        automatically to process all inputs concurrently.
 
         Args:
             runs: List of (scenario_config, run_id, options) tuples.
@@ -53249,60 +53751,87 @@ class CloudExecutor:
         run_simulation = self._get_run_simulation()
 
         total = len(runs)
-        results: List[Optional[ExecutionResult]] = [None] * total
 
-        # Submit all jobs to Modal (Modal handles queuing)
-        futures = []
-        for idx, (config, run_id, options) in enumerate(runs):
-            options_dict = self._options_to_dict(options)
+        # Prepare argument lists for .map()
+        scenario_configs = []
+        run_ids = []
+        experiment_ids = []
+        options_list = []
+        job_ids = []
 
-            # .spawn() returns a FunctionCall that we can await later
-            future = run_simulation.spawn(
-                scenario_config=config,
-                run_id=run_id,
-                experiment_id=self.experiment_id,
-                options=options_dict,
-                job_id=self.job_id,
-            )
-            futures.append((idx, run_id, future))
+        for config, run_id, options in runs:
+            scenario_configs.append(config)
+            run_ids.append(run_id)
+            experiment_ids.append(self.experiment_id)
+            options_list.append(self._options_to_dict(options))
+            job_ids.append(self.job_id)
 
-        # Collect results as they complete
+        # Use .map() for maximum parallelism - Modal scales containers automatically
+        # order_outputs=True ensures results come back in input order
+        results: List[ExecutionResult] = []
         completed = 0
-        for idx, run_id, future in futures:
-            result = future.get()  # Blocks until this specific run completes
 
-            # Download artifacts if requested and determine storage location
-            if self.download_artifacts and result["status"] == "completed":
-                output_dir = self.local_output_dir / "runs" / run_id
-                self._download_run_artifacts(run_id, output_dir, result["artifacts"])
-                # When downloading, the storage_base should be the local path
-                storage_type = "local"
-                storage_base = str(output_dir.resolve())
-            else:
-                # When not downloading, keep the modal_volume reference
-                storage_type = result["storage_type"]
-                storage_base = result["storage_base"]
-
-            results[idx] = ExecutionResult(
-                run_id=result["run_id"],
-                status=(
-                    RunStatus.COMPLETED
-                    if result["status"] == "completed"
-                    else RunStatus.FAILED
-                ),
-                storage_type=storage_type,
-                storage_base=storage_base,
-                artifacts=result["artifacts"],
-                error=result.get("error"),
-                execution_time_ms=result.get("execution_time_ms"),
-                modal_call_id=result.get("modal_call_id"),
+        for idx, result in enumerate(
+            run_simulation.map(
+                scenario_configs,
+                run_ids,
+                experiment_ids,
+                options_list,
+                job_ids,
+                order_outputs=True,
+                return_exceptions=True,
+                wrap_returned_exceptions=False,
             )
+        ):
+            run_id = run_ids[idx]
+
+            # Handle exceptions from Modal
+            if isinstance(result, Exception):
+                results.append(
+                    ExecutionResult(
+                        run_id=run_id,
+                        status=RunStatus.FAILED,
+                        storage_type="none",
+                        storage_base="",
+                        artifacts={},
+                        error=str(result),
+                        execution_time_ms=None,
+                        modal_call_id=None,
+                    )
+                )
+            else:
+                # Download artifacts if requested and determine storage location
+                if self.download_artifacts and result["status"] == "completed":
+                    output_dir = self.local_output_dir / "runs" / run_id
+                    self._download_run_artifacts(run_id, output_dir, result["artifacts"])
+                    storage_type = "local"
+                    storage_base = str(output_dir.resolve())
+                else:
+                    storage_type = result["storage_type"]
+                    storage_base = result["storage_base"]
+
+                results.append(
+                    ExecutionResult(
+                        run_id=result["run_id"],
+                        status=(
+                            RunStatus.COMPLETED
+                            if result["status"] == "completed"
+                            else RunStatus.FAILED
+                        ),
+                        storage_type=storage_type,
+                        storage_base=storage_base,
+                        artifacts=result["artifacts"],
+                        error=result.get("error"),
+                        execution_time_ms=result.get("execution_time_ms"),
+                        modal_call_id=result.get("modal_call_id"),
+                    )
+                )
 
             completed += 1
             if progress_callback:
                 progress_callback(completed, total)
 
-        return results  # type: ignore
+        return results
 
     def _options_to_dict(self, options: RunOptions) -> Dict[str, Any]:
         """Convert RunOptions to serializable dict."""
@@ -56090,6 +56619,11 @@ def sweep_comparison(
 )
 @click.option('--cloud', is_flag=True, help='Run simulations on Modal cloud')
 @click.option('--job-id', type=str, default=None, help='Job ID (auto-generated if not provided)')
+@click.option(
+    '--quiet/--verbose',
+    default=True,
+    help='Suppress verbose console output during sweeps (default: quiet)',
+)
 def sweep_balanced(
     out_dir: Path,
     n_agents: int,
@@ -56106,6 +56640,7 @@ def sweep_balanced(
     detailed_logging: bool,
     cloud: bool,
     job_id: Optional[str],
+    quiet: bool,
 ) -> None:
     """
     Run balanced C vs D comparison experiments.
@@ -56189,6 +56724,7 @@ def sweep_balanced(
         big_entity_share=big_entity_share,
         default_handling=default_handling,
         detailed_logging=detailed_logging,
+        quiet=quiet,  # Plan 030
     )
 
     runner = BalancedComparisonRunner(config, out_dir, executor=executor)
@@ -56446,18 +56982,22 @@ def show_day_summary_renderable(
     t_account: bool = False
 ) -> List[RenderableType]:
     """Return renderables for a simulation day summary.
-    
+
     Args:
         system: System instance
         agent_ids: Agent IDs to show balances for
-        event_mode: "summary" or "detailed"
+        event_mode: "summary", "detailed", "table", or "none"
         day: Day number to display events for (None for all)
-        
+
     Returns:
-        List of renderables
+        List of renderables (empty list if event_mode="none")
     """
+    # Plan 030: "none" mode suppresses all output for sweep performance
+    if event_mode == "none":
+        return []
+
     renderables = []
-    
+
     # Show events
     if day is not None:
         # Show events for specific day
@@ -58134,17 +58674,21 @@ def run_scenario(
     if not export.get('events_jsonl') and config.run.export.events_jsonl:
         export['events_jsonl'] = config.run.export.events_jsonl
     
-    # Show scenario header with agent list
-    header_renderables = show_scenario_header_renderable(config.name, config.description, config.agents)
-    for renderable in header_renderables:
-        console.print(renderable)
-    console.print(f"[dim]Default handling mode: {effective_default_handling}[/dim]")
-    
-    # Show initial state
-    console.print("\n[bold cyan]📅 Day 0 (After Setup)[/bold cyan]")
-    renderables = show_day_summary_renderable(system, agent_ids, show, t_account=t_account)
-    for renderable in renderables:
-        console.print(renderable)
+    # Plan 030: Check for quiet mode (show="none") to suppress verbose output
+    quiet_mode = show == "none"
+
+    # Show scenario header with agent list (skip in quiet mode)
+    if not quiet_mode:
+        header_renderables = show_scenario_header_renderable(config.name, config.description, config.agents)
+        for renderable in header_renderables:
+            console.print(renderable)
+        console.print(f"[dim]Default handling mode: {effective_default_handling}[/dim]")
+
+        # Show initial state
+        console.print("\n[bold cyan]📅 Day 0 (After Setup)[/bold cyan]")
+        renderables = show_day_summary_renderable(system, agent_ids, show, t_account=t_account)
+        for renderable in renderables:
+            console.print(renderable)
     
     # Capture initial balance state for HTML export
     initial_balances: Dict[str, Any] = {}
@@ -58487,7 +59031,10 @@ def run_until_stable_mode(
     Returns:
         List of day data dictionaries
     """
-    console.print(f"\n[dim]Running simulation until stable (max {max_days} days)...[/dim]\n")
+    # Plan 030: Skip verbose output in quiet mode (show="none")
+    quiet_mode = show == "none"
+    if not quiet_mode:
+        console.print(f"\n[dim]Running simulation until stable (max {max_days} days)...[/dim]\n")
 
     try:
         # Run simulation day by day to capture correct balance snapshots
@@ -58531,21 +59078,27 @@ def run_until_stable_mode(
                     })
             if day_before >= 1:
                 # Display this day's results immediately (with correct balance state)
-                console.print(f"[bold cyan]📅 Day {day_before}[/bold cyan]")
-                
+                # Plan 030: Skip day headers in quiet mode
+                if not quiet_mode:
+                    console.print(f"[bold cyan]📅 Day {day_before}[/bold cyan]")
+
                 # Check invariants if requested
                 if check_invariants == "daily":
                     try:
                         system.assert_invariants()
                     except Exception as e:
-                        console.print(f"[yellow]⚠ Invariant check failed: {e}[/yellow]")
-                
+                        if not quiet_mode:
+                            console.print(f"[yellow]⚠ Invariant check failed: {e}[/yellow]")
+
                 # Show events and balances for this specific day
                 # Note: events are stored with 0-based day numbers
+                # Plan 030: show_day_summary_renderable returns [] for show="none"
+                # Always compute display_agent_ids (needed for HTML export even in quiet mode)
                 display_agent_ids = _filter_active_agent_ids(system, agent_ids) if agent_ids is not None else None
-                renderables = show_day_summary_renderable(system, display_agent_ids, show, day=day_before, t_account=t_account)
-                for renderable in renderables:
-                    console.print(renderable)
+                if not quiet_mode:
+                    renderables = show_day_summary_renderable(system, display_agent_ids, show, day=day_before, t_account=t_account)
+                    for renderable in renderables:
+                        console.print(renderable)
                 
                 # Collect day data for HTML export
                 # We want simulation events from the day that was just displayed
@@ -58592,16 +59145,17 @@ def run_until_stable_mode(
                     'agent_ids': active_agents_for_day if active_agents_for_day is not None else [],
                 })
                 
-                # Show activity summary
-                if report.impacted > 0:
-                    console.print(f"[dim]Activity: {report.impacted} impactful events[/dim]")
-                else:
-                    console.print("[dim]→ Quiet day (no activity)[/dim]")
-                
-                if report.notes:
-                    console.print(f"[dim]Note: {report.notes}[/dim]")
-                
-                console.print()
+                # Show activity summary (Plan 030: skip in quiet mode)
+                if not quiet_mode:
+                    if report.impacted > 0:
+                        console.print(f"[dim]Activity: {report.impacted} impactful events[/dim]")
+                    else:
+                        console.print("[dim]→ Quiet day (no activity)[/dim]")
+
+                    if report.notes:
+                        console.print(f"[dim]Note: {report.notes}[/dim]")
+
+                    console.print()
             
             # Check for stable state
             if impacted == 0:
