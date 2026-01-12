@@ -11,12 +11,16 @@ class CloudConfig:
 
     Attributes:
         volume_name: Name of the Modal Volume for storing results.
+            Note: This must match the volume name in modal_app.py (hardcoded as
+            "bilancio-results"). Changing this without also updating modal_app.py
+            will cause download failures.
         timeout_seconds: Maximum execution time per simulation.
         memory_mb: Memory allocation in MB.
         max_parallel: Maximum concurrent Modal function calls.
         gpu: Optional GPU type (e.g., "T4", "A10G", "A100").
     """
 
+    # Note: This must match the volume name hardcoded in modal_app.py
     volume_name: str = field(
         default_factory=lambda: os.getenv("BILANCIO_MODAL_VOLUME", "bilancio-results")
     )

@@ -44,7 +44,8 @@ class CloudExecutor:
             download_artifacts: Whether to download results to local disk after execution.
             local_output_dir: Where to download artifacts. Defaults to
                 out/experiments/{experiment_id}.
-            volume_name: Name of the Modal Volume for result storage.
+            volume_name: Name of the Modal Volume for result storage. Note: This must
+                match the volume name hardcoded in modal_app.py ("bilancio-results").
             job_id: Bilancio job ID for tracking (displayed in Modal logs).
         """
         self.experiment_id = experiment_id
@@ -176,10 +177,17 @@ class CloudExecutor:
         for idx, run_id, future in futures:
             result = future.get()  # Blocks until this specific run completes
 
-            # Download artifacts if requested
+            # Download artifacts if requested and determine storage location
             if self.download_artifacts and result["status"] == "completed":
                 output_dir = self.local_output_dir / "runs" / run_id
                 self._download_run_artifacts(run_id, output_dir, result["artifacts"])
+                # When downloading, the storage_base should be the local path
+                storage_type = "local"
+                storage_base = str(output_dir.resolve())
+            else:
+                # When not downloading, keep the modal_volume reference
+                storage_type = result["storage_type"]
+                storage_base = result["storage_base"]
 
             results[idx] = ExecutionResult(
                 run_id=result["run_id"],
@@ -188,8 +196,8 @@ class CloudExecutor:
                     if result["status"] == "completed"
                     else RunStatus.FAILED
                 ),
-                storage_type=result["storage_type"],
-                storage_base=result["storage_base"],
+                storage_type=storage_type,
+                storage_base=storage_base,
                 artifacts=result["artifacts"],
                 error=result.get("error"),
                 execution_time_ms=result.get("execution_time_ms"),
@@ -237,11 +245,7 @@ class CloudExecutor:
 
         for artifact_name, artifact_path in artifacts.items():
             remote_path = f"{remote_base}/{artifact_path}"
-
-            if artifact_path.startswith("out/"):
-                local_path = output_dir / artifact_path
-            else:
-                local_path = output_dir / artifact_path
+            local_path = output_dir / artifact_path
 
             # Ensure parent directory exists
             local_path.parent.mkdir(parents=True, exist_ok=True)
