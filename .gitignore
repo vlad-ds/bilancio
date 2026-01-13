@@ -164,16 +164,9 @@ data/
 *.json
 !examples/**/*.json
 !tests/**/*.json
-!out/experiments/**/aggregate/*.csv
-!out/experiments/**/aggregate/*.html
-!out/experiments/**/aggregate/*.json
-!out/experiments/**/aggregate/*.txt
 
-# Plan024 sweep - include run data but exclude HTML
-!out/experiments/plan024_sweep/
-!out/experiments/plan024_sweep/**
-out/experiments/plan024_sweep/**/*.html
-out/experiments/plan024_sweep/*.log
+# Experiment outputs
+out/experiments/
 
 # Temporary files
 *.tmp
@@ -181,10 +174,6 @@ out/experiments/plan024_sweep/*.log
 *.swp
 *~
 temp/
-out/experiments/*/runs/
-out/experiments/*/runs/**
-out/experiments/*/runs
-out/experiments/[0-9]*/
 
 # Project specific
 scratch/
