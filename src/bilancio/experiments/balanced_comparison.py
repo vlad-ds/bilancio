@@ -207,13 +207,21 @@ class BalancedComparisonRunner:
         self.config = config
         self.base_dir = out_dir
         self.executor: SimulationExecutor = executor or LocalExecutor()
+
+        # Cloud-only mode: skip local processing when using cloud executor
+        # Modal already saves runs to Supabase, so no need to duplicate
+        from bilancio.runners.cloud_executor import CloudExecutor
+        self.skip_local_processing = isinstance(executor, CloudExecutor)
+
         self.passive_dir = self.base_dir / "passive"
         self.active_dir = self.base_dir / "active"
         self.aggregate_dir = self.base_dir / "aggregate"
 
-        self.passive_dir.mkdir(parents=True, exist_ok=True)
-        self.active_dir.mkdir(parents=True, exist_ok=True)
-        self.aggregate_dir.mkdir(parents=True, exist_ok=True)
+        # Only create local directories if we're doing local processing
+        if not self.skip_local_processing:
+            self.passive_dir.mkdir(parents=True, exist_ok=True)
+            self.active_dir.mkdir(parents=True, exist_ok=True)
+            self.aggregate_dir.mkdir(parents=True, exist_ok=True)
 
         self.comparison_results: List[BalancedComparisonResult] = []
         self.comparison_path = self.aggregate_dir / "comparison.csv"
@@ -230,9 +238,9 @@ class BalancedComparisonRunner:
         # Job tracking
         self.job_id = job_id
 
-        # Supabase registry for persisting runs/metrics
+        # Supabase registry for persisting runs/metrics (only for local execution)
         self._supabase_store = None
-        if enable_supabase:
+        if enable_supabase and not self.skip_local_processing:
             try:
                 from bilancio.storage.supabase_client import is_supabase_configured
                 if is_supabase_configured():
@@ -246,7 +254,9 @@ class BalancedComparisonRunner:
         self._load_existing_results()
 
     def _load_existing_results(self) -> None:
-        """Load existing results from CSV for resumption."""
+        """Load existing results from CSV for resumption (skipped in cloud-only mode)."""
+        if self.skip_local_processing:
+            return  # Cloud-only mode: no local files to load
         if not self.comparison_path.exists():
             return
 
@@ -563,7 +573,10 @@ class BalancedComparisonRunner:
 
         total_time = time.time() - self._start_time
         print(f"\nSweep complete! {len(prepared_runs)} pairs in {self._format_time(total_time)}", flush=True)
-        print(f"Results at: {self.aggregate_dir}", flush=True)
+        if self.skip_local_processing:
+            print(f"Results saved to Supabase. Query with: bilancio jobs get {self.job_id} --cloud", flush=True)
+        else:
+            print(f"Results at: {self.aggregate_dir}", flush=True)
 
         return self.comparison_results
 
@@ -653,9 +666,12 @@ class BalancedComparisonRunner:
 
         total_time = time.time() - self._start_time
         print(f"\nSweep complete! {completed_this_run} pairs in {self._format_time(total_time)}", flush=True)
-        print(f"Results at: {self.aggregate_dir}", flush=True)
+        if self.skip_local_processing:
+            print(f"Results saved to Supabase. Query with: bilancio jobs get {self.job_id} --cloud", flush=True)
+        else:
+            print(f"Results at: {self.aggregate_dir}", flush=True)
 
-        logger.info("Balanced comparison sweep complete. Results at: %s", self.aggregate_dir)
+        logger.info("Balanced comparison sweep complete. Job ID: %s", self.job_id)
         return self.comparison_results
 
     def _make_progress_callback(self, run_type: str) -> Callable[[int, int], None]:
@@ -834,7 +850,9 @@ class BalancedComparisonRunner:
             logger.warning(f"Failed to persist run to Supabase: {e}")
 
     def _write_comparison_csv(self) -> None:
-        """Write comparison results to CSV."""
+        """Write comparison results to CSV (skipped in cloud-only mode)."""
+        if self.skip_local_processing:
+            return  # Cloud-only mode: no local files
         with self.comparison_path.open("w", newline="") as fh:
             writer = csv.DictWriter(fh, fieldnames=self.COMPARISON_FIELDS)
             writer.writeheader()
@@ -865,7 +883,9 @@ class BalancedComparisonRunner:
                 writer.writerow(row)
 
     def _write_summary_json(self) -> None:
-        """Write summary statistics to JSON."""
+        """Write summary statistics to JSON (skipped in cloud-only mode)."""
+        if self.skip_local_processing:
+            return  # Cloud-only mode: no local files
         completed = [r for r in self.comparison_results if r.trading_effect is not None]
 
         if completed:
