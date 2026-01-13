@@ -198,8 +198,7 @@ def sweep_ring(
     # Create job manager and job config
     manager: Optional[JobManager] = None
     try:
-        # Use create_job_manager to enable Supabase cloud storage
-        manager = create_job_manager(jobs_dir=out_dir, cloud=True, local=True)
+        manager = create_job_manager(jobs_dir=out_dir, cloud=cloud, local=True)
 
         grid_kappas = _as_decimal_list(kappas)
         grid_concentrations = _as_decimal_list(concentrations)
@@ -538,7 +537,7 @@ def sweep_balanced(
     # Create job manager with Supabase cloud storage
     manager: Optional[JobManager] = None
     try:
-        manager = create_job_manager(jobs_dir=out_dir, cloud=True, local=True)
+        manager = create_job_manager(jobs_dir=out_dir, cloud=cloud, local=True)
 
         # Create job config
         job_config = JobConfig(

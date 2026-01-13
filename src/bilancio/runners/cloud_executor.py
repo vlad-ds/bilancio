@@ -68,6 +68,8 @@ class CloudExecutor:
         which allows calling it from outside the Modal app context.
         """
         if self._run_simulation is None:
+            # Apply proxy patch for environments with HTTP CONNECT proxy (e.g., Claude Code web)
+            import bilancio.cloud.proxy_patch  # noqa: F401
             import modal
 
             self._run_simulation = modal.Function.from_name(
@@ -131,6 +133,7 @@ class CloudExecutor:
             error=result.get("error"),
             execution_time_ms=result.get("execution_time_ms"),
             modal_call_id=result.get("modal_call_id"),
+            metrics=result.get("metrics"),
         )
 
     def execute_batch(
@@ -201,6 +204,7 @@ class CloudExecutor:
                 error=result.get("error"),
                 execution_time_ms=result.get("execution_time_ms"),
                 modal_call_id=result.get("modal_call_id"),
+                metrics=result.get("metrics"),
             )
 
             completed += 1
@@ -211,7 +215,7 @@ class CloudExecutor:
 
     def _options_to_dict(self, options: RunOptions) -> Dict[str, Any]:
         """Convert RunOptions to serializable dict."""
-        return {
+        result = {
             "mode": options.mode,
             "max_days": options.max_days,
             "quiet_days": options.quiet_days,
@@ -222,6 +226,18 @@ class CloudExecutor:
             "detailed_dealer_logging": options.detailed_dealer_logging,
             "regime": options.regime or "",
         }
+        # Add run parameters for Supabase tracking
+        if options.kappa is not None:
+            result["kappa"] = options.kappa
+        if options.concentration is not None:
+            result["concentration"] = options.concentration
+        if options.mu is not None:
+            result["mu"] = options.mu
+        if options.outside_mid_ratio is not None:
+            result["outside_mid_ratio"] = options.outside_mid_ratio
+        if options.seed is not None:
+            result["seed"] = options.seed
+        return result
 
     def _download_run_artifacts(
         self,
@@ -269,3 +285,39 @@ class CloudExecutor:
                 print(
                     f"Warning: Failed to download {artifact_name}: {e.stderr.decode()}"
                 )
+
+    def compute_aggregate_metrics(self, run_ids: List[str]) -> Dict[str, Any]:
+        """Compute aggregate metrics for completed runs on Modal.
+
+        Calls the compute_aggregate_metrics Modal function to calculate
+        trading effects and summary statistics, and updates the job in Supabase.
+
+        Args:
+            run_ids: List of run IDs to include in aggregation.
+
+        Returns:
+            Dict with aggregate metrics and status.
+        """
+        # Apply proxy patch for environments with HTTP CONNECT proxy
+        import bilancio.cloud.proxy_patch  # noqa: F401
+        import modal
+
+        # Get reference to deployed function (same pattern as run_simulation)
+        modal_aggregate = modal.Function.from_name(self.app_name, "compute_aggregate_metrics")
+
+        print("Computing aggregate metrics on Modal...", flush=True)
+        result = modal_aggregate.remote(
+            job_id=self.job_id,
+            run_ids=run_ids,
+        )
+
+        if result.get("status") == "completed":
+            summary = result.get("summary", {})
+            print(f"Aggregate metrics computed:", flush=True)
+            print(f"  Comparisons: {summary.get('n_comparisons', 0)}", flush=True)
+            print(f"  Mean trading effect: {summary.get('mean_trading_effect', 'N/A'):.4f}"
+                  if summary.get('mean_trading_effect') is not None else "  Mean trading effect: N/A", flush=True)
+        else:
+            print(f"Warning: Aggregate metrics computation failed: {result.get('error')}", flush=True)
+
+        return result

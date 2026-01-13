@@ -50,6 +50,13 @@ class RunOptions:
     run_id: Optional[str] = None
     regime: Optional[str] = None
 
+    # Run parameters (for Supabase tracking in cloud execution)
+    kappa: Optional[float] = None
+    concentration: Optional[float] = None
+    mu: Optional[float] = None
+    outside_mid_ratio: Optional[float] = None
+    seed: Optional[int] = None
+
 
 @dataclass
 class ExecutionResult:
@@ -88,3 +95,6 @@ class ExecutionResult:
 
     # Cloud execution info
     modal_call_id: Optional[str] = None
+
+    # Computed metrics (from cloud execution)
+    metrics: Optional[Dict[str, any]] = None

@@ -550,6 +550,17 @@ class BalancedComparisonRunner:
         # Write final summary
         self._write_summary_json()
 
+        # Compute aggregate metrics on Modal (if using cloud executor)
+        if hasattr(self.executor, 'compute_aggregate_metrics'):
+            all_run_ids = []
+            for result in self.comparison_results:
+                if result.passive_run_id:
+                    all_run_ids.append(result.passive_run_id)
+                if result.active_run_id:
+                    all_run_ids.append(result.active_run_id)
+            if all_run_ids:
+                self.executor.compute_aggregate_metrics(all_run_ids)
+
         total_time = time.time() - self._start_time
         print(f"\nSweep complete! {len(prepared_runs)} pairs in {self._format_time(total_time)}", flush=True)
         print(f"Results at: {self.aggregate_dir}", flush=True)
