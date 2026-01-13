@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2026-01-13 07:40:56 UTC | Branch: main | Commit: 646c6c27
+Generated: 2026-01-13 08:02:33 UTC | Branch: main | Commit: 20ac5348
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -34121,6 +34121,23 @@ Complete git history from oldest to newest:
   Merge pull request #28 from vlad-ds/claude/slack-bilancio-sweep-analysis-ZLQdO
   Bilancio 10-Run Sweep & Analysis
 
+- **2363e6f2** (2026-01-13) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **20ac5348** (2026-01-13) by vladgheorghe
+  fix(cloud): skip local artifact processing for cloud-only execution
+  When using CloudExecutor, the system now automatically skips all local
+  processing since Modal already computes metrics and saves to Supabase.
+  Changes:
+  - Add skip_local_processing flag to RingSweepRunner and BalancedComparisonRunner
+  - _finalize_run() uses pre-computed metrics from Modal result
+  - Skip local directory creation, scenario.yaml writes, and registry updates
+  - Skip duplicate Supabase persistence (Modal already handles this)
+  - Update completion messages to show Supabase query command
+  This fixes issues in remote environments (Claude Code web) where artifact
+  downloads were failing unnecessarily.
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
 ---
 
 ## Source Code (src/bilancio)
@@ -50772,13 +50789,21 @@ class BalancedComparisonRunner:
         self.config = config
         self.base_dir = out_dir
         self.executor: SimulationExecutor = executor or LocalExecutor()
+
+        # Cloud-only mode: skip local processing when using cloud executor
+        # Modal already saves runs to Supabase, so no need to duplicate
+        from bilancio.runners.cloud_executor import CloudExecutor
+        self.skip_local_processing = isinstance(executor, CloudExecutor)
+
         self.passive_dir = self.base_dir / "passive"
         self.active_dir = self.base_dir / "active"
         self.aggregate_dir = self.base_dir / "aggregate"
 
-        self.passive_dir.mkdir(parents=True, exist_ok=True)
-        self.active_dir.mkdir(parents=True, exist_ok=True)
-        self.aggregate_dir.mkdir(parents=True, exist_ok=True)
+        # Only create local directories if we're doing local processing
+        if not self.skip_local_processing:
+            self.passive_dir.mkdir(parents=True, exist_ok=True)
+            self.active_dir.mkdir(parents=True, exist_ok=True)
+            self.aggregate_dir.mkdir(parents=True, exist_ok=True)
 
         self.comparison_results: List[BalancedComparisonResult] = []
         self.comparison_path = self.aggregate_dir / "comparison.csv"
@@ -50795,9 +50820,9 @@ class BalancedComparisonRunner:
         # Job tracking
         self.job_id = job_id
 
-        # Supabase registry for persisting runs/metrics
+        # Supabase registry for persisting runs/metrics (only for local execution)
         self._supabase_store = None
-        if enable_supabase:
+        if enable_supabase and not self.skip_local_processing:
             try:
                 from bilancio.storage.supabase_client import is_supabase_configured
                 if is_supabase_configured():
@@ -50811,7 +50836,9 @@ class BalancedComparisonRunner:
         self._load_existing_results()
 
     def _load_existing_results(self) -> None:
-        """Load existing results from CSV for resumption."""
+        """Load existing results from CSV for resumption (skipped in cloud-only mode)."""
+        if self.skip_local_processing:
+            return  # Cloud-only mode: no local files to load
         if not self.comparison_path.exists():
             return
 
@@ -51128,7 +51155,10 @@ class BalancedComparisonRunner:
 
         total_time = time.time() - self._start_time
         print(f"\nSweep complete! {len(prepared_runs)} pairs in {self._format_time(total_time)}", flush=True)
-        print(f"Results at: {self.aggregate_dir}", flush=True)
+        if self.skip_local_processing:
+            print(f"Results saved to Supabase. Query with: bilancio jobs get {self.job_id} --cloud", flush=True)
+        else:
+            print(f"Results at: {self.aggregate_dir}", flush=True)
 
         return self.comparison_results
 
@@ -51218,9 +51248,12 @@ class BalancedComparisonRunner:
 
         total_time = time.time() - self._start_time
         print(f"\nSweep complete! {completed_this_run} pairs in {self._format_time(total_time)}", flush=True)
-        print(f"Results at: {self.aggregate_dir}", flush=True)
+        if self.skip_local_processing:
+            print(f"Results saved to Supabase. Query with: bilancio jobs get {self.job_id} --cloud", flush=True)
+        else:
+            print(f"Results at: {self.aggregate_dir}", flush=True)
 
-        logger.info("Balanced comparison sweep complete. Results at: %s", self.aggregate_dir)
+        logger.info("Balanced comparison sweep complete. Job ID: %s", self.job_id)
         return self.comparison_results
 
     def _make_progress_callback(self, run_type: str) -> Callable[[int, int], None]:
@@ -51399,7 +51432,9 @@ class BalancedComparisonRunner:
             logger.warning(f"Failed to persist run to Supabase: {e}")
 
     def _write_comparison_csv(self) -> None:
-        """Write comparison results to CSV."""
+        """Write comparison results to CSV (skipped in cloud-only mode)."""
+        if self.skip_local_processing:
+            return  # Cloud-only mode: no local files
         with self.comparison_path.open("w", newline="") as fh:
             writer = csv.DictWriter(fh, fieldnames=self.COMPARISON_FIELDS)
             writer.writeheader()
@@ -51430,7 +51465,9 @@ class BalancedComparisonRunner:
                 writer.writerow(row)
 
     def _write_summary_json(self) -> None:
-        """Write summary statistics to JSON."""
+        """Write summary statistics to JSON (skipped in cloud-only mode)."""
+        if self.skip_local_processing:
+            return  # Cloud-only mode: no local files
         completed = [r for r in self.comparison_results if r.trading_effect is not None]
 
         if completed:
@@ -52383,14 +52420,21 @@ class RingSweepRunner:
         self.executor: SimulationExecutor = executor or LocalExecutor()
         self.experiment_id = ""  # Empty = use base_dir directly
 
-        self.registry_dir.mkdir(parents=True, exist_ok=True)
-        self.runs_dir.mkdir(parents=True, exist_ok=True)
-        self.aggregate_dir.mkdir(parents=True, exist_ok=True)
+        # Cloud-only mode: skip local processing when using cloud executor
+        # This avoids downloading artifacts just to recompute metrics locally
+        from bilancio.runners.cloud_executor import CloudExecutor
+        self.skip_local_processing = isinstance(executor, CloudExecutor)
 
-        # Initialize empty registry file if it doesn't exist (backward compatible)
-        registry_path = self.registry_dir / "experiments.csv"
-        if not registry_path.exists():
-            self._init_empty_registry(registry_path)
+        # Only create local directories if we're doing local processing
+        if not self.skip_local_processing:
+            self.registry_dir.mkdir(parents=True, exist_ok=True)
+            self.runs_dir.mkdir(parents=True, exist_ok=True)
+            self.aggregate_dir.mkdir(parents=True, exist_ok=True)
+
+            # Initialize empty registry file if it doesn't exist (backward compatible)
+            registry_path = self.registry_dir / "experiments.csv"
+            if not registry_path.exists():
+                self._init_empty_registry(registry_path)
 
     def _init_empty_registry(self, registry_path: Path) -> None:
         """Create an empty registry file with headers."""
@@ -52783,15 +52827,23 @@ class RingSweepRunner:
 
         Creates directories, builds scenario config, writes scenario.yaml.
         Returns PreparedRun that can be passed to execute_batch and then _finalize_run.
+
+        In cloud-only mode, skips local directory creation and file writes.
         """
         run_uuid = uuid.uuid4().hex[:12]
         run_id = f"{phase}_{label}_{run_uuid}" if label else f"{phase}_{run_uuid}"
-        run_dir = self.runs_dir / run_id
-        run_dir.mkdir(parents=True, exist_ok=True)
-        out_dir = run_dir / "out"
-        out_dir.mkdir(parents=True, exist_ok=True)
 
-        scenario_path = run_dir / "scenario.yaml"
+        # For cloud-only mode, use placeholder paths (won't be used)
+        if self.skip_local_processing:
+            run_dir = Path(f"/tmp/bilancio/{run_id}")  # Placeholder, never created
+            out_dir = run_dir / "out"
+            scenario_path = run_dir / "scenario.yaml"
+        else:
+            run_dir = self.runs_dir / run_id
+            run_dir.mkdir(parents=True, exist_ok=True)
+            out_dir = run_dir / "out"
+            out_dir.mkdir(parents=True, exist_ok=True)
+            scenario_path = run_dir / "scenario.yaml"
 
         base_params = {
             "phase": phase,
@@ -52807,13 +52859,14 @@ class RingSweepRunner:
             "dealer_enabled": self.dealer_enabled,
         }
 
-        # Initial "running" status
-        self._upsert_registry(
-            run_id=run_id,
-            phase=phase,
-            status=RunStatus.RUNNING,
-            parameters=base_params,
-        )
+        # Initial "running" status (skip for cloud-only mode)
+        if not self.skip_local_processing:
+            self._upsert_registry(
+                run_id=run_id,
+                phase=phase,
+                status=RunStatus.RUNNING,
+                parameters=base_params,
+            )
 
         generator_data = {
             "version": 1,
@@ -52875,9 +52928,10 @@ class RingSweepRunner:
             scenario_run = scenario.setdefault("run", {})
             scenario_run["default_handling"] = self.default_handling
 
-        # Write scenario.yaml
-        with scenario_path.open("w", encoding="utf-8") as fh:
-            yaml.safe_dump(_to_yaml_ready(scenario), fh, sort_keys=False, allow_unicode=False)
+        # Write scenario.yaml (skip for cloud-only mode)
+        if not self.skip_local_processing:
+            with scenario_path.open("w", encoding="utf-8") as fh:
+                yaml.safe_dump(_to_yaml_ready(scenario), fh, sort_keys=False, allow_unicode=False)
 
         S1 = Decimal("0")
         L0 = Decimal("0")
@@ -52934,33 +52988,57 @@ class RingSweepRunner:
     ) -> RingRunSummary:
         """Finalize a run after execution completes.
 
-        Computes metrics, updates registry, returns summary.
+        For cloud execution with pre-computed metrics, uses those directly
+        without downloading artifacts. For local execution, computes metrics
+        from artifacts and updates local registry.
         """
-        run_html_path = prepared.run_dir / "run.html"
-        balances_path = prepared.out_dir / "balances.csv"
-        events_path = prepared.out_dir / "events.jsonl"
-
         # Handle failure case
         if result.status == RunStatus.FAILED:
-            fail_params = {**prepared.base_params, "S1": str(prepared.S1), "L0": str(prepared.L0)}
-            self._upsert_registry(
-                run_id=prepared.run_id,
-                phase=prepared.phase,
-                status=RunStatus.FAILED,
-                parameters=fail_params,
-                artifact_paths={
-                    "scenario_yaml": self._rel_path(prepared.scenario_path),
-                    "run_html": self._rel_path(run_html_path),
-                },
-                error=result.error,
-            )
+            if not self.skip_local_processing:
+                run_html_path = prepared.run_dir / "run.html"
+                fail_params = {**prepared.base_params, "S1": str(prepared.S1), "L0": str(prepared.L0)}
+                self._upsert_registry(
+                    run_id=prepared.run_id,
+                    phase=prepared.phase,
+                    status=RunStatus.FAILED,
+                    parameters=fail_params,
+                    artifact_paths={
+                        "scenario_yaml": self._rel_path(prepared.scenario_path),
+                        "run_html": self._rel_path(run_html_path),
+                    },
+                    error=result.error,
+                )
             return RingRunSummary(
                 prepared.run_id, prepared.phase, prepared.kappa, prepared.concentration,
                 prepared.mu, prepared.monotonicity, None, None, 0,
                 modal_call_id=result.modal_call_id
             )
 
-        # Compute metrics
+        # Cloud-only path: use pre-computed metrics from Modal, skip local processing
+        if self.skip_local_processing and result.metrics:
+            delta_total = result.metrics.get("delta_total")
+            phi_total = result.metrics.get("phi_total")
+            time_to_stability = int(result.metrics.get("max_day") or 0)
+
+            # Convert to Decimal for consistency
+            if delta_total is not None:
+                delta_total = Decimal(str(delta_total))
+            if phi_total is not None:
+                phi_total = Decimal(str(phi_total))
+
+            return RingRunSummary(
+                prepared.run_id, prepared.phase, prepared.kappa, prepared.concentration,
+                prepared.mu, prepared.monotonicity,
+                delta_total, phi_total, time_to_stability,
+                dealer_metrics=None,  # Dealer metrics not available in cloud path
+                modal_call_id=result.modal_call_id
+            )
+
+        # Local path: load artifacts, compute metrics, update registry
+        run_html_path = prepared.run_dir / "run.html"
+        balances_path = prepared.out_dir / "balances.csv"
+        events_path = prepared.out_dir / "events.jsonl"
+
         artifacts: Dict[str, str] = {}
         if "events_jsonl" in result.artifacts:
             artifacts["events_jsonl"] = result.artifacts["events_jsonl"]
