@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2026-01-13 00:14:41 UTC | Branch: main | Commit: ac920a48
+Generated: 2026-01-13 07:38:10 UTC | Branch: main | Commit: 1447729f
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -34088,6 +34088,18 @@ Complete git history from oldest to newest:
 - **ac920a48** (2026-01-13) by vladgheorghe
   chore: ignore experiment outputs
 
+- **3b9e797e** (2026-01-13) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **1447729f** (2026-01-13) by vladgheorghe
+  fix(cloud): fail loudly when Supabase credentials missing
+  - Add SupabaseCredentialsError exception for missing credentials
+  - save_run_to_supabase now raises instead of silently returning False
+  - compute_aggregate_metrics also raises on missing credentials
+  - Add get_run_counts() to fetch actual run counts from runs table
+  - Fix jobs ls to show correct run counts instead of always 0
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
 ---
 
 ## Source Code (src/bilancio)
@@ -39124,6 +39136,12 @@ def compute_metrics_from_events(events_path: str) -> dict:
     }
 
 
+class SupabaseCredentialsError(Exception):
+    """Raised when Supabase credentials are missing or invalid."""
+
+    pass
+
+
 def save_run_to_supabase(
     run_id: str,
     job_id: str,
@@ -39149,7 +39167,10 @@ def save_run_to_supabase(
         error: Error message if failed.
 
     Returns:
-        True if save succeeded, False otherwise.
+        True if save succeeded.
+
+    Raises:
+        SupabaseCredentialsError: If Supabase credentials are not configured.
     """
     import os
     from datetime import datetime, timezone
@@ -39161,8 +39182,15 @@ def save_run_to_supabase(
         key = os.environ.get("BILANCIO_SUPABASE_ANON_KEY")
 
         if not url or not key:
-            print("Supabase credentials not configured, skipping save")
-            return False
+            # Log available env vars for debugging (without exposing values)
+            available_vars = [k for k in os.environ.keys() if "SUPABASE" in k.upper()]
+            raise SupabaseCredentialsError(
+                f"Supabase credentials not configured! "
+                f"Missing: {'BILANCIO_SUPABASE_URL' if not url else ''} "
+                f"{'BILANCIO_SUPABASE_ANON_KEY' if not key else ''}. "
+                f"Available SUPABASE env vars: {available_vars}. "
+                f"Ensure Modal secret 'supabase' has the correct keys."
+            )
 
         client = create_client(url, key)
         now = datetime.now(timezone.utc).isoformat()
@@ -39232,8 +39260,13 @@ def save_run_to_supabase(
 
         return True
 
+    except SupabaseCredentialsError:
+        # Re-raise credentials errors - these are configuration issues that must be fixed
+        raise
     except Exception as e:
-        print(f"Failed to save to Supabase: {e}")
+        # Log other errors but don't fail the run - Supabase save is secondary
+        print(f"WARNING: Failed to save to Supabase: {e}")
+        print(f"Run {run_id} completed but metrics not persisted to Supabase!")
         return False
 
 
@@ -39433,15 +39466,23 @@ def compute_aggregate_metrics(
     import os
     from collections import defaultdict
 
+    from supabase import create_client
+
+    url = os.environ.get("BILANCIO_SUPABASE_URL")
+    key = os.environ.get("BILANCIO_SUPABASE_ANON_KEY")
+
+    if not url or not key:
+        # Log available env vars for debugging (without exposing values)
+        available_vars = [k for k in os.environ.keys() if "SUPABASE" in k.upper()]
+        raise SupabaseCredentialsError(
+            f"Supabase credentials not configured for aggregate metrics! "
+            f"Missing: {'BILANCIO_SUPABASE_URL' if not url else ''} "
+            f"{'BILANCIO_SUPABASE_ANON_KEY' if not key else ''}. "
+            f"Available SUPABASE env vars: {available_vars}. "
+            f"Ensure Modal secret 'supabase' has the correct keys."
+        )
+
     try:
-        from supabase import create_client
-
-        url = os.environ.get("BILANCIO_SUPABASE_URL")
-        key = os.environ.get("BILANCIO_SUPABASE_ANON_KEY")
-
-        if not url or not key:
-            return {"status": "error", "error": "Supabase not configured"}
-
         client = create_client(url, key)
 
         # Fetch all runs with metrics for this job
@@ -54279,6 +54320,42 @@ class SupabaseJobStore:
             logger.warning(f"Failed to list jobs from Supabase: {e}")
             return []
 
+    def get_run_counts(self, job_ids: list[str]) -> dict[str, int]:
+        """Get run counts for multiple jobs.
+
+        Args:
+            job_ids: List of job IDs to count runs for.
+
+        Returns:
+            Dict mapping job_id to run count.
+        """
+        if self.client is None or not job_ids:
+            return {}
+
+        try:
+            # Query runs table and count by job_id
+            response = (
+                self.client.table("runs")
+                .select("job_id")
+                .in_("job_id", job_ids)
+                .execute()
+            )
+
+            if not response.data:
+                return {}
+
+            # Count runs per job
+            counts: dict[str, int] = {}
+            for row in response.data:
+                job_id = row["job_id"]
+                counts[job_id] = counts.get(job_id, 0) + 1
+
+            return counts
+
+        except Exception as e:
+            logger.warning(f"Failed to get run counts from Supabase: {e}")
+            return {}
+
     def update_status(
         self,
         job_id: str,
@@ -57823,13 +57900,26 @@ def list_jobs(
         click.echo("No jobs found.")
         return
 
+    # Get run counts from Supabase if available
+    run_counts: dict[str, int] = {}
+    if cloud or (not local):  # If using cloud or auto-detected Supabase
+        try:
+            from bilancio.jobs.supabase_store import SupabaseJobStore
+
+            store = SupabaseJobStore()
+            job_ids = [j.job_id for j in jobs_list]
+            run_counts = store.get_run_counts(job_ids)
+        except Exception:
+            pass  # Fall back to job.run_ids
+
     # Display jobs
     click.echo(f"{'JOB ID':<36} {'STATUS':<10} {'CREATED':<16} {'DURATION':<10} {'RUNS':<6}")
     click.echo("-" * 80)
 
     for job in jobs_list:
         duration = format_duration(job.created_at, job.completed_at)
-        runs = len(job.run_ids) if job.run_ids else 0
+        # Prefer run count from Supabase, fall back to job.run_ids
+        runs = run_counts.get(job.job_id, len(job.run_ids) if job.run_ids else 0)
         click.echo(
             f"{job.job_id:<36} {job.status.value:<10} "
             f"{format_datetime(job.created_at):<16} {duration:<10} {runs:<6}"
