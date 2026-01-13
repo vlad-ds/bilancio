@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2026-01-13 00:13:23 UTC | Branch: main | Commit: 586ae251
+Generated: 2026-01-13 00:14:41 UTC | Branch: main | Commit: ac920a48
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -34081,6 +34081,12 @@ Complete git history from oldest to newest:
 - **586ae251** (2026-01-13) by Vlad Gheorghe
   Merge pull request #27 from vlad-ds/claude/slack-analyze-bilancio-sweep-zrC3y
   Bilancio Sweep Analysis Pipeline
+
+- **ad47e3a2** (2026-01-13) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **ac920a48** (2026-01-13) by vladgheorghe
+  chore: ignore experiment outputs
 
 ---
 
