@@ -63,8 +63,57 @@
 - **Verify visual output**: Read the generated HTML file to ensure events, tables, and formatting display correctly
 - **Test with real scenarios**: Use actual scenario files to test rendering changes, not just unit tests
 
+## Claude Code Web Environment
+
+When running in Claude Code web (claude.ai/code), the VM uses a TLS-inspecting proxy that requires special configuration for external services.
+
+### Connectivity Status
+
+Both Modal and Supabase are configured to work automatically:
+
+- **Supabase**: The `bilancio.storage.supabase_client` module automatically configures httpx with the proxy CA certificate
+- **Modal Python SDK**: The `bilancio.cloud.proxy_patch` module patches grpclib for proxy compatibility
+- **Modal CLI**: Use the wrapper script `scripts/modal_wrapper.py` instead of `modal` directly
+
+### Using Modal CLI in Claude Code Web
+
+The standard `modal` CLI doesn't work through the proxy. Use the wrapper:
+
+```bash
+# Instead of: uv run modal app list
+uv run python scripts/modal_wrapper.py app list
+
+# Instead of: uv run modal volume ls bilancio-results
+uv run python scripts/modal_wrapper.py volume ls bilancio-results
+
+# Instead of: uv run modal deploy src/bilancio/cloud/modal_app.py
+uv run python scripts/modal_wrapper.py deploy src/bilancio/cloud/modal_app.py
+```
+
+### Testing Connectivity
+
+Verify services are accessible:
+
+```bash
+# Test Supabase
+uv run bilancio jobs ls --cloud
+
+# Test Modal (via wrapper)
+uv run python scripts/modal_wrapper.py app list
+```
+
+### Troubleshooting
+
+If you see SSL/TLS errors like `CERTIFICATE_VERIFY_FAILED`:
+1. The proxy CA certificate should be at `/usr/local/share/ca-certificates/swp-ca-production.crt`
+2. For Supabase: The fix is built into `bilancio.storage.supabase_client`
+3. For Modal CLI: Always use `scripts/modal_wrapper.py`
+4. For Modal Python SDK: Import `bilancio.cloud.proxy_patch` before `modal`
+
+---
+
 ## Modal Cloud Execution
-Cloud simulations run on Modal. Always use `uv run modal` to access the CLI.
+Cloud simulations run on Modal. Always use `uv run modal` to access the CLI (or the wrapper in Claude Code web).
 
 ### Authentication
 To authenticate Modal with browser login: `uv run modal token new --profile <workspace-name>`
