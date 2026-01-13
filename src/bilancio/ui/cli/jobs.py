@@ -118,13 +118,26 @@ def list_jobs(
         click.echo("No jobs found.")
         return
 
+    # Get run counts from Supabase if available
+    run_counts: dict[str, int] = {}
+    if cloud or (not local):  # If using cloud or auto-detected Supabase
+        try:
+            from bilancio.jobs.supabase_store import SupabaseJobStore
+
+            store = SupabaseJobStore()
+            job_ids = [j.job_id for j in jobs_list]
+            run_counts = store.get_run_counts(job_ids)
+        except Exception:
+            pass  # Fall back to job.run_ids
+
     # Display jobs
     click.echo(f"{'JOB ID':<36} {'STATUS':<10} {'CREATED':<16} {'DURATION':<10} {'RUNS':<6}")
     click.echo("-" * 80)
 
     for job in jobs_list:
         duration = format_duration(job.created_at, job.completed_at)
-        runs = len(job.run_ids) if job.run_ids else 0
+        # Prefer run count from Supabase, fall back to job.run_ids
+        runs = run_counts.get(job.job_id, len(job.run_ids) if job.run_ids else 0)
         click.echo(
             f"{job.job_id:<36} {job.status.value:<10} "
             f"{format_datetime(job.created_at):<16} {duration:<10} {runs:<6}"

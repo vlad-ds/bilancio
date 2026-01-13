@@ -114,6 +114,12 @@ def compute_metrics_from_events(events_path: str) -> dict:
     }
 
 
+class SupabaseCredentialsError(Exception):
+    """Raised when Supabase credentials are missing or invalid."""
+
+    pass
+
+
 def save_run_to_supabase(
     run_id: str,
     job_id: str,
@@ -139,7 +145,10 @@ def save_run_to_supabase(
         error: Error message if failed.
 
     Returns:
-        True if save succeeded, False otherwise.
+        True if save succeeded.
+
+    Raises:
+        SupabaseCredentialsError: If Supabase credentials are not configured.
     """
     import os
     from datetime import datetime, timezone
@@ -151,8 +160,15 @@ def save_run_to_supabase(
         key = os.environ.get("BILANCIO_SUPABASE_ANON_KEY")
 
         if not url or not key:
-            print("Supabase credentials not configured, skipping save")
-            return False
+            # Log available env vars for debugging (without exposing values)
+            available_vars = [k for k in os.environ.keys() if "SUPABASE" in k.upper()]
+            raise SupabaseCredentialsError(
+                f"Supabase credentials not configured! "
+                f"Missing: {'BILANCIO_SUPABASE_URL' if not url else ''} "
+                f"{'BILANCIO_SUPABASE_ANON_KEY' if not key else ''}. "
+                f"Available SUPABASE env vars: {available_vars}. "
+                f"Ensure Modal secret 'supabase' has the correct keys."
+            )
 
         client = create_client(url, key)
         now = datetime.now(timezone.utc).isoformat()
@@ -222,8 +238,13 @@ def save_run_to_supabase(
 
         return True
 
+    except SupabaseCredentialsError:
+        # Re-raise credentials errors - these are configuration issues that must be fixed
+        raise
     except Exception as e:
-        print(f"Failed to save to Supabase: {e}")
+        # Log other errors but don't fail the run - Supabase save is secondary
+        print(f"WARNING: Failed to save to Supabase: {e}")
+        print(f"Run {run_id} completed but metrics not persisted to Supabase!")
         return False
 
 
@@ -423,15 +444,23 @@ def compute_aggregate_metrics(
     import os
     from collections import defaultdict
 
+    from supabase import create_client
+
+    url = os.environ.get("BILANCIO_SUPABASE_URL")
+    key = os.environ.get("BILANCIO_SUPABASE_ANON_KEY")
+
+    if not url or not key:
+        # Log available env vars for debugging (without exposing values)
+        available_vars = [k for k in os.environ.keys() if "SUPABASE" in k.upper()]
+        raise SupabaseCredentialsError(
+            f"Supabase credentials not configured for aggregate metrics! "
+            f"Missing: {'BILANCIO_SUPABASE_URL' if not url else ''} "
+            f"{'BILANCIO_SUPABASE_ANON_KEY' if not key else ''}. "
+            f"Available SUPABASE env vars: {available_vars}. "
+            f"Ensure Modal secret 'supabase' has the correct keys."
+        )
+
     try:
-        from supabase import create_client
-
-        url = os.environ.get("BILANCIO_SUPABASE_URL")
-        key = os.environ.get("BILANCIO_SUPABASE_ANON_KEY")
-
-        if not url or not key:
-            return {"status": "error", "error": "Supabase not configured"}
-
         client = create_client(url, key)
 
         # Fetch all runs with metrics for this job

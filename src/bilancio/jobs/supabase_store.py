@@ -210,6 +210,42 @@ class SupabaseJobStore:
             logger.warning(f"Failed to list jobs from Supabase: {e}")
             return []
 
+    def get_run_counts(self, job_ids: list[str]) -> dict[str, int]:
+        """Get run counts for multiple jobs.
+
+        Args:
+            job_ids: List of job IDs to count runs for.
+
+        Returns:
+            Dict mapping job_id to run count.
+        """
+        if self.client is None or not job_ids:
+            return {}
+
+        try:
+            # Query runs table and count by job_id
+            response = (
+                self.client.table("runs")
+                .select("job_id")
+                .in_("job_id", job_ids)
+                .execute()
+            )
+
+            if not response.data:
+                return {}
+
+            # Count runs per job
+            counts: dict[str, int] = {}
+            for row in response.data:
+                job_id = row["job_id"]
+                counts[job_id] = counts.get(job_id, 0) + 1
+
+            return counts
+
+        except Exception as e:
+            logger.warning(f"Failed to get run counts from Supabase: {e}")
+            return {}
+
     def update_status(
         self,
         job_id: str,
