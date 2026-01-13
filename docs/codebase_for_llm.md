@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2026-01-13 07:38:10 UTC | Branch: main | Commit: 1447729f
+Generated: 2026-01-13 07:40:56 UTC | Branch: main | Commit: 646c6c27
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -31700,6 +31700,7 @@ This document contains the complete codebase structure and content for LLM inges
 ├── pyproject.toml
 ├── scripts
 │   ├── generate_codebase_markdown.py
+│   ├── modal_wrapper.py
 │   └── run_plan024_sweep.py
 ├── src
 │   └── bilancio
@@ -31924,7 +31925,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-6864 directories, 25050 files
+6864 directories, 25051 files
 
 ```
 
@@ -34099,6 +34100,26 @@ Complete git history from oldest to newest:
   - Add get_run_counts() to fetch actual run counts from runs table
   - Fix jobs ls to show correct run counts instead of always 0
   Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **bec1a44e** (2026-01-13) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **83bd77f8** (2026-01-13) by Claude
+  fix(cloud): add TLS proxy support for Claude Code web environment
+  - Add proxy-aware httpx client to Supabase client for TLS-inspecting proxies
+  - Add Modal CLI wrapper script that applies grpclib proxy patch
+  - Document Claude Code web connectivity in CLAUDE.md
+  The Claude Code web VMs use a TLS-inspecting proxy that requires custom
+  CA certificate configuration. This change:
+  1. supabase_client.py: Automatically detects proxy environment and
+     configures httpx with the custom CA certificate
+  2. scripts/modal_wrapper.py: Wraps Modal CLI to apply the existing
+     proxy_patch before running commands
+  3. CLAUDE.md: Documents how to use Modal and Supabase in this environment
+
+- **646c6c27** (2026-01-13) by Vlad Gheorghe
+  Merge pull request #28 from vlad-ds/claude/slack-bilancio-sweep-analysis-ZLQdO
+  Bilancio 10-Run Sweep & Analysis
 
 ---
 
@@ -57208,15 +57229,24 @@ results and job metadata to the Supabase database.
 Environment variables required:
     BILANCIO_SUPABASE_URL: The Supabase project URL
     BILANCIO_SUPABASE_ANON_KEY: The Supabase anonymous/public key
+
+Note: In environments with TLS-inspecting proxies (like Claude Code web),
+this module automatically configures the httpx client with the custom CA
+certificate to allow connections through the proxy.
 """
 
 from __future__ import annotations
 
 import os
+import ssl
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from supabase import Client
+
+# Custom CA certificate path for TLS inspection proxy
+PROXY_CA_CERT = Path("/usr/local/share/ca-certificates/swp-ca-production.crt")
 
 # Module-level singleton for client reuse
 _supabase_client: Client | None = None
@@ -57240,12 +57270,47 @@ def is_supabase_configured() -> bool:
     return bool(url and key)
 
 
+def _create_proxy_aware_httpx_client():
+    """Create an httpx client configured for TLS-inspecting proxies.
+
+    If a custom CA certificate exists (for environments like Claude Code web
+    that use TLS inspection), creates an httpx client with the custom CA.
+    Otherwise returns None to use the default client.
+
+    Returns:
+        httpx.Client configured with custom CA, or None for default behavior.
+    """
+    if not PROXY_CA_CERT.exists():
+        return None
+
+    # Check if we're going through a proxy
+    proxy_url = os.environ.get("https_proxy") or os.environ.get("HTTPS_PROXY")
+    if not proxy_url:
+        return None
+
+    import httpx
+
+    # Create SSL context with the proxy's CA certificate
+    ssl_context = ssl.create_default_context()
+    ssl_context.load_verify_locations(str(PROXY_CA_CERT))
+
+    # Create httpx client with custom SSL and proxy support
+    return httpx.Client(
+        verify=ssl_context,
+        proxy=proxy_url,
+        timeout=httpx.Timeout(120.0),
+    )
+
+
 def get_supabase_client() -> Client:
     """Get a configured Supabase client instance.
 
     This function implements a singleton pattern - the client is created
     once and reused for subsequent calls. This is efficient for connection
     pooling and reduces overhead.
+
+    In environments with TLS-inspecting proxies (like Claude Code web),
+    automatically configures the httpx client with the custom CA certificate.
 
     Returns:
         A configured Supabase Client instance.
@@ -57280,8 +57345,17 @@ def get_supabase_client() -> Client:
         )
 
     from supabase import create_client
+    from supabase.lib.client_options import SyncClientOptions
 
-    _supabase_client = create_client(url, key)
+    # Create proxy-aware httpx client if in a TLS-inspecting environment
+    httpx_client = _create_proxy_aware_httpx_client()
+
+    if httpx_client:
+        options = SyncClientOptions(httpx_client=httpx_client)
+        _supabase_client = create_client(url, key, options=options)
+    else:
+        _supabase_client = create_client(url, key)
+
     return _supabase_client
 
 
