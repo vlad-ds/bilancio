@@ -490,6 +490,23 @@ def sweep_comparison(
     default=True,
     help='Suppress verbose console output during sweeps (default: quiet)',
 )
+@click.option(
+    '--risk-assessment/--no-risk-assessment',
+    default=True,
+    help='Enable risk-based trader decision making (default: enabled)',
+)
+@click.option(
+    '--risk-premium',
+    type=Decimal,
+    default=Decimal("0.02"),
+    help='Base risk premium for trading decisions (default: 0.02)',
+)
+@click.option(
+    '--risk-urgency',
+    type=Decimal,
+    default=Decimal("0.10"),
+    help='Urgency sensitivity (default: 0.10)',
+)
 def sweep_balanced(
     out_dir: Path,
     n_agents: int,
@@ -507,6 +524,9 @@ def sweep_balanced(
     cloud: bool,
     job_id: Optional[str],
     quiet: bool,
+    risk_assessment: bool,
+    risk_premium: Decimal,
+    risk_urgency: Decimal,
 ) -> None:
     """
     Run balanced C vs D comparison experiments.
@@ -577,6 +597,17 @@ def sweep_balanced(
         )
         click.echo(f"Cloud execution enabled")
 
+    if risk_assessment:
+        click.echo(f"Risk assessment enabled (premium={risk_premium}, urgency={risk_urgency})")
+
+    # Build risk assessment config if enabled
+    risk_config = {
+        "base_risk_premium": str(risk_premium),
+        "urgency_sensitivity": str(risk_urgency),
+        "buy_premium_multiplier": "2.0",
+        "lookback_window": 5,
+    }
+
     config = BalancedComparisonConfig(
         n_agents=n_agents,
         maturity_days=maturity_days,
@@ -591,6 +622,8 @@ def sweep_balanced(
         default_handling=default_handling,
         detailed_logging=detailed_logging,
         quiet=quiet,  # Plan 030
+        risk_assessment_enabled=risk_assessment,
+        risk_assessment_config=risk_config,
     )
 
     runner = BalancedComparisonRunner(config, out_dir, executor=executor, job_id=job_id)

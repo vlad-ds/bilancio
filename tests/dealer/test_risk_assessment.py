@@ -77,7 +77,8 @@ def test_expected_value_low_default_prob():
 
 def test_should_sell_accept_good_price():
     """Trader should accept dealer bid above expected value + threshold."""
-    params = RiskAssessmentParams(base_risk_premium=Decimal("0.02"))
+    # Use lookback_window=25 to include all 20 events in calculation
+    params = RiskAssessmentParams(base_risk_premium=Decimal("0.02"), lookback_window=25)
     assessor = RiskAssessor(params)
 
     # Low default rate: 1 default, 19 successes
@@ -96,7 +97,8 @@ def test_should_sell_accept_good_price():
         serial=1,
     )
 
-    # P(default) ≈ 0.0909, EV ≈ 18.18
+    # With lookback_window=25, all 20 events are considered
+    # P(default) = (1 + 1) / (2 + 20) = 2/22 ≈ 0.0909, EV = 0.9091 * 20 ≈ 18.18
     # With 2% threshold: need 18.18 + 0.02*20 = 18.58
 
     # Test 1: Bid of 1.0 (= 20 total) should be accepted
@@ -124,8 +126,9 @@ def test_should_sell_accept_good_price():
 
 def test_should_sell_urgency_lowers_threshold():
     """Liquidity urgency should lower acceptance threshold."""
+    # Use lookback_window=25 to include all 20 events in calculation
     params = RiskAssessmentParams(
-        base_risk_premium=Decimal("0.02"), urgency_sensitivity=Decimal("0.10")
+        base_risk_premium=Decimal("0.02"), urgency_sensitivity=Decimal("0.10"), lookback_window=25
     )
     assessor = RiskAssessor(params)
 
@@ -215,8 +218,9 @@ def test_should_sell_high_default_rate():
 
 def test_should_buy_requires_higher_premium():
     """Buying should require higher premium than selling."""
+    # Use lookback_window=25 to include all 20 events in calculation
     params = RiskAssessmentParams(
-        base_risk_premium=Decimal("0.02"), buy_premium_multiplier=Decimal("2.0")
+        base_risk_premium=Decimal("0.02"), buy_premium_multiplier=Decimal("2.0"), lookback_window=25
     )
     assessor = RiskAssessor(params)
 

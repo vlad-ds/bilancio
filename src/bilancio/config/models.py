@@ -427,6 +427,45 @@ class DealerTraderPolicyConfig(BaseModel):
         return v
 
 
+class RiskAssessmentConfig(BaseModel):
+    """Configuration for trader risk assessment in dealer subsystem."""
+    enabled: bool = Field(True, description="Whether risk assessment is active for trader decisions")
+    lookback_window: int = Field(5, description="Days of history to consider for default probability")
+    smoothing_alpha: Decimal = Field(Decimal("1.0"), description="Laplace smoothing parameter")
+    base_risk_premium: Decimal = Field(Decimal("0.02"), description="Base risk premium (threshold for trading)")
+    urgency_sensitivity: Decimal = Field(Decimal("0.10"), description="How much liquidity urgency reduces threshold")
+    use_issuer_specific: bool = Field(False, description="Use per-issuer vs system-wide default rates")
+    buy_premium_multiplier: Decimal = Field(Decimal("2.0"), description="Multiplier for buy threshold (buyers more cautious)")
+
+    @field_validator("lookback_window")
+    @classmethod
+    def lookback_positive(cls, v):
+        if v < 1:
+            raise ValueError("lookback_window must be positive")
+        return v
+
+    @field_validator("smoothing_alpha")
+    @classmethod
+    def smoothing_positive(cls, v):
+        if v <= 0:
+            raise ValueError("smoothing_alpha must be positive")
+        return v
+
+    @field_validator("base_risk_premium", "urgency_sensitivity")
+    @classmethod
+    def premium_valid(cls, v):
+        if v < 0:
+            raise ValueError("Premium values cannot be negative")
+        return v
+
+    @field_validator("buy_premium_multiplier")
+    @classmethod
+    def multiplier_positive(cls, v):
+        if v <= 0:
+            raise ValueError("buy_premium_multiplier must be positive")
+        return v
+
+
 class DealerConfig(BaseModel):
     """Configuration for dealer subsystem."""
     enabled: bool = Field(False, description="Whether dealer subsystem is active")
@@ -444,6 +483,10 @@ class DealerConfig(BaseModel):
     trader_policy: DealerTraderPolicyConfig = Field(
         default_factory=DealerTraderPolicyConfig,
         description="Trader policy configuration"
+    )
+    risk_assessment: RiskAssessmentConfig = Field(
+        default_factory=RiskAssessmentConfig,
+        description="Risk assessment configuration for trader decisions"
     )
 
     @field_validator("ticket_size")

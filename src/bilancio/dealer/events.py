@@ -124,6 +124,78 @@ class EventLog:
             is_passthrough=is_passthrough,
         )
 
+    def log_sell_rejected(
+        self,
+        day: int,
+        trader_id: str,
+        ticket_id: str,
+        bucket: str,
+        offered_price: Decimal,
+        expected_value: Decimal,
+        threshold: Decimal,
+        reason: str,
+    ) -> None:
+        """
+        Log a rejected SELL trade (trader rejected dealer bid).
+
+        Args:
+            day: Simulation day
+            trader_id: Agent ID of the trader
+            ticket_id: ID of the ticket that was not sold
+            bucket: Maturity bucket
+            offered_price: Dealer's bid price
+            expected_value: Expected value of holding ticket
+            threshold: Risk premium threshold
+            reason: Rejection reason (e.g., "price_below_ev_plus_threshold")
+        """
+        self.log(
+            "sell_rejected",
+            day,
+            trader_id=trader_id,
+            ticket_id=ticket_id,
+            bucket=bucket,
+            offered_price=offered_price,
+            expected_value=expected_value,
+            threshold=threshold,
+            reason=reason,
+        )
+
+    def log_buy_rejected(
+        self,
+        day: int,
+        trader_id: str,
+        ticket_id: str,
+        bucket: str,
+        offered_price: Decimal,
+        expected_value: Decimal,
+        threshold: Decimal,
+        reason: str,
+    ) -> None:
+        """
+        Log a rejected BUY trade (trader rejected dealer ask).
+
+        Args:
+            day: Simulation day
+            trader_id: Agent ID of the trader
+            ticket_id: ID of the ticket that was not bought
+            bucket: Maturity bucket
+            offered_price: Dealer's ask price
+            expected_value: Expected value of the ticket
+            threshold: Risk premium threshold
+            reason: Rejection reason (e.g., "ev_below_price_plus_threshold")
+        """
+        self.log(
+            "buy_rejected",
+            day,
+            trader_id=trader_id,
+            ticket_id=ticket_id,
+            bucket=bucket,
+            offered_price=offered_price,
+            expected_value=expected_value,
+            threshold=threshold,
+            reason=reason,
+        )
+
     def log_quote(
         self,
         day: int,
