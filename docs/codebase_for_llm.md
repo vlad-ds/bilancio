@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2025-12-11 22:37:39 UTC | Branch: main | Commit: c47e85a7
+Generated: 2026-01-13 08:02:33 UTC | Branch: main | Commit: 20ac5348
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -10,6 +10,7 @@ This document contains the complete codebase structure and content for LLM inges
 
 ```
 /home/runner/work/bilancio/bilancio
+├── .env.example
 ├── .github
 │   └── workflows
 │       ├── claude-code-review.yml
@@ -19,7 +20,6 @@ This document contains the complete codebase structure and content for LLM inges
 ├── AGENTS.md
 ├── CLAUDE.md
 ├── README.md
-├── TODO.md
 ├── dashboards
 │   ├── expel_ring_analysis_dashboard
 │   │   ├── README.md
@@ -2303,6 +2303,8 @@ This document contains the complete codebase structure and content for LLM inges
 │   ├── SP239 Kalecki on Credit and Debt extended.pdf
 │   ├── analysis
 │   │   └── 016_dealer_comparison_analysis.md
+│   ├── archive
+│   │   └── TODO_2025.md
 │   ├── codebase_for_llm.md
 │   ├── dealer_ring
 │   │   ├── Instructions_for_simulation.pdf
@@ -2349,10 +2351,19 @@ This document contains the complete codebase structure and content for LLM inges
 │   │   ├── 022_enhanced_instrumentation.md
 │   │   ├── 023_default_aware_instrumentation.md
 │   │   ├── 024_dealer_simulation_redesign.md
-│   │   └── Kalecki_debt_simulation (1).pdf
+│   │   ├── 029_job_system.md
+│   │   ├── 031_cloud_storage.md
+│   │   ├── Kalecki_debt_simulation (1).pdf
+│   │   └── deploy_cloud_metrics.md
 │   ├── prompts
 │   │   ├── 015_expel_sweep_agent_prompt.md
 │   │   └── scenario_translator_agent.md
+│   ├── refactor_2026
+│   │   ├── 025_phase1_cleanup.md
+│   │   ├── 026_phase4_abstractions.md
+│   │   ├── 027_executor_separation.md
+│   │   ├── 028_cloud_executor.md
+│   │   └── codebase_analysis.md
 │   └── version_1_0_exercises.pdf
 ├── examples
 │   ├── dealer_ring
@@ -2430,6 +2441,7 @@ This document contains the complete codebase structure and content for LLM inges
 │       ├── balance_sheet_display.ipynb
 │       └── pdf_example_with_firms.ipynb
 ├── out
+│   ├── events.jsonl
 │   ├── experiments
 │   │   ├── 20250925_163435_ring
 │   │   │   ├── aggregate
@@ -31688,6 +31700,7 @@ This document contains the complete codebase structure and content for LLM inges
 ├── pyproject.toml
 ├── scripts
 │   ├── generate_codebase_markdown.py
+│   ├── modal_wrapper.py
 │   └── run_plan024_sweep.py
 ├── src
 │   └── bilancio
@@ -31698,10 +31711,21 @@ This document contains the complete codebase structure and content for LLM inges
 │       │   ├── dealer_usage_summary.py
 │       │   ├── loaders.py
 │       │   ├── metrics.py
+│       │   ├── metrics_computer.py
 │       │   ├── report.py
 │       │   ├── strategy_outcomes.py
-│       │   ├── visualization.py
+│       │   ├── visualization
+│       │   │   ├── __init__.py
+│       │   │   ├── balances.py
+│       │   │   ├── common.py
+│       │   │   ├── events.py
+│       │   │   └── phases.py
 │       │   └── visualization_phases.py
+│       ├── cloud
+│       │   ├── __init__.py
+│       │   ├── config.py
+│       │   ├── modal_app.py
+│       │   └── proxy_patch.py
 │       ├── config
 │       │   ├── __init__.py
 │       │   ├── apply.py
@@ -31760,14 +31784,21 @@ This document contains the complete codebase structure and content for LLM inges
 │       │   ├── __init__.py
 │       │   ├── balanced_comparison.py
 │       │   ├── comparison.py
-│       │   └── ring.py
+│       │   ├── ring.py
+│       │   └── sampling
+│       │       ├── __init__.py
+│       │       ├── frontier.py
+│       │       ├── grid.py
+│       │       └── lhs.py
 │       ├── export
 │       │   ├── __init__.py
 │       │   └── writers.py
-│       ├── io
+│       ├── jobs
 │       │   ├── __init__.py
-│       │   ├── readers.py
-│       │   └── writers.py
+│       │   ├── job_id.py
+│       │   ├── manager.py
+│       │   ├── models.py
+│       │   └── supabase_store.py
 │       ├── ops
 │       │   ├── __init__.py
 │       │   ├── aliases.py
@@ -31775,16 +31806,35 @@ This document contains the complete codebase structure and content for LLM inges
 │       │   ├── cashflows.py
 │       │   ├── primitives.py
 │       │   └── primitives_stock.py
+│       ├── runners
+│       │   ├── __init__.py
+│       │   ├── cloud_executor.py
+│       │   ├── local_executor.py
+│       │   ├── models.py
+│       │   └── protocols.py
 │       ├── scenarios
 │       │   ├── __init__.py
-│       │   └── generators
-│       │       ├── __init__.py
-│       │       └── ring_explorer.py
+│       │   └── ring_explorer.py
+│       ├── storage
+│       │   ├── __init__.py
+│       │   ├── artifact_loaders.py
+│       │   ├── file_store.py
+│       │   ├── modal_artifact_loader.py
+│       │   ├── models.py
+│       │   ├── protocols.py
+│       │   ├── supabase_client.py
+│       │   └── supabase_registry.py
 │       └── ui
 │           ├── __init__.py
 │           ├── assets
 │           │   └── export.css
-│           ├── cli.py
+│           ├── cli
+│           │   ├── __init__.py
+│           │   ├── jobs.py
+│           │   ├── run.py
+│           │   ├── sweep.py
+│           │   ├── utils.py
+│           │   └── volume.py
 │           ├── display.py
 │           ├── html_export.py
 │           ├── render
@@ -31795,12 +31845,31 @@ This document contains the complete codebase structure and content for LLM inges
 │           ├── run.py
 │           ├── settings.py
 │           └── wizard.py
+├── supabase
+│   ├── .temp
+│   │   ├── cli-latest
+│   │   ├── gotrue-version
+│   │   ├── pooler-url
+│   │   ├── postgres-version
+│   │   ├── project-ref
+│   │   ├── rest-version
+│   │   ├── storage-migration
+│   │   └── storage-version
+│   └── migrations
+│       ├── 20260112_initial_schema.sql
+│       └── 20260113_job_metrics.sql
 └── tests
     ├── analysis
     │   ├── __init__.py
     │   ├── test_balances.py
+    │   ├── test_metrics_computer.py
     │   ├── test_report_aggregate.py
-    │   └── test_t_account_builder.py
+    │   ├── test_t_account_builder.py
+    │   └── test_visualization.py
+    ├── cloud
+    │   ├── __init__.py
+    │   ├── test_cloud_executor.py
+    │   └── test_modal_artifact_loader.py
     ├── config
     │   ├── test_apply.py
     │   ├── test_loaders.py
@@ -31818,6 +31887,9 @@ This document contains the complete codebase structure and content for LLM inges
     │   ├── test_dealer_subsystem.py
     │   ├── test_default_handling.py
     │   └── test_phase_b1_scheduling.py
+    ├── experiments
+    │   ├── __init__.py
+    │   └── test_sweep_runners.py
     ├── integration
     │   ├── test_banking_ops.py
     │   ├── test_clearing_phase_c.py
@@ -31826,22 +31898,34 @@ This document contains the complete codebase structure and content for LLM inges
     │   └── test_settlement_phase_b.py
     ├── ops
     │   └── test_alias_helpers.py
+    ├── runners
+    │   ├── __init__.py
+    │   ├── test_local_executor.py
+    │   ├── test_models.py
+    │   └── test_protocols.py
     ├── scenarios
     │   └── test_ring_explorer.py
+    ├── storage
+    │   ├── __init__.py
+    │   ├── test_artifact_loaders.py
+    │   ├── test_file_store.py
+    │   └── test_models.py
     ├── test_smoke.py
     ├── ui
     │   ├── test_cli.py
     │   ├── test_cli_html_export.py
+    │   ├── test_cli_integration.py
     │   ├── test_html_export.py
     │   ├── test_render_builders.py
     │   └── test_render_formatters.py
     └── unit
         ├── test_balances.py
         ├── test_domain_system.py
+        ├── test_jobs.py
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-6850 directories, 24981 files
+6864 directories, 25051 files
 
 ```
 
@@ -33566,6 +33650,494 @@ Complete git history from oldest to newest:
   🤖 Generated with [Claude Code](https://claude.com/claude-code)
   Co-Authored-By: Claude <noreply@anthropic.com>
 
+- **bcce1062** (2025-12-11) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **aec8f628** (2026-01-11) by vladgheorghe
+  docs(refactor): add 2026 codebase analysis and refactoring plan
+  Comprehensive analysis of codebase structure with recommendations for:
+  - Phase 1: Cleanup (dead code, merge modules, flatten nesting)
+  - Phase 2: Split large files (CLI, visualization)
+  - Phase 3: Add test coverage (experiments framework)
+  - Phase 4: Abstractions for cloud/DB scalability
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **8e264a22** (2026-01-11) by vladgheorghe
+  docs(refactor): add comprehensive Plan 025 for Phase 1 cleanup
+  Full restructuring plan addressing all identified issues:
+  Part A - Dead code removal:
+  - Delete modules/dealer_ring/ (empty pycache)
+  - Delete io/ (stub code)
+  - Archive stale TODO.md
+  Part B - Split large files:
+  - ui/cli.py (1,100 lines) → ui/cli/{run,sweep,utils}.py
+  - analysis/visualization.py (2,200 lines) → visualization/{balances,events,phases}.py
+  - experiments/ring.py → ring.py + sampling/{grid,lhs,frontier}.py
+  Part C - Add test coverage:
+  - experiments/ 0-25% → 60%
+  - visualization 13% → 50%
+  - ui/cli 34% → 60%
+  Part D - Flatten scenarios/generators/
+  Includes verification steps, rollback plan, and success criteria.
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **9d78869a** (2026-01-11) by vladgheorghe
+  refactor(cleanup): Part A - remove dead code
+  - Delete empty modules/dealer_ring/ directory (only contained __pycache__)
+  - Delete io/ module (stub functions that only raised NotImplementedError)
+  - Archive stale TODO.md to docs/archive/TODO_2025.md
+  - Remove test_io_imports test that tested deleted stubs
+  Part of Plan 025 Phase 1 Cleanup.
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **8e84355d** (2026-01-11) by vladgheorghe
+  refactor(scenarios): Part D - flatten generators/ directory
+  - Move ring_explorer.py from scenarios/generators/ to scenarios/
+  - Update scenarios/__init__.py to export compile_generator, compile_ring_explorer,
+    and compile_ring_explorer_balanced
+  - Delete scenarios/generators/ directory
+  - Update imports in config/loaders.py, experiments/ring.py,
+    tests/scenarios/test_ring_explorer.py, and dashboards/monotonicity_demo/
+  Part of Plan 025 Phase 1 Cleanup.
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **4238ff09** (2026-01-11) by vladgheorghe
+  refactor(structure): Part B - split large files into modules
+  B1: Split ui/cli.py (849 lines) into ui/cli/ directory:
+  - __init__.py: Main CLI entry point, click group
+  - run.py: run, validate, new, analyze commands
+  - sweep.py: sweep group and all sweep subcommands
+  - utils.py: Shared utilities (console, decimal helpers)
+  B2: Split analysis/visualization.py (2203 lines) into visualization/ directory:
+  - __init__.py: Re-exports public API
+  - balances.py: T-account and balance sheet display
+  - events.py: Event table formatting
+  - phases.py: Phase summary visualization
+  - common.py: Shared utilities and constants
+  B3: Extract sampling strategies from experiments/ring.py:
+  - sampling/__init__.py: Re-exports
+  - sampling/grid.py: Cartesian product sampling
+  - sampling/lhs.py: Latin Hypercube Sampling
+  - sampling/frontier.py: Binary search frontier detection
+  All public APIs preserved for backwards compatibility.
+  Part of Plan 025 Phase 1 Cleanup.
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **c211e1fd** (2026-01-11) by vladgheorghe
+  test(coverage): Part C - add tests for experiments, visualization, CLI
+  Added 96 new tests to improve coverage from 53% to 64%:
+  C1: tests/experiments/test_sweep_runners.py (33 tests)
+  - Grid, LHS, frontier sampling functions
+  - RingSweepRunner setup and configuration
+  - ComparisonSweepRunner and BalancedComparisonRunner setup
+  - Result dataclass calculations
+  C2: tests/analysis/test_visualization.py (41 tests)
+  - Balance display functions (rich/simple formats)
+  - Event display and table functions
+  - Phase display functions
+  - Build functions for T-accounts and events
+  - Multi-agent visualization
+  C3: tests/ui/test_cli_integration.py (22 tests)
+  - CLI help commands verification
+  - Validate command with real scenarios
+  - Run command with various options and exports
+  - Error handling for invalid inputs
+  Test count: 276 → 371
+  Coverage: 53% → 64%
+  Part of Plan 025 Phase 1 Cleanup.
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **6a5f94fc** (2026-01-11) by vladgheorghe
+  fix: address PR review feedback
+  - Remove duplicate RICH_AVAILABLE definitions in balances.py and events.py
+    (now imported only from common.py)
+  - Remove dead code _build_events_detailed_renderables_old in events.py
+  - Use console.print() instead of click.echo() for Rich-formatted output
+    in sweep.py strategy-outcomes and dealer-usage commands
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **8b8ff83c** (2026-01-11) by Vlad Gheorghe
+  Merge pull request #23 from vlad-ds/refactor/phase-1-cleanup
+  Phase 1 Codebase Cleanup & Restructuring (Plan 025)
+
+- **657921de** (2026-01-11) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **b1ebf91b** (2026-01-11) by vladgheorghe
+  feat: add storage and runner abstraction layers (Phase 4)
+  Add foundation for cloud/database backend support:
+  Storage module (src/bilancio/storage/):
+  - RunStatus, RunArtifacts, RunResult, RegistryEntry models
+  - ResultStore and RegistryStore protocols
+  - FileResultStore: file-based result storage with JSON metadata
+  - FileRegistryStore: CSV-based registry with dynamic fields
+  Runners module (src/bilancio/runners/):
+  - SimulationExecutor protocol for synchronous execution
+  - JobExecutor protocol for async/distributed execution (future)
+  - LocalExecutor: wraps run_scenario() with structured output
+  Tests: 85 new tests (46 storage, 39 runners)
+  Total: 371 → 456 tests, 64% → 67% coverage
+  Plan: docs/refactor_2026/026_phase4_abstractions.md
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **d8c1c363** (2026-01-11) by vladgheorghe
+  refactor: RingSweepRunner uses FileRegistryStore
+  - Add registry_store parameter to RingSweepRunner (optional, defaults to FileRegistryStore)
+  - Replace manual CSV registry handling with RegistryStore protocol calls
+  - Update _upsert_registry to create RegistryEntry objects
+  - FileRegistryStore: handle empty experiment_id for flat directory structure
+  - FileRegistryStore: add ring-specific fields (phase, S1, L0, metrics_html)
+  - Maintain backward compatibility: create empty registry CSV on init
+  All 456 tests pass.
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **afe539e2** (2026-01-11) by vladgheorghe
+  docs: add Plan 027 for executor separation of concerns
+  Defines the next stage of refactoring:
+  - Executor only runs simulation, returns artifact paths/URIs
+  - Executor reports storage location (local vs cloud)
+  - MetricsComputer handles all derived metrics (separate concern)
+  - ArtifactLoader protocol for fetching from any storage backend
+  - Clear path to CloudExecutor implementation
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **4a01e70f** (2026-01-11) by vladgheorghe
+  feat(runners): implement Plan 027 executor separation of concerns
+  Refactors the runner abstractions to cleanly separate simulation execution
+  from metrics computation, enabling future cloud execution support.
+  New components:
+  - RunOptions: configuration dataclass for run_scenario()
+  - ExecutionResult: result with storage_type, storage_base, artifacts
+  - ArtifactLoader: protocol for loading artifacts from any storage
+  - LocalArtifactLoader: file-based implementation
+  - MetricsComputer: extracts metrics computation from LocalExecutor
+  - MetricsBundle: dataclass for computed metrics
+  Changes:
+  - LocalExecutor: now only runs simulation, returns artifact paths
+  - RingSweepRunner: uses executor + MetricsComputer pattern
+  - Updated protocols with new execute() signature
+  Tests: 527 passing (77 new), 67% coverage. Verified with control/treatment sweeps.
+  This sets up a clear path for CloudExecutor + S3ArtifactLoader in the future.
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **f82653d1** (2026-01-11) by vladgheorghe
+  fix(storage): address PR review feedback
+  - Fix _row_to_entry bug: metrics were assigned to parameters dict
+    instead of metrics dict (P2 bug from Claude/Codex reviews)
+  - Add path traversal validation in load_artifact for security
+  - Add input validation for experiment_id and run_id to prevent
+    malicious path construction
+  - Add tests for metrics round-trip through CSV
+  - Add tests for security validations
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **ded88327** (2026-01-11) by Vlad Gheorghe
+  Merge pull request #24 from vlad-ds/refactor/phase-4-abstractions
+  feat: add storage and runner abstraction layers (Phase 4)
+
+- **99280d89** (2026-01-11) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **51674f1a** (2026-01-11) by vladgheorghe
+  feat(cloud): implement Modal cloud executor (Plan 028)
+  Add CloudExecutor for running simulations on Modal's serverless infrastructure.
+  This enables parallel execution of large parameter sweeps in the cloud.
+  Key components:
+  - cloud/modal_app.py: Modal app with run_simulation function
+  - runners/cloud_executor.py: CloudExecutor implementing SimulationExecutor protocol
+  - storage/modal_artifact_loader.py: ModalVolumeArtifactLoader for remote artifacts
+  - CLI --cloud flag for sweep ring command
+  The CloudExecutor:
+  - Submits simulations to deployed Modal function
+  - Downloads artifacts to local disk after completion
+  - Returns correct local paths for MetricsComputer integration
+  - Supports both single execution and batch parallel execution
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **047465f9** (2026-01-12) by vladgheorghe
+  feat(cloud): add cloud execution support to balanced sweep
+  - Add executor parameter to BalancedComparisonRunner
+  - Add --cloud flag to `bilancio sweep balanced` CLI command
+  - Add Modal usage instructions to CLAUDE.md
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **1d9493eb** (2026-01-12) by vladgheorghe
+  feat(jobs): implement job system for tracking simulation runs (Plan 029)
+  - Add memorable 4-word job IDs using xkcdpass library
+  - Create Job, JobConfig, JobEvent models with serialization
+  - Implement JobManager for lifecycle tracking (create/start/progress/complete/fail)
+  - Integrate job tracking into sweep ring and sweep balanced CLI commands
+  - Write job_manifest.json to output directory for each job
+  - Add 39 unit tests for job system
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **88466ae5** (2026-01-12) by vladgheorghe
+  docs: add reminder to prominently display Job ID to users
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **be2c9ee0** (2026-01-12) by vladgheorghe
+  fix: add xkcdpass to Modal image and handle failed runs gracefully
+  - Add xkcdpass dependency to Modal container image
+  - Handle None values in comparison result logging
+  - Add Modal authentication tip to CLAUDE.md
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **522a5f7b** (2026-01-12) by vladgheorghe
+  feat(cloud): display job_id in Modal logs and return modal_call_id
+  - Add job_id parameter to Modal run_simulation function
+  - Print job info banner at start of execution (visible in Modal logs)
+  - Return modal_call_id in execution result
+  - Pass job_id from CLI through CloudExecutor to Modal
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **58e9649e** (2026-01-12) by vladgheorghe
+  docs: clarify ID structure and add instructions to display IDs to user
+  - Add explicit instructions for Claude to display Job ID and Modal Call ID
+  - Explain why jobs have multiple runs (parameter sweeps)
+  - Use job_id as experiment_id to simplify (removes redundancy)
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **63bdeb87** (2026-01-12) by vladgheorghe
+  docs: simplify - just display Job ID to user, not run IDs
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **3f2694f9** (2026-01-12) by vladgheorghe
+  docs: include Modal ID for debugging on modal.com
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **54a0cf63** (2026-01-12) by vladgheorghe
+  feat(jobs): store Modal call IDs in job manifest
+  Propagate modal_call_id from cloud execution through the entire chain
+  to job manifest for debugging purposes:
+  - Add modal_call_id to ExecutionResult (runners/models.py)
+  - Add modal_call_id to RingRunSummary (experiments/ring.py)
+  - Add passive/active_modal_call_id to BalancedComparisonResult
+  - Update JobManager.record_progress to accept modal_call_id
+  - Add modal_call_ids dict to Job model for run_id -> modal_call_id mapping
+  - Update sweep CLI to pass modal_call_ids when recording progress
+  Job manifest now includes modal_call_ids for easy lookup on modal.com.
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **25d02e22** (2026-01-12) by vladgheorghe
+  fix(cloud): address PR review feedback
+  1. Fix execute_batch storage metadata bug - now correctly updates
+     storage_type to "local" and storage_base to local path after
+     downloading artifacts (consistent with execute() behavior)
+  2. Remove dead code - redundant path logic in _download_run_artifacts
+     where both branches did the same thing
+  3. Document volume name limitation - CloudConfig and CloudExecutor now
+     document that volume_name must match the hardcoded value in modal_app.py
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **06140685** (2026-01-12) by Vlad Gheorghe
+  Merge pull request #25 from vlad-ds/feature/cloud-executor
+  feat(cloud): implement Modal cloud executor (Plan 028)
+
+- **84f6f7c6** (2026-01-12) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **986503ff** (2026-01-12) by vladgheorghe
+  feat(sweeps): add quiet mode for faster sweep execution (Plan 030)
+  Add quiet mode that suppresses verbose console output during sweeps.
+  This dramatically reduces IO overhead for batch runs while preserving
+  all artifacts (events.jsonl, balances.csv, run.html, metrics).
+  Changes:
+  - Add quiet parameter to RingSweepRunner (default: True)
+  - Add quiet field to BalancedComparisonConfig (default: True)
+  - Add --quiet/--verbose CLI flag to sweep balanced command
+  - Update show_day_summary_renderable to return [] for event_mode="none"
+  - Update run_until_stable_mode to skip console.print in quiet mode
+  Usage:
+    # Default: quiet mode (fast)
+    bilancio sweep balanced --out-dir out/sweep ...
+    # Verbose mode (for debugging)
+    bilancio sweep balanced --verbose --out-dir out/sweep ...
+  Performance impact:
+    - Previous 22-hour sweep now runs in minutes with quiet mode
+    - All data artifacts still generated, only console output suppressed
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **fbb80b9a** (2026-01-12) by vladgheorghe
+  feat(cloud): add parallel batch execution with Modal .map()
+  - Use Modal's .map() for maximum parallelism instead of spawn/get
+  - Add PreparedRun dataclass for batch execution workflow
+  - Increase Modal timeout from 10 to 30 minutes
+  - Add _run_all_batch() method for parallel sweep execution
+  - Document parallelism, cost estimation, and monitoring in CLAUDE.md
+  Performance: 25 pairs (50 runs) now complete in ~13 min vs ~22 hours local
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **a47838f8** (2026-01-12) by vladgheorghe
+  fix(ui): prevent UnboundLocalError in quiet mode
+  Move display_agent_ids computation outside quiet_mode check to prevent
+  UnboundLocalError when agent_ids is set but quiet_mode is True.
+  Fixes bug identified by Codex review.
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **5d1c8fd8** (2026-01-12) by Vlad Gheorghe
+  Merge pull request #26 from vlad-ds/feature/quiet-mode
+  feat(sweeps): add quiet mode and parallel cloud execution
+
+- **daed9224** (2026-01-12) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **f2914815** (2026-01-12) by vladgheorghe
+  feat(storage): add Supabase cloud storage layer (Plan 031)
+  Add optional Supabase integration for persistent job/run/metrics storage:
+  - Add SupabaseJobStore for job persistence to PostgreSQL
+  - Add SupabaseRegistryStore implementing RegistryStore protocol
+  - Add supabase_client module with singleton pattern
+  - Update JobManager with cloud_store parameter and create_job_manager()
+  - Add CLI commands: bilancio jobs ls/get/runs/metrics --cloud
+  - Add Modal Volume management: bilancio volume ls/cleanup/rm
+  - Add database schema migration for jobs/runs/metrics/events tables
+  Architecture supports three modes:
+  - Cloud-only (recommended for VMs): cloud=True, local=False
+  - Hybrid: cloud=True, local=True
+  - Local-only: default when Supabase not configured
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **79a7eee3** (2026-01-12) by vladgheorghe
+  Improve cloud sweep execution
+
+- **9931d58a** (2026-01-12) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **04121f3b** (2026-01-12) by vladgheorghe
+  Update uv lockfiles
+
+- **d40dae28** (2026-01-12) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **71a97055** (2026-01-12) by vladgheorghe
+  feat(storage): add Supabase persistence for runs and metrics during cloud sweeps
+  - Update sweep commands to use create_job_manager with cloud=True for Supabase storage
+  - Add _persist_run_to_supabase method to BalancedComparisonRunner
+  - Persist runs/metrics in both sequential and batch execution paths
+  - Pass job_id to runner for correct job association
+  - Update CLAUDE.md with env var loading instructions and automatic persistence docs
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **0278cd8c** (2026-01-12) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **4626fc4c** (2026-01-12) by Claude
+  feat(cloud): add HTTP proxy support for Claude Code web VM
+  Add proxy_patch.py to enable Modal connections through HTTP CONNECT
+  proxies with TLS inspection. This is required for running cloud sweeps
+  from the Claude Code web environment where all traffic goes through
+  Anthropic's egress proxy.
+  The patch handles:
+  - grpclib (Modal API) via custom socket connection
+  - aiohttp (Modal file downloads) via trust_env and custom CA
+
+- **0bc8a0be** (2026-01-12) by Claude
+  feat(cloud): compute metrics on Modal and save directly to Supabase
+  Major architectural change: simulations on Modal now compute metrics
+  locally and save directly to Supabase, eliminating the need to download
+  artifacts to the local machine.
+  Changes:
+  - modal_app.py: Add compute_metrics_from_events() and save_run_to_supabase()
+  - modal_app.py: Add compute_aggregate_metrics() for post-sweep analysis
+  - modal_app.py: Add supabase secret reference and dependency
+  - RunOptions: Add kappa, concentration, mu, outside_mid_ratio, seed fields
+  - ExecutionResult: Add metrics field for cloud-computed metrics
+  - cloud_executor: Pass run parameters to Modal, add aggregate metrics method
+  - balanced_comparison: Call aggregate metrics after sweep completion
+  - ring.py: Pass run parameters to RunOptions for Supabase tracking
+  This enables cloud sweeps to work in environments with proxy restrictions
+  (like Claude Code web) where downloading from Modal Volume fails.
+
+- **f45b3c4c** (2026-01-12) by Claude
+  fix(cloud): use correct Modal secret name 'supabase'
+
+- **3682855c** (2026-01-12) by Claude
+  feat(cloud): save sweep aggregate metrics to job_metrics table
+  Add storage for sweep-level aggregate metrics in Supabase:
+  - Create job_metrics table with trading effect stats, delta/phi averages
+  - Update compute_aggregate_metrics to save summary to job_metrics
+  - Include phi values in comparisons for complete metric tracking
+  - Add std deviation, neutral effects count
+  SQL to create table:
+  CREATE TABLE job_metrics (
+    job_id TEXT PRIMARY KEY REFERENCES jobs(job_id),
+    n_comparisons INTEGER, mean_trading_effect DOUBLE PRECISION,
+    min/max/std_trading_effect, positive/negative/neutral_effects,
+    mean_delta_passive/active, mean_phi_passive/active, raw_summary JSONB
+  );
+
+- **31924c96** (2026-01-12) by Claude
+  docs: add deployment plan for cloud metrics
+
+- **084f8b5b** (2026-01-12) by vladgheorghe
+  fix(cloud): ensure all global metrics saved to Supabase correctly
+  - Fix Decimal serialization in compute_metrics_from_events()
+  - Fix seed type (int not float) in save_run_to_supabase()
+  - Use create_job_manager(cloud=True) in sweep commands
+  - Use modal.Function.from_name() for compute_aggregate_metrics
+  - Add job_metrics table migration
+  - Document Supabase CLI usage in CLAUDE.md
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **586ae251** (2026-01-13) by Vlad Gheorghe
+  Merge pull request #27 from vlad-ds/claude/slack-analyze-bilancio-sweep-zrC3y
+  Bilancio Sweep Analysis Pipeline
+
+- **ad47e3a2** (2026-01-13) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **ac920a48** (2026-01-13) by vladgheorghe
+  chore: ignore experiment outputs
+
+- **3b9e797e** (2026-01-13) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **1447729f** (2026-01-13) by vladgheorghe
+  fix(cloud): fail loudly when Supabase credentials missing
+  - Add SupabaseCredentialsError exception for missing credentials
+  - save_run_to_supabase now raises instead of silently returning False
+  - compute_aggregate_metrics also raises on missing credentials
+  - Add get_run_counts() to fetch actual run counts from runs table
+  - Fix jobs ls to show correct run counts instead of always 0
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **bec1a44e** (2026-01-13) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **83bd77f8** (2026-01-13) by Claude
+  fix(cloud): add TLS proxy support for Claude Code web environment
+  - Add proxy-aware httpx client to Supabase client for TLS-inspecting proxies
+  - Add Modal CLI wrapper script that applies grpclib proxy patch
+  - Document Claude Code web connectivity in CLAUDE.md
+  The Claude Code web VMs use a TLS-inspecting proxy that requires custom
+  CA certificate configuration. This change:
+  1. supabase_client.py: Automatically detects proxy environment and
+     configures httpx with the custom CA certificate
+  2. scripts/modal_wrapper.py: Wraps Modal CLI to apply the existing
+     proxy_patch before running commands
+  3. CLAUDE.md: Documents how to use Modal and Supabase in this environment
+
+- **646c6c27** (2026-01-13) by Vlad Gheorghe
+  Merge pull request #28 from vlad-ds/claude/slack-bilancio-sweep-analysis-ZLQdO
+  Bilancio 10-Run Sweep & Analysis
+
+- **2363e6f2** (2026-01-13) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **20ac5348** (2026-01-13) by vladgheorghe
+  fix(cloud): skip local artifact processing for cloud-only execution
+  When using CloudExecutor, the system now automatically skips all local
+  processing since Modal already computes metrics and saves to Supabase.
+  Changes:
+  - Add skip_local_processing flag to RingSweepRunner and BalancedComparisonRunner
+  - _finalize_run() uses pre-computed metrics from Modal result
+  - Skip local directory creation, scenario.yaml writes, and registry updates
+  - Skip duplicate Supabase persistence (Modal already handles this)
+  - Update completion messages to show Supabase query command
+  This fixes issues in remote environments (Claude Code web) where artifact
+  downloads were failing unnecessarily.
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
 ---
 
 ## Source Code (src/bilancio)
@@ -33619,6 +34191,10 @@ from bilancio.analysis.dealer_usage_summary import (
     build_dealer_usage_by_run,
     run_dealer_usage_analysis,
 )
+from bilancio.analysis.metrics_computer import (
+    MetricsBundle,
+    MetricsComputer,
+)
 
 __all__ = [
     "build_strategy_outcomes_by_run",
@@ -33626,6 +34202,8 @@ __all__ = [
     "run_strategy_analysis",
     "build_dealer_usage_by_run",
     "run_dealer_usage_analysis",
+    "MetricsBundle",
+    "MetricsComputer",
 ]
 
 ```
@@ -34695,6 +35273,262 @@ def microstructure_gain_lower_bound(
 
 ---
 
+### 📄 src/bilancio/analysis/metrics_computer.py
+
+```python
+"""Metrics computation extracted from LocalExecutor for reuse.
+
+This module provides a MetricsComputer class that can compute metrics from
+simulation artifacts (events.jsonl, balances.csv) regardless of where the
+simulation ran (local or remote).
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+from bilancio.storage.artifact_loaders import ArtifactLoader
+from bilancio.analysis.loaders import read_events_jsonl, read_balances_csv
+from bilancio.analysis.report import (
+    compute_day_metrics,
+    summarize_day_metrics,
+    write_day_metrics_csv,
+    write_day_metrics_json,
+    write_debtor_shares_csv,
+    write_intraday_csv,
+    write_metrics_html,
+)
+
+
+@dataclass
+class MetricsBundle:
+    """Bundle of computed metrics from a simulation run.
+
+    Contains all computed metrics in structured form for further processing
+    or writing to output files.
+    """
+
+    day_metrics: List[Dict[str, Any]]
+    """Per-day metrics rows (S_t, Mbar_t, phi_t, etc.)."""
+
+    debtor_shares: List[Dict[str, Any]]
+    """Debtor shortfall shares (day, agent, DS_t)."""
+
+    intraday: List[Dict[str, Any]]
+    """Intraday settlement steps (day, step, P_prefix, etc.)."""
+
+    summary: Dict[str, Any]
+    """Aggregate summary from summarize_day_metrics (phi_total, delta_total, etc.)."""
+
+
+class MetricsComputer:
+    """Computes metrics from simulation artifacts.
+
+    Uses an ArtifactLoader to read events and balances, then applies
+    the standard metrics computation pipeline from bilancio.analysis.report.
+
+    Example:
+        loader = LocalArtifactLoader(base_path=Path("/some/experiment/dir"))
+        computer = MetricsComputer(loader)
+
+        artifacts = {
+            "events_jsonl": "runs/run_001/out/events.jsonl",
+            "balances_csv": "runs/run_001/out/balances.csv",
+        }
+        bundle = computer.compute(artifacts)
+
+        output_paths = computer.write_outputs(bundle, Path("/output/dir"))
+    """
+
+    def __init__(self, loader: ArtifactLoader) -> None:
+        """Initialize with an artifact loader.
+
+        Args:
+            loader: An ArtifactLoader implementation for reading artifacts.
+        """
+        self.loader = loader
+
+    def compute(
+        self,
+        artifacts: Dict[str, str],
+        day_list: Optional[List[int]] = None,
+    ) -> MetricsBundle:
+        """Compute metrics from simulation artifacts.
+
+        Args:
+            artifacts: Dict mapping artifact names to references.
+                Required: 'events_jsonl'
+                Optional: 'balances_csv' (for M_t, G_t metrics)
+            day_list: Optional list of days to compute metrics for.
+                If None, days are inferred from events.
+
+        Returns:
+            MetricsBundle containing all computed metrics.
+
+        Raises:
+            KeyError: If required artifact 'events_jsonl' is missing.
+            FileNotFoundError: If referenced artifact files don't exist.
+        """
+        # Load events (required)
+        events_ref = artifacts.get("events_jsonl")
+        if not events_ref:
+            raise KeyError("Missing required artifact: 'events_jsonl'")
+
+        events_text = self.loader.load_text(events_ref)
+        # Parse JSONL from text - we need to handle this since read_events_jsonl takes a path
+        events = self._parse_events_from_text(events_text)
+
+        # Load balances (optional, enables M_t and G_t computation)
+        balances_rows: Optional[List[Dict[str, Any]]] = None
+        balances_ref = artifacts.get("balances_csv")
+        if balances_ref and self.loader.exists(balances_ref):
+            balances_text = self.loader.load_text(balances_ref)
+            balances_rows = self._parse_balances_from_text(balances_text)
+
+        # Compute day metrics
+        result = compute_day_metrics(
+            events=events,
+            balances_rows=balances_rows,
+            day_list=day_list,
+        )
+
+        # Compute summary
+        summary = summarize_day_metrics(result["day_metrics"])
+
+        return MetricsBundle(
+            day_metrics=result["day_metrics"],
+            debtor_shares=result["debtor_shares"],
+            intraday=result["intraday"],
+            summary=summary,
+        )
+
+    def write_outputs(
+        self,
+        bundle: MetricsBundle,
+        output_dir: Path,
+        title: Optional[str] = None,
+        subtitle: Optional[str] = None,
+    ) -> Dict[str, Path]:
+        """Write metrics bundle to output files.
+
+        Args:
+            bundle: The computed MetricsBundle to write.
+            output_dir: Directory to write output files to.
+            title: Optional title for HTML report.
+            subtitle: Optional subtitle for HTML report.
+
+        Returns:
+            Dict mapping output types to their file paths:
+                - 'metrics_csv': Path to metrics.csv
+                - 'metrics_json': Path to metrics.json
+                - 'debtor_shares_csv': Path to debtor_shares.csv
+                - 'intraday_csv': Path to intraday.csv
+                - 'metrics_html': Path to metrics.html
+        """
+        output_dir = Path(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        paths: Dict[str, Path] = {}
+
+        # Write metrics CSV
+        metrics_csv_path = output_dir / "metrics.csv"
+        write_day_metrics_csv(metrics_csv_path, bundle.day_metrics)
+        paths["metrics_csv"] = metrics_csv_path
+
+        # Write metrics JSON
+        metrics_json_path = output_dir / "metrics.json"
+        write_day_metrics_json(metrics_json_path, bundle.day_metrics)
+        paths["metrics_json"] = metrics_json_path
+
+        # Write debtor shares CSV
+        debtor_shares_path = output_dir / "debtor_shares.csv"
+        write_debtor_shares_csv(debtor_shares_path, bundle.debtor_shares)
+        paths["debtor_shares_csv"] = debtor_shares_path
+
+        # Write intraday CSV
+        intraday_path = output_dir / "intraday.csv"
+        write_intraday_csv(intraday_path, bundle.intraday)
+        paths["intraday_csv"] = intraday_path
+
+        # Write metrics HTML
+        metrics_html_path = output_dir / "metrics.html"
+        write_metrics_html(
+            metrics_html_path,
+            day_metrics=bundle.day_metrics,
+            debtor_shares=bundle.debtor_shares,
+            intraday=bundle.intraday,
+            title=title,
+            subtitle=subtitle,
+        )
+        paths["metrics_html"] = metrics_html_path
+
+        return paths
+
+    def _parse_events_from_text(self, text: str) -> List[Dict[str, Any]]:
+        """Parse events from JSONL text content.
+
+        This mirrors read_events_jsonl but works from text instead of file path.
+        """
+        import json
+        from decimal import Decimal
+
+        events: List[Dict[str, Any]] = []
+        for line in text.splitlines():
+            if not line.strip():
+                continue
+            evt = json.loads(line)
+            # Normalize common fields (same as read_events_jsonl)
+            if "amount" in evt:
+                evt["amount"] = self._to_decimal(evt["amount"])
+            if "day" in evt and evt["day"] is not None:
+                try:
+                    evt["day"] = int(evt["day"])
+                except Exception:
+                    pass
+            if "due_day" in evt and evt["due_day"] is not None:
+                try:
+                    evt["due_day"] = int(evt["due_day"])
+                except Exception:
+                    pass
+            events.append(evt)
+        return events
+
+    def _parse_balances_from_text(self, text: str) -> List[Dict[str, Any]]:
+        """Parse balances from CSV text content.
+
+        This mirrors read_balances_csv but works from text instead of file path.
+        """
+        import csv
+        from io import StringIO
+
+        rows: List[Dict[str, Any]] = []
+        reader = csv.DictReader(StringIO(text))
+        for row in reader:
+            rows.append(dict(row))
+        return rows
+
+    @staticmethod
+    def _to_decimal(val: Any) -> Any:
+        """Best-effort Decimal conversion for numeric values."""
+        from decimal import Decimal
+
+        if val is None:
+            return Decimal("0")
+        if isinstance(val, Decimal):
+            return val
+        if isinstance(val, bool):
+            return Decimal(int(val))
+        try:
+            return Decimal(str(val))
+        except Exception:
+            return Decimal("0")
+
+```
+
+---
+
 ### 📄 src/bilancio/analysis/report.py
 
 ```python
@@ -35714,42 +36548,117 @@ if __name__ == "__main__":
 
 ---
 
-### 📄 src/bilancio/analysis/visualization.py
+### 📄 src/bilancio/analysis/visualization/__init__.py
 
 ```python
-"""Balance sheet visualization utilities for the bilancio system."""
+"""Balance sheet visualization utilities for the bilancio system.
+
+This module has been split into submodules for better organization:
+- balances: Balance sheet and T-account display
+- events: Event table formatting
+- phases: Phase summary visualization
+- common: Shared utilities and constants
+"""
 
 from __future__ import annotations
 
-from collections import defaultdict
-from decimal import Decimal
-from typing import Any, Dict, List, Optional, Union
-from dataclasses import dataclass
-import math
-from typing import Optional
+# Re-export public API from submodules to maintain backward compatibility
 
-try:
+# Common utilities and types
+from bilancio.analysis.visualization.common import (
+    RICH_AVAILABLE,
+    RenderableType,
+    BalanceRow,
+    TAccount,
+    parse_day_from_maturity,
+)
+
+# Balance sheet functions
+from bilancio.analysis.visualization.balances import (
+    display_agent_balance_table,
+    display_agent_balance_from_balance,
+    display_multiple_agent_balances,
+    build_t_account_rows,
+    display_agent_t_account,
+    display_agent_t_account_renderable,
+    display_agent_balance_table_renderable,
+    display_multiple_agent_balances_renderable,
+)
+
+# Event display functions
+from bilancio.analysis.visualization.events import (
+    display_events,
+    display_events_table,
+    display_events_table_renderable,
+    display_events_for_day,
+    display_events_renderable,
+    display_events_for_day_renderable,
+)
+
+# Phase summary functions
+from bilancio.analysis.visualization.phases import (
+    display_events_tables_by_phase_renderables,
+)
+
+__all__ = [
+    # Common
+    'RICH_AVAILABLE',
+    'RenderableType',
+    'BalanceRow',
+    'TAccount',
+    'parse_day_from_maturity',
+    # Balance sheets
+    'display_agent_balance_table',
+    'display_agent_balance_from_balance',
+    'display_multiple_agent_balances',
+    'build_t_account_rows',
+    'display_agent_t_account',
+    'display_agent_t_account_renderable',
+    'display_agent_balance_table_renderable',
+    'display_multiple_agent_balances_renderable',
+    # Events
+    'display_events',
+    'display_events_table',
+    'display_events_table_renderable',
+    'display_events_for_day',
+    'display_events_renderable',
+    'display_events_for_day_renderable',
+    # Phases
+    'display_events_tables_by_phase_renderables',
+]
+
+```
+
+---
+
+### 📄 src/bilancio/analysis/visualization/balances.py
+
+```python
+"""Balance sheet and T-account display functions."""
+
+from __future__ import annotations
+
+from typing import Any, List, Optional, Union
+
+from bilancio.analysis.balances import AgentBalance, agent_balance
+from bilancio.engines.system import System
+from bilancio.analysis.visualization.common import (
+    RICH_AVAILABLE,
+    RenderableType,
+    _format_currency,
+    BalanceRow,
+    TAccount,
+    _format_agent,
+    parse_day_from_maturity,
+)
+
+# Import Rich components only if available
+if RICH_AVAILABLE:
     from rich.console import Console
     from rich.table import Table
     from rich.columns import Columns
     from rich.text import Text
     from rich import box
-    from rich.console import RenderableType
-    RICH_AVAILABLE = True
-except ImportError:
-    RICH_AVAILABLE = False
-    RenderableType = Any
-
-from bilancio.analysis.balances import AgentBalance, agent_balance
-from bilancio.engines.system import System
-
-
-def _format_currency(amount: int, show_sign: bool = False) -> str:
-    """Format an integer amount as currency."""
-    formatted = f"{amount:,}"
-    if show_sign and amount > 0:
-        formatted = f"+{formatted}"
-    return formatted
 
 
 
@@ -36353,538 +37262,6 @@ def _display_simple_multiple_agent_balances(
         print(" | ".join(row_parts))
 
 
-def display_events(events: List[Dict[str, Any]], format: str = 'detailed') -> None:
-    """
-    Display system events in a nicely formatted way.
-    
-    Args:
-        events: List of event dictionaries from sys.state.events
-        format: Display format ('detailed' or 'summary')
-    """
-    console = Console() if RICH_AVAILABLE else None
-    
-    if not events:
-        _print("No events to display.", console)
-        return
-    
-    if format == 'summary':
-        _display_events_summary(events, console)
-    else:
-        _display_events_detailed(events, console)
-
-
-def display_events_table(events: List[Dict[str, Any]], group_by_day: bool = True) -> None:
-    """Render events as a table with canonical columns.
-
-    Falls back to simple text when Rich is not available.
-    """
-    console = Console() if RICH_AVAILABLE else None
-
-    if not events:
-        _print("No events to display.", console)
-        return
-
-    columns = ["Day", "Phase", "Kind", "From", "To", "SKU/Instr", "Qty", "Amount", "Notes"]
-
-    # Sort events deterministically
-    # Drop phase marker events; preserve original insertion (chronological) order
-    evs = [e for e in events if e.get("kind") not in ("PhaseA", "PhaseB", "PhaseC")]
-
-    if RICH_AVAILABLE:
-        from rich.table import Table as RichTable
-        from rich import box as rich_box
-        table = RichTable(title="Events", box=rich_box.HEAVY, show_lines=True)
-        # Column definitions with better alignment
-        table.add_column("Day", justify="right")
-        table.add_column("Phase", justify="left")
-        table.add_column("Kind", justify="left")
-        table.add_column("From", justify="left")
-        table.add_column("To", justify="left")
-        table.add_column("SKU/Instr", justify="left")
-        table.add_column("Qty", justify="right")
-        table.add_column("Amount", justify="right")
-        table.add_column("Notes", justify="left")
-        # Alternate row shading for readability
-        try:
-            table.row_styles = ["on #ffffff", "on #e6f2ff"]
-        except Exception:
-            pass
-
-        for e in evs:
-            kind = str(e.get("kind", ""))
-            # Canonical from/to mapping by kind
-            if kind in ("CashDeposited", "CashWithdrawn"):
-                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
-                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
-            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
-                frm = e.get("payer")
-                to = e.get("payee")
-            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
-                frm = e.get("debtor_bank")
-                to = e.get("creditor_bank")
-            elif kind == "StockCreated":
-                frm = e.get("owner")
-                to = None
-            else:
-                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer") or e.get("agent")
-                to = e.get("to") or e.get("creditor") or e.get("payee")
-            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
-            qty = e.get("qty") or e.get("quantity") or "—"
-            amt = e.get("amount") or "—"
-
-            notes = ""
-            if kind == "ClientPayment":
-                notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
-            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
-                notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
-                if 'due_day' in e:
-                    notes += f"; due {e.get('due_day')}"
-            elif kind == "AgentDefaulted":
-                shortfall = e.get('shortfall')
-                trigger = e.get('trigger_contract')
-                parts = []
-                if shortfall is not None:
-                    parts.append(f"shortfall {shortfall}")
-                if trigger:
-                    parts.append(f"trigger {trigger}")
-                if parts:
-                    notes = ", ".join(parts)
-
-            table.add_row(
-                str(e.get("day", "—")),
-                str(e.get("phase", "—")),
-                kind,
-                str(frm or "—"),
-                str(to or "—"),
-                str(sku),
-                str(qty),
-                str(amt),
-                notes,
-            )
-
-        console.print(table) if console else print(table)
-    else:
-        # Simple header + rows
-        header = " | ".join(columns)
-        print(header)
-        print("-" * len(header))
-        for e in evs:
-            kind = str(e.get("kind", ""))
-            if kind in ("CashDeposited", "CashWithdrawn"):
-                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
-                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
-            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
-                frm = e.get("payer")
-                to = e.get("payee")
-            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
-                frm = e.get("debtor_bank")
-                to = e.get("creditor_bank")
-            elif kind == "StockCreated":
-                frm = e.get("owner")
-                to = None
-            else:
-                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer") or e.get("agent")
-                to = e.get("to") or e.get("creditor") or e.get("payee")
-            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
-            qty = e.get("qty") or e.get("quantity") or "—"
-            amt = e.get("amount") or "—"
-            notes = ""
-            if kind == "ClientPayment":
-                notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
-            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
-                notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
-                if 'due_day' in e:
-                    notes += f"; due {e.get('due_day')}"
-            elif kind == "AgentDefaulted":
-                shortfall = e.get('shortfall')
-                trigger = e.get('trigger_contract')
-                parts = []
-                if shortfall is not None:
-                    parts.append(f"shortfall {shortfall}")
-                if trigger:
-                    parts.append(f"trigger {trigger}")
-                if parts:
-                    notes = ", ".join(parts)
-            row = [
-                str(e.get("day", "—")),
-                str(e.get("phase", "—")),
-                kind,
-                str(frm or "—"),
-                str(to or "—"),
-                str(sku),
-                str(qty),
-                str(amt),
-                notes,
-            ]
-            print(" | ".join(row))
-
-
-def display_events_table_renderable(events: List[Dict[str, Any]]) -> RenderableType:
-    """Return a Rich Table renderable (or string) for events table."""
-    if not events:
-        return Text("No events to display.", style="dim") if RICH_AVAILABLE else "No events to display."
-
-    columns = ["Day", "Phase", "Kind", "From", "To", "SKU/Instr", "Qty", "Amount", "Notes"]
-    # Drop phase marker events; preserve original insertion (chronological) order
-    evs = [e for e in events if e.get("kind") not in ("PhaseA", "PhaseB", "PhaseC")]
-
-    if RICH_AVAILABLE:
-        from rich.table import Table as RichTable
-        from rich import box as rich_box
-        table = RichTable(title="Events", box=rich_box.HEAVY, show_lines=True)
-        table.add_column("Day", justify="right")
-        table.add_column("Phase", justify="left")
-        table.add_column("Kind", justify="left")
-        table.add_column("From", justify="left")
-        table.add_column("To", justify="left")
-        table.add_column("SKU/Instr", justify="left")
-        table.add_column("Qty", justify="right")
-        table.add_column("Amount", justify="right")
-        table.add_column("Notes", justify="left")
-        try:
-            table.row_styles = ["on #ffffff", "on #e6f2ff"]
-        except Exception:
-            pass
-
-        for e in evs:
-            kind = str(e.get("kind", ""))
-            if kind in ("CashDeposited", "CashWithdrawn"):
-                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
-                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
-            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
-                frm = e.get("payer")
-                to = e.get("payee")
-            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
-                frm = e.get("debtor_bank")
-                to = e.get("creditor_bank")
-            elif kind == "StockCreated":
-                frm = e.get("owner")
-                to = None
-            else:
-                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
-                to = e.get("to") or e.get("creditor") or e.get("payee")
-            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
-            qty = e.get("qty") or e.get("quantity") or "—"
-            amt = e.get("amount") or "—"
-            notes = ""
-            if kind == "ClientPayment":
-                notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
-            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
-                notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
-                if 'due_day' in e:
-                    notes += f"; due {e.get('due_day')}"
-
-            table.add_row(
-                str(e.get("day", "—")),
-                str(e.get("phase", "—")),
-                kind,
-                str(frm or "—"),
-                str(to or "—"),
-                str(sku),
-                str(qty),
-                str(amt),
-                notes,
-            )
-        return table
-    else:
-        header = " | ".join(columns)
-        lines = [header, "-" * len(header)]
-        for e in evs:
-            kind = str(e.get("kind", ""))
-            if kind in ("CashDeposited", "CashWithdrawn"):
-                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
-                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
-            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
-                frm = e.get("payer")
-                to = e.get("payee")
-            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
-                frm = e.get("debtor_bank")
-                to = e.get("creditor_bank")
-            elif kind == "StockCreated":
-                frm = e.get("owner")
-                to = None
-            else:
-                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
-                to = e.get("to") or e.get("creditor") or e.get("payee")
-            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
-            qty = e.get("qty") or e.get("quantity") or "—"
-            amt = e.get("amount") or "—"
-            notes = ""
-            if kind == "ClientPayment":
-                notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
-            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
-                notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
-                if 'due_day' in e:
-                    notes += f"; due {e.get('due_day')}"
-            row = [
-                str(e.get("day", "—")),
-                str(e.get("phase", "—")),
-                kind,
-                str(frm or "—"),
-                str(to or "—"),
-                str(sku),
-                str(qty),
-                str(amt),
-                notes,
-            ]
-            lines.append(" | ".join(row))
-        return "\n".join(lines)
-
-
-def display_events_tables_by_phase_renderables(events: List[Dict[str, Any]], day: Optional[int] = None) -> List[RenderableType]:
-    """Return three event tables (A, B, C) using phase markers as section dividers.
-
-    - Excludes PhaseA/PhaseB/PhaseC events from rows.
-    - Titles indicate the phase and optional day.
-    """
-    if RICH_AVAILABLE:
-        from rich.table import Table as RichTable
-        from rich import box as rich_box
-        from rich.text import Text as RichText
-    
-    # If these are setup-phase events (day 0), render as a single "Setup" table
-    if any(e.get("phase") == "setup" for e in events):
-        return _build_single_setup_table(events, day)
-
-    # Group by phase markers in original order
-    buckets = {"A": [], "B": [], "C": []}
-    current = "A"
-    for e in events:
-        kind = e.get("kind")
-        if kind == "PhaseA":
-            current = "A"; continue
-        if kind == "PhaseB":
-            current = "B"; continue
-        if kind == "PhaseC":
-            current = "C"; continue
-        buckets[current].append(e)
-
-    def build_table(phase: str, rows: List[Dict[str, Any]]):
-        title_parts = {
-            "A": "Phase A — Start of day",
-            "B": "Phase B — Settlement",
-            "C": "Phase C — Clearing"
-        }
-        title = title_parts.get(phase, f"Phase {phase}")
-        if day is not None:
-            title = f"{title} (Day {day})"
-
-        if not RICH_AVAILABLE:
-            # Simple text fallback
-            header = ["Kind", "From", "To", "SKU/Instr", "Qty", "Amount", "Notes"]
-            out = [f"{title}", " | ".join(header), "-" * 80]
-            for e in rows:
-                kind = str(e.get("kind", ""))
-                # map from/to like in table renderers
-                if kind in ("CashDeposited", "CashWithdrawn"):
-                    frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
-                    to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
-                elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
-                    frm = e.get("payer"); to = e.get("payee")
-                elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
-                    frm = e.get("debtor_bank"); to = e.get("creditor_bank")
-                elif kind == "StockCreated":
-                    frm = e.get("owner"); to = None
-                else:
-                    frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
-                    to = e.get("to") or e.get("creditor") or e.get("payee")
-                sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
-                qty = e.get("qty") or e.get("quantity") or "—"
-                amt = e.get("amount") or "—"
-                notes = ""
-                if kind == "ClientPayment":
-                    notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
-                elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
-                    notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
-                    if 'due_day' in e:
-                        notes += f"; due {e.get('due_day')}"
-                elif kind == "AgentDefaulted":
-                    shortfall = e.get('shortfall')
-                    trigger = e.get('trigger_contract')
-                    parts = []
-                    if shortfall is not None:
-                        parts.append(f"shortfall {shortfall}")
-                    if trigger:
-                        parts.append(f"trigger {trigger}")
-                    if parts:
-                        notes = ", ".join(parts)
-                out.append(" | ".join(map(str, [kind, frm or "—", to or "—", sku, qty, amt, notes])))
-            return "\n".join(out)
-
-        # Rich table
-        table = RichTable(title=title, box=rich_box.HEAVY, show_lines=True)
-        table.add_column("Kind", justify="left")
-        table.add_column("From", justify="left")
-        table.add_column("To", justify="left")
-        table.add_column("SKU/Instr", justify="left")
-        table.add_column("Qty", justify="right")
-        table.add_column("Amount", justify="right")
-        table.add_column("Notes", justify="left")
-        try:
-            table.row_styles = ["on #ffffff", "on #e6f2ff"] if phase != "C" else ["on #ffffff", "on #fff2cc"]
-        except Exception:
-            pass
-        for e in rows:
-            kind = str(e.get("kind", ""))
-            if kind in ("CashDeposited", "CashWithdrawn"):
-                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
-                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
-            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
-                frm = e.get("payer"); to = e.get("payee")
-            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
-                frm = e.get("debtor_bank"); to = e.get("creditor_bank")
-            elif kind == "StockCreated":
-                frm = e.get("owner"); to = None
-            else:
-                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
-                to = e.get("to") or e.get("creditor") or e.get("payee")
-            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
-            qty = e.get("qty") or e.get("quantity") or "—"
-            amt = e.get("amount") or "—"
-            notes = ""
-            if kind == "ClientPayment":
-                notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
-            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
-                notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
-                if 'due_day' in e:
-                    notes += f"; due {e.get('due_day')}"
-            elif kind == "AgentDefaulted":
-                shortfall = e.get('shortfall')
-                trigger = e.get('trigger_contract')
-                parts = []
-                if shortfall is not None:
-                    parts.append(f"shortfall {shortfall}")
-                if trigger:
-                    parts.append(f"trigger {trigger}")
-                if parts:
-                    notes = ", ".join(parts)
-            table.add_row(kind, str(frm or "—"), str(to or "—"), str(sku), str(qty), str(amt), notes)
-        return table
-
-    renderables: List[RenderableType] = []
-    # Phase A is intentionally empty for now; only include if it has rows
-    if buckets["A"]:
-        renderables.append(build_table("A", buckets["A"]))
-    # Phase B: settlements
-    renderables.append(build_table("B", buckets["B"]))
-    # Phase C: clearing
-    renderables.append(build_table("C", buckets["C"]))
-    return renderables
-
-
-def _build_single_setup_table(events: List[Dict[str, Any]], day: Optional[int] = None) -> List[RenderableType]:
-    """Render a single setup table for setup-phase events (day 0)."""
-    rows = [e for e in events if e.get("phase") == "setup" and e.get("kind") not in ("PhaseA","PhaseB","PhaseC")]
-    title = "Setup"
-    if day is not None:
-        title = f"{title} (Day {day})"
-    if not RICH_AVAILABLE:
-        header = ["Kind", "From", "To", "SKU/Instr", "Qty", "Amount", "Notes"]
-        out = [title, " | ".join(header), "-" * 80]
-        for e in rows:
-            kind = str(e.get("kind", ""))
-            if kind in ("CashDeposited", "CashWithdrawn"):
-                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
-                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
-            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
-                frm = e.get("payer"); to = e.get("payee")
-            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
-                frm = e.get("debtor_bank"); to = e.get("creditor_bank")
-            elif kind == "StockCreated":
-                frm = e.get("owner"); to = None
-            else:
-                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
-                to = e.get("to") or e.get("creditor") or e.get("payee")
-            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
-            qty = e.get("qty") or e.get("quantity") or "—"
-            amt = e.get("amount") or "—"
-            notes = ""
-            out.append(" | ".join(map(str, [kind, frm or "—", to or "—", sku, qty, amt, notes])))
-        return ["\n".join(out)]
-
-    from rich.table import Table as RichTable
-    from rich import box as rich_box
-    table = RichTable(title=title, box=rich_box.HEAVY, show_lines=True)
-    table.add_column("Kind", justify="left")
-    table.add_column("From", justify="left")
-    table.add_column("To", justify="left")
-    table.add_column("SKU/Instr", justify="left")
-    table.add_column("Qty", justify="right")
-    table.add_column("Amount", justify="right")
-    table.add_column("Notes", justify="left")
-    try:
-        table.row_styles = ["on #ffffff", "on #e6f2ff"]
-    except Exception:
-        pass
-    for e in rows:
-        kind = str(e.get("kind", ""))
-        if kind in ("CashDeposited", "CashWithdrawn"):
-            frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
-            to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
-        elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
-            frm = e.get("payer"); to = e.get("payee")
-        elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
-            frm = e.get("debtor_bank"); to = e.get("creditor_bank")
-        elif kind == "StockCreated":
-            frm = e.get("owner"); to = None
-        else:
-            frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
-            to = e.get("to") or e.get("creditor") or e.get("payee")
-        sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
-        qty = e.get("qty") or e.get("quantity") or "—"
-        amt = e.get("amount") or "—"
-        notes = ""
-        table.add_row(kind, str(frm or "—"), str(to or "—"), str(sku), str(qty), str(amt), notes)
-    return [table]
-
-
-# ============================================================================
-# T-account builder and renderers (detailed with Qty/Value/Counterparty/Maturity)
-# ============================================================================
-
-@dataclass
-class BalanceRow:
-    name: str
-    quantity: Optional[int]
-    value_minor: Optional[int]
-    counterparty_name: Optional[str]
-    maturity: Optional[str]
-    id_or_alias: Optional[str] = None
-
-
-@dataclass
-class TAccount:
-    assets: List[BalanceRow]
-    liabilities: List[BalanceRow]
-
-
-def _format_agent(agent_id: str, system: System) -> str:
-    """Format agent as 'Name [ID]' if available."""
-    ag = system.state.agents.get(agent_id)
-    if ag is None:
-        return agent_id
-    if ag.name and ag.name != agent_id:
-        return f"{ag.name} [{agent_id}]"
-    return agent_id
-
-
-def parse_day_from_maturity(maturity_str: Optional[str]) -> int:
-    """Parse a day number from maturity strings like 'Day 42'.
-
-    Returns an integer day. If the input cannot be parsed, returns a large
-    sentinel value to sort unknown maturities last.
-    """
-    if not isinstance(maturity_str, str):
-        return math.inf  # type: ignore[return-value]
-    s = maturity_str.strip()
-    if not s.startswith("Day "):
-        return math.inf  # type: ignore[return-value]
-    try:
-        return int(s[4:].strip())
-    except Exception:
-        return math.inf  # type: ignore[return-value]
-
-
 def build_t_account_rows(system: System, agent_id: str) -> TAccount:
     """Build detailed T-account rows from system state for an agent."""
     assets: List[BalanceRow] = []
@@ -37103,240 +37480,6 @@ def display_agent_t_account_renderable(system: System, agent_id: str) -> Rendera
     return table
 
 
-def _print(text: str, console: Optional['Console'] = None) -> None:
-    """Print using Rich console if available, otherwise regular print."""
-    if console:
-        console.print(text)
-    else:
-        print(text)
-
-
-def _display_events_summary(events: List[Dict[str, Any]], console: Optional['Console'] = None) -> None:
-    """Display events in a condensed summary format."""
-    for event in events:
-        kind = event.get("kind", "Unknown")
-        day = event.get("day", "?")
-        
-        if kind == "PayableSettled":
-            _print(f"Day {day}: 💰 {event['debtor']} → {event['creditor']}: ${event['amount']}", console)
-        elif kind == "DeliveryObligationSettled":
-            qty = event.get('qty', event.get('quantity', 'N/A'))
-            _print(f"Day {day}: 📦 {event['debtor']} → {event['creditor']}: {qty} {event.get('sku', 'items')}", console)
-        elif kind == "StockTransferred":
-            _print(f"Day {day}: 🚚 {event['frm']} → {event['to']}: {event['qty']} {event['sku']}", console)
-        elif kind == "CashTransferred":
-            _print(f"Day {day}: 💵 {event['frm']} → {event['to']}: ${event['amount']}", console)
-
-
-def _display_events_detailed(events: List[Dict[str, Any]], console: Optional['Console'] = None) -> None:
-    """Display events grouped by day with detailed formatting."""
-    # Separate setup events from day events
-    setup_events = []
-    events_by_day = defaultdict(list)
-    
-    for event in events:
-        # Check if this is a setup phase event
-        if event.get("phase") == "setup":
-            setup_events.append(event)
-        else:
-            day = event.get("day", -1)
-            events_by_day[day].append(event)
-    
-    # Display setup events first if any
-    if setup_events:
-        _print(f"\n📅 Setup Phase:", console)
-        # Setup events don't have phase markers, display them directly
-        for event in setup_events:
-            _display_single_event(event, console, indent="  ")
-    
-    # Display events for each day
-    for day in sorted(events_by_day.keys()):
-        if day >= 0:
-            _print(f"\n📅 Day {day}:", console)
-        else:
-            _print(f"\n📅 Unknown Day:", console)
-        
-        _display_day_events(events_by_day[day], console)
-
-
-def _display_day_events(day_events: List[Dict[str, Any]], console: Optional['Console'] = None) -> None:
-    """Display events for a single day with proper formatting."""
-    # Group events by their phase timing
-    phase_a_events = []
-    phase_b_events = []
-    phase_c_events = []
-    
-    # Track which phase we're in based on phase markers
-    current_phase = "A"  # Start with phase A
-    
-    for event in day_events:
-        kind = event.get("kind", "Unknown")
-        
-        # Phase markers change which phase we're in
-        if kind == "PhaseA":
-            current_phase = "A"
-        elif kind == "PhaseB":
-            current_phase = "B"
-        elif kind == "PhaseC":
-            current_phase = "C"
-        else:
-            # Regular events go into the current phase bucket
-            if current_phase == "A":
-                phase_a_events.append(event)
-            elif current_phase == "B":
-                phase_b_events.append(event)
-            elif current_phase == "C":
-                phase_c_events.append(event)
-    
-    # Always display all three phases
-    # Phase A - No-op phase, just marks beginning of day
-    _print(f"\n  ⏰ Phase A: Day begins", console)
-    for event in phase_a_events:
-        _display_single_event(event, console, indent="    ")
-    
-    # Phase B - Settlement phase where obligations are fulfilled
-    _print(f"\n  💳 Phase B: Settlement (fulfilling due obligations)", console)
-    for event in phase_b_events:
-        _display_single_event(event, console, indent="    ")
-    
-    # Phase C - Intraday netting
-    _print(f"\n  📋 Phase C: Intraday netting", console)
-    for event in phase_c_events:
-        _display_single_event(event, console, indent="    ")
-    
-    # Mark end of day
-    _print(f"\n  🌙 Day ended", console)
-
-
-def _display_single_event(event: Dict[str, Any], console: Optional['Console'] = None, indent: str = "  ") -> None:
-    """Display a single event with proper formatting."""
-    kind = event.get("kind", "Unknown")
-    
-    if kind == "StockCreated":
-        _print(f"{indent}🏭 Stock created: {event['owner']} gets {event['qty']} {event['sku']}", console)
-    
-    elif kind == "CashMinted":
-        _print(f"{indent}💰 Cash minted: ${event['amount']} to {event['to']}", console)
-    
-    elif kind == "PayableSettled":
-        _print(f"{indent}✅ Payment settled: {event['debtor']} → {event['creditor']}: ${event['amount']}", console)
-    
-    elif kind == "PayableCancelled":
-        _print(f"{indent}  └─ Payment obligation removed from books", console)
-    
-    elif kind == "DeliveryObligationSettled":
-        qty = event.get('qty', event.get('quantity', 'N/A'))
-        sku = event.get('sku', 'items')
-        _print(f"{indent}✅ Delivery settled: {event['debtor']} → {event['creditor']}: {qty} {sku}", console)
-    
-    elif kind == "DeliveryObligationCancelled":
-        _print(f"{indent}  └─ Delivery obligation removed from books", console)
-    
-    elif kind == "StockTransferred":
-        _print(f"{indent}📦 Stock transferred: {event['frm']} → {event['to']}: {event['qty']} {event['sku']}", console)
-    
-    elif kind == "CashTransferred":
-        _print(f"{indent}💵 Cash transferred: {event['frm']} → {event['to']}: ${event['amount']}", console)
-    
-    elif kind == "StockSplit":
-        sku = event.get('sku', 'N/A')
-        original_qty = event.get('original_qty', 0)
-        split_qty = event.get('split_qty', 0)
-        remaining_qty = event.get('remaining_qty', 0)
-        # Show shortened IDs for readability
-        original_id = event.get('original_id', '')
-        new_id = event.get('new_id', '')
-        short_orig = original_id.split('_')[-1][:8] if original_id else 'N/A'
-        short_new = new_id.split('_')[-1][:8] if new_id else 'N/A'
-        _print(f"{indent}📊 Stock split: {short_orig} → {short_new}: {split_qty} {sku} (keeping {remaining_qty})", console)
-    
-    elif kind == "ReservesMinted":
-        amount = event.get('amount', 0)
-        to = event.get('to', 'N/A')
-        _print(f"{indent}🏦 Reserves minted: ${amount} to {to}", console)
-    
-    elif kind == "CashDeposited":
-        customer = event.get('customer', 'N/A')
-        bank = event.get('bank', 'N/A')
-        amount = event.get('amount', 0)
-        _print(f"{indent}🏧 Cash deposited: {customer} → {bank}: ${amount}", console)
-    
-    elif kind == "DeliveryObligationCreated":
-        frm = event.get('frm', event.get('from', 'N/A'))
-        to = event.get('to', 'N/A')
-        qty = event.get('qty', event.get('quantity', 0))
-        sku = event.get('sku', 'N/A')
-        due_day = event.get('due_day', 'N/A')
-        _print(f"{indent}📝 Delivery obligation created: {frm} → {to}: {qty} {sku} (due day {due_day})", console)
-    
-    elif kind == "PayableCreated":
-        frm = event.get('frm', event.get('from', event.get('debtor', 'N/A')))
-        to = event.get('to', event.get('creditor', 'N/A'))
-        amount = event.get('amount', 0)
-        due_day = event.get('due_day', 'N/A')
-        _print(f"{indent}💸 Payable created: {frm} → {to}: ${amount} (due day {due_day})", console)
-    
-    elif kind == "ClientPayment":
-        payer = event.get('payer', 'N/A')
-        payee = event.get('payee', 'N/A')
-        amount = event.get('amount', 0)
-        payer_bank = event.get('payer_bank', '')
-        payee_bank = event.get('payee_bank', '')
-        _print(f"{indent}💳 Client payment: {payer} ({payer_bank}) → {payee} ({payee_bank}): ${amount}", console)
-    
-    elif kind == "InterbankCleared":
-        debtor = event.get('debtor_bank', 'N/A')
-        creditor = event.get('creditor_bank', 'N/A')
-        amount = event.get('amount', 0)
-        _print(f"{indent}🏦 Interbank cleared: {debtor} → {creditor}: ${amount} (netted)", console)
-    
-    elif kind == "ReservesTransferred":
-        frm = event.get('frm', 'N/A')
-        to = event.get('to', 'N/A')
-        amount = event.get('amount', 0)
-        _print(f"{indent}💰 Reserves transferred: {frm} → {to}: ${amount}", console)
-    
-    elif kind == "InstrumentMerged":
-        # This is a technical event, show it more compactly
-        _print(f"{indent}🔀 Instruments merged", console)
-    
-    elif kind == "InterbankOvernightCreated":
-        debtor = event.get('debtor_bank', 'N/A')
-        creditor = event.get('creditor_bank', 'N/A')
-        amount = event.get('amount', 0)
-        _print(f"{indent}🌙 Overnight payable created: {debtor} → {creditor}: ${amount}", console)
-    
-    elif kind in ["PhaseA", "PhaseB", "PhaseC"]:
-        # Phase markers are not displayed as events themselves
-        pass
-    
-    else:
-        # For any other event types, show raw data
-        _print(f"{indent}• {kind}: {event}", console)
-
-
-def display_events_for_day(system: System, day: int) -> None:
-    """
-    Display all events that occurred on a specific simulation day.
-    
-    Args:
-        system: The bilancio system instance
-        day: The simulation day to display events for
-    """
-    console = Console() if RICH_AVAILABLE else None
-    events = [e for e in system.state.events if e.get("day") == day]
-    
-    if not events:
-        _print("  No events occurred on this day.", console)
-        return
-    
-    _display_day_events(events, console)
-
-
-# ============================================================================
-# New Renderable-returning Functions for HTML Export
-# ============================================================================
-
 def display_agent_balance_table_renderable(
     system: System,
     agent_id: str,
@@ -37427,55 +37570,6 @@ def display_multiple_agent_balances_renderable(
         # Return simple text format as string
         return _build_simple_multiple_agent_balances_string(balances, system)
 
-
-def display_events_renderable(events: List[Dict[str, Any]], format: str = 'detailed') -> List[RenderableType]:
-    """
-    Return renderables for system events in a nicely formatted way.
-    
-    Args:
-        events: List of event dictionaries from sys.state.events
-        format: Display format ('detailed' or 'summary')
-        
-    Returns:
-        List of Rich renderables (or strings for simple format)
-    """
-    if not events:
-        if RICH_AVAILABLE:
-            return [Text("No events to display.", style="dim")]
-        else:
-            return ["No events to display."]
-    
-    if format == 'summary':
-        return _build_events_summary_renderables(events)
-    else:
-        return _build_events_detailed_renderables(events)
-
-
-def display_events_for_day_renderable(system: System, day: int) -> List[RenderableType]:
-    """
-    Return renderables for all events that occurred on a specific simulation day.
-    
-    Args:
-        system: The bilancio system instance
-        day: The simulation day to display events for
-        
-    Returns:
-        List of Rich renderables (or strings for simple format)
-    """
-    events = [e for e in system.state.events if e.get("day") == day]
-    
-    if not events:
-        if RICH_AVAILABLE:
-            return [Text("  No events occurred on this day.", style="dim")]
-        else:
-            return ["  No events occurred on this day."]
-    
-    return _build_day_events_renderables(events)
-
-
-# ============================================================================
-# Helper Functions for New Renderable Functions
-# ============================================================================
 
 def _create_rich_agent_balance_table(title: str, balance: AgentBalance) -> Table:
     """Create a Rich Table for a single agent balance (returns table instead of printing)."""
@@ -37756,6 +37850,668 @@ def _build_simple_multiple_agent_balances_string(
     return "\n".join(lines)
 
 
+```
+
+---
+
+### 📄 src/bilancio/analysis/visualization/common.py
+
+```python
+"""Common utilities and types for visualization modules."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Any, Optional
+import math
+
+try:
+    from rich.console import Console, RenderableType
+    RICH_AVAILABLE = True
+except ImportError:
+    RICH_AVAILABLE = False
+    RenderableType = Any
+
+
+def _format_currency(amount: int, show_sign: bool = False) -> str:
+    """Format an integer amount as currency."""
+    formatted = f"{amount:,}"
+    if show_sign and amount > 0:
+        formatted = f"+{formatted}"
+    return formatted
+
+
+def _print(text: str, console: Optional['Console'] = None) -> None:
+    """Print using Rich console if available, otherwise regular print."""
+    if console:
+        console.print(text)
+    else:
+        print(text)
+
+
+def _format_agent(agent_id: str, system) -> str:
+    """Format agent as 'Name [ID]' if available.
+
+    Args:
+        agent_id: The agent ID to format
+        system: The System instance (imported locally to avoid circular imports)
+    """
+    ag = system.state.agents.get(agent_id)
+    if ag is None:
+        return agent_id
+    if ag.name and ag.name != agent_id:
+        return f"{ag.name} [{agent_id}]"
+    return agent_id
+
+
+def parse_day_from_maturity(maturity_str: Optional[str]) -> int:
+    """Parse a day number from maturity strings like 'Day 42'.
+
+    Returns an integer day. If the input cannot be parsed, returns a large
+    sentinel value to sort unknown maturities last.
+    """
+    if not isinstance(maturity_str, str):
+        return math.inf  # type: ignore[return-value]
+    s = maturity_str.strip()
+    if not s.startswith("Day "):
+        return math.inf  # type: ignore[return-value]
+    try:
+        return int(s[4:].strip())
+    except Exception:
+        return math.inf  # type: ignore[return-value]
+
+
+@dataclass
+class BalanceRow:
+    name: str
+    quantity: Optional[int]
+    value_minor: Optional[int]
+    counterparty_name: Optional[str]
+    maturity: Optional[str]
+    id_or_alias: Optional[str] = None
+
+
+@dataclass
+class TAccount:
+    assets: list[BalanceRow]
+    liabilities: list[BalanceRow]
+
+```
+
+---
+
+### 📄 src/bilancio/analysis/visualization/events.py
+
+```python
+"""Event table formatting and display functions."""
+
+from __future__ import annotations
+
+from collections import defaultdict
+from typing import Any, Dict, List, Optional
+
+from bilancio.engines.system import System
+from bilancio.analysis.visualization.common import (
+    RICH_AVAILABLE,
+    RenderableType,
+    _print,
+)
+
+# Import Rich components only if available
+if RICH_AVAILABLE:
+    from rich.console import Console
+    from rich.table import Table
+    from rich.text import Text
+    from rich import box
+
+
+
+def display_events(events: List[Dict[str, Any]], format: str = 'detailed') -> None:
+    """
+    Display system events in a nicely formatted way.
+    
+    Args:
+        events: List of event dictionaries from sys.state.events
+        format: Display format ('detailed' or 'summary')
+    """
+    console = Console() if RICH_AVAILABLE else None
+    
+    if not events:
+        _print("No events to display.", console)
+        return
+    
+    if format == 'summary':
+        _display_events_summary(events, console)
+    else:
+        _display_events_detailed(events, console)
+
+
+def display_events_table(events: List[Dict[str, Any]], group_by_day: bool = True) -> None:
+    """Render events as a table with canonical columns.
+
+    Falls back to simple text when Rich is not available.
+    """
+    console = Console() if RICH_AVAILABLE else None
+
+    if not events:
+        _print("No events to display.", console)
+        return
+
+    columns = ["Day", "Phase", "Kind", "From", "To", "SKU/Instr", "Qty", "Amount", "Notes"]
+
+    # Sort events deterministically
+    # Drop phase marker events; preserve original insertion (chronological) order
+    evs = [e for e in events if e.get("kind") not in ("PhaseA", "PhaseB", "PhaseC")]
+
+    if RICH_AVAILABLE:
+        from rich.table import Table as RichTable
+        from rich import box as rich_box
+        table = RichTable(title="Events", box=rich_box.HEAVY, show_lines=True)
+        # Column definitions with better alignment
+        table.add_column("Day", justify="right")
+        table.add_column("Phase", justify="left")
+        table.add_column("Kind", justify="left")
+        table.add_column("From", justify="left")
+        table.add_column("To", justify="left")
+        table.add_column("SKU/Instr", justify="left")
+        table.add_column("Qty", justify="right")
+        table.add_column("Amount", justify="right")
+        table.add_column("Notes", justify="left")
+        # Alternate row shading for readability
+        try:
+            table.row_styles = ["on #ffffff", "on #e6f2ff"]
+        except Exception:
+            pass
+
+        for e in evs:
+            kind = str(e.get("kind", ""))
+            # Canonical from/to mapping by kind
+            if kind in ("CashDeposited", "CashWithdrawn"):
+                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+                frm = e.get("payer")
+                to = e.get("payee")
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                frm = e.get("debtor_bank")
+                to = e.get("creditor_bank")
+            elif kind == "StockCreated":
+                frm = e.get("owner")
+                to = None
+            else:
+                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer") or e.get("agent")
+                to = e.get("to") or e.get("creditor") or e.get("payee")
+            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+            qty = e.get("qty") or e.get("quantity") or "—"
+            amt = e.get("amount") or "—"
+
+            notes = ""
+            if kind == "ClientPayment":
+                notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
+                if 'due_day' in e:
+                    notes += f"; due {e.get('due_day')}"
+            elif kind == "AgentDefaulted":
+                shortfall = e.get('shortfall')
+                trigger = e.get('trigger_contract')
+                parts = []
+                if shortfall is not None:
+                    parts.append(f"shortfall {shortfall}")
+                if trigger:
+                    parts.append(f"trigger {trigger}")
+                if parts:
+                    notes = ", ".join(parts)
+
+            table.add_row(
+                str(e.get("day", "—")),
+                str(e.get("phase", "—")),
+                kind,
+                str(frm or "—"),
+                str(to or "—"),
+                str(sku),
+                str(qty),
+                str(amt),
+                notes,
+            )
+
+        console.print(table) if console else print(table)
+    else:
+        # Simple header + rows
+        header = " | ".join(columns)
+        print(header)
+        print("-" * len(header))
+        for e in evs:
+            kind = str(e.get("kind", ""))
+            if kind in ("CashDeposited", "CashWithdrawn"):
+                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+                frm = e.get("payer")
+                to = e.get("payee")
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                frm = e.get("debtor_bank")
+                to = e.get("creditor_bank")
+            elif kind == "StockCreated":
+                frm = e.get("owner")
+                to = None
+            else:
+                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer") or e.get("agent")
+                to = e.get("to") or e.get("creditor") or e.get("payee")
+            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+            qty = e.get("qty") or e.get("quantity") or "—"
+            amt = e.get("amount") or "—"
+            notes = ""
+            if kind == "ClientPayment":
+                notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
+                if 'due_day' in e:
+                    notes += f"; due {e.get('due_day')}"
+            elif kind == "AgentDefaulted":
+                shortfall = e.get('shortfall')
+                trigger = e.get('trigger_contract')
+                parts = []
+                if shortfall is not None:
+                    parts.append(f"shortfall {shortfall}")
+                if trigger:
+                    parts.append(f"trigger {trigger}")
+                if parts:
+                    notes = ", ".join(parts)
+            row = [
+                str(e.get("day", "—")),
+                str(e.get("phase", "—")),
+                kind,
+                str(frm or "—"),
+                str(to or "—"),
+                str(sku),
+                str(qty),
+                str(amt),
+                notes,
+            ]
+            print(" | ".join(row))
+
+
+def display_events_table_renderable(events: List[Dict[str, Any]]) -> RenderableType:
+    """Return a Rich Table renderable (or string) for events table."""
+    if not events:
+        return Text("No events to display.", style="dim") if RICH_AVAILABLE else "No events to display."
+
+    columns = ["Day", "Phase", "Kind", "From", "To", "SKU/Instr", "Qty", "Amount", "Notes"]
+    # Drop phase marker events; preserve original insertion (chronological) order
+    evs = [e for e in events if e.get("kind") not in ("PhaseA", "PhaseB", "PhaseC")]
+
+    if RICH_AVAILABLE:
+        from rich.table import Table as RichTable
+        from rich import box as rich_box
+        table = RichTable(title="Events", box=rich_box.HEAVY, show_lines=True)
+        table.add_column("Day", justify="right")
+        table.add_column("Phase", justify="left")
+        table.add_column("Kind", justify="left")
+        table.add_column("From", justify="left")
+        table.add_column("To", justify="left")
+        table.add_column("SKU/Instr", justify="left")
+        table.add_column("Qty", justify="right")
+        table.add_column("Amount", justify="right")
+        table.add_column("Notes", justify="left")
+        try:
+            table.row_styles = ["on #ffffff", "on #e6f2ff"]
+        except Exception:
+            pass
+
+        for e in evs:
+            kind = str(e.get("kind", ""))
+            if kind in ("CashDeposited", "CashWithdrawn"):
+                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+                frm = e.get("payer")
+                to = e.get("payee")
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                frm = e.get("debtor_bank")
+                to = e.get("creditor_bank")
+            elif kind == "StockCreated":
+                frm = e.get("owner")
+                to = None
+            else:
+                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+                to = e.get("to") or e.get("creditor") or e.get("payee")
+            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+            qty = e.get("qty") or e.get("quantity") or "—"
+            amt = e.get("amount") or "—"
+            notes = ""
+            if kind == "ClientPayment":
+                notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
+                if 'due_day' in e:
+                    notes += f"; due {e.get('due_day')}"
+
+            table.add_row(
+                str(e.get("day", "—")),
+                str(e.get("phase", "—")),
+                kind,
+                str(frm or "—"),
+                str(to or "—"),
+                str(sku),
+                str(qty),
+                str(amt),
+                notes,
+            )
+        return table
+    else:
+        header = " | ".join(columns)
+        lines = [header, "-" * len(header)]
+        for e in evs:
+            kind = str(e.get("kind", ""))
+            if kind in ("CashDeposited", "CashWithdrawn"):
+                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+                frm = e.get("payer")
+                to = e.get("payee")
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                frm = e.get("debtor_bank")
+                to = e.get("creditor_bank")
+            elif kind == "StockCreated":
+                frm = e.get("owner")
+                to = None
+            else:
+                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+                to = e.get("to") or e.get("creditor") or e.get("payee")
+            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+            qty = e.get("qty") or e.get("quantity") or "—"
+            amt = e.get("amount") or "—"
+            notes = ""
+            if kind == "ClientPayment":
+                notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
+                if 'due_day' in e:
+                    notes += f"; due {e.get('due_day')}"
+            row = [
+                str(e.get("day", "—")),
+                str(e.get("phase", "—")),
+                kind,
+                str(frm or "—"),
+                str(to or "—"),
+                str(sku),
+                str(qty),
+                str(amt),
+                notes,
+            ]
+            lines.append(" | ".join(row))
+        return "\n".join(lines)
+
+
+def _display_events_summary(events: List[Dict[str, Any]], console: Optional['Console'] = None) -> None:
+    """Display events in a condensed summary format."""
+    for event in events:
+        kind = event.get("kind", "Unknown")
+        day = event.get("day", "?")
+        
+        if kind == "PayableSettled":
+            _print(f"Day {day}: 💰 {event['debtor']} → {event['creditor']}: ${event['amount']}", console)
+        elif kind == "DeliveryObligationSettled":
+            qty = event.get('qty', event.get('quantity', 'N/A'))
+            _print(f"Day {day}: 📦 {event['debtor']} → {event['creditor']}: {qty} {event.get('sku', 'items')}", console)
+        elif kind == "StockTransferred":
+            _print(f"Day {day}: 🚚 {event['frm']} → {event['to']}: {event['qty']} {event['sku']}", console)
+        elif kind == "CashTransferred":
+            _print(f"Day {day}: 💵 {event['frm']} → {event['to']}: ${event['amount']}", console)
+
+
+
+def _display_events_detailed(events: List[Dict[str, Any]], console: Optional['Console'] = None) -> None:
+    """Display events grouped by day with detailed formatting."""
+    # Separate setup events from day events
+    setup_events = []
+    events_by_day = defaultdict(list)
+    
+    for event in events:
+        # Check if this is a setup phase event
+        if event.get("phase") == "setup":
+            setup_events.append(event)
+        else:
+            day = event.get("day", -1)
+            events_by_day[day].append(event)
+    
+    # Display setup events first if any
+    if setup_events:
+        _print(f"\n📅 Setup Phase:", console)
+        # Setup events don't have phase markers, display them directly
+        for event in setup_events:
+            _display_single_event(event, console, indent="  ")
+    
+    # Display events for each day
+    for day in sorted(events_by_day.keys()):
+        if day >= 0:
+            _print(f"\n📅 Day {day}:", console)
+        else:
+            _print(f"\n📅 Unknown Day:", console)
+        
+        _display_day_events(events_by_day[day], console)
+
+
+def _display_day_events(day_events: List[Dict[str, Any]], console: Optional['Console'] = None) -> None:
+    """Display events for a single day with proper formatting."""
+    # Group events by their phase timing
+    phase_a_events = []
+    phase_b_events = []
+    phase_c_events = []
+    
+    # Track which phase we're in based on phase markers
+    current_phase = "A"  # Start with phase A
+    
+    for event in day_events:
+        kind = event.get("kind", "Unknown")
+        
+        # Phase markers change which phase we're in
+        if kind == "PhaseA":
+            current_phase = "A"
+        elif kind == "PhaseB":
+            current_phase = "B"
+        elif kind == "PhaseC":
+            current_phase = "C"
+        else:
+            # Regular events go into the current phase bucket
+            if current_phase == "A":
+                phase_a_events.append(event)
+            elif current_phase == "B":
+                phase_b_events.append(event)
+            elif current_phase == "C":
+                phase_c_events.append(event)
+    
+    # Always display all three phases
+    # Phase A - No-op phase, just marks beginning of day
+    _print(f"\n  ⏰ Phase A: Day begins", console)
+    for event in phase_a_events:
+        _display_single_event(event, console, indent="    ")
+    
+    # Phase B - Settlement phase where obligations are fulfilled
+    _print(f"\n  💳 Phase B: Settlement (fulfilling due obligations)", console)
+    for event in phase_b_events:
+        _display_single_event(event, console, indent="    ")
+    
+    # Phase C - Intraday netting
+    _print(f"\n  📋 Phase C: Intraday netting", console)
+    for event in phase_c_events:
+        _display_single_event(event, console, indent="    ")
+    
+    # Mark end of day
+    _print(f"\n  🌙 Day ended", console)
+
+
+def _display_single_event(event: Dict[str, Any], console: Optional['Console'] = None, indent: str = "  ") -> None:
+    """Display a single event with proper formatting."""
+    kind = event.get("kind", "Unknown")
+    
+    if kind == "StockCreated":
+        _print(f"{indent}🏭 Stock created: {event['owner']} gets {event['qty']} {event['sku']}", console)
+    
+    elif kind == "CashMinted":
+        _print(f"{indent}💰 Cash minted: ${event['amount']} to {event['to']}", console)
+    
+    elif kind == "PayableSettled":
+        _print(f"{indent}✅ Payment settled: {event['debtor']} → {event['creditor']}: ${event['amount']}", console)
+    
+    elif kind == "PayableCancelled":
+        _print(f"{indent}  └─ Payment obligation removed from books", console)
+    
+    elif kind == "DeliveryObligationSettled":
+        qty = event.get('qty', event.get('quantity', 'N/A'))
+        sku = event.get('sku', 'items')
+        _print(f"{indent}✅ Delivery settled: {event['debtor']} → {event['creditor']}: {qty} {sku}", console)
+    
+    elif kind == "DeliveryObligationCancelled":
+        _print(f"{indent}  └─ Delivery obligation removed from books", console)
+    
+    elif kind == "StockTransferred":
+        _print(f"{indent}📦 Stock transferred: {event['frm']} → {event['to']}: {event['qty']} {event['sku']}", console)
+    
+    elif kind == "CashTransferred":
+        _print(f"{indent}💵 Cash transferred: {event['frm']} → {event['to']}: ${event['amount']}", console)
+    
+    elif kind == "StockSplit":
+        sku = event.get('sku', 'N/A')
+        original_qty = event.get('original_qty', 0)
+        split_qty = event.get('split_qty', 0)
+        remaining_qty = event.get('remaining_qty', 0)
+        # Show shortened IDs for readability
+        original_id = event.get('original_id', '')
+        new_id = event.get('new_id', '')
+        short_orig = original_id.split('_')[-1][:8] if original_id else 'N/A'
+        short_new = new_id.split('_')[-1][:8] if new_id else 'N/A'
+        _print(f"{indent}📊 Stock split: {short_orig} → {short_new}: {split_qty} {sku} (keeping {remaining_qty})", console)
+    
+    elif kind == "ReservesMinted":
+        amount = event.get('amount', 0)
+        to = event.get('to', 'N/A')
+        _print(f"{indent}🏦 Reserves minted: ${amount} to {to}", console)
+    
+    elif kind == "CashDeposited":
+        customer = event.get('customer', 'N/A')
+        bank = event.get('bank', 'N/A')
+        amount = event.get('amount', 0)
+        _print(f"{indent}🏧 Cash deposited: {customer} → {bank}: ${amount}", console)
+    
+    elif kind == "DeliveryObligationCreated":
+        frm = event.get('frm', event.get('from', 'N/A'))
+        to = event.get('to', 'N/A')
+        qty = event.get('qty', event.get('quantity', 0))
+        sku = event.get('sku', 'N/A')
+        due_day = event.get('due_day', 'N/A')
+        _print(f"{indent}📝 Delivery obligation created: {frm} → {to}: {qty} {sku} (due day {due_day})", console)
+    
+    elif kind == "PayableCreated":
+        frm = event.get('frm', event.get('from', event.get('debtor', 'N/A')))
+        to = event.get('to', event.get('creditor', 'N/A'))
+        amount = event.get('amount', 0)
+        due_day = event.get('due_day', 'N/A')
+        _print(f"{indent}💸 Payable created: {frm} → {to}: ${amount} (due day {due_day})", console)
+    
+    elif kind == "ClientPayment":
+        payer = event.get('payer', 'N/A')
+        payee = event.get('payee', 'N/A')
+        amount = event.get('amount', 0)
+        payer_bank = event.get('payer_bank', '')
+        payee_bank = event.get('payee_bank', '')
+        _print(f"{indent}💳 Client payment: {payer} ({payer_bank}) → {payee} ({payee_bank}): ${amount}", console)
+    
+    elif kind == "InterbankCleared":
+        debtor = event.get('debtor_bank', 'N/A')
+        creditor = event.get('creditor_bank', 'N/A')
+        amount = event.get('amount', 0)
+        _print(f"{indent}🏦 Interbank cleared: {debtor} → {creditor}: ${amount} (netted)", console)
+    
+    elif kind == "ReservesTransferred":
+        frm = event.get('frm', 'N/A')
+        to = event.get('to', 'N/A')
+        amount = event.get('amount', 0)
+        _print(f"{indent}💰 Reserves transferred: {frm} → {to}: ${amount}", console)
+    
+    elif kind == "InstrumentMerged":
+        # This is a technical event, show it more compactly
+        _print(f"{indent}🔀 Instruments merged", console)
+    
+    elif kind == "InterbankOvernightCreated":
+        debtor = event.get('debtor_bank', 'N/A')
+        creditor = event.get('creditor_bank', 'N/A')
+        amount = event.get('amount', 0)
+        _print(f"{indent}🌙 Overnight payable created: {debtor} → {creditor}: ${amount}", console)
+    
+    elif kind in ["PhaseA", "PhaseB", "PhaseC"]:
+        # Phase markers are not displayed as events themselves
+        pass
+    
+    else:
+        # For any other event types, show raw data
+        _print(f"{indent}• {kind}: {event}", console)
+
+
+def display_events_for_day(system: System, day: int) -> None:
+    """
+    Display all events that occurred on a specific simulation day.
+    
+    Args:
+        system: The bilancio system instance
+        day: The simulation day to display events for
+    """
+    console = Console() if RICH_AVAILABLE else None
+    events = [e for e in system.state.events if e.get("day") == day]
+    
+    if not events:
+        _print("  No events occurred on this day.", console)
+        return
+    
+    _display_day_events(events, console)
+
+
+def display_events_renderable(events: List[Dict[str, Any]], format: str = 'detailed') -> List[RenderableType]:
+    """
+    Return renderables for system events in a nicely formatted way.
+    
+    Args:
+        events: List of event dictionaries from sys.state.events
+        format: Display format ('detailed' or 'summary')
+        
+    Returns:
+        List of Rich renderables (or strings for simple format)
+    """
+    if not events:
+        if RICH_AVAILABLE:
+            return [Text("No events to display.", style="dim")]
+        else:
+            return ["No events to display."]
+    
+    if format == 'summary':
+        return _build_events_summary_renderables(events)
+    else:
+        return _build_events_detailed_renderables(events)
+
+
+def display_events_for_day_renderable(system: System, day: int) -> List[RenderableType]:
+    """
+    Return renderables for all events that occurred on a specific simulation day.
+    
+    Args:
+        system: The bilancio system instance
+        day: The simulation day to display events for
+        
+    Returns:
+        List of Rich renderables (or strings for simple format)
+    """
+    events = [e for e in system.state.events if e.get("day") == day]
+    
+    if not events:
+        if RICH_AVAILABLE:
+            return [Text("  No events occurred on this day.", style="dim")]
+        else:
+            return ["  No events occurred on this day."]
+    
+    return _build_day_events_renderables(events)
+
+
 def _build_events_summary_renderables(events: List[Dict[str, Any]]) -> List[RenderableType]:
     """Build renderables for events in summary format."""
     renderables = []
@@ -37789,75 +38545,6 @@ def _build_events_detailed_renderables(events: List[Dict[str, Any]]) -> List[Ren
     # Import and use the phase-aware version
     from bilancio.analysis.visualization_phases import build_events_detailed_with_phases
     return build_events_detailed_with_phases(events, RICH_AVAILABLE)
-    
-def _build_events_detailed_renderables_old(events: List[Dict[str, Any]]) -> List[RenderableType]:
-    """Old version - kept for reference."""
-    renderables = []
-    
-    # Use the formatter registry to format events nicely
-    from bilancio.ui.render.formatters import registry
-    
-    # Group events by phase
-    phases = {"A": [], "B": [], "C": [], "other": []}
-    for event in events:
-        phase = event.get("phase", "other")
-        if phase in ["A", "B", "C"]:
-            phases[phase].append(event)
-        else:
-            phases["other"].append(event)
-    
-    # Display events organized by phase
-    if phases["A"]:
-        if RICH_AVAILABLE:
-            from rich.text import Text
-            phase_header = Text("\n⏰ Phase A - Morning Activities", style="bold cyan")
-            renderables.append(phase_header)
-        else:
-            renderables.append("\n⏰ Phase A - Morning Activities")
-        
-        for event in phases["A"]:
-            kind = event.get("kind", "Unknown")
-            if kind == "PhaseA":
-                continue  # Skip the phase marker itself</            
-            renderables.extend(_format_single_event(event, registry))
-    
-    if phases["B"]:
-        if RICH_AVAILABLE:
-            from rich.text import Text
-            phase_header = Text("\n🌅 Phase B - Business Hours", style="bold yellow")
-            renderables.append(phase_header)
-        else:
-            renderables.append("\n🌅 Phase B - Business Hours")
-            
-        for event in phases["B"]:
-            kind = event.get("kind", "Unknown")
-            if kind == "PhaseB":
-                continue  # Skip the phase marker itself
-            renderables.extend(_format_single_event(event, registry))
-    
-    if phases["C"]:
-        if RICH_AVAILABLE:
-            from rich.text import Text
-            phase_header = Text("\n🌙 Phase C - End of Day Clearing", style="bold green")
-            renderables.append(phase_header)
-        else:
-            renderables.append("\n🌙 Phase C - End of Day Clearing")
-            
-        for event in phases["C"]:
-            kind = event.get("kind", "Unknown")
-            if kind == "PhaseC":
-                continue  # Skip the phase marker itself
-            renderables.extend(_format_single_event(event, registry))
-    
-    # Display any events without phase markers
-    if phases["other"]:
-        for event in phases["other"]:
-            kind = event.get("kind", "Unknown")
-            if kind in ["PhaseA", "PhaseB", "PhaseC"]:
-                continue  # Skip phase markers
-            renderables.extend(_format_single_event(event, registry))
-    
-    return renderables
 
 
 def _format_single_event(event: Dict[str, Any], registry) -> List[RenderableType]:
@@ -37920,6 +38607,228 @@ def _format_single_event(event: Dict[str, Any], registry) -> List[RenderableType
 def _build_day_events_renderables(events: List[Dict[str, Any]]) -> List[RenderableType]:
     """Build renderables for events in a single day."""
     return _build_events_detailed_renderables(events)
+
+```
+
+---
+
+### 📄 src/bilancio/analysis/visualization/phases.py
+
+```python
+"""Phase summary visualization for events."""
+
+from __future__ import annotations
+
+from typing import Any, Dict, List, Optional
+
+from bilancio.analysis.visualization.common import RICH_AVAILABLE, RenderableType
+
+
+def display_events_tables_by_phase_renderables(events: List[Dict[str, Any]], day: Optional[int] = None) -> List[RenderableType]:
+    """Return three event tables (A, B, C) using phase markers as section dividers.
+
+    - Excludes PhaseA/PhaseB/PhaseC events from rows.
+    - Titles indicate the phase and optional day.
+    """
+    if RICH_AVAILABLE:
+        from rich.table import Table as RichTable
+        from rich import box as rich_box
+        from rich.text import Text as RichText
+
+    # If these are setup-phase events (day 0), render as a single "Setup" table
+    if any(e.get("phase") == "setup" for e in events):
+        return _build_single_setup_table(events, day)
+
+    # Group by phase markers in original order
+    buckets = {"A": [], "B": [], "C": []}
+    current = "A"
+    for e in events:
+        kind = e.get("kind")
+        if kind == "PhaseA":
+            current = "A"; continue
+        if kind == "PhaseB":
+            current = "B"; continue
+        if kind == "PhaseC":
+            current = "C"; continue
+        buckets[current].append(e)
+
+    def build_table(phase: str, rows: List[Dict[str, Any]]):
+        title_parts = {
+            "A": "Phase A — Start of day",
+            "B": "Phase B — Settlement",
+            "C": "Phase C — Clearing"
+        }
+        title = title_parts.get(phase, f"Phase {phase}")
+        if day is not None:
+            title = f"{title} (Day {day})"
+
+        if not RICH_AVAILABLE:
+            # Simple text fallback
+            header = ["Kind", "From", "To", "SKU/Instr", "Qty", "Amount", "Notes"]
+            out = [f"{title}", " | ".join(header), "-" * 80]
+            for e in rows:
+                kind = str(e.get("kind", ""))
+                # map from/to like in table renderers
+                if kind in ("CashDeposited", "CashWithdrawn"):
+                    frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+                    to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+                elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+                    frm = e.get("payer"); to = e.get("payee")
+                elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                    frm = e.get("debtor_bank"); to = e.get("creditor_bank")
+                elif kind == "StockCreated":
+                    frm = e.get("owner"); to = None
+                else:
+                    frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+                    to = e.get("to") or e.get("creditor") or e.get("payee")
+                sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+                qty = e.get("qty") or e.get("quantity") or "—"
+                amt = e.get("amount") or "—"
+                notes = ""
+                if kind == "ClientPayment":
+                    notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
+                elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                    notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
+                    if 'due_day' in e:
+                        notes += f"; due {e.get('due_day')}"
+                elif kind == "AgentDefaulted":
+                    shortfall = e.get('shortfall')
+                    trigger = e.get('trigger_contract')
+                    parts = []
+                    if shortfall is not None:
+                        parts.append(f"shortfall {shortfall}")
+                    if trigger:
+                        parts.append(f"trigger {trigger}")
+                    if parts:
+                        notes = ", ".join(parts)
+                out.append(" | ".join(map(str, [kind, frm or "—", to or "—", sku, qty, amt, notes])))
+            return "\n".join(out)
+
+        # Rich table
+        table = RichTable(title=title, box=rich_box.HEAVY, show_lines=True)
+        table.add_column("Kind", justify="left")
+        table.add_column("From", justify="left")
+        table.add_column("To", justify="left")
+        table.add_column("SKU/Instr", justify="left")
+        table.add_column("Qty", justify="right")
+        table.add_column("Amount", justify="right")
+        table.add_column("Notes", justify="left")
+        try:
+            table.row_styles = ["on #ffffff", "on #e6f2ff"] if phase != "C" else ["on #ffffff", "on #fff2cc"]
+        except Exception:
+            pass
+        for e in rows:
+            kind = str(e.get("kind", ""))
+            if kind in ("CashDeposited", "CashWithdrawn"):
+                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+                frm = e.get("payer"); to = e.get("payee")
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                frm = e.get("debtor_bank"); to = e.get("creditor_bank")
+            elif kind == "StockCreated":
+                frm = e.get("owner"); to = None
+            else:
+                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+                to = e.get("to") or e.get("creditor") or e.get("payee")
+            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+            qty = e.get("qty") or e.get("quantity") or "—"
+            amt = e.get("amount") or "—"
+            notes = ""
+            if kind == "ClientPayment":
+                notes = f"{e.get('payer_bank','?')} → {e.get('payee_bank','?')}"
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                notes = f"{e.get('debtor_bank','?')} → {e.get('creditor_bank','?')}"
+                if 'due_day' in e:
+                    notes += f"; due {e.get('due_day')}"
+            elif kind == "AgentDefaulted":
+                shortfall = e.get('shortfall')
+                trigger = e.get('trigger_contract')
+                parts = []
+                if shortfall is not None:
+                    parts.append(f"shortfall {shortfall}")
+                if trigger:
+                    parts.append(f"trigger {trigger}")
+                if parts:
+                    notes = ", ".join(parts)
+            table.add_row(kind, str(frm or "—"), str(to or "—"), str(sku), str(qty), str(amt), notes)
+        return table
+
+    renderables: List[RenderableType] = []
+    # Phase A is intentionally empty for now; only include if it has rows
+    if buckets["A"]:
+        renderables.append(build_table("A", buckets["A"]))
+    # Phase B: settlements
+    renderables.append(build_table("B", buckets["B"]))
+    # Phase C: clearing
+    renderables.append(build_table("C", buckets["C"]))
+    return renderables
+
+
+def _build_single_setup_table(events: List[Dict[str, Any]], day: Optional[int] = None) -> List[RenderableType]:
+    """Render a single setup table for setup-phase events (day 0)."""
+    rows = [e for e in events if e.get("phase") == "setup" and e.get("kind") not in ("PhaseA","PhaseB","PhaseC")]
+    title = "Setup"
+    if day is not None:
+        title = f"{title} (Day {day})"
+    if not RICH_AVAILABLE:
+        header = ["Kind", "From", "To", "SKU/Instr", "Qty", "Amount", "Notes"]
+        out = [title, " | ".join(header), "-" * 80]
+        for e in rows:
+            kind = str(e.get("kind", ""))
+            if kind in ("CashDeposited", "CashWithdrawn"):
+                frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+                to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+            elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+                frm = e.get("payer"); to = e.get("payee")
+            elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+                frm = e.get("debtor_bank"); to = e.get("creditor_bank")
+            elif kind == "StockCreated":
+                frm = e.get("owner"); to = None
+            else:
+                frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+                to = e.get("to") or e.get("creditor") or e.get("payee")
+            sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+            qty = e.get("qty") or e.get("quantity") or "—"
+            amt = e.get("amount") or "—"
+            notes = ""
+            out.append(" | ".join(map(str, [kind, frm or "—", to or "—", sku, qty, amt, notes])))
+        return ["\n".join(out)]
+
+    from rich.table import Table as RichTable
+    from rich import box as rich_box
+    table = RichTable(title=title, box=rich_box.HEAVY, show_lines=True)
+    table.add_column("Kind", justify="left")
+    table.add_column("From", justify="left")
+    table.add_column("To", justify="left")
+    table.add_column("SKU/Instr", justify="left")
+    table.add_column("Qty", justify="right")
+    table.add_column("Amount", justify="right")
+    table.add_column("Notes", justify="left")
+    try:
+        table.row_styles = ["on #ffffff", "on #e6f2ff"]
+    except Exception:
+        pass
+    for e in rows:
+        kind = str(e.get("kind", ""))
+        if kind in ("CashDeposited", "CashWithdrawn"):
+            frm = e.get("customer") if kind == "CashDeposited" else e.get("bank")
+            to = e.get("bank") if kind == "CashDeposited" else e.get("customer")
+        elif kind in ("ClientPayment", "IntraBankPayment", "CashPayment"):
+            frm = e.get("payer"); to = e.get("payee")
+        elif kind in ("InterbankCleared", "InterbankOvernightCreated"):
+            frm = e.get("debtor_bank"); to = e.get("creditor_bank")
+        elif kind == "StockCreated":
+            frm = e.get("owner"); to = None
+        else:
+            frm = e.get("frm") or e.get("from") or e.get("debtor") or e.get("payer")
+            to = e.get("to") or e.get("creditor") or e.get("payee")
+        sku = e.get("sku") or e.get("instr_id") or e.get("stock_id") or "—"
+        qty = e.get("qty") or e.get("quantity") or "—"
+        amt = e.get("amount") or "—"
+        notes = ""
+        table.add_row(kind, str(frm or "—"), str(to or "—"), str(sku), str(qty), str(amt), notes)
+    return [table]
 
 ```
 
@@ -38083,6 +38992,892 @@ def _format_single_event(event: Dict[str, Any], registry, RICH_AVAILABLE: bool) 
         renderables.append(text)
     
     return [renderables[0]] if renderables else []
+```
+
+---
+
+### 📄 src/bilancio/cloud/__init__.py
+
+```python
+"""Cloud execution module for running simulations on Modal."""
+
+from bilancio.cloud.config import CloudConfig
+
+__all__ = ["CloudConfig"]
+
+```
+
+---
+
+### 📄 src/bilancio/cloud/config.py
+
+```python
+"""Configuration for cloud execution."""
+
+from dataclasses import dataclass, field
+import os
+from typing import Optional
+
+
+@dataclass
+class CloudConfig:
+    """Configuration for cloud execution.
+
+    Attributes:
+        volume_name: Name of the Modal Volume for storing results.
+            Note: This must match the volume name in modal_app.py (hardcoded as
+            "bilancio-results"). Changing this without also updating modal_app.py
+            will cause download failures.
+        timeout_seconds: Maximum execution time per simulation.
+        memory_mb: Memory allocation in MB.
+        max_parallel: Maximum concurrent Modal function calls.
+        gpu: Optional GPU type (e.g., "T4", "A10G", "A100").
+    """
+
+    # Note: This must match the volume name hardcoded in modal_app.py
+    volume_name: str = field(
+        default_factory=lambda: os.getenv("BILANCIO_MODAL_VOLUME", "bilancio-results")
+    )
+    timeout_seconds: int = field(
+        default_factory=lambda: int(os.getenv("BILANCIO_CLOUD_TIMEOUT", "600"))
+    )
+    memory_mb: int = field(
+        default_factory=lambda: int(os.getenv("BILANCIO_CLOUD_MEMORY", "2048"))
+    )
+    max_parallel: int = field(
+        default_factory=lambda: int(os.getenv("BILANCIO_CLOUD_MAX_PARALLEL", "50"))
+    )
+
+    # GPU configuration (for future ML workloads)
+    gpu: Optional[str] = None
+
+```
+
+---
+
+### 📄 src/bilancio/cloud/modal_app.py
+
+```python
+"""Modal app definition for cloud simulation execution.
+
+This module defines the Modal app, container image, volume, and remote
+function for running bilancio simulations in the cloud.
+
+Simulations run on Modal compute metrics locally and save results directly
+to Supabase, eliminating the need to download artifacts.
+"""
+
+from __future__ import annotations
+
+import modal
+
+# Define the Modal app
+app = modal.App("bilancio-simulations")
+
+# Create a persistent volume for storing results
+# Results persist across function invocations
+results_volume = modal.Volume.from_name(
+    "bilancio-results",
+    create_if_missing=True,
+)
+
+# Supabase secrets for direct database writes from Modal
+# Set these using: modal secret create bilancio-supabase \
+#   BILANCIO_SUPABASE_URL=https://xxx.supabase.co \
+#   BILANCIO_SUPABASE_ANON_KEY=eyJ...
+supabase_secret = modal.Secret.from_name("supabase", required_keys=[
+    "BILANCIO_SUPABASE_URL",
+    "BILANCIO_SUPABASE_ANON_KEY",
+])
+
+# Define the container image with all bilancio dependencies
+# We add the local source code to the image
+image = (
+    modal.Image.debian_slim(python_version="3.11")
+    .pip_install(
+        "numpy>=1.24.0",
+        "pandas>=2.0.0",
+        "scipy>=1.10.0",
+        "pydantic>=2.0.0",
+        "networkx>=3.0",
+        "pyyaml>=6.0",
+        "rich>=13.0.0",
+        "jinja2>=3.0",
+        "click>=8.0",
+        "xkcdpass>=1.19.0",
+        "supabase>=2.0.0",  # For direct Supabase writes
+    )
+    .add_local_python_source("bilancio")
+)
+
+RESULTS_MOUNT_PATH = "/results"
+
+
+def compute_metrics_from_events(events_path: str) -> dict:
+    """Compute metrics from events.jsonl file.
+
+    Args:
+        events_path: Path to events.jsonl file.
+
+    Returns:
+        Dict with all global metrics from summarize_day_metrics, properly serialized.
+    """
+    import json
+    from decimal import Decimal
+    from pathlib import Path
+
+    def to_serializable(val):
+        """Convert Decimal to float for JSON serialization."""
+        if isinstance(val, Decimal):
+            return float(val)
+        return val
+
+    # Read events
+    events = []
+    with open(events_path) as f:
+        for line in f:
+            if line.strip():
+                events.append(json.loads(line))
+
+    if not events:
+        return {
+            "delta_total": None,
+            "phi_total": None,
+            "time_to_stability": None,
+            "max_G_t": None,
+            "alpha_1": None,
+            "Mpeak_1": None,
+            "v_1": None,
+            "HHIplus_1": None,
+            "raw_metrics": {},
+        }
+
+    # Use bilancio's metrics computation
+    from bilancio.analysis.report import compute_day_metrics, summarize_day_metrics
+
+    result = compute_day_metrics(events=events, balances_rows=None, day_list=None)
+    summary = summarize_day_metrics(result["day_metrics"])
+
+    # Convert all Decimal values to float for JSON serialization
+    serializable_summary = {k: to_serializable(v) for k, v in summary.items()}
+
+    return {
+        "delta_total": to_serializable(summary.get("delta_total")),
+        "phi_total": to_serializable(summary.get("phi_total")),
+        "time_to_stability": int(summary.get("max_day") or 0),
+        "max_G_t": to_serializable(summary.get("max_G_t")),
+        "alpha_1": to_serializable(summary.get("alpha_1")),
+        "Mpeak_1": to_serializable(summary.get("Mpeak_1")),
+        "v_1": to_serializable(summary.get("v_1")),
+        "HHIplus_1": to_serializable(summary.get("HHIplus_1")),
+        "raw_metrics": serializable_summary,
+    }
+
+
+class SupabaseCredentialsError(Exception):
+    """Raised when Supabase credentials are missing or invalid."""
+
+    pass
+
+
+def save_run_to_supabase(
+    run_id: str,
+    job_id: str,
+    status: str,
+    metrics: dict,
+    params: dict,
+    execution_time_ms: int,
+    modal_call_id: str,
+    modal_volume_path: str,
+    error: str | None = None,
+) -> bool:
+    """Save run and metrics to Supabase.
+
+    Args:
+        run_id: Unique run identifier.
+        job_id: Job/experiment ID.
+        status: Run status (completed, failed).
+        metrics: Computed metrics dict.
+        params: Run parameters (kappa, concentration, etc.).
+        execution_time_ms: Execution time in milliseconds.
+        modal_call_id: Modal function call ID.
+        modal_volume_path: Path to artifacts in Modal volume.
+        error: Error message if failed.
+
+    Returns:
+        True if save succeeded.
+
+    Raises:
+        SupabaseCredentialsError: If Supabase credentials are not configured.
+    """
+    import os
+    from datetime import datetime, timezone
+
+    try:
+        from supabase import create_client
+
+        url = os.environ.get("BILANCIO_SUPABASE_URL")
+        key = os.environ.get("BILANCIO_SUPABASE_ANON_KEY")
+
+        if not url or not key:
+            # Log available env vars for debugging (without exposing values)
+            available_vars = [k for k in os.environ.keys() if "SUPABASE" in k.upper()]
+            raise SupabaseCredentialsError(
+                f"Supabase credentials not configured! "
+                f"Missing: {'BILANCIO_SUPABASE_URL' if not url else ''} "
+                f"{'BILANCIO_SUPABASE_ANON_KEY' if not key else ''}. "
+                f"Available SUPABASE env vars: {available_vars}. "
+                f"Ensure Modal secret 'supabase' has the correct keys."
+            )
+
+        client = create_client(url, key)
+        now = datetime.now(timezone.utc).isoformat()
+
+        # Build runs table row
+        runs_row = {
+            "run_id": run_id,
+            "job_id": job_id,
+            "status": status,
+            "created_at": now,
+            "completed_at": now if status in ("completed", "failed") else None,
+            "execution_time_ms": execution_time_ms,
+            "modal_call_id": modal_call_id,
+            "modal_volume_path": modal_volume_path,
+            "error": error,
+        }
+
+        # Add parameters
+        param_columns = {"kappa", "concentration", "mu", "outside_mid_ratio", "seed", "regime"}
+        for param, value in params.items():
+            if param in param_columns:
+                if param == "seed":
+                    runs_row[param] = int(value) if value is not None else None
+                elif param == "regime":
+                    runs_row[param] = value
+                else:
+                    runs_row[param] = float(value) if isinstance(value, (int, float, str)) else value
+
+        # Upsert run
+        client.table("runs").upsert(runs_row, on_conflict="run_id").execute()
+        print(f"Saved run {run_id} to Supabase")
+
+        # Build and save metrics if we have them
+        if metrics.get("delta_total") is not None or metrics.get("phi_total") is not None:
+            # Build raw_metrics with all global metrics from summarize_day_metrics
+            raw_metrics = metrics.get("raw_metrics", {})
+            # Ensure all metrics are in raw_metrics even if they came from top-level
+            raw_metrics.update({
+                "delta_total": metrics.get("delta_total"),
+                "phi_total": metrics.get("phi_total"),
+                "time_to_stability": metrics.get("time_to_stability"),
+                "max_G_t": metrics.get("max_G_t"),
+                "alpha_1": metrics.get("alpha_1"),
+                "Mpeak_1": metrics.get("Mpeak_1"),
+                "v_1": metrics.get("v_1"),
+                "HHIplus_1": metrics.get("HHIplus_1"),
+            })
+
+            metrics_row = {
+                "run_id": run_id,
+                "job_id": job_id,
+                "delta_total": metrics.get("delta_total"),
+                "phi_total": metrics.get("phi_total"),
+                "time_to_stability": metrics.get("time_to_stability"),
+                "raw_metrics": raw_metrics,
+            }
+
+            # Check if metrics exist
+            existing = client.table("metrics").select("id").eq("run_id", run_id).execute()
+
+            if existing.data:
+                client.table("metrics").update(metrics_row).eq("run_id", run_id).execute()
+            else:
+                client.table("metrics").insert(metrics_row).execute()
+
+            print(f"Saved metrics for {run_id}: δ={metrics.get('delta_total')}, φ={metrics.get('phi_total')}")
+
+        return True
+
+    except SupabaseCredentialsError:
+        # Re-raise credentials errors - these are configuration issues that must be fixed
+        raise
+    except Exception as e:
+        # Log other errors but don't fail the run - Supabase save is secondary
+        print(f"WARNING: Failed to save to Supabase: {e}")
+        print(f"Run {run_id} completed but metrics not persisted to Supabase!")
+        return False
+
+
+@app.function(
+    image=image,
+    volumes={RESULTS_MOUNT_PATH: results_volume},
+    secrets=[supabase_secret],
+    timeout=1800,  # 30 minutes max per simulation
+    memory=2048,  # 2GB RAM
+)
+def run_simulation(
+    scenario_config: dict,
+    run_id: str,
+    experiment_id: str,
+    options: dict,
+    job_id: str = "",
+) -> dict:
+    """Run a single simulation in the cloud.
+
+    Args:
+        scenario_config: Full scenario YAML as dict
+        run_id: Unique identifier for this run
+        experiment_id: Groups related runs together
+        options: RunOptions as dict (mode, max_days, quiet_days, etc.)
+        job_id: Bilancio job ID (for logging/tracking)
+
+    Returns:
+        Dict with status, artifact paths (relative to volume), metrics, error
+    """
+    import time
+    from pathlib import Path
+
+    import yaml
+
+    start_time = time.time()
+
+    # Log job info prominently at the start (visible in Modal logs)
+    import sys
+    modal_call_id = modal.current_function_call_id()
+    print("=" * 60, flush=True)
+    print(f"BILANCIO SIMULATION", flush=True)
+    print(f"  Job ID:      {job_id or 'N/A'}", flush=True)
+    print(f"  Run ID:      {run_id}", flush=True)
+    print(f"  Experiment:  {experiment_id}", flush=True)
+    print(f"  Modal Call:  {modal_call_id}", flush=True)
+    print("=" * 60, flush=True)
+    sys.stdout.flush()
+
+    # Create output directory on the volume
+    run_dir = Path(RESULTS_MOUNT_PATH) / experiment_id / "runs" / run_id
+    run_dir.mkdir(parents=True, exist_ok=True)
+    out_dir = run_dir / "out"
+    out_dir.mkdir(exist_ok=True)
+
+    # Write scenario YAML
+    scenario_path = run_dir / "scenario.yaml"
+    scenario_path.write_text(yaml.dump(scenario_config, default_flow_style=False))
+
+    # Extract run parameters from options for Supabase
+    run_params = {
+        "kappa": options.get("kappa"),
+        "concentration": options.get("concentration"),
+        "mu": options.get("mu"),
+        "outside_mid_ratio": options.get("outside_mid_ratio"),
+        "seed": options.get("seed"),
+        "regime": options.get("regime", ""),
+    }
+
+    try:
+        # Import bilancio inside the function (container context)
+        from bilancio.ui.run import run_scenario
+
+        # Execute simulation
+        run_scenario(
+            path=scenario_path,
+            mode=options.get("mode", "until_stable"),
+            max_days=options.get("max_days", 90),
+            quiet_days=options.get("quiet_days", 2),
+            show=options.get("show_events", "detailed"),
+            check_invariants=options.get("check_invariants", "daily"),
+            default_handling=options.get("default_handling", "fail-fast"),
+            export={
+                "balances_csv": str(out_dir / "balances.csv"),
+                "events_jsonl": str(out_dir / "events.jsonl"),
+            },
+            html_output=run_dir / "run.html",
+            t_account=options.get("t_account", False),
+            detailed_dealer_logging=options.get("detailed_dealer_logging", False),
+            run_id=run_id,
+            regime=options.get("regime", ""),
+        )
+
+        # Commit changes to volume
+        results_volume.commit()
+
+        execution_time_ms = int((time.time() - start_time) * 1000)
+
+        # Compute metrics from events
+        events_path = out_dir / "events.jsonl"
+        metrics = {}
+        if events_path.exists():
+            print("Computing metrics from events...", flush=True)
+            metrics = compute_metrics_from_events(str(events_path))
+            print(f"Metrics: δ={metrics.get('delta_total')}, φ={metrics.get('phi_total')}", flush=True)
+
+        # Build artifact paths (relative to run directory within volume)
+        artifacts = {
+            "scenario_yaml": "scenario.yaml",
+            "events_jsonl": "out/events.jsonl",
+            "balances_csv": "out/balances.csv",
+            "run_html": "run.html",
+        }
+
+        modal_volume_path = f"{experiment_id}/runs/{run_id}"
+
+        # Save to Supabase
+        save_run_to_supabase(
+            run_id=run_id,
+            job_id=job_id,
+            status="completed",
+            metrics=metrics,
+            params=run_params,
+            execution_time_ms=execution_time_ms,
+            modal_call_id=modal_call_id,
+            modal_volume_path=modal_volume_path,
+        )
+
+        return {
+            "run_id": run_id,
+            "status": "completed",
+            "storage_type": "modal_volume",
+            "storage_base": modal_volume_path,
+            "artifacts": artifacts,
+            "execution_time_ms": execution_time_ms,
+            "error": None,
+            "modal_call_id": modal_call_id,
+            "metrics": metrics,  # Include computed metrics in return
+        }
+
+    except Exception as e:
+        execution_time_ms = int((time.time() - start_time) * 1000)
+
+        # Still commit to preserve any partial output
+        results_volume.commit()
+
+        modal_volume_path = f"{experiment_id}/runs/{run_id}"
+
+        # Save failed run to Supabase
+        save_run_to_supabase(
+            run_id=run_id,
+            job_id=job_id,
+            status="failed",
+            metrics={},
+            params=run_params,
+            execution_time_ms=execution_time_ms,
+            modal_call_id=modal_call_id,
+            modal_volume_path=modal_volume_path,
+            error=str(e),
+        )
+
+        return {
+            "run_id": run_id,
+            "status": "failed",
+            "storage_type": "modal_volume",
+            "storage_base": modal_volume_path,
+            "artifacts": {},
+            "execution_time_ms": execution_time_ms,
+            "error": str(e),
+            "modal_call_id": modal_call_id,
+            "metrics": {},
+        }
+
+
+@app.function(
+    image=image,
+    secrets=[supabase_secret],
+    timeout=300,  # 5 minutes for aggregate computation
+    memory=1024,
+)
+def compute_aggregate_metrics(
+    job_id: str,
+    run_ids: list[str],
+) -> dict:
+    """Compute aggregate/comparison metrics for a sweep and save to Supabase.
+
+    This function is called after all runs complete to compute:
+    - Trading effect (δ_passive - δ_active) for each parameter combination
+    - Summary statistics across the sweep
+
+    Args:
+        job_id: The job/experiment ID.
+        run_ids: List of run IDs to aggregate.
+
+    Returns:
+        Dict with aggregate metrics and status.
+    """
+    import os
+    from collections import defaultdict
+
+    from supabase import create_client
+
+    url = os.environ.get("BILANCIO_SUPABASE_URL")
+    key = os.environ.get("BILANCIO_SUPABASE_ANON_KEY")
+
+    if not url or not key:
+        # Log available env vars for debugging (without exposing values)
+        available_vars = [k for k in os.environ.keys() if "SUPABASE" in k.upper()]
+        raise SupabaseCredentialsError(
+            f"Supabase credentials not configured for aggregate metrics! "
+            f"Missing: {'BILANCIO_SUPABASE_URL' if not url else ''} "
+            f"{'BILANCIO_SUPABASE_ANON_KEY' if not key else ''}. "
+            f"Available SUPABASE env vars: {available_vars}. "
+            f"Ensure Modal secret 'supabase' has the correct keys."
+        )
+
+    try:
+        client = create_client(url, key)
+
+        # Fetch all runs with metrics for this job
+        result = client.table("runs").select(
+            "run_id, kappa, concentration, mu, outside_mid_ratio, seed, regime, metrics(*)"
+        ).eq("job_id", job_id).in_("run_id", run_ids).execute()
+
+        if not result.data:
+            return {"status": "error", "error": "No runs found"}
+
+        # Group runs by parameters (excluding regime)
+        grouped = defaultdict(lambda: {"passive": None, "active": None})
+
+        for row in result.data:
+            key = (
+                row.get("kappa"),
+                row.get("concentration"),
+                row.get("mu"),
+                row.get("outside_mid_ratio"),
+                row.get("seed"),
+            )
+            regime = row.get("regime", "")
+            metrics_data = row.get("metrics")
+
+            if metrics_data:
+                # metrics is a list from join, take first
+                if isinstance(metrics_data, list) and metrics_data:
+                    metrics = metrics_data[0]
+                else:
+                    metrics = metrics_data
+
+                delta = metrics.get("delta_total")
+                phi = metrics.get("phi_total")
+
+                if "passive" in regime or regime == "":
+                    grouped[key]["passive"] = {"delta": delta, "phi": phi, "run_id": row["run_id"]}
+                elif "active" in regime:
+                    grouped[key]["active"] = {"delta": delta, "phi": phi, "run_id": row["run_id"]}
+
+        # Compute trading effects
+        comparisons = []
+        for params, runs in grouped.items():
+            if runs["passive"] and runs["active"]:
+                d_passive = runs["passive"]["delta"]
+                d_active = runs["active"]["delta"]
+
+                if d_passive is not None and d_active is not None:
+                    trading_effect = d_passive - d_active
+
+                    comparisons.append({
+                        "kappa": params[0],
+                        "concentration": params[1],
+                        "mu": params[2],
+                        "outside_mid_ratio": params[3],
+                        "seed": params[4],
+                        "delta_passive": d_passive,
+                        "delta_active": d_active,
+                        "phi_passive": runs["passive"].get("phi"),
+                        "phi_active": runs["active"].get("phi"),
+                        "trading_effect": trading_effect,
+                        "passive_run_id": runs["passive"]["run_id"],
+                        "active_run_id": runs["active"]["run_id"],
+                    })
+
+        # Compute summary statistics
+        from datetime import datetime, timezone
+        import statistics
+
+        if comparisons:
+            effects = [c["trading_effect"] for c in comparisons]
+            deltas_passive = [c["delta_passive"] for c in comparisons if c["delta_passive"] is not None]
+            deltas_active = [c["delta_active"] for c in comparisons if c["delta_active"] is not None]
+            phis_passive = [c.get("phi_passive") for c in comparisons if c.get("phi_passive") is not None]
+            phis_active = [c.get("phi_active") for c in comparisons if c.get("phi_active") is not None]
+
+            # Compute standard deviation if we have enough data
+            std_effect = statistics.stdev(effects) if len(effects) > 1 else 0.0
+
+            summary = {
+                "n_comparisons": len(comparisons),
+                "n_pairs": len(comparisons),
+                "mean_trading_effect": sum(effects) / len(effects),
+                "min_trading_effect": min(effects),
+                "max_trading_effect": max(effects),
+                "std_trading_effect": std_effect,
+                "positive_effects": sum(1 for e in effects if e > 0.001),  # dealers help
+                "negative_effects": sum(1 for e in effects if e < -0.001),  # dealers hurt
+                "neutral_effects": sum(1 for e in effects if -0.001 <= e <= 0.001),
+                "mean_delta_passive": sum(deltas_passive) / len(deltas_passive) if deltas_passive else None,
+                "mean_delta_active": sum(deltas_active) / len(deltas_active) if deltas_active else None,
+                "mean_phi_passive": sum(phis_passive) / len(phis_passive) if phis_passive else None,
+                "mean_phi_active": sum(phis_active) / len(phis_active) if phis_active else None,
+            }
+        else:
+            summary = {"n_comparisons": 0, "n_pairs": 0}
+
+        # Save to job_metrics table
+        job_metrics_row = {
+            "job_id": job_id,
+            "n_comparisons": summary.get("n_comparisons"),
+            "n_pairs": summary.get("n_pairs"),
+            "mean_trading_effect": summary.get("mean_trading_effect"),
+            "min_trading_effect": summary.get("min_trading_effect"),
+            "max_trading_effect": summary.get("max_trading_effect"),
+            "std_trading_effect": summary.get("std_trading_effect"),
+            "positive_effects": summary.get("positive_effects"),
+            "negative_effects": summary.get("negative_effects"),
+            "neutral_effects": summary.get("neutral_effects"),
+            "mean_delta_passive": summary.get("mean_delta_passive"),
+            "mean_delta_active": summary.get("mean_delta_active"),
+            "mean_phi_passive": summary.get("mean_phi_passive"),
+            "mean_phi_active": summary.get("mean_phi_active"),
+            "raw_summary": summary,
+        }
+
+        # Upsert job_metrics (insert or update if exists)
+        try:
+            existing = client.table("job_metrics").select("id").eq("job_id", job_id).execute()
+            if existing.data:
+                client.table("job_metrics").update(job_metrics_row).eq("job_id", job_id).execute()
+            else:
+                client.table("job_metrics").insert(job_metrics_row).execute()
+            print(f"Saved job_metrics for {job_id}")
+        except Exception as e:
+            print(f"Warning: Failed to save job_metrics: {e}")
+
+        # Update job status
+        client.table("jobs").update({
+            "completed_at": datetime.now(timezone.utc).isoformat(),
+            "status": "completed",
+        }).eq("job_id", job_id).execute()
+
+        print(f"Aggregate metrics for job {job_id}:")
+        print(f"  Comparisons: {summary.get('n_comparisons', 0)}")
+        print(f"  Mean trading effect: {summary.get('mean_trading_effect', 'N/A'):.4f}" if summary.get('mean_trading_effect') else "  Mean trading effect: N/A")
+        print(f"  Positive effects: {summary.get('positive_effects', 0)} | Negative: {summary.get('negative_effects', 0)}")
+
+        return {
+            "status": "completed",
+            "job_id": job_id,
+            "summary": summary,
+            "comparisons": comparisons,
+        }
+
+    except Exception as e:
+        print(f"Failed to compute aggregate metrics: {e}")
+        return {"status": "error", "error": str(e)}
+
+
+@app.function(
+    image=image,
+    timeout=60,
+    memory=256,
+)
+def health_check() -> dict:
+    """Simple health check to verify Modal deployment.
+
+    Returns:
+        Dict with status and bilancio version info.
+    """
+    try:
+        import bilancio
+
+        return {
+            "status": "ok",
+            "bilancio_available": True,
+            "version": getattr(bilancio, "__version__", "unknown"),
+        }
+    except ImportError as e:
+        return {
+            "status": "error",
+            "bilancio_available": False,
+            "error": str(e),
+        }
+
+
+# Local entrypoint for testing
+@app.local_entrypoint()
+def main():
+    """Test the Modal deployment with a health check."""
+    print("Running health check...")
+    result = health_check.remote()
+    print(f"Health check result: {result}")
+
+    if result["status"] == "ok":
+        print("Modal deployment is healthy!")
+    else:
+        print(f"Modal deployment has issues: {result.get('error', 'unknown')}")
+
+```
+
+---
+
+### 📄 src/bilancio/cloud/proxy_patch.py
+
+```python
+"""Patch grpclib and Modal's HTTP client for HTTP CONNECT proxy with TLS inspection.
+
+This module patches:
+1. grpclib's connection handling to work through HTTP CONNECT proxy
+2. Modal's HTTP client to use custom CA for TLS inspection
+
+Required in environments where outbound connections go through an HTTP CONNECT
+proxy that performs TLS inspection (MITM) with a custom CA certificate.
+
+Usage:
+    import bilancio.cloud.proxy_patch  # Apply patch before importing modal
+    import modal
+"""
+import asyncio
+import os
+import ssl
+import base64
+import socket
+from urllib.parse import urlparse
+
+import grpclib.client
+
+# Store original methods
+_original_create_connection = grpclib.client.Channel._create_connection
+_original_http_client_with_tls = None  # Set lazily when modal is imported
+
+# Custom CA certificate path for TLS inspection proxy
+PROXY_CA_CERT = '/usr/local/share/ca-certificates/swp-ca-production.crt'
+
+
+def _should_use_proxy() -> bool:
+    """Check if proxy should be used."""
+    proxy_url = os.environ.get('https_proxy', '') or os.environ.get('HTTPS_PROXY', '')
+    return bool(proxy_url) and os.path.exists(PROXY_CA_CERT)
+
+
+def _create_proxy_ssl_context() -> ssl.SSLContext:
+    """Create SSL context that trusts the proxy's CA certificate."""
+    ctx = ssl.create_default_context()
+    ctx.load_verify_locations(PROXY_CA_CERT)
+    return ctx
+
+
+# =============================================================================
+# grpclib patch for Modal API (gRPC)
+# =============================================================================
+
+async def _proxied_create_connection(self):
+    """Create connection through HTTP CONNECT proxy if proxy is configured."""
+    if not _should_use_proxy():
+        # No proxy configured or no custom CA - use original method
+        return await _original_create_connection(self)
+
+    proxy_url = os.environ.get('https_proxy', '') or os.environ.get('HTTPS_PROXY', '')
+    parsed = urlparse(proxy_url)
+
+    # Create raw socket to proxy
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.setblocking(False)
+
+    loop = asyncio.get_event_loop()
+    await loop.sock_connect(sock, (parsed.hostname, parsed.port))
+
+    # Send HTTP CONNECT request
+    proxy_auth = f"{parsed.username}:{parsed.password}" if parsed.username else None
+    connect_req = f"CONNECT {self._host}:{self._port} HTTP/1.1\r\n"
+    connect_req += f"Host: {self._host}:{self._port}\r\n"
+    if proxy_auth:
+        auth_b64 = base64.b64encode(proxy_auth.encode()).decode()
+        connect_req += f"Proxy-Authorization: Basic {auth_b64}\r\n"
+    connect_req += "\r\n"
+
+    await loop.sock_sendall(sock, connect_req.encode())
+
+    # Read proxy response
+    response = b""
+    while b"\r\n\r\n" not in response:
+        chunk = await loop.sock_recv(sock, 1024)
+        if not chunk:
+            break
+        response += chunk
+
+    if b"200" not in response.split(b"\r\n")[0]:
+        sock.close()
+        raise ConnectionError(f"Proxy CONNECT failed: {response.decode()}")
+
+    # Pass raw socket to create_connection, let asyncio handle SSL
+    ssl_ctx = _create_proxy_ssl_context() if self._ssl else None
+
+    _, protocol = await loop.create_connection(
+        self._protocol_factory,
+        sock=sock,
+        ssl=ssl_ctx,
+        server_hostname=self._host if ssl_ctx else None,
+    )
+
+    return protocol
+
+
+# =============================================================================
+# Modal HTTP client patch for file downloads (aiohttp)
+# =============================================================================
+
+def _patched_http_client_with_tls(timeout):
+    """Create HTTP client with custom CA for TLS inspection proxy."""
+    from aiohttp import ClientSession, ClientTimeout, TCPConnector
+
+    # Create SSL context with custom CA
+    ssl_context = _create_proxy_ssl_context()
+
+    connector = TCPConnector(ssl=ssl_context)
+
+    # Enable trust_env to use HTTPS_PROXY environment variable
+    return ClientSession(
+        connector=connector,
+        timeout=ClientTimeout(total=timeout),
+        trust_env=True,  # Use HTTPS_PROXY from environment
+    )
+
+
+def _patch_modal_http_client():
+    """Patch Modal's HTTP client to use custom CA and proxy."""
+    global _original_http_client_with_tls
+
+    try:
+        import modal._utils.http_utils as http_utils
+
+        if _original_http_client_with_tls is None:
+            _original_http_client_with_tls = http_utils._http_client_with_tls
+
+        http_utils._http_client_with_tls = _patched_http_client_with_tls
+
+        # Also reset the client session registry to use new settings
+        http_utils.ClientSessionRegistry._client_session_active = False
+
+    except ImportError:
+        pass  # Modal not installed or different version
+
+
+# =============================================================================
+# Patch application
+# =============================================================================
+
+def apply_proxy_patch():
+    """Apply all proxy patches."""
+    grpclib.client.Channel._create_connection = _proxied_create_connection
+    _patch_modal_http_client()
+
+
+def is_patched() -> bool:
+    """Check if the grpclib patch has been applied."""
+    return grpclib.client.Channel._create_connection is _proxied_create_connection
+
+
+# Auto-apply patch on import if proxy is configured
+if _should_use_proxy():
+    apply_proxy_patch()
+    _patched = True
+else:
+    _patched = False
+
 ```
 
 ---
@@ -38716,7 +40511,7 @@ def load_yaml(path: Path | str) -> ScenarioConfig:
             error_msg = f"Generator validation failed:\n" + "\n".join(errors)
             raise ValueError(error_msg) from e
 
-        from bilancio.scenarios.generators import compile_generator
+        from bilancio.scenarios import compile_generator
 
         try:
             compiled = compile_generator(generator_spec, source_path=path)
@@ -48811,7 +50606,8 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Tuple
 
 from pydantic import BaseModel, Field
 
-from bilancio.experiments.ring import RingSweepRunner, RingRunSummary
+from bilancio.experiments.ring import RingSweepRunner, RingRunSummary, PreparedRun
+from bilancio.runners import SimulationExecutor, LocalExecutor, RunOptions
 
 logger = logging.getLogger(__name__)
 
@@ -48856,6 +50652,10 @@ class BalancedComparisonResult:
     # Big entity loss metrics
     big_entity_loss_passive: Optional[float] = None
     big_entity_pnl_active: Optional[float] = None
+
+    # Modal call IDs for cloud execution debugging
+    passive_modal_call_id: Optional[str] = None
+    active_modal_call_id: Optional[str] = None
 
     @property
     def trading_effect(self) -> Optional[Decimal]:
@@ -48928,6 +50728,12 @@ class BalancedComparisonConfig(BaseModel):
         description="Enable continuous rollover of matured claims"
     )
 
+    # Plan 030: Quiet mode for faster sweeps
+    quiet: bool = Field(
+        default=True,
+        description="Suppress verbose console output during sweeps"
+    )
+
     # VBT configuration (for active mode)
     vbt_share: Decimal = Field(default=Decimal("0.50"), description="VBT capital as fraction of system cash")
 
@@ -48972,16 +50778,32 @@ class BalancedComparisonRunner:
         "total_trades",
     ]
 
-    def __init__(self, config: BalancedComparisonConfig, out_dir: Path) -> None:
+    def __init__(
+        self,
+        config: BalancedComparisonConfig,
+        out_dir: Path,
+        executor: Optional[SimulationExecutor] = None,
+        job_id: Optional[str] = None,
+        enable_supabase: bool = True,
+    ) -> None:
         self.config = config
         self.base_dir = out_dir
+        self.executor: SimulationExecutor = executor or LocalExecutor()
+
+        # Cloud-only mode: skip local processing when using cloud executor
+        # Modal already saves runs to Supabase, so no need to duplicate
+        from bilancio.runners.cloud_executor import CloudExecutor
+        self.skip_local_processing = isinstance(executor, CloudExecutor)
+
         self.passive_dir = self.base_dir / "passive"
         self.active_dir = self.base_dir / "active"
         self.aggregate_dir = self.base_dir / "aggregate"
 
-        self.passive_dir.mkdir(parents=True, exist_ok=True)
-        self.active_dir.mkdir(parents=True, exist_ok=True)
-        self.aggregate_dir.mkdir(parents=True, exist_ok=True)
+        # Only create local directories if we're doing local processing
+        if not self.skip_local_processing:
+            self.passive_dir.mkdir(parents=True, exist_ok=True)
+            self.active_dir.mkdir(parents=True, exist_ok=True)
+            self.aggregate_dir.mkdir(parents=True, exist_ok=True)
 
         self.comparison_results: List[BalancedComparisonResult] = []
         self.comparison_path = self.aggregate_dir / "comparison.csv"
@@ -48995,11 +50817,28 @@ class BalancedComparisonRunner:
         self._start_time: Optional[float] = None
         self._completed_keys: Set[Tuple[str, str, str, str, str]] = set()
 
+        # Job tracking
+        self.job_id = job_id
+
+        # Supabase registry for persisting runs/metrics (only for local execution)
+        self._supabase_store = None
+        if enable_supabase and not self.skip_local_processing:
+            try:
+                from bilancio.storage.supabase_client import is_supabase_configured
+                if is_supabase_configured():
+                    from bilancio.storage.supabase_registry import SupabaseRegistryStore
+                    self._supabase_store = SupabaseRegistryStore()
+                    logger.info("Supabase registry enabled for run persistence")
+            except Exception as e:
+                logger.warning(f"Failed to initialize Supabase registry: {e}")
+
         # Load existing results for resumption
         self._load_existing_results()
 
     def _load_existing_results(self) -> None:
-        """Load existing results from CSV for resumption."""
+        """Load existing results from CSV for resumption (skipped in cloud-only mode)."""
+        if self.skip_local_processing:
+            return  # Cloud-only mode: no local files to load
         if not self.comparison_path.exists():
             return
 
@@ -49084,6 +50923,8 @@ class BalancedComparisonRunner:
             dealer_share_per_bucket=self.config.dealer_share_per_bucket,
             rollover_enabled=self.config.rollover_enabled,
             detailed_dealer_logging=self.config.detailed_logging,  # Plan 022
+            executor=self.executor,  # Plan 028 cloud support
+            quiet=self.config.quiet,  # Plan 030
         )
 
     def _get_active_runner(self, outside_mid_ratio: Decimal) -> RingSweepRunner:
@@ -49115,10 +50956,214 @@ class BalancedComparisonRunner:
             dealer_share_per_bucket=self.config.dealer_share_per_bucket,
             rollover_enabled=self.config.rollover_enabled,
             detailed_dealer_logging=self.config.detailed_logging,  # Plan 022
+            executor=self.executor,  # Plan 028 cloud support
+            quiet=self.config.quiet,  # Plan 030
         )
 
     def run_all(self) -> List[BalancedComparisonResult]:
-        """Execute all passive/active pairs and return comparison results."""
+        """Execute all passive/active pairs and return comparison results.
+
+        Uses batch execution if the executor supports it (CloudExecutor),
+        otherwise falls back to sequential execution (LocalExecutor).
+        """
+        # Check if executor supports batch execution
+        if hasattr(self.executor, 'execute_batch'):
+            return self._run_all_batch()
+        else:
+            return self._run_all_sequential()
+
+    def _run_all_batch(self) -> List[BalancedComparisonResult]:
+        """Execute all pairs using batch execution (parallel on Modal)."""
+        total_pairs = (
+            len(self.config.kappas)
+            * len(self.config.concentrations)
+            * len(self.config.mus)
+            * len(self.config.monotonicities)
+            * len(self.config.outside_mid_ratios)
+        )
+
+        skipped = len(self._completed_keys)
+        remaining = total_pairs - skipped
+
+        logger.info(
+            "Starting BATCH balanced comparison sweep: %d kappas × %d concentrations × %d mus × %d ρ = %d pairs",
+            len(self.config.kappas),
+            len(self.config.concentrations),
+            len(self.config.mus),
+            len(self.config.outside_mid_ratios),
+            total_pairs,
+        )
+
+        if skipped > 0:
+            print(f"Resuming: {skipped} pairs already completed, {remaining} remaining", flush=True)
+
+        self._start_time = time.time()
+
+        # Phase 1: Prepare all runs
+        print(f"Preparing {remaining * 2} runs...", flush=True)
+        prepared_runs: List[Tuple[PreparedRun, PreparedRun, Decimal, Decimal, Decimal, Decimal, Decimal, int]] = []
+
+        for outside_mid_ratio in self.config.outside_mid_ratios:
+            passive_runner = self._get_passive_runner(outside_mid_ratio)
+            active_runner = self._get_active_runner(outside_mid_ratio)
+
+            for kappa in self.config.kappas:
+                for concentration in self.config.concentrations:
+                    for mu in self.config.mus:
+                        for monotonicity in self.config.monotonicities:
+                            key = self._make_key(kappa, concentration, mu, monotonicity, outside_mid_ratio)
+                            if key in self._completed_keys:
+                                continue
+
+                            seed = self._next_seed()
+
+                            # Prepare passive run
+                            passive_prep = passive_runner._prepare_run(
+                                phase="balanced_passive",
+                                kappa=kappa,
+                                concentration=concentration,
+                                mu=mu,
+                                monotonicity=monotonicity,
+                                seed=seed,
+                            )
+
+                            # Prepare active run
+                            active_prep = active_runner._prepare_run(
+                                phase="balanced_active",
+                                kappa=kappa,
+                                concentration=concentration,
+                                mu=mu,
+                                monotonicity=monotonicity,
+                                seed=seed,
+                            )
+
+                            prepared_runs.append((
+                                passive_prep, active_prep,
+                                kappa, concentration, mu, monotonicity, outside_mid_ratio, seed
+                            ))
+
+        if not prepared_runs:
+            print("All pairs already completed!", flush=True)
+            return self.comparison_results
+
+        # Phase 2: Build batch and execute
+        print(f"Submitting {len(prepared_runs) * 2} runs to Modal (parallel execution)...", flush=True)
+
+        # Build flat list for batch execution
+        batch_runs: List[Tuple[Dict[str, Any], str, RunOptions, Path]] = []
+        run_index_map: Dict[str, int] = {}  # run_id -> index in prepared_runs
+
+        for idx, (passive_prep, active_prep, *_) in enumerate(prepared_runs):
+            batch_runs.append((
+                passive_prep.scenario_config,
+                passive_prep.run_id,
+                passive_prep.options,
+            ))
+            run_index_map[passive_prep.run_id] = idx * 2  # even indices are passive
+
+            batch_runs.append((
+                active_prep.scenario_config,
+                active_prep.run_id,
+                active_prep.options,
+            ))
+            run_index_map[active_prep.run_id] = idx * 2 + 1  # odd indices are active
+
+        # Execute batch with progress callback
+        completed = [0]
+
+        def progress_callback(done: int, total: int):
+            completed[0] = done
+            elapsed = time.time() - self._start_time
+            if done > 0:
+                eta = elapsed / done * (total - done)
+                print(f"\r  Progress: {done}/{total} runs ({done * 100 // total}%) - ETA: {self._format_time(eta)}    ", end="", flush=True)
+
+        results = self.executor.execute_batch(
+            [(config, run_id, opts) for config, run_id, opts, *_ in batch_runs],
+            progress_callback=progress_callback,
+        )
+        print()  # newline after progress
+
+        # Phase 3: Finalize runs and build results
+        print("Finalizing results...", flush=True)
+
+        for idx, (passive_prep, active_prep, kappa, concentration, mu, monotonicity, outside_mid_ratio, seed) in enumerate(prepared_runs):
+            passive_result = results[idx * 2]
+            active_result = results[idx * 2 + 1]
+
+            # Get runners for finalization
+            passive_runner = self._get_passive_runner(outside_mid_ratio)
+            active_runner = self._get_active_runner(outside_mid_ratio)
+
+            # Finalize runs
+            passive_summary = passive_runner._finalize_run(passive_prep, passive_result)
+            active_summary = active_runner._finalize_run(active_prep, active_result)
+
+            # Extract dealer metrics
+            dm = active_summary.dealer_metrics or {}
+
+            result = BalancedComparisonResult(
+                kappa=kappa,
+                concentration=concentration,
+                mu=mu,
+                monotonicity=monotonicity,
+                seed=seed,
+                face_value=self.config.face_value,
+                outside_mid_ratio=outside_mid_ratio,
+                big_entity_share=self.config.big_entity_share,
+                vbt_share_per_bucket=self.config.vbt_share_per_bucket,
+                dealer_share_per_bucket=self.config.dealer_share_per_bucket,
+                delta_passive=passive_summary.delta_total,
+                phi_passive=passive_summary.phi_total,
+                passive_run_id=passive_summary.run_id,
+                passive_status="completed" if passive_summary.delta_total is not None else "failed",
+                delta_active=active_summary.delta_total,
+                phi_active=active_summary.phi_total,
+                active_run_id=active_summary.run_id,
+                active_status="completed" if active_summary.delta_total is not None else "failed",
+                dealer_total_pnl=dm.get("dealer_total_pnl"),
+                dealer_total_return=dm.get("dealer_total_return"),
+                total_trades=dm.get("total_trades"),
+                passive_modal_call_id=passive_summary.modal_call_id,
+                active_modal_call_id=active_summary.modal_call_id,
+            )
+
+            self.comparison_results.append(result)
+            key = self._make_key(kappa, concentration, mu, monotonicity, outside_mid_ratio)
+            self._completed_keys.add(key)
+
+            # Persist runs to Supabase (batch path)
+            self._persist_run_to_supabase(passive_summary, "passive", kappa, concentration, mu, outside_mid_ratio, seed)
+            self._persist_run_to_supabase(active_summary, "active", kappa, concentration, mu, outside_mid_ratio, seed)
+
+            # Incremental CSV write
+            self._write_comparison_csv()
+
+        # Write final summary
+        self._write_summary_json()
+
+        # Compute aggregate metrics on Modal (if using cloud executor)
+        if hasattr(self.executor, 'compute_aggregate_metrics'):
+            all_run_ids = []
+            for result in self.comparison_results:
+                if result.passive_run_id:
+                    all_run_ids.append(result.passive_run_id)
+                if result.active_run_id:
+                    all_run_ids.append(result.active_run_id)
+            if all_run_ids:
+                self.executor.compute_aggregate_metrics(all_run_ids)
+
+        total_time = time.time() - self._start_time
+        print(f"\nSweep complete! {len(prepared_runs)} pairs in {self._format_time(total_time)}", flush=True)
+        if self.skip_local_processing:
+            print(f"Results saved to Supabase. Query with: bilancio jobs get {self.job_id} --cloud", flush=True)
+        else:
+            print(f"Results at: {self.aggregate_dir}", flush=True)
+
+        return self.comparison_results
+
+    def _run_all_sequential(self) -> List[BalancedComparisonResult]:
+        """Execute all pairs sequentially (fallback for LocalExecutor)."""
         total_pairs = (
             len(self.config.kappas)
             * len(self.config.concentrations)
@@ -49184,21 +51229,31 @@ class BalancedComparisonRunner:
 
                             # Log completion with timing
                             elapsed = time.time() - self._start_time
-                            print(
-                                f"  Completed in {self._format_time(elapsed / completed_this_run)} avg | "
-                                f"δ_passive={result.delta_passive:.3f}, δ_active={result.delta_active:.3f}, "
-                                f"effect={result.trading_effect:.3f}",
-                                flush=True,
-                            )
+                            if result.delta_passive is not None and result.delta_active is not None:
+                                print(
+                                    f"  Completed in {self._format_time(elapsed / completed_this_run)} avg | "
+                                    f"δ_passive={result.delta_passive:.3f}, δ_active={result.delta_active:.3f}, "
+                                    f"effect={result.trading_effect:.3f}",
+                                    flush=True,
+                                )
+                            else:
+                                print(
+                                    f"  Completed in {self._format_time(elapsed / completed_this_run)} avg | "
+                                    f"(one or both runs failed)",
+                                    flush=True,
+                                )
 
         # Write final summary
         self._write_summary_json()
 
         total_time = time.time() - self._start_time
         print(f"\nSweep complete! {completed_this_run} pairs in {self._format_time(total_time)}", flush=True)
-        print(f"Results at: {self.aggregate_dir}", flush=True)
+        if self.skip_local_processing:
+            print(f"Results saved to Supabase. Query with: bilancio jobs get {self.job_id} --cloud", flush=True)
+        else:
+            print(f"Results at: {self.aggregate_dir}", flush=True)
 
-        logger.info("Balanced comparison sweep complete. Results at: %s", self.aggregate_dir)
+        logger.info("Balanced comparison sweep complete. Job ID: %s", self.job_id)
         return self.comparison_results
 
     def _make_progress_callback(self, run_type: str) -> Callable[[int, int], None]:
@@ -49274,6 +51329,8 @@ class BalancedComparisonRunner:
             dealer_total_pnl=dm.get("dealer_total_pnl"),
             dealer_total_return=dm.get("dealer_total_return"),
             total_trades=dm.get("total_trades"),
+            passive_modal_call_id=passive_result.modal_call_id,
+            active_modal_call_id=active_result.modal_call_id,
         )
 
         # Log comparison
@@ -49288,10 +51345,96 @@ class BalancedComparisonRunner:
         else:
             logger.warning("  Comparison: One or both runs failed")
 
+        # Persist runs to Supabase
+        self._persist_run_to_supabase(passive_result, "passive", kappa, concentration, mu, outside_mid_ratio, seed)
+        self._persist_run_to_supabase(active_result, "active", kappa, concentration, mu, outside_mid_ratio, seed)
+
         return result
 
+    def _persist_run_to_supabase(
+        self,
+        run_result: RingRunSummary,
+        regime: str,
+        kappa: Decimal,
+        concentration: Decimal,
+        mu: Decimal,
+        outside_mid_ratio: Decimal,
+        seed: int,
+    ) -> None:
+        """Persist a run and its metrics to Supabase.
+
+        Args:
+            run_result: The run summary from the simulation
+            regime: 'passive' or 'active'
+            kappa: Liquidity ratio parameter
+            concentration: Dirichlet concentration parameter
+            mu: Maturity timing parameter
+            outside_mid_ratio: Outside money ratio
+            seed: Random seed used
+        """
+        if self._supabase_store is None:
+            return
+
+        try:
+            from bilancio.storage.models import RegistryEntry, RunStatus
+
+            # Determine status
+            status = RunStatus.COMPLETED if run_result.delta_total is not None else RunStatus.FAILED
+
+            # Build parameters dict
+            parameters = {
+                "kappa": str(kappa),
+                "concentration": str(concentration),
+                "mu": str(mu),
+                "outside_mid_ratio": str(outside_mid_ratio),
+                "seed": seed,
+                "regime": regime,
+            }
+
+            # Build metrics dict
+            metrics: Dict[str, Any] = {}
+            if run_result.delta_total is not None:
+                metrics["delta_total"] = float(run_result.delta_total)
+            if run_result.phi_total is not None:
+                metrics["phi_total"] = float(run_result.phi_total)
+            if hasattr(run_result, "n_defaults") and run_result.n_defaults is not None:
+                metrics["n_defaults"] = run_result.n_defaults
+            if hasattr(run_result, "n_clears") and run_result.n_clears is not None:
+                metrics["n_clears"] = run_result.n_clears
+            if hasattr(run_result, "time_to_stability") and run_result.time_to_stability is not None:
+                metrics["time_to_stability"] = run_result.time_to_stability
+            if hasattr(run_result, "dealer_metrics") and run_result.dealer_metrics:
+                dm = run_result.dealer_metrics
+                if "total_trades" in dm:
+                    metrics["total_trades"] = dm["total_trades"]
+                if "total_trade_volume" in dm:
+                    metrics["total_trade_volume"] = dm["total_trade_volume"]
+
+            # Build artifact paths (for cloud runs)
+            artifact_paths: Dict[str, str] = {}
+            if hasattr(run_result, "artifact_paths") and run_result.artifact_paths:
+                artifact_paths = run_result.artifact_paths
+
+            entry = RegistryEntry(
+                run_id=run_result.run_id,
+                experiment_id=self.job_id or "unknown",
+                status=status,
+                parameters=parameters,
+                metrics=metrics,
+                artifact_paths=artifact_paths,
+                error=run_result.error if hasattr(run_result, "error") else None,
+            )
+
+            self._supabase_store.upsert(entry)
+            logger.debug(f"Persisted run {run_result.run_id} to Supabase")
+
+        except Exception as e:
+            logger.warning(f"Failed to persist run to Supabase: {e}")
+
     def _write_comparison_csv(self) -> None:
-        """Write comparison results to CSV."""
+        """Write comparison results to CSV (skipped in cloud-only mode)."""
+        if self.skip_local_processing:
+            return  # Cloud-only mode: no local files
         with self.comparison_path.open("w", newline="") as fh:
             writer = csv.DictWriter(fh, fieldnames=self.COMPARISON_FIELDS)
             writer.writeheader()
@@ -49322,7 +51465,9 @@ class BalancedComparisonRunner:
                 writer.writerow(row)
 
     def _write_summary_json(self) -> None:
-        """Write summary statistics to JSON."""
+        """Write summary statistics to JSON (skipped in cloud-only mode)."""
+        if self.skip_local_processing:
+            return  # Cloud-only mode: no local files
         completed = [r for r in self.comparison_results if r.trading_effect is not None]
 
         if completed:
@@ -50001,32 +52146,33 @@ __all__ = [
 
 from __future__ import annotations
 
-import csv
 import uuid
 from dataclasses import dataclass
 from decimal import Decimal
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
-import random
-
 import yaml
 from pydantic import BaseModel, Field, ValidationError, model_validator
 
-from bilancio.analysis.loaders import read_balances_csv, read_events_jsonl
-from bilancio.analysis.report import (
-    compute_day_metrics,
-    summarize_day_metrics,
-    write_day_metrics_csv,
-    write_day_metrics_json,
-    write_debtor_shares_csv,
-    write_intraday_csv,
-    write_metrics_html,
-)
+from bilancio.analysis.metrics_computer import MetricsComputer
 from bilancio.config.models import RingExplorerGeneratorConfig
-from bilancio.scenarios.generators.ring_explorer import compile_ring_explorer
-
-# Note: run_scenario imported lazily in _execute_run to avoid circular import
+from bilancio.runners import LocalExecutor, RunOptions, ExecutionResult
+from bilancio.runners.protocols import SimulationExecutor
+from bilancio.experiments.sampling import (
+    generate_frontier_params,
+    generate_grid_params,
+    generate_lhs_params,
+)
+from bilancio.scenarios import compile_ring_explorer
+from bilancio.storage import (
+    FileRegistryStore,
+    LocalArtifactLoader,
+    ModalVolumeArtifactLoader,
+    RegistryEntry,
+)
+from bilancio.storage.models import RunStatus
+from bilancio.storage.protocols import RegistryStore
 
 
 @dataclass
@@ -50042,6 +52188,31 @@ class RingRunSummary:
     time_to_stability: int
     # Dealer metrics (only populated for treatment runs with dealer enabled)
     dealer_metrics: Optional[Dict[str, Any]] = None
+    # Modal call ID for cloud execution debugging
+    modal_call_id: Optional[str] = None
+
+
+@dataclass
+class PreparedRun:
+    """Data needed to execute and finalize a prepared run.
+
+    Created by RingSweepRunner._prepare_run(), consumed by _finalize_run().
+    """
+    run_id: str
+    phase: str
+    kappa: Decimal
+    concentration: Decimal
+    mu: Decimal
+    monotonicity: Decimal
+    seed: int
+    scenario_config: Dict[str, Any]
+    options: RunOptions
+    run_dir: Path
+    out_dir: Path
+    scenario_path: Path
+    base_params: Dict[str, Any]
+    S1: Decimal
+    L0: Decimal
 
 
 def _decimal_list(spec: str) -> List[Decimal]:
@@ -50193,34 +52364,6 @@ def load_ring_sweep_config(path: Path | str) -> RingSweepConfig:
 class RingSweepRunner:
     """Coordinator for running Kalecki ring experiments."""
 
-    REGISTRY_FIELDS = [
-        "run_id",
-        "phase",
-        "seed",
-        "n_agents",
-        "kappa",
-        "concentration",
-        "mu",
-        "monotonicity",
-        "maturity_days",
-        "Q_total",
-        "S1",
-        "L0",
-        "scenario_yaml",
-        "events_jsonl",
-        "balances_csv",
-        "metrics_csv",
-        "metrics_html",
-        "run_html",
-        "default_handling",
-        "dealer_enabled",
-        "status",
-        "time_to_stability",
-        "phi_total",
-        "delta_total",
-        "error",
-    ]
-
     def __init__(
         self,
         out_dir: Path,
@@ -50243,6 +52386,9 @@ class RingSweepRunner:
         dealer_share_per_bucket: Optional[Decimal] = None,
         rollover_enabled: bool = True,
         detailed_dealer_logging: bool = False,  # Plan 022
+        registry_store: Optional[RegistryStore] = None,  # Plan 026
+        executor: Optional[SimulationExecutor] = None,  # Plan 027
+        quiet: bool = True,  # Plan 030: suppress verbose output for sweeps
     ) -> None:
         self.base_dir = out_dir
         self.registry_dir = self.base_dir / "registry"
@@ -50266,40 +52412,71 @@ class RingSweepRunner:
         self.dealer_share_per_bucket = dealer_share_per_bucket or Decimal("0.125")
         self.rollover_enabled = rollover_enabled
         self.detailed_dealer_logging = detailed_dealer_logging  # Plan 022
-        self.registry_rows: List[Dict[str, Any]] = []
+        self.quiet = quiet  # Plan 030: suppress verbose output
 
-        self.registry_dir.mkdir(parents=True, exist_ok=True)
-        self.runs_dir.mkdir(parents=True, exist_ok=True)
-        self.aggregate_dir.mkdir(parents=True, exist_ok=True)
+        # Use provided registry store or create default file-based store
+        self.registry_store: RegistryStore = registry_store or FileRegistryStore(self.base_dir)
+        # Use provided executor or create default local executor (Plan 027)
+        self.executor: SimulationExecutor = executor or LocalExecutor()
+        self.experiment_id = ""  # Empty = use base_dir directly
 
-        self.registry_path = self.registry_dir / "experiments.csv"
-        if self.registry_path.exists():
-            with self.registry_path.open("r", newline="") as fh:
-                reader = csv.DictReader(fh)
-                self.registry_rows = list(reader)
-        else:
-            self._write_registry()
+        # Cloud-only mode: skip local processing when using cloud executor
+        # This avoids downloading artifacts just to recompute metrics locally
+        from bilancio.runners.cloud_executor import CloudExecutor
+        self.skip_local_processing = isinstance(executor, CloudExecutor)
+
+        # Only create local directories if we're doing local processing
+        if not self.skip_local_processing:
+            self.registry_dir.mkdir(parents=True, exist_ok=True)
+            self.runs_dir.mkdir(parents=True, exist_ok=True)
+            self.aggregate_dir.mkdir(parents=True, exist_ok=True)
+
+            # Initialize empty registry file if it doesn't exist (backward compatible)
+            registry_path = self.registry_dir / "experiments.csv"
+            if not registry_path.exists():
+                self._init_empty_registry(registry_path)
+
+    def _init_empty_registry(self, registry_path: Path) -> None:
+        """Create an empty registry file with headers."""
+        import csv
+        default_fields = [
+            "run_id", "experiment_id", "phase", "status", "error",
+            "seed", "n_agents", "kappa", "concentration", "mu", "monotonicity",
+            "maturity_days", "Q_total", "S1", "L0", "default_handling", "dealer_enabled",
+            "phi_total", "delta_total", "time_to_stability",
+            "scenario_yaml", "events_jsonl", "balances_csv", "metrics_csv",
+            "metrics_html", "run_html",
+        ]
+        with registry_path.open("w", newline="") as fh:
+            writer = csv.DictWriter(fh, fieldnames=default_fields)
+            writer.writeheader()
 
     def _next_seed(self) -> int:
         value = self.seed_counter
         self.seed_counter += 1
         return value
 
-    def _write_registry(self) -> None:
-        with self.registry_path.open("w", newline="") as fh:
-            writer = csv.DictWriter(fh, fieldnames=self.REGISTRY_FIELDS)
-            writer.writeheader()
-            for row in self.registry_rows:
-                writer.writerow({field: row.get(field, "") for field in self.REGISTRY_FIELDS})
-
-    def _upsert_registry(self, row: Dict[str, Any]) -> None:
-        for existing in self.registry_rows:
-            if existing.get("run_id") == row.get("run_id"):
-                existing.update(row)
-                break
-        else:
-            self.registry_rows.append(row)
-        self._write_registry()
+    def _upsert_registry(
+        self,
+        run_id: str,
+        phase: str,
+        status: RunStatus,
+        parameters: Dict[str, Any],
+        metrics: Optional[Dict[str, Any]] = None,
+        artifact_paths: Optional[Dict[str, str]] = None,
+        error: Optional[str] = None,
+    ) -> None:
+        """Upsert a registry entry using the configured store."""
+        entry = RegistryEntry(
+            run_id=run_id,
+            experiment_id=self.experiment_id,
+            status=status,
+            parameters=parameters,
+            metrics=metrics or {},
+            artifact_paths=artifact_paths or {},
+            error=error,
+        )
+        self.registry_store.upsert(entry)
 
     def run_grid(
         self,
@@ -50309,21 +52486,20 @@ class RingSweepRunner:
         monotonicities: Sequence[Decimal],
     ) -> List[RingRunSummary]:
         summaries: List[RingRunSummary] = []
-        for kappa in kappas:
-            for concentration in concentrations:
-                for mu in mus:
-                    for monotonicity in monotonicities:
-                        seed = self._next_seed()
-                        summaries.append(
-                            self._execute_run(
-                                "grid",
-                                kappa,
-                                concentration,
-                                mu,
-                                monotonicity,
-                                seed,
-                            )
-                        )
+        for kappa, concentration, mu, monotonicity in generate_grid_params(
+            kappas, concentrations, mus, monotonicities
+        ):
+            seed = self._next_seed()
+            summaries.append(
+                self._execute_run(
+                    "grid",
+                    kappa,
+                    concentration,
+                    mu,
+                    monotonicity,
+                    seed,
+                )
+            )
         return summaries
 
     def run_lhs(
@@ -50337,40 +52513,27 @@ class RingSweepRunner:
     ) -> List[RingRunSummary]:
         if count <= 0:
             return []
-        rng = random.Random(self.seed_counter + 7919)
-        kappas = self._lhs_axis(count, kappa_range, rng)
-        concentrations = self._lhs_axis(count, concentration_range, rng)
-        mus = self._lhs_axis(count, mu_range, rng)
-        rng.shuffle(concentrations)
-        rng.shuffle(mus)
-        monotonicities = self._lhs_axis(count, monotonicity_range, rng)
-        rng.shuffle(monotonicities)
         summaries: List[RingRunSummary] = []
-        for idx in range(count):
+        for kappa, concentration, mu, monotonicity in generate_lhs_params(
+            count,
+            kappa_range=kappa_range,
+            concentration_range=concentration_range,
+            mu_range=mu_range,
+            monotonicity_range=monotonicity_range,
+            seed=self.seed_counter,
+        ):
             seed = self._next_seed()
             summaries.append(
                 self._execute_run(
                     "lhs",
-                    kappas[idx],
-                    concentrations[idx],
-                    mus[idx],
-                    monotonicities[idx],
+                    kappa,
+                    concentration,
+                    mu,
+                    monotonicity,
                     seed,
                 )
             )
         return summaries
-
-    def _lhs_axis(self, count: int, bounds: Tuple[Decimal, Decimal], rng: random.Random) -> List[Decimal]:
-        low, high = bounds
-        samples: List[Decimal] = []
-        for stratum in range(count):
-            a = Decimal(stratum) / Decimal(count)
-            b = Decimal(stratum + 1) / Decimal(count)
-            u = Decimal(str(rng.random()))
-            frac = a + (b - a) * u
-            samples.append(low + (high - low) * frac)
-        rng.shuffle(samples)
-        return samples
 
     def run_frontier(
         self,
@@ -50384,74 +52547,42 @@ class RingSweepRunner:
         max_iterations: int,
     ) -> List[RingRunSummary]:
         summaries: List[RingRunSummary] = []
-        for concentration in concentrations:
-            for mu in mus:
-                for monotonicity in monotonicities:
-                    summaries.extend(
-                        self._run_frontier_cell(
-                            concentration,
-                            mu,
-                            monotonicity,
-                            kappa_low,
-                            kappa_high,
-                            tolerance,
-                            max_iterations,
-                        )
-                    )
+
+        # Create execution function that captures self and returns delta_total
+        def execute_fn(
+            label: str,
+            kappa: Decimal,
+            concentration: Decimal,
+            mu: Decimal,
+            monotonicity: Decimal,
+        ) -> Optional[Decimal]:
+            # Execute run with label
+            summary = self._execute_run(
+                "frontier",
+                kappa,
+                concentration,
+                mu,
+                monotonicity,
+                self._next_seed(),
+                label=label,
+            )
+            summaries.append(summary)
+            return summary.delta_total
+
+        # Use frontier sampling to execute runs with binary search
+        # Unlike grid/LHS, frontier calls execute_fn directly for immediate feedback
+        generate_frontier_params(
+            concentrations,
+            mus,
+            monotonicities,
+            kappa_low=kappa_low,
+            kappa_high=kappa_high,
+            tolerance=tolerance,
+            max_iterations=max_iterations,
+            execute_fn=execute_fn,
+        )
+
         return summaries
-
-    def _run_frontier_cell(
-        self,
-        concentration: Decimal,
-        mu: Decimal,
-        monotonicity: Decimal,
-        kappa_low: Decimal,
-        kappa_high: Decimal,
-        tolerance: Decimal,
-        max_iterations: int,
-    ) -> List[RingRunSummary]:
-        runs: List[RingRunSummary] = []
-
-        low_summary = self._execute_run("frontier", kappa_low, concentration, mu, monotonicity, self._next_seed(), label="low")
-        runs.append(low_summary)
-        if low_summary.delta_total is not None and low_summary.delta_total <= tolerance:
-            return runs
-
-        hi_kappa = kappa_high
-        hi_summary = self._execute_run("frontier", hi_kappa, concentration, mu, monotonicity, self._next_seed(), label="high")
-        runs.append(hi_summary)
-
-        while (hi_summary.delta_total is None or hi_summary.delta_total > tolerance) and hi_kappa < kappa_high * 4:
-            hi_kappa = hi_kappa * Decimal("1.5")
-            hi_summary = self._execute_run("frontier", hi_kappa, concentration, mu, monotonicity, self._next_seed(), label="high")
-            runs.append(hi_summary)
-            if hi_kappa > Decimal("128"):
-                break
-
-        if hi_summary.delta_total is None or hi_summary.delta_total > tolerance:
-            return runs
-
-        low = low_summary.kappa
-        high = hi_summary.kappa
-        best = hi_summary
-
-        for _ in range(max_iterations):
-            if high - low <= tolerance:
-                break
-            mid = (low + high) / 2
-            mid_summary = self._execute_run("frontier", mid, concentration, mu, monotonicity, self._next_seed(), label="mid")
-            runs.append(mid_summary)
-            delta = mid_summary.delta_total
-            if delta is None:
-                low = mid
-                continue
-            if delta <= tolerance:
-                best = mid_summary
-                high = mid
-            else:
-                low = mid
-
-        return runs
 
     def _execute_run(
         self,
@@ -50476,28 +52607,29 @@ class RingSweepRunner:
         run_html_path = run_dir / "run.html"
         balances_path = out_dir / "balances.csv"
         events_path = out_dir / "events.jsonl"
-        metrics_csv_path = out_dir / "metrics.csv"
-        metrics_json_path = out_dir / "metrics.json"
-        ds_csv_path = out_dir / "metrics_ds.csv"
-        intraday_csv_path = out_dir / "metrics_intraday.csv"
-        metrics_html_path = out_dir / "metrics.html"
 
-        registry_entry = {
-            "run_id": run_id,
+        # Common parameters for all registry updates
+        base_params = {
             "phase": phase,
-            "seed": str(seed),
-            "n_agents": str(self.n_agents),
+            "seed": seed,
+            "n_agents": self.n_agents,
             "kappa": str(kappa),
             "concentration": str(concentration),
             "mu": str(mu),
             "monotonicity": str(monotonicity),
-            "maturity_days": str(self.maturity_days),
+            "maturity_days": self.maturity_days,
             "Q_total": str(self.Q_total),
             "default_handling": self.default_handling,
-            "dealer_enabled": str(self.dealer_enabled),
-            "status": "running",
+            "dealer_enabled": self.dealer_enabled,
         }
-        self._upsert_registry(registry_entry)
+
+        # Initial "running" status
+        self._upsert_registry(
+            run_id=run_id,
+            phase=phase,
+            status=RunStatus.RUNNING,
+            parameters=base_params,
+        )
 
         generator_data = {
             "version": 1,
@@ -50529,7 +52661,7 @@ class RingSweepRunner:
 
         if self.balanced_mode:
             # Use balanced generator for C vs D comparison scenarios (Plan 024)
-            from bilancio.scenarios.generators.ring_explorer import compile_ring_explorer_balanced
+            from bilancio.scenarios import compile_ring_explorer_balanced
             scenario = compile_ring_explorer_balanced(
                 generator_config,
                 face_value=self.face_value,
@@ -50560,9 +52692,8 @@ class RingSweepRunner:
             scenario_run = scenario.setdefault("run", {})
             scenario_run["default_handling"] = self.default_handling
 
+        # RingSweepRunner writes scenario.yaml itself for control
         with scenario_path.open("w", encoding="utf-8") as fh:
-            import yaml
-
             yaml.safe_dump(_to_yaml_ready(scenario), fh, sort_keys=False, allow_unicode=False)
 
         S1 = Decimal("0")
@@ -50576,56 +52707,74 @@ class RingSweepRunner:
         # Determine regime for logging (Plan 022)
         regime = "active" if self.dealer_enabled else "passive"
 
-        # Lazy import to avoid circular import
-        from bilancio.ui.run import run_scenario
+        # Build RunOptions from scenario configuration (Plan 027)
+        options = RunOptions(
+            mode="until_stable",
+            max_days=scenario.get("run", {}).get("max_days", 90),
+            quiet_days=scenario.get("run", {}).get("quiet_days", 2),
+            check_invariants="daily",
+            default_handling=self.default_handling,
+            # Plan 030: Use "none" for quiet mode to suppress verbose console output
+            show_events="none" if self.quiet else scenario.get("run", {}).get("show", {}).get("events", "detailed"),
+            show_balances=scenario.get("run", {}).get("show", {}).get("balances"),
+            t_account=False,
+            detailed_dealer_logging=self.detailed_dealer_logging,
+            run_id=run_id,
+            regime=regime,
+            # Run parameters for Supabase tracking
+            kappa=float(kappa),
+            concentration=float(concentration),
+            mu=float(mu),
+            outside_mid_ratio=float(self.outside_mid_ratio) if self.outside_mid_ratio else 1.0,
+            seed=seed,
+        )
 
-        try:
-            run_scenario(
-                path=scenario_path,
-                mode="until_stable",
-                max_days=scenario["run"].get("max_days", 90),
-                quiet_days=scenario["run"].get("quiet_days", 2),
-                show=scenario["run"].get("show", {}).get("events", "detailed"),
-                agent_ids=scenario["run"].get("show", {}).get("balances"),
-                check_invariants="daily",
-                export={
-                    "balances_csv": str(balances_path),
-                    "events_jsonl": str(events_path),
+        # Delegate simulation to executor (Plan 027)
+        result = self.executor.execute(
+            scenario_config=_to_yaml_ready(scenario),
+            run_id=run_id,
+            output_dir=run_dir,
+            options=options,
+        )
+
+        # Handle failure case
+        if result.status == RunStatus.FAILED:
+            fail_params = {**base_params, "S1": str(S1), "L0": str(L0)}
+            self._upsert_registry(
+                run_id=run_id,
+                phase=phase,
+                status=RunStatus.FAILED,
+                parameters=fail_params,
+                artifact_paths={
+                    "scenario_yaml": self._rel_path(scenario_path),
+                    "run_html": self._rel_path(run_html_path),
                 },
-                html_output=run_html_path,
-                t_account=False,
-                default_handling=self.default_handling,
-                detailed_dealer_logging=self.detailed_dealer_logging,  # Plan 022
-                run_id=run_id,  # Plan 022
-                regime=regime,  # Plan 022
-                progress_callback=progress_callback,
+                error=result.error,
             )
-        except Exception as exc:
-            registry_entry.update({
-                "status": "failed",
-                "error": str(exc),
-                "S1": str(S1),
-                "L0": str(L0),
-                "scenario_yaml": self._rel_path(scenario_path),
-                "run_html": self._rel_path(run_html_path),
-            })
-            self._upsert_registry(registry_entry)
-            return RingRunSummary(run_id, phase, kappa, concentration, mu, monotonicity, None, None, 0)
+            return RingRunSummary(
+                run_id, phase, kappa, concentration, mu, monotonicity, None, None, 0,
+                modal_call_id=result.modal_call_id
+            )
 
-        events = list(read_events_jsonl(events_path))
-        balances_rows = read_balances_csv(balances_path) if balances_path.exists() else None
-        bundle = compute_day_metrics(events, balances_rows)
+        # Use MetricsComputer for analytics (Plan 027)
+        # result.artifacts contains relative paths (e.g., "out/events.jsonl")
+        artifacts: Dict[str, str] = {}
+        if "events_jsonl" in result.artifacts:
+            artifacts["events_jsonl"] = result.artifacts["events_jsonl"]
+        if "balances_csv" in result.artifacts:
+            artifacts["balances_csv"] = result.artifacts["balances_csv"]
 
-        write_day_metrics_csv(metrics_csv_path, bundle["day_metrics"])
-        write_day_metrics_json(metrics_json_path, bundle["day_metrics"])
-        write_debtor_shares_csv(ds_csv_path, bundle["debtor_shares"])
-        write_intraday_csv(intraday_csv_path, bundle["intraday"])
-        write_metrics_html(metrics_html_path, bundle["day_metrics"], bundle["debtor_shares"], bundle["intraday"])
+        loader = self._artifact_loader_for_result(result)
+        computer = MetricsComputer(loader)
+        bundle = computer.compute(artifacts)
 
-        summary = summarize_day_metrics(bundle["day_metrics"])
-        delta_total = summary.get("delta_total")
-        phi_total = summary.get("phi_total")
-        time_to_stability = int(summary.get("max_day") or 0)
+        # Write metrics outputs
+        output_paths = computer.write_outputs(bundle, out_dir)
+
+        # Extract summary metrics
+        delta_total = bundle.summary.get("delta_total")
+        phi_total = bundle.summary.get("phi_total")
+        time_to_stability = int(bundle.summary.get("max_day") or 0)
 
         # Read dealer metrics if available (treatment runs with dealer enabled)
         dealer_metrics: Optional[Dict[str, Any]] = None
@@ -50635,26 +52784,311 @@ class RingSweepRunner:
             with dealer_metrics_path.open() as f:
                 dealer_metrics = json.load(f)
 
-        registry_entry.update({
-            "status": "completed",
-            "S1": str(S1),
-            "L0": str(L0),
-            "scenario_yaml": self._rel_path(scenario_path),
-            "events_jsonl": self._rel_path(events_path),
-            "balances_csv": self._rel_path(balances_path),
-            "metrics_csv": self._rel_path(metrics_csv_path),
-            "metrics_html": self._rel_path(metrics_html_path),
-            "run_html": self._rel_path(run_html_path),
-            "time_to_stability": str(time_to_stability),
+        # Update registry with completed status
+        success_params = {**base_params, "S1": str(S1), "L0": str(L0)}
+        success_metrics = {
+            "time_to_stability": time_to_stability,
             "phi_total": str(phi_total) if phi_total is not None else "",
             "delta_total": str(delta_total) if delta_total is not None else "",
-            "error": "",
-        })
-        self._upsert_registry(registry_entry)
+        }
+        self._upsert_registry(
+            run_id=run_id,
+            phase=phase,
+            status=RunStatus.COMPLETED,
+            parameters=success_params,
+            metrics=success_metrics,
+            artifact_paths={
+                "scenario_yaml": self._rel_path(scenario_path),
+                "events_jsonl": self._rel_path(events_path),
+                "balances_csv": self._rel_path(balances_path),
+                "metrics_csv": self._rel_path(output_paths["metrics_csv"]),
+                "metrics_html": self._rel_path(output_paths["metrics_html"]),
+                "run_html": self._rel_path(run_html_path),
+            },
+        )
 
         return RingRunSummary(
             run_id, phase, kappa, concentration, mu, monotonicity,
-            delta_total, phi_total, time_to_stability, dealer_metrics
+            delta_total, phi_total, time_to_stability, dealer_metrics,
+            modal_call_id=result.modal_call_id
+        )
+
+    def _prepare_run(
+        self,
+        phase: str,
+        kappa: Decimal,
+        concentration: Decimal,
+        mu: Decimal,
+        monotonicity: Decimal,
+        seed: int,
+        label: str = "",
+    ) -> PreparedRun:
+        """Prepare a run without executing it.
+
+        Creates directories, builds scenario config, writes scenario.yaml.
+        Returns PreparedRun that can be passed to execute_batch and then _finalize_run.
+
+        In cloud-only mode, skips local directory creation and file writes.
+        """
+        run_uuid = uuid.uuid4().hex[:12]
+        run_id = f"{phase}_{label}_{run_uuid}" if label else f"{phase}_{run_uuid}"
+
+        # For cloud-only mode, use placeholder paths (won't be used)
+        if self.skip_local_processing:
+            run_dir = Path(f"/tmp/bilancio/{run_id}")  # Placeholder, never created
+            out_dir = run_dir / "out"
+            scenario_path = run_dir / "scenario.yaml"
+        else:
+            run_dir = self.runs_dir / run_id
+            run_dir.mkdir(parents=True, exist_ok=True)
+            out_dir = run_dir / "out"
+            out_dir.mkdir(parents=True, exist_ok=True)
+            scenario_path = run_dir / "scenario.yaml"
+
+        base_params = {
+            "phase": phase,
+            "seed": seed,
+            "n_agents": self.n_agents,
+            "kappa": str(kappa),
+            "concentration": str(concentration),
+            "mu": str(mu),
+            "monotonicity": str(monotonicity),
+            "maturity_days": self.maturity_days,
+            "Q_total": str(self.Q_total),
+            "default_handling": self.default_handling,
+            "dealer_enabled": self.dealer_enabled,
+        }
+
+        # Initial "running" status (skip for cloud-only mode)
+        if not self.skip_local_processing:
+            self._upsert_registry(
+                run_id=run_id,
+                phase=phase,
+                status=RunStatus.RUNNING,
+                parameters=base_params,
+            )
+
+        generator_data = {
+            "version": 1,
+            "generator": "ring_explorer_v1",
+            "name_prefix": self.name_prefix,
+            "params": {
+                "n_agents": self.n_agents,
+                "seed": seed,
+                "kappa": str(kappa),
+                "Q_total": str(self.Q_total),
+                "inequality": {
+                    "scheme": "dirichlet",
+                    "concentration": str(concentration),
+                    "monotonicity": str(monotonicity),
+                },
+                "maturity": {
+                    "days": self.maturity_days,
+                    "mode": "lead_lag",
+                    "mu": str(mu),
+                },
+                "liquidity": {
+                    "allocation": self._liquidity_allocation_dict(),
+                },
+            },
+            "compile": {"emit_yaml": False},
+        }
+
+        generator_config = RingExplorerGeneratorConfig.model_validate(generator_data)
+
+        if self.balanced_mode:
+            from bilancio.scenarios import compile_ring_explorer_balanced
+            scenario = compile_ring_explorer_balanced(
+                generator_config,
+                face_value=self.face_value,
+                outside_mid_ratio=self.outside_mid_ratio,
+                big_entity_share=self.big_entity_share,
+                vbt_share_per_bucket=self.vbt_share_per_bucket,
+                dealer_share_per_bucket=self.dealer_share_per_bucket,
+                mode="active" if self.dealer_enabled else "passive",
+                rollover_enabled=self.rollover_enabled,
+                source_path=None,
+            )
+        else:
+            scenario = compile_ring_explorer(generator_config, source_path=None)
+
+        if self.dealer_enabled:
+            dealer_section: Dict[str, Any] = {"enabled": True}
+            if self.dealer_config:
+                dealer_section.update(self.dealer_config)
+            else:
+                dealer_section.update({
+                    "ticket_size": 1,
+                    "dealer_share": Decimal("0.25"),
+                    "vbt_share": Decimal("0.50"),
+                })
+            scenario["dealer"] = dealer_section
+
+        if self.default_handling:
+            scenario_run = scenario.setdefault("run", {})
+            scenario_run["default_handling"] = self.default_handling
+
+        # Write scenario.yaml (skip for cloud-only mode)
+        if not self.skip_local_processing:
+            with scenario_path.open("w", encoding="utf-8") as fh:
+                yaml.safe_dump(_to_yaml_ready(scenario), fh, sort_keys=False, allow_unicode=False)
+
+        S1 = Decimal("0")
+        L0 = Decimal("0")
+        for action in scenario.get("initial_actions", []):
+            if "create_payable" in action:
+                S1 += action["create_payable"]["amount"]
+            if "mint_cash" in action:
+                L0 += action["mint_cash"]["amount"]
+
+        regime = "active" if self.dealer_enabled else "passive"
+
+        options = RunOptions(
+            mode="until_stable",
+            max_days=scenario.get("run", {}).get("max_days", 90),
+            quiet_days=scenario.get("run", {}).get("quiet_days", 2),
+            check_invariants="daily",
+            default_handling=self.default_handling,
+            show_events="none" if self.quiet else scenario.get("run", {}).get("show", {}).get("events", "detailed"),
+            show_balances=scenario.get("run", {}).get("show", {}).get("balances"),
+            t_account=False,
+            detailed_dealer_logging=self.detailed_dealer_logging,
+            run_id=run_id,
+            regime=regime,
+            # Run parameters for Supabase tracking
+            kappa=float(kappa),
+            concentration=float(concentration),
+            mu=float(mu),
+            outside_mid_ratio=float(self.outside_mid_ratio) if self.outside_mid_ratio else 1.0,
+            seed=seed,
+        )
+
+        return PreparedRun(
+            run_id=run_id,
+            phase=phase,
+            kappa=kappa,
+            concentration=concentration,
+            mu=mu,
+            monotonicity=monotonicity,
+            seed=seed,
+            scenario_config=_to_yaml_ready(scenario),
+            options=options,
+            run_dir=run_dir,
+            out_dir=out_dir,
+            scenario_path=scenario_path,
+            base_params=base_params,
+            S1=S1,
+            L0=L0,
+        )
+
+    def _finalize_run(
+        self,
+        prepared: PreparedRun,
+        result: ExecutionResult,
+    ) -> RingRunSummary:
+        """Finalize a run after execution completes.
+
+        For cloud execution with pre-computed metrics, uses those directly
+        without downloading artifacts. For local execution, computes metrics
+        from artifacts and updates local registry.
+        """
+        # Handle failure case
+        if result.status == RunStatus.FAILED:
+            if not self.skip_local_processing:
+                run_html_path = prepared.run_dir / "run.html"
+                fail_params = {**prepared.base_params, "S1": str(prepared.S1), "L0": str(prepared.L0)}
+                self._upsert_registry(
+                    run_id=prepared.run_id,
+                    phase=prepared.phase,
+                    status=RunStatus.FAILED,
+                    parameters=fail_params,
+                    artifact_paths={
+                        "scenario_yaml": self._rel_path(prepared.scenario_path),
+                        "run_html": self._rel_path(run_html_path),
+                    },
+                    error=result.error,
+                )
+            return RingRunSummary(
+                prepared.run_id, prepared.phase, prepared.kappa, prepared.concentration,
+                prepared.mu, prepared.monotonicity, None, None, 0,
+                modal_call_id=result.modal_call_id
+            )
+
+        # Cloud-only path: use pre-computed metrics from Modal, skip local processing
+        if self.skip_local_processing and result.metrics:
+            delta_total = result.metrics.get("delta_total")
+            phi_total = result.metrics.get("phi_total")
+            time_to_stability = int(result.metrics.get("max_day") or 0)
+
+            # Convert to Decimal for consistency
+            if delta_total is not None:
+                delta_total = Decimal(str(delta_total))
+            if phi_total is not None:
+                phi_total = Decimal(str(phi_total))
+
+            return RingRunSummary(
+                prepared.run_id, prepared.phase, prepared.kappa, prepared.concentration,
+                prepared.mu, prepared.monotonicity,
+                delta_total, phi_total, time_to_stability,
+                dealer_metrics=None,  # Dealer metrics not available in cloud path
+                modal_call_id=result.modal_call_id
+            )
+
+        # Local path: load artifacts, compute metrics, update registry
+        run_html_path = prepared.run_dir / "run.html"
+        balances_path = prepared.out_dir / "balances.csv"
+        events_path = prepared.out_dir / "events.jsonl"
+
+        artifacts: Dict[str, str] = {}
+        if "events_jsonl" in result.artifacts:
+            artifacts["events_jsonl"] = result.artifacts["events_jsonl"]
+        if "balances_csv" in result.artifacts:
+            artifacts["balances_csv"] = result.artifacts["balances_csv"]
+
+        loader = self._artifact_loader_for_result(result)
+        computer = MetricsComputer(loader)
+        bundle = computer.compute(artifacts)
+
+        output_paths = computer.write_outputs(bundle, prepared.out_dir)
+
+        delta_total = bundle.summary.get("delta_total")
+        phi_total = bundle.summary.get("phi_total")
+        time_to_stability = int(bundle.summary.get("max_day") or 0)
+
+        dealer_metrics: Optional[Dict[str, Any]] = None
+        dealer_metrics_path = prepared.out_dir / "dealer_metrics.json"
+        if dealer_metrics_path.exists():
+            import json
+            with dealer_metrics_path.open() as f:
+                dealer_metrics = json.load(f)
+
+        success_params = {**prepared.base_params, "S1": str(prepared.S1), "L0": str(prepared.L0)}
+        success_metrics = {
+            "time_to_stability": time_to_stability,
+            "phi_total": str(phi_total) if phi_total is not None else "",
+            "delta_total": str(delta_total) if delta_total is not None else "",
+        }
+        self._upsert_registry(
+            run_id=prepared.run_id,
+            phase=prepared.phase,
+            status=RunStatus.COMPLETED,
+            parameters=success_params,
+            metrics=success_metrics,
+            artifact_paths={
+                "scenario_yaml": self._rel_path(prepared.scenario_path),
+                "events_jsonl": self._rel_path(events_path),
+                "balances_csv": self._rel_path(balances_path),
+                "metrics_csv": self._rel_path(output_paths["metrics_csv"]),
+                "metrics_html": self._rel_path(output_paths["metrics_html"]),
+                "run_html": self._rel_path(run_html_path),
+            },
+        )
+
+        return RingRunSummary(
+            prepared.run_id, prepared.phase, prepared.kappa, prepared.concentration,
+            prepared.mu, prepared.monotonicity,
+            delta_total, phi_total, time_to_stability, dealer_metrics,
+            modal_call_id=result.modal_call_id
         )
 
     def _rel_path(self, absolute: Path) -> str:
@@ -50662,6 +53096,11 @@ class RingSweepRunner:
             return str(Path("..").joinpath(absolute.relative_to(self.base_dir)))
         except ValueError:
             return str(absolute)
+
+    def _artifact_loader_for_result(self, result: ExecutionResult):
+        if result.storage_type == "modal_volume":
+            return ModalVolumeArtifactLoader(base_path=result.storage_base)
+        return LocalArtifactLoader(base_path=Path(result.storage_base))
 
     def _liquidity_allocation_dict(self) -> Dict[str, Any]:
         allocation: Dict[str, Any] = {"mode": self.liquidity_mode}
@@ -50673,10 +53112,312 @@ class RingSweepRunner:
 __all__ = [
     "RingSweepRunner",
     "RingRunSummary",
+    "PreparedRun",
     "RingSweepConfig",
     "load_ring_sweep_config",
     "_decimal_list",
 ]
+
+```
+
+---
+
+### 📄 src/bilancio/experiments/sampling/__init__.py
+
+```python
+"""Parameter sampling strategies for experiment sweeps."""
+
+from __future__ import annotations
+
+from .frontier import generate_frontier_params
+from .grid import generate_grid_params
+from .lhs import generate_lhs_params
+
+__all__ = [
+    "generate_grid_params",
+    "generate_lhs_params",
+    "generate_frontier_params",
+]
+
+```
+
+---
+
+### 📄 src/bilancio/experiments/sampling/frontier.py
+
+```python
+"""Frontier/binary search parameter sampling strategy."""
+
+from __future__ import annotations
+
+from decimal import Decimal
+from typing import Callable, List, Optional, Sequence, Tuple
+
+
+def generate_frontier_params(
+    concentrations: Sequence[Decimal],
+    mus: Sequence[Decimal],
+    monotonicities: Sequence[Decimal],
+    *,
+    kappa_low: Decimal,
+    kappa_high: Decimal,
+    tolerance: Decimal,
+    max_iterations: int,
+    execute_fn: Callable[[str, Decimal, Decimal, Decimal, Decimal], Optional[Decimal]],
+) -> None:
+    """
+    Execute frontier/binary search parameter combinations.
+
+    For each combination of (concentration, mu, monotonicity), performs binary
+    search over kappa to find the frontier where delta_total <= tolerance.
+
+    This is an adaptive sampling strategy that uses feedback from simulations
+    to efficiently locate the boundary between stable and unstable regions.
+
+    Unlike grid and LHS sampling, frontier sampling executes runs directly via
+    execute_fn because it needs immediate feedback to decide what to test next.
+
+    Args:
+        concentrations: Sequence of concentration values
+        mus: Sequence of mu values
+        monotonicities: Sequence of monotonicity values
+        kappa_low: Initial lower bound for kappa
+        kappa_high: Initial upper bound for kappa
+        tolerance: Target tolerance for delta_total
+        max_iterations: Maximum binary search iterations per cell
+        execute_fn: Function that executes a run and returns delta_total.
+                   Signature: (label, kappa, concentration, mu, monotonicity) -> Optional[Decimal]
+                   Returns None if run failed to stabilize.
+
+    Returns:
+        None (calls execute_fn directly for side effects)
+    """
+    for concentration in concentrations:
+        for mu in mus:
+            for monotonicity in monotonicities:
+                _run_frontier_cell(
+                    concentration,
+                    mu,
+                    monotonicity,
+                    kappa_low,
+                    kappa_high,
+                    tolerance,
+                    max_iterations,
+                    execute_fn,
+                )
+
+
+def _run_frontier_cell(
+    concentration: Decimal,
+    mu: Decimal,
+    monotonicity: Decimal,
+    kappa_low: Decimal,
+    kappa_high: Decimal,
+    tolerance: Decimal,
+    max_iterations: int,
+    execute_fn: Callable[[str, Decimal, Decimal, Decimal, Decimal], Optional[Decimal]],
+) -> None:
+    """
+    Binary search for frontier kappa for a single parameter cell.
+
+    Strategy:
+    1. Test kappa_low - if already stable, return
+    2. Test and expand kappa_high until stable or max reached
+    3. Binary search between low and high to find tightest stable kappa
+
+    Args:
+        concentration: Concentration parameter
+        mu: Mu parameter
+        monotonicity: Monotonicity parameter
+        kappa_low: Lower bound for kappa
+        kappa_high: Initial upper bound for kappa
+        tolerance: Target tolerance for delta_total
+        max_iterations: Maximum binary search iterations
+        execute_fn: Function to execute run and get delta_total
+
+    Returns:
+        None (calls execute_fn directly for side effects)
+    """
+    # Test lower bound
+    low_delta = execute_fn("low", kappa_low, concentration, mu, monotonicity)
+
+    # If lower bound is already stable, we're done
+    if low_delta is not None and low_delta <= tolerance:
+        return
+
+    # Find upper bound that is stable
+    hi_kappa = kappa_high
+    hi_delta = execute_fn("high", hi_kappa, concentration, mu, monotonicity)
+
+    # Expand upper bound if needed (up to 4x original or kappa=128)
+    while (hi_delta is None or hi_delta > tolerance) and hi_kappa < kappa_high * 4:
+        hi_kappa = hi_kappa * Decimal("1.5")
+        hi_delta = execute_fn("high", hi_kappa, concentration, mu, monotonicity)
+        if hi_kappa > Decimal("128"):
+            break
+
+    # If upper bound is still unstable, give up
+    if hi_delta is None or hi_delta > tolerance:
+        return
+
+    # Binary search between stable bounds
+    low = kappa_low
+    high = hi_kappa
+
+    for _ in range(max_iterations):
+        if high - low <= tolerance:
+            break
+
+        mid = (low + high) / 2
+        mid_delta = execute_fn("mid", mid, concentration, mu, monotonicity)
+
+        if mid_delta is None:
+            # Unstable, search higher
+            low = mid
+        elif mid_delta <= tolerance:
+            # Stable, search lower
+            high = mid
+        else:
+            # Unstable, search higher
+            low = mid
+
+```
+
+---
+
+### 📄 src/bilancio/experiments/sampling/grid.py
+
+```python
+"""Grid/Cartesian product parameter sampling strategy."""
+
+from __future__ import annotations
+
+from decimal import Decimal
+from typing import Iterator, Sequence, Tuple
+
+
+def generate_grid_params(
+    kappas: Sequence[Decimal],
+    concentrations: Sequence[Decimal],
+    mus: Sequence[Decimal],
+    monotonicities: Sequence[Decimal],
+) -> Iterator[Tuple[Decimal, Decimal, Decimal, Decimal]]:
+    """
+    Generate parameter combinations using Cartesian product (grid sampling).
+
+    Args:
+        kappas: Sequence of kappa values
+        concentrations: Sequence of concentration values
+        mus: Sequence of mu values
+        monotonicities: Sequence of monotonicity values
+
+    Yields:
+        Tuples of (kappa, concentration, mu, monotonicity)
+    """
+    for kappa in kappas:
+        for concentration in concentrations:
+            for mu in mus:
+                for monotonicity in monotonicities:
+                    yield (kappa, concentration, mu, monotonicity)
+
+```
+
+---
+
+### 📄 src/bilancio/experiments/sampling/lhs.py
+
+```python
+"""Latin Hypercube Sampling (LHS) parameter generation strategy."""
+
+from __future__ import annotations
+
+import random
+from decimal import Decimal
+from typing import Iterator, List, Tuple
+
+
+def generate_lhs_params(
+    count: int,
+    *,
+    kappa_range: Tuple[Decimal, Decimal],
+    concentration_range: Tuple[Decimal, Decimal],
+    mu_range: Tuple[Decimal, Decimal],
+    monotonicity_range: Tuple[Decimal, Decimal],
+    seed: int,
+) -> Iterator[Tuple[Decimal, Decimal, Decimal, Decimal]]:
+    """
+    Generate parameter combinations using Latin Hypercube Sampling.
+
+    LHS divides each parameter range into equal-probability strata and samples
+    one value from each stratum, then shuffles the samples to decorrelate them.
+    This ensures good coverage of the parameter space with fewer samples than
+    grid sampling.
+
+    Args:
+        count: Number of parameter combinations to generate
+        kappa_range: (low, high) bounds for kappa
+        concentration_range: (low, high) bounds for concentration
+        mu_range: (low, high) bounds for mu
+        monotonicity_range: (low, high) bounds for monotonicity
+        seed: Random seed for reproducibility
+
+    Yields:
+        Tuples of (kappa, concentration, mu, monotonicity)
+    """
+    if count <= 0:
+        return
+
+    rng = random.Random(seed + 7919)  # Add offset for variety
+
+    # Sample each dimension using LHS
+    kappas = _lhs_axis(count, kappa_range, rng)
+    concentrations = _lhs_axis(count, concentration_range, rng)
+    mus = _lhs_axis(count, mu_range, rng)
+    monotonicities = _lhs_axis(count, monotonicity_range, rng)
+
+    # Shuffle to decorrelate dimensions
+    rng.shuffle(concentrations)
+    rng.shuffle(mus)
+    rng.shuffle(monotonicities)
+
+    # Yield parameter combinations
+    for idx in range(count):
+        yield (kappas[idx], concentrations[idx], mus[idx], monotonicities[idx])
+
+
+def _lhs_axis(count: int, bounds: Tuple[Decimal, Decimal], rng: random.Random) -> List[Decimal]:
+    """
+    Sample a single parameter dimension using Latin Hypercube Sampling.
+
+    Divides the range into 'count' equal strata and samples one value uniformly
+    from each stratum.
+
+    Args:
+        count: Number of strata/samples
+        bounds: (low, high) bounds for the parameter
+        rng: Random number generator
+
+    Returns:
+        List of sampled values (shuffled)
+    """
+    low, high = bounds
+    samples: List[Decimal] = []
+
+    for stratum in range(count):
+        # Define stratum boundaries as fractions [0,1]
+        a = Decimal(stratum) / Decimal(count)
+        b = Decimal(stratum + 1) / Decimal(count)
+
+        # Sample uniformly within stratum
+        u = Decimal(str(rng.random()))
+        frac = a + (b - a) * u
+
+        # Map to parameter range
+        samples.append(low + (high - low) * frac)
+
+    # Shuffle to decorrelate from stratum order
+    rng.shuffle(samples)
+    return samples
 
 ```
 
@@ -50884,62 +53625,972 @@ def write_balances_snapshot(
 
 ---
 
-### 📄 src/bilancio/io/__init__.py
+### 📄 src/bilancio/jobs/__init__.py
 
 ```python
-"""I/O package for bilancio."""
+"""Job management for simulation runs."""
+
+from .job_id import generate_job_id, validate_job_id
+from .manager import JobManager, create_job_manager
+from .models import Job, JobConfig, JobEvent, JobStatus
+
+__all__ = [
+    "create_job_manager",
+    "generate_job_id",
+    "validate_job_id",
+    "Job",
+    "JobConfig",
+    "JobEvent",
+    "JobManager",
+    "JobStatus",
+]
 
 ```
 
 ---
 
-### 📄 src/bilancio/io/readers.py
+### 📄 src/bilancio/jobs/job_id.py
 
 ```python
-"""File reading utilities for bilancio."""
+"""Job ID generation for memorable simulation job identifiers."""
+
+from xkcdpass import xkcd_password as xp
+
+# Use the EFF large wordlist (7776 words, designed for memorability)
+_wordlist = xp.generate_wordlist(wordfile=xp.locate_wordfile())
 
 
-# TODO: Import CashFlow from appropriate module once defined
-# from bilancio.domain.instruments import CashFlow
+def generate_job_id(num_words: int = 4) -> str:
+    """Generate a memorable job ID as a hyphen-separated passphrase.
 
+    Uses the EFF wordlist via xkcdpass for high-quality memorable words.
 
-def read_cashflows_csv(filepath: str) -> list["CashFlow"]:
-    """Read cash flows from a CSV file.
-    
     Args:
-        filepath: Path to the CSV file to read
-        
+        num_words: Number of words in the passphrase (default 4)
+
     Returns:
-        List of CashFlow objects parsed from the CSV
-        
-    TODO: Implement CSV reading logic
+        A job ID like "castle-river-mountain-forest"
+
+    Example:
+        >>> job_id = generate_job_id()
+        >>> print(job_id)  # "correct-horse-battery-staple"
     """
-    raise NotImplementedError("CSV reading not yet implemented")
+    return xp.generate_xkcdpassword(_wordlist, numwords=num_words, delimiter="-")
+
+
+def validate_job_id(job_id: str) -> bool:
+    """Validate that a job ID has the correct format.
+
+    Args:
+        job_id: The job ID to validate
+
+    Returns:
+        True if valid format (hyphen-separated words), False otherwise
+    """
+    if not job_id:
+        return False
+    parts = job_id.split("-")
+    if len(parts) < 2:  # At least 2 words
+        return False
+    return all(part.isalpha() and part.islower() for part in parts)
 
 ```
 
 ---
 
-### 📄 src/bilancio/io/writers.py
+### 📄 src/bilancio/jobs/manager.py
 
 ```python
-"""File writing utilities for bilancio."""
+"""Job lifecycle management."""
+
+import json
+import logging
+from datetime import datetime
+from pathlib import Path
+from typing import Optional, TYPE_CHECKING
+
+from .job_id import generate_job_id
+from .models import Job, JobConfig, JobEvent, JobStatus
+
+if TYPE_CHECKING:
+    from .supabase_store import SupabaseJobStore
+
+logger = logging.getLogger(__name__)
 
 
-# TODO: Import CashFlow from appropriate module once defined
-# from bilancio.domain.instruments import CashFlow
+def create_job_manager(
+    jobs_dir: Optional[Path] = None,
+    cloud: bool = False,
+    local: bool = True,
+) -> "JobManager":
+    """Factory function to create a JobManager with optional cloud storage.
 
-
-def write_cashflows_csv(flows: list["CashFlow"], filepath: str) -> None:
-    """Write cash flows to a CSV file.
-    
     Args:
-        flows: List of CashFlow objects to write
-        filepath: Path to the CSV file to create/overwrite
-        
-    TODO: Implement CSV writing logic
+        jobs_dir: Directory to store job manifests. If None and local=True,
+                  jobs are only in-memory.
+        cloud: If True, enable Supabase cloud storage (requires BILANCIO_SUPABASE_*
+               environment variables to be set).
+        local: If False, skip local file storage (useful for memory-constrained VMs).
+               When cloud=True and local=False, jobs are only stored in Supabase.
+
+    Returns:
+        Configured JobManager instance.
+
+    Example:
+        >>> # Cloud-only (no local files)
+        >>> manager = create_job_manager(cloud=True, local=False)
+        >>> job = manager.create_job("Test job", config)
+        >>>
+        >>> # Both local and cloud
+        >>> manager = create_job_manager(Path("./jobs"), cloud=True, local=True)
     """
-    raise NotImplementedError("CSV writing not yet implemented")
+    cloud_store = None
+    if cloud:
+        try:
+            from bilancio.storage.supabase_client import is_supabase_configured
+
+            if is_supabase_configured():
+                from .supabase_store import SupabaseJobStore
+
+                cloud_store = SupabaseJobStore()
+                logger.info("Supabase cloud storage enabled for jobs")
+            else:
+                logger.warning(
+                    "Cloud storage requested but Supabase not configured. "
+                    "Set BILANCIO_SUPABASE_URL and BILANCIO_SUPABASE_ANON_KEY."
+                )
+        except ImportError as e:
+            logger.warning(f"Failed to import Supabase: {e}")
+
+    # If local=False, don't pass jobs_dir to avoid creating local files
+    effective_jobs_dir = jobs_dir if local else None
+
+    return JobManager(jobs_dir=effective_jobs_dir, cloud_store=cloud_store)
+
+
+class JobManager:
+    """Manages job lifecycle and persistence.
+
+    Supports both local file storage and optional cloud storage via Supabase.
+    When cloud_store is provided, jobs are persisted to both local and cloud.
+    """
+
+    def __init__(
+        self,
+        jobs_dir: Optional[Path] = None,
+        cloud_store: Optional["SupabaseJobStore"] = None,
+    ):
+        """Initialize the job manager.
+
+        Args:
+            jobs_dir: Directory to store job manifests. If None, jobs are only in-memory.
+            cloud_store: Optional Supabase store for cloud persistence. Jobs will be
+                        saved to both local and cloud when provided.
+        """
+        self.jobs_dir = jobs_dir
+        self.cloud_store = cloud_store
+        self._jobs: dict[str, Job] = {}
+
+        if jobs_dir:
+            jobs_dir.mkdir(parents=True, exist_ok=True)
+
+    def create_job(
+        self,
+        description: str,
+        config: JobConfig,
+        job_id: Optional[str] = None,
+        notes: Optional[str] = None,
+    ) -> Job:
+        """Create a new job.
+
+        Args:
+            description: User's description of the simulation request
+            config: Job configuration
+            job_id: Optional custom job ID (auto-generated if not provided)
+            notes: Optional additional notes
+
+        Returns:
+            The created Job instance
+        """
+        if job_id is None:
+            job_id = generate_job_id()
+
+        now = datetime.utcnow()
+        job = Job(
+            job_id=job_id,
+            created_at=now,
+            status=JobStatus.PENDING,
+            description=description,
+            config=config,
+            notes=notes,
+        )
+
+        # Record creation event
+        event = JobEvent(
+            job_id=job_id,
+            event_type="created",
+            timestamp=now,
+            details={"config": config.to_dict()},
+        )
+        job.events.append(event)
+
+        self._jobs[job_id] = job
+        self._save_job(job)
+        self._save_event(event)
+
+        return job
+
+    def start_job(self, job_id: str) -> None:
+        """Mark a job as started.
+
+        Args:
+            job_id: The job ID to start
+
+        Raises:
+            KeyError: If job not found
+        """
+        job = self.get_job(job_id)
+        if job is None:
+            raise KeyError(f"Job not found: {job_id}")
+
+        job.status = JobStatus.RUNNING
+        event = JobEvent(
+            job_id=job_id,
+            event_type="started",
+            timestamp=datetime.utcnow(),
+        )
+        job.events.append(event)
+        self._save_job(job)
+        self._save_event(event)
+
+    def record_progress(
+        self,
+        job_id: str,
+        run_id: str,
+        metrics: Optional[dict] = None,
+        modal_call_id: Optional[str] = None,
+    ) -> None:
+        """Record progress on a job (a run completed).
+
+        Args:
+            job_id: The job ID
+            run_id: The completed run ID
+            metrics: Optional metrics from the run
+            modal_call_id: Optional Modal function call ID for debugging
+
+        Raises:
+            KeyError: If job not found
+        """
+        job = self.get_job(job_id)
+        if job is None:
+            raise KeyError(f"Job not found: {job_id}")
+
+        job.run_ids.append(run_id)
+        if modal_call_id:
+            job.modal_call_ids[run_id] = modal_call_id
+        event = JobEvent(
+            job_id=job_id,
+            event_type="progress",
+            timestamp=datetime.utcnow(),
+            details={"run_id": run_id, "metrics": metrics or {}, "modal_call_id": modal_call_id},
+        )
+        job.events.append(event)
+        self._save_job(job)
+        self._save_event(event)
+
+    def complete_job(self, job_id: str, summary: Optional[dict] = None) -> None:
+        """Mark a job as completed.
+
+        Args:
+            job_id: The job ID
+            summary: Optional summary statistics
+
+        Raises:
+            KeyError: If job not found
+        """
+        job = self.get_job(job_id)
+        if job is None:
+            raise KeyError(f"Job not found: {job_id}")
+
+        now = datetime.utcnow()
+        job.status = JobStatus.COMPLETED
+        job.completed_at = now
+
+        event = JobEvent(
+            job_id=job_id,
+            event_type="completed",
+            timestamp=now,
+            details={"summary": summary or {}},
+        )
+        job.events.append(event)
+        self._save_job(job)
+        self._save_event(event)
+
+    def fail_job(self, job_id: str, error: str) -> None:
+        """Mark a job as failed.
+
+        Args:
+            job_id: The job ID
+            error: Error message
+
+        Raises:
+            KeyError: If job not found
+        """
+        job = self.get_job(job_id)
+        if job is None:
+            raise KeyError(f"Job not found: {job_id}")
+
+        now = datetime.utcnow()
+        job.status = JobStatus.FAILED
+        job.completed_at = now
+        job.error = error
+
+        event = JobEvent(
+            job_id=job_id,
+            event_type="failed",
+            timestamp=now,
+            details={"error": error},
+        )
+        job.events.append(event)
+        self._save_job(job)
+        self._save_event(event)
+
+    def get_job(self, job_id: str) -> Optional[Job]:
+        """Get a job by ID.
+
+        Args:
+            job_id: The job ID
+
+        Returns:
+            The Job instance or None if not found
+        """
+        # Check in-memory cache first
+        if job_id in self._jobs:
+            return self._jobs[job_id]
+
+        # Try to load from disk
+        if self.jobs_dir:
+            manifest_path = self.jobs_dir / job_id / "job_manifest.json"
+            if manifest_path.exists():
+                job = self._load_job(manifest_path)
+                self._jobs[job_id] = job
+                return job
+
+        return None
+
+    def list_jobs(self) -> list[Job]:
+        """List all known jobs.
+
+        Returns:
+            List of Job instances
+        """
+        # Load any jobs from disk that aren't in memory
+        if self.jobs_dir and self.jobs_dir.exists():
+            for job_dir in self.jobs_dir.iterdir():
+                if job_dir.is_dir():
+                    job_id = job_dir.name
+                    if job_id not in self._jobs:
+                        manifest_path = job_dir / "job_manifest.json"
+                        if manifest_path.exists():
+                            job = self._load_job(manifest_path)
+                            self._jobs[job_id] = job
+
+        return list(self._jobs.values())
+
+    def _save_job(self, job: Job) -> None:
+        """Save job manifest to disk and optionally to cloud.
+
+        Args:
+            job: The job to save
+        """
+        # Save to local filesystem
+        if self.jobs_dir is not None:
+            job_dir = self.jobs_dir / job.job_id
+            job_dir.mkdir(parents=True, exist_ok=True)
+
+            manifest_path = job_dir / "job_manifest.json"
+            with open(manifest_path, "w") as f:
+                json.dump(job.to_dict(), f, indent=2)
+
+        # Save to cloud store if configured
+        if self.cloud_store is not None:
+            try:
+                self.cloud_store.save_job(job)
+            except Exception as e:
+                logger.warning(f"Failed to save job to cloud: {e}")
+
+    def _save_event(self, event: JobEvent) -> None:
+        """Save a job event to cloud storage.
+
+        Events are saved to Supabase for queryable history.
+        Local events are stored in the job manifest itself.
+
+        Args:
+            event: The event to save
+        """
+        if self.cloud_store is not None:
+            try:
+                self.cloud_store.save_event(event)
+            except Exception as e:
+                logger.warning(f"Failed to save event to cloud: {e}")
+
+    def _load_job(self, manifest_path: Path) -> Job:
+        """Load a job from a manifest file.
+
+        Args:
+            manifest_path: Path to job_manifest.json
+
+        Returns:
+            The loaded Job instance
+        """
+        with open(manifest_path) as f:
+            data = json.load(f)
+        return Job.from_dict(data)
+
+```
+
+---
+
+### 📄 src/bilancio/jobs/models.py
+
+```python
+"""Job system data models."""
+
+from dataclasses import dataclass, field
+from datetime import datetime
+from decimal import Decimal
+from enum import Enum
+from typing import Optional
+
+
+class JobStatus(Enum):
+    """Status of a simulation job."""
+
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+@dataclass
+class JobConfig:
+    """Configuration for a simulation job."""
+
+    sweep_type: str  # "ring", "balanced", "single"
+    n_agents: int
+    kappas: list[Decimal]
+    concentrations: list[Decimal]
+    mus: list[Decimal]
+    cloud: bool = False
+    outside_mid_ratios: list[Decimal] = field(default_factory=lambda: [Decimal("1")])
+    maturity_days: int = 5
+    seeds: list[int] = field(default_factory=lambda: [42])
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary for serialization."""
+        return {
+            "sweep_type": self.sweep_type,
+            "n_agents": self.n_agents,
+            "kappas": [str(k) for k in self.kappas],
+            "concentrations": [str(c) for c in self.concentrations],
+            "mus": [str(m) for m in self.mus],
+            "cloud": self.cloud,
+            "outside_mid_ratios": [str(r) for r in self.outside_mid_ratios],
+            "maturity_days": self.maturity_days,
+            "seeds": self.seeds,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "JobConfig":
+        """Create from dictionary."""
+        return cls(
+            sweep_type=data["sweep_type"],
+            n_agents=data["n_agents"],
+            kappas=[Decimal(k) for k in data["kappas"]],
+            concentrations=[Decimal(c) for c in data["concentrations"]],
+            mus=[Decimal(m) for m in data["mus"]],
+            cloud=data.get("cloud", False),
+            outside_mid_ratios=[
+                Decimal(r) for r in data.get("outside_mid_ratios", ["1"])
+            ],
+            maturity_days=data.get("maturity_days", 5),
+            seeds=data.get("seeds", [42]),
+        )
+
+
+@dataclass
+class JobEvent:
+    """An event in the job lifecycle."""
+
+    job_id: str
+    event_type: str  # "created", "started", "progress", "completed", "failed"
+    timestamp: datetime
+    details: dict = field(default_factory=dict)
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary for serialization."""
+        return {
+            "job_id": self.job_id,
+            "event_type": self.event_type,
+            "timestamp": self.timestamp.isoformat(),
+            "details": self.details,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "JobEvent":
+        """Create from dictionary."""
+        return cls(
+            job_id=data["job_id"],
+            event_type=data["event_type"],
+            timestamp=datetime.fromisoformat(data["timestamp"]),
+            details=data.get("details", {}),
+        )
+
+
+@dataclass
+class Job:
+    """A simulation job with lifecycle tracking."""
+
+    job_id: str
+    created_at: datetime
+    status: JobStatus
+    description: str
+    config: JobConfig
+    run_ids: list[str] = field(default_factory=list)
+    modal_call_ids: dict[str, str] = field(default_factory=dict)  # run_id -> modal_call_id
+    completed_at: Optional[datetime] = None
+    error: Optional[str] = None
+    notes: Optional[str] = None
+    events: list[JobEvent] = field(default_factory=list)
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary for serialization."""
+        return {
+            "job_id": self.job_id,
+            "created_at": self.created_at.isoformat(),
+            "status": self.status.value,
+            "description": self.description,
+            "config": self.config.to_dict(),
+            "run_ids": self.run_ids,
+            "modal_call_ids": self.modal_call_ids,
+            "completed_at": self.completed_at.isoformat() if self.completed_at else None,
+            "error": self.error,
+            "notes": self.notes,
+            "events": [e.to_dict() for e in self.events],
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "Job":
+        """Create from dictionary."""
+        return cls(
+            job_id=data["job_id"],
+            created_at=datetime.fromisoformat(data["created_at"]),
+            status=JobStatus(data["status"]),
+            description=data["description"],
+            config=JobConfig.from_dict(data["config"]),
+            run_ids=data.get("run_ids", []),
+            modal_call_ids=data.get("modal_call_ids", {}),
+            completed_at=(
+                datetime.fromisoformat(data["completed_at"])
+                if data.get("completed_at")
+                else None
+            ),
+            error=data.get("error"),
+            notes=data.get("notes"),
+            events=[JobEvent.from_dict(e) for e in data.get("events", [])],
+        )
+
+```
+
+---
+
+### 📄 src/bilancio/jobs/supabase_store.py
+
+```python
+"""Supabase storage backend for job persistence.
+
+This module provides a SupabaseJobStore class that persists jobs and events
+to a Supabase PostgreSQL database for durable, queryable storage.
+"""
+
+import logging
+from datetime import datetime
+from decimal import Decimal
+from typing import Any, Optional
+
+from .models import Job, JobConfig, JobEvent, JobStatus
+
+logger = logging.getLogger(__name__)
+
+
+class SupabaseJobStore:
+    """Persists jobs and events to Supabase.
+
+    This store provides durable storage for job metadata, allowing jobs to be
+    queried across sessions and from different environments (local, Modal, etc).
+
+    If Supabase is unavailable, operations fail gracefully with warnings rather
+    than raising exceptions, allowing the application to continue with local
+    storage fallback.
+    """
+
+    def __init__(self, client: Optional[Any] = None) -> None:
+        """Initialize the Supabase job store.
+
+        Args:
+            client: Optional Supabase client instance. If not provided,
+                   attempts to get one from the supabase_client module.
+        """
+        self._client = client
+        self._initialized = False
+
+    @property
+    def client(self) -> Optional[Any]:
+        """Lazily initialize and return the Supabase client."""
+        if self._client is not None:
+            return self._client
+
+        if self._initialized:
+            return None
+
+        self._initialized = True
+
+        try:
+            from bilancio.storage.supabase_client import (
+                get_supabase_client,
+                is_supabase_configured,
+            )
+
+            if not is_supabase_configured():
+                logger.debug("Supabase is not configured")
+                return None
+
+            self._client = get_supabase_client()
+            return self._client
+        except ImportError:
+            logger.warning("supabase_client module not found")
+            return None
+        except Exception as e:
+            logger.warning(f"Failed to initialize Supabase client: {e}")
+            return None
+
+    def save_job(self, job: Job) -> None:
+        """Save or update a job to Supabase.
+
+        Maps the Job dataclass to the database schema, handling type conversions
+        for arrays, decimals, and timestamps.
+
+        Args:
+            job: The Job instance to save.
+        """
+        if self.client is None:
+            logger.debug("Supabase unavailable, skipping job save")
+            return
+
+        try:
+            # Map Job fields to database columns
+            data = {
+                "job_id": job.job_id,
+                "created_at": job.created_at.isoformat(),
+                "status": job.status.value,
+                "description": job.description,
+                # Config fields (flattened into job table)
+                "sweep_type": job.config.sweep_type,
+                "n_agents": job.config.n_agents,
+                "maturity_days": job.config.maturity_days,
+                "kappas": [str(k) for k in job.config.kappas],
+                "concentrations": [str(c) for c in job.config.concentrations],
+                "mus": [str(m) for m in job.config.mus],
+                "outside_mid_ratios": [str(r) for r in job.config.outside_mid_ratios],
+                "seeds": job.config.seeds,
+                "cloud": job.config.cloud,
+                # Optional fields
+                "notes": job.notes,
+                "error": job.error,
+                "total_runs": len(job.run_ids) if job.run_ids else None,
+                "completed_runs": len(job.run_ids) if job.status == JobStatus.COMPLETED else 0,
+            }
+
+            # Add completed_at if present
+            if job.completed_at:
+                data["completed_at"] = job.completed_at.isoformat()
+
+            # Upsert the job (insert or update on conflict)
+            self.client.table("jobs").upsert(data, on_conflict="job_id").execute()
+
+            logger.debug(f"Saved job {job.job_id} to Supabase")
+
+        except Exception as e:
+            logger.warning(f"Failed to save job to Supabase: {e}")
+
+    def save_event(self, event: JobEvent) -> None:
+        """Save a job event to Supabase.
+
+        Args:
+            event: The JobEvent instance to save.
+        """
+        if self.client is None:
+            logger.debug("Supabase unavailable, skipping event save")
+            return
+
+        try:
+            data = {
+                "job_id": event.job_id,
+                "event_type": event.event_type,
+                "timestamp": event.timestamp.isoformat(),
+                "details": event.details,
+            }
+
+            self.client.table("job_events").insert(data).execute()
+
+            logger.debug(f"Saved event {event.event_type} for job {event.job_id}")
+
+        except Exception as e:
+            logger.warning(f"Failed to save event to Supabase: {e}")
+
+    def get_job(self, job_id: str) -> Optional[Job]:
+        """Load a job from Supabase by ID.
+
+        Args:
+            job_id: The unique job identifier.
+
+        Returns:
+            The Job instance if found, None otherwise.
+        """
+        if self.client is None:
+            logger.debug("Supabase unavailable, cannot get job")
+            return None
+
+        try:
+            response = (
+                self.client.table("jobs")
+                .select("*")
+                .eq("job_id", job_id)
+                .single()
+                .execute()
+            )
+
+            if not response.data:
+                return None
+
+            return self._row_to_job(response.data)
+
+        except Exception as e:
+            logger.warning(f"Failed to get job from Supabase: {e}")
+            return None
+
+    def list_jobs(
+        self,
+        status: Optional[str] = None,
+        limit: int = 100,
+    ) -> list[Job]:
+        """List jobs from Supabase with optional filtering.
+
+        Args:
+            status: Optional status filter (e.g., "running", "completed").
+            limit: Maximum number of jobs to return (default 100).
+
+        Returns:
+            List of Job instances matching the criteria.
+        """
+        if self.client is None:
+            logger.debug("Supabase unavailable, returning empty list")
+            return []
+
+        try:
+            query = (
+                self.client.table("jobs")
+                .select("*")
+                .order("created_at", desc=True)
+                .limit(limit)
+            )
+
+            if status:
+                query = query.eq("status", status)
+
+            response = query.execute()
+
+            if not response.data:
+                return []
+
+            return [self._row_to_job(row) for row in response.data]
+
+        except Exception as e:
+            logger.warning(f"Failed to list jobs from Supabase: {e}")
+            return []
+
+    def get_run_counts(self, job_ids: list[str]) -> dict[str, int]:
+        """Get run counts for multiple jobs.
+
+        Args:
+            job_ids: List of job IDs to count runs for.
+
+        Returns:
+            Dict mapping job_id to run count.
+        """
+        if self.client is None or not job_ids:
+            return {}
+
+        try:
+            # Query runs table and count by job_id
+            response = (
+                self.client.table("runs")
+                .select("job_id")
+                .in_("job_id", job_ids)
+                .execute()
+            )
+
+            if not response.data:
+                return {}
+
+            # Count runs per job
+            counts: dict[str, int] = {}
+            for row in response.data:
+                job_id = row["job_id"]
+                counts[job_id] = counts.get(job_id, 0) + 1
+
+            return counts
+
+        except Exception as e:
+            logger.warning(f"Failed to get run counts from Supabase: {e}")
+            return {}
+
+    def update_status(
+        self,
+        job_id: str,
+        status: JobStatus,
+        completed_at: Optional[datetime] = None,
+        error: Optional[str] = None,
+    ) -> None:
+        """Update the status of a job.
+
+        This is a lightweight update method that only modifies status-related
+        fields without requiring a full Job object.
+
+        Args:
+            job_id: The job ID to update.
+            status: The new status.
+            completed_at: Optional completion timestamp.
+            error: Optional error message (for failed status).
+        """
+        if self.client is None:
+            logger.debug("Supabase unavailable, skipping status update")
+            return
+
+        try:
+            data: dict[str, Any] = {"status": status.value}
+
+            if completed_at:
+                data["completed_at"] = completed_at.isoformat()
+
+            if error:
+                data["error"] = error
+
+            self.client.table("jobs").update(data).eq("job_id", job_id).execute()
+
+            logger.debug(f"Updated job {job_id} status to {status.value}")
+
+        except Exception as e:
+            logger.warning(f"Failed to update job status in Supabase: {e}")
+
+    def _row_to_job(self, row: dict[str, Any]) -> Job:
+        """Convert a database row to a Job instance.
+
+        Args:
+            row: Dictionary containing database row data.
+
+        Returns:
+            A Job instance populated from the row data.
+        """
+        # Parse arrays - Supabase returns them as lists already
+        kappas = [Decimal(str(k)) for k in (row.get("kappas") or [])]
+        concentrations = [Decimal(str(c)) for c in (row.get("concentrations") or [])]
+        mus = [Decimal(str(m)) for m in (row.get("mus") or [])]
+        outside_mid_ratios = [
+            Decimal(str(r)) for r in (row.get("outside_mid_ratios") or ["1"])
+        ]
+        seeds = row.get("seeds") or [42]
+
+        # Build JobConfig
+        config = JobConfig(
+            sweep_type=row["sweep_type"],
+            n_agents=row["n_agents"],
+            kappas=kappas,
+            concentrations=concentrations,
+            mus=mus,
+            cloud=row.get("cloud", False),
+            outside_mid_ratios=outside_mid_ratios,
+            maturity_days=row.get("maturity_days", 5),
+            seeds=seeds,
+        )
+
+        # Parse timestamps
+        created_at = datetime.fromisoformat(row["created_at"].replace("Z", "+00:00"))
+        completed_at = None
+        if row.get("completed_at"):
+            completed_at = datetime.fromisoformat(
+                row["completed_at"].replace("Z", "+00:00")
+            )
+
+        # Build Job (events are loaded separately if needed)
+        return Job(
+            job_id=row["job_id"],
+            created_at=created_at,
+            status=JobStatus(row["status"]),
+            description=row.get("description") or "",
+            config=config,
+            run_ids=[],  # Run IDs would need separate query to runs table
+            modal_call_ids={},  # Modal call IDs stored per-run, not in jobs table
+            completed_at=completed_at,
+            error=row.get("error"),
+            notes=row.get("notes"),
+            events=[],  # Events loaded separately if needed
+        )
+
+    def get_events(self, job_id: str) -> list[JobEvent]:
+        """Load all events for a job from Supabase.
+
+        Args:
+            job_id: The job ID to get events for.
+
+        Returns:
+            List of JobEvent instances, ordered by timestamp.
+        """
+        if self.client is None:
+            logger.debug("Supabase unavailable, returning empty events list")
+            return []
+
+        try:
+            response = (
+                self.client.table("job_events")
+                .select("*")
+                .eq("job_id", job_id)
+                .order("timestamp", desc=False)
+                .execute()
+            )
+
+            if not response.data:
+                return []
+
+            events = []
+            for row in response.data:
+                timestamp = datetime.fromisoformat(
+                    row["timestamp"].replace("Z", "+00:00")
+                )
+                events.append(
+                    JobEvent(
+                        job_id=row["job_id"],
+                        event_type=row["event_type"],
+                        timestamp=timestamp,
+                        details=row.get("details") or {},
+                    )
+                )
+
+            return events
+
+        except Exception as e:
+            logger.warning(f"Failed to get events from Supabase: {e}")
+            return []
 
 ```
 
@@ -51402,21 +55053,672 @@ def consume_stock(system: 'System', stock_id: InstrId, quantity: int) -> None:
 
 ---
 
-### 📄 src/bilancio/scenarios/__init__.py
+### 📄 src/bilancio/runners/__init__.py
 
 ```python
-"""Scenario generation utilities."""
+"""Runner abstractions for simulation execution."""
 
-__all__ = []
+from .protocols import SimulationExecutor, JobExecutor
+from .local_executor import LocalExecutor
+from .cloud_executor import CloudExecutor
+from .models import RunOptions, ExecutionResult
+
+__all__ = [
+    "SimulationExecutor",
+    "JobExecutor",
+    "LocalExecutor",
+    "CloudExecutor",
+    "RunOptions",
+    "ExecutionResult",
+]
 
 ```
 
 ---
 
-### 📄 src/bilancio/scenarios/generators/__init__.py
+### 📄 src/bilancio/runners/cloud_executor.py
 
 ```python
-"""Generator registry for scenario compilation."""
+"""Cloud executor using Modal for remote simulation execution."""
+
+from __future__ import annotations
+
+import itertools
+import subprocess
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Tuple
+
+from bilancio.runners.models import ExecutionResult, RunOptions
+from bilancio.storage.models import RunStatus
+
+
+class CloudExecutor:
+    """Execute simulations on Modal cloud infrastructure.
+
+    Results are stored on a Modal Volume and optionally downloaded to local disk
+    after execution completes.
+
+    This executor implements the SimulationExecutor protocol from
+    bilancio.runners.protocols.
+
+    Example:
+        executor = CloudExecutor(experiment_id="my_sweep", job_id="castle-river-forest-mountain")
+        result = executor.execute(
+            scenario_config=scenario,
+            run_id="run_001",
+            output_dir=Path("./output"),
+            options=RunOptions(max_days=30),
+        )
+    """
+
+    def __init__(
+        self,
+        experiment_id: str,
+        download_artifacts: bool = True,
+        local_output_dir: Optional[Path] = None,
+        volume_name: str = "bilancio-results",
+        job_id: str = "",
+    ):
+        """Initialize cloud executor.
+
+        Args:
+            experiment_id: Identifier for this experiment (groups runs together).
+            download_artifacts: Whether to download results to local disk after execution.
+            local_output_dir: Where to download artifacts. Defaults to
+                out/experiments/{experiment_id}.
+            volume_name: Name of the Modal Volume for result storage. Note: This must
+                match the volume name hardcoded in modal_app.py ("bilancio-results").
+            job_id: Bilancio job ID for tracking (displayed in Modal logs).
+        """
+        self.experiment_id = experiment_id
+        self.download_artifacts = download_artifacts
+        self.local_output_dir = local_output_dir or Path(
+            f"out/experiments/{experiment_id}"
+        )
+        self.volume_name = volume_name
+        self.app_name = "bilancio-simulations"
+        self.job_id = job_id
+
+        # Lazy reference to deployed function
+        self._run_simulation = None
+
+    def _get_run_simulation(self):
+        """Get reference to the deployed Modal function.
+
+        Uses Function.from_name() to reference the deployed function,
+        which allows calling it from outside the Modal app context.
+        """
+        if self._run_simulation is None:
+            # Apply proxy patch for environments with HTTP CONNECT proxy (e.g., Claude Code web)
+            import bilancio.cloud.proxy_patch  # noqa: F401
+            import modal
+
+            self._run_simulation = modal.Function.from_name(
+                self.app_name, "run_simulation"
+            )
+        return self._run_simulation
+
+    def execute(
+        self,
+        scenario_config: Dict[str, Any],
+        run_id: str,
+        output_dir: Path,
+        options: RunOptions,
+    ) -> ExecutionResult:
+        """Execute simulation on Modal cloud.
+
+        Args:
+            scenario_config: Full scenario configuration dict.
+            run_id: Unique run identifier.
+            output_dir: Local directory for results (used if download_artifacts=True).
+            options: Simulation run options.
+
+        Returns:
+            ExecutionResult with status and artifact references.
+        """
+        run_simulation = self._get_run_simulation()
+
+        # Convert options to dict for serialization
+        options_dict = self._options_to_dict(options)
+
+        # Execute remotely (blocks until complete)
+        result = run_simulation.remote(
+            scenario_config=scenario_config,
+            run_id=run_id,
+            experiment_id=self.experiment_id,
+            options=options_dict,
+            job_id=self.job_id,
+        )
+
+        # Download artifacts if requested and determine storage location
+        if self.download_artifacts and result["status"] == "completed":
+            self._download_run_artifacts(run_id, output_dir, result["artifacts"])
+            # When downloading, the storage_base should be the local path
+            storage_type = "local"
+            storage_base = str(output_dir.resolve())
+        else:
+            # When not downloading, keep the modal_volume reference
+            storage_type = result["storage_type"]
+            storage_base = result["storage_base"]
+
+        return ExecutionResult(
+            run_id=result["run_id"],
+            status=(
+                RunStatus.COMPLETED
+                if result["status"] == "completed"
+                else RunStatus.FAILED
+            ),
+            storage_type=storage_type,
+            storage_base=storage_base,
+            artifacts=result["artifacts"],
+            error=result.get("error"),
+            execution_time_ms=result.get("execution_time_ms"),
+            modal_call_id=result.get("modal_call_id"),
+            metrics=result.get("metrics"),
+        )
+
+    def execute_batch(
+        self,
+        runs: List[Tuple[Dict[str, Any], str, RunOptions]],
+        max_parallel: int = 50,
+        progress_callback: Optional[Callable[[int, int], None]] = None,
+    ) -> List[ExecutionResult]:
+        """Execute multiple simulations in parallel on Modal.
+
+        Modal handles parallelization automatically. This method provides
+        a convenient interface for batch execution.
+
+        Args:
+            runs: List of (scenario_config, run_id, options) tuples.
+            max_parallel: Maximum concurrent Modal function calls (unused,
+                Modal handles this internally).
+            progress_callback: Called with (completed, total) after each completion.
+
+        Returns:
+            List of ExecutionResult in same order as input.
+        """
+        run_simulation = self._get_run_simulation()
+
+        total = len(runs)
+        results: List[Optional[ExecutionResult]] = [None] * total
+
+        run_id_to_index = {run_id: idx for idx, (_, run_id, _) in enumerate(runs)}
+        configs = [config for config, _, _ in runs]
+        run_ids = [run_id for _, run_id, _ in runs]
+        options_dicts = [self._options_to_dict(options) for _, _, options in runs]
+
+        # Collect results as they complete (unordered) so progress doesn't stall
+        completed = 0
+        for result in run_simulation.map(
+            configs,
+            run_ids,
+            itertools.repeat(self.experiment_id),
+            options_dicts,
+            itertools.repeat(self.job_id),
+            order_outputs=False,
+        ):
+            run_id = result["run_id"]
+            idx = run_id_to_index[run_id]
+
+            # Download artifacts if requested and determine storage location
+            if self.download_artifacts and result["status"] == "completed":
+                output_dir = self.local_output_dir / "runs" / run_id
+                self._download_run_artifacts(run_id, output_dir, result["artifacts"])
+                # When downloading, the storage_base should be the local path
+                storage_type = "local"
+                storage_base = str(output_dir.resolve())
+            else:
+                # When not downloading, keep the modal_volume reference
+                storage_type = result["storage_type"]
+                storage_base = result["storage_base"]
+
+            results[idx] = ExecutionResult(
+                run_id=result["run_id"],
+                status=(
+                    RunStatus.COMPLETED
+                    if result["status"] == "completed"
+                    else RunStatus.FAILED
+                ),
+                storage_type=storage_type,
+                storage_base=storage_base,
+                artifacts=result["artifacts"],
+                error=result.get("error"),
+                execution_time_ms=result.get("execution_time_ms"),
+                modal_call_id=result.get("modal_call_id"),
+                metrics=result.get("metrics"),
+            )
+
+            completed += 1
+            if progress_callback:
+                progress_callback(completed, total)
+
+        return results  # type: ignore
+
+    def _options_to_dict(self, options: RunOptions) -> Dict[str, Any]:
+        """Convert RunOptions to serializable dict."""
+        result = {
+            "mode": options.mode,
+            "max_days": options.max_days,
+            "quiet_days": options.quiet_days,
+            "check_invariants": options.check_invariants,
+            "default_handling": options.default_handling,
+            "show_events": options.show_events,
+            "t_account": options.t_account,
+            "detailed_dealer_logging": options.detailed_dealer_logging,
+            "regime": options.regime or "",
+        }
+        # Add run parameters for Supabase tracking
+        if options.kappa is not None:
+            result["kappa"] = options.kappa
+        if options.concentration is not None:
+            result["concentration"] = options.concentration
+        if options.mu is not None:
+            result["mu"] = options.mu
+        if options.outside_mid_ratio is not None:
+            result["outside_mid_ratio"] = options.outside_mid_ratio
+        if options.seed is not None:
+            result["seed"] = options.seed
+        return result
+
+    def _download_run_artifacts(
+        self,
+        run_id: str,
+        output_dir: Path,
+        artifacts: Dict[str, str],
+    ) -> None:
+        """Download artifacts from Modal Volume to local disk.
+
+        Args:
+            run_id: The run identifier.
+            output_dir: Local directory to download to.
+            artifacts: Dict mapping artifact names to relative paths.
+        """
+        output_dir.mkdir(parents=True, exist_ok=True)
+        out_subdir = output_dir / "out"
+        out_subdir.mkdir(exist_ok=True)
+
+        remote_base = f"{self.experiment_id}/runs/{run_id}"
+
+        for artifact_name, artifact_path in artifacts.items():
+            remote_path = f"{remote_base}/{artifact_path}"
+            local_path = output_dir / artifact_path
+
+            # Ensure parent directory exists
+            local_path.parent.mkdir(parents=True, exist_ok=True)
+
+            # Use Modal CLI to download
+            try:
+                subprocess.run(
+                    [
+                        "modal",
+                        "volume",
+                        "get",
+                        self.volume_name,
+                        remote_path,
+                        str(local_path),
+                        "--force",  # Overwrite existing files
+                    ],
+                    check=True,
+                    capture_output=True,
+                )
+            except subprocess.CalledProcessError as e:
+                # Log but don't fail - artifact might be optional
+                print(
+                    f"Warning: Failed to download {artifact_name}: {e.stderr.decode()}"
+                )
+
+    def compute_aggregate_metrics(self, run_ids: List[str]) -> Dict[str, Any]:
+        """Compute aggregate metrics for completed runs on Modal.
+
+        Calls the compute_aggregate_metrics Modal function to calculate
+        trading effects and summary statistics, and updates the job in Supabase.
+
+        Args:
+            run_ids: List of run IDs to include in aggregation.
+
+        Returns:
+            Dict with aggregate metrics and status.
+        """
+        # Apply proxy patch for environments with HTTP CONNECT proxy
+        import bilancio.cloud.proxy_patch  # noqa: F401
+        import modal
+
+        # Get reference to deployed function (same pattern as run_simulation)
+        modal_aggregate = modal.Function.from_name(self.app_name, "compute_aggregate_metrics")
+
+        print("Computing aggregate metrics on Modal...", flush=True)
+        result = modal_aggregate.remote(
+            job_id=self.job_id,
+            run_ids=run_ids,
+        )
+
+        if result.get("status") == "completed":
+            summary = result.get("summary", {})
+            print(f"Aggregate metrics computed:", flush=True)
+            print(f"  Comparisons: {summary.get('n_comparisons', 0)}", flush=True)
+            print(f"  Mean trading effect: {summary.get('mean_trading_effect', 'N/A'):.4f}"
+                  if summary.get('mean_trading_effect') is not None else "  Mean trading effect: N/A", flush=True)
+        else:
+            print(f"Warning: Aggregate metrics computation failed: {result.get('error')}", flush=True)
+
+        return result
+
+```
+
+---
+
+### 📄 src/bilancio/runners/local_executor.py
+
+```python
+"""Local synchronous simulation executor."""
+
+from __future__ import annotations
+
+import time
+from pathlib import Path
+from typing import Dict, Any
+
+import yaml
+
+from bilancio.runners.models import RunOptions, ExecutionResult
+from bilancio.storage.models import RunStatus
+
+
+class LocalExecutor:
+    """Execute simulations locally and synchronously.
+
+    This executor only runs the simulation and returns artifact locations.
+    It does NOT compute metrics - that's MetricsComputer's job.
+
+    The executor:
+    1. Writes the scenario YAML to the run directory
+    2. Calls run_scenario() with appropriate parameters
+    3. Returns an ExecutionResult with artifact paths (relative to storage_base)
+    """
+
+    def execute(
+        self,
+        scenario_config: Dict[str, Any],
+        run_id: str,
+        output_dir: Path,
+        options: RunOptions,
+    ) -> ExecutionResult:
+        """Execute simulation, return result with artifact paths.
+
+        Args:
+            scenario_config: Complete scenario configuration dict
+            run_id: Unique identifier for this run
+            output_dir: Directory for output files (must be provided)
+            options: RunOptions with simulation parameters
+
+        Returns:
+            ExecutionResult with storage location and relative artifact paths
+        """
+        # Import here to avoid circular imports at module load time
+        from bilancio.ui.run import run_scenario
+
+        start_time = time.time()
+
+        # Ensure output directory exists
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Write scenario YAML
+        scenario_path = output_dir / "scenario.yaml"
+        scenario_path.write_text(yaml.dump(scenario_config, default_flow_style=False))
+
+        # Set up export paths
+        exports_dir = output_dir / "out"
+        exports_dir.mkdir(exist_ok=True)
+
+        balances_path = exports_dir / "balances.csv"
+        events_path = exports_dir / "events.jsonl"
+        run_html_path = output_dir / "run.html"
+
+        try:
+            # Run simulation
+            run_scenario(
+                path=scenario_path,
+                mode=options.mode,
+                max_days=options.max_days,
+                quiet_days=options.quiet_days,
+                show=options.show_events,
+                agent_ids=options.show_balances,
+                check_invariants=options.check_invariants,
+                export={
+                    "balances_csv": str(balances_path),
+                    "events_jsonl": str(events_path),
+                },
+                html_output=run_html_path,
+                t_account=options.t_account,
+                default_handling=options.default_handling,
+                detailed_dealer_logging=options.detailed_dealer_logging,
+                run_id=options.run_id or run_id,
+                regime=options.regime or "",
+            )
+
+            execution_time_ms = int((time.time() - start_time) * 1000)
+
+            # Build artifact paths (relative to output_dir)
+            artifacts: Dict[str, str] = {
+                "scenario_yaml": "scenario.yaml",
+            }
+            if events_path.exists():
+                artifacts["events_jsonl"] = "out/events.jsonl"
+            if balances_path.exists():
+                artifacts["balances_csv"] = "out/balances.csv"
+            if run_html_path.exists():
+                artifacts["run_html"] = "run.html"
+
+            return ExecutionResult(
+                run_id=run_id,
+                status=RunStatus.COMPLETED,
+                storage_type="local",
+                storage_base=str(output_dir.resolve()),
+                artifacts=artifacts,
+                execution_time_ms=execution_time_ms,
+            )
+
+        except Exception as e:
+            execution_time_ms = int((time.time() - start_time) * 1000)
+
+            # Still record what artifacts exist
+            artifacts: Dict[str, str] = {}
+            if scenario_path.exists():
+                artifacts["scenario_yaml"] = "scenario.yaml"
+
+            return ExecutionResult(
+                run_id=run_id,
+                status=RunStatus.FAILED,
+                storage_type="local",
+                storage_base=str(output_dir.resolve()),
+                artifacts=artifacts,
+                error=str(e),
+                execution_time_ms=execution_time_ms,
+            )
+
+```
+
+---
+
+### 📄 src/bilancio/runners/models.py
+
+```python
+"""Data models for the runner abstraction layer."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional
+
+from bilancio.storage.models import RunStatus
+
+
+@dataclass
+class RunOptions:
+    """Options passed to run_scenario().
+
+    These options configure how the simulation is executed and what
+    outputs are generated. The executor passes these through to the
+    underlying simulation engine.
+
+    Attributes:
+        mode: Execution mode - "until_stable", "fixed_days", or "continuous".
+        max_days: Maximum number of simulation days to run.
+        quiet_days: Number of consecutive quiet days before stopping
+            (for "until_stable" mode).
+        check_invariants: When to check balance sheet invariants -
+            "daily", "end", or "never".
+        default_handling: How to handle defaults - "fail-fast" or "continue".
+        show_events: Event display level for HTML report -
+            "detailed", "summary", or "none".
+        show_balances: List of agent names to show balances for in HTML report.
+            If None, shows all agents.
+        t_account: Whether to use T-account format in balance display.
+        detailed_dealer_logging: Enable detailed logging for dealer simulations.
+        run_id: Optional run identifier. If not provided, one will be generated.
+        regime: Optional regime identifier for parameter sweeps.
+    """
+
+    mode: str = "until_stable"
+    max_days: int = 90
+    quiet_days: int = 2
+    check_invariants: str = "daily"
+    default_handling: str = "fail-fast"
+
+    # Display options (for HTML report)
+    show_events: str = "detailed"
+    show_balances: Optional[List[str]] = None
+    t_account: bool = False
+
+    # Dealer options
+    detailed_dealer_logging: bool = False
+    run_id: Optional[str] = None
+    regime: Optional[str] = None
+
+    # Run parameters (for Supabase tracking in cloud execution)
+    kappa: Optional[float] = None
+    concentration: Optional[float] = None
+    mu: Optional[float] = None
+    outside_mid_ratio: Optional[float] = None
+    seed: Optional[int] = None
+
+
+@dataclass
+class ExecutionResult:
+    """Result of simulation execution.
+
+    Returned by the executor after a simulation run completes (or fails).
+    Contains references to where artifacts are stored rather than the
+    artifacts themselves.
+
+    Attributes:
+        run_id: Unique identifier for this run.
+        status: Final status of the run (COMPLETED, FAILED, etc.).
+        storage_type: Type of storage backend - "local", "s3", "gcs".
+        storage_base: Base path/URI for artifacts - e.g., "/path/to/run"
+            or "s3://bucket/prefix".
+        artifacts: Mapping of artifact type to relative path within storage_base.
+            Keys are artifact names like "events_jsonl", "balances_csv", etc.
+        error: Error message if the run failed.
+        execution_time_ms: Execution time in milliseconds.
+        modal_call_id: Modal function call ID (for cloud execution debugging).
+    """
+
+    run_id: str
+    status: RunStatus
+
+    # Storage location
+    storage_type: str  # "local", "s3", "gcs"
+    storage_base: str  # "/path/to/run" or "s3://bucket/prefix"
+
+    # Artifact references (relative to storage_base)
+    artifacts: Dict[str, str] = field(default_factory=dict)
+
+    # Error info if failed
+    error: Optional[str] = None
+    execution_time_ms: Optional[int] = None
+
+    # Cloud execution info
+    modal_call_id: Optional[str] = None
+
+    # Computed metrics (from cloud execution)
+    metrics: Optional[Dict[str, any]] = None
+
+```
+
+---
+
+### 📄 src/bilancio/runners/protocols.py
+
+```python
+"""Protocol definitions for simulation executors."""
+
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Protocol, Optional, Dict, Any, runtime_checkable
+
+from bilancio.runners.models import RunOptions, ExecutionResult
+from bilancio.storage.models import RunStatus, RunResult
+
+
+@runtime_checkable
+class SimulationExecutor(Protocol):
+    """Protocol for synchronous simulation execution.
+
+    The executor only runs the simulation and returns where artifacts
+    are stored. It does NOT compute metrics - that's MetricsComputer's job.
+    """
+
+    def execute(
+        self,
+        scenario_config: Dict[str, Any],
+        run_id: str,
+        output_dir: Path,
+        options: RunOptions,
+    ) -> ExecutionResult:
+        """Execute a simulation, return result with artifact paths.
+
+        Args:
+            scenario_config: Complete scenario configuration dict
+            run_id: Unique identifier for this run
+            output_dir: Directory for output files
+            options: RunOptions with simulation parameters
+
+        Returns:
+            ExecutionResult with storage location and relative artifact paths
+        """
+        ...
+
+
+@runtime_checkable
+class JobExecutor(Protocol):
+    """Protocol for async/distributed job execution (future use)."""
+
+    def submit(self, scenario_config: Dict[str, Any], run_id: str) -> str:
+        """Submit job, return job_id."""
+        ...
+
+    def status(self, job_id: str) -> RunStatus:
+        """Check job status."""
+        ...
+
+    def result(self, job_id: str) -> Optional[RunResult]:
+        """Get result if completed."""
+        ...
+
+    def cancel(self, job_id: str) -> bool:
+        """Cancel a pending/running job."""
+        ...
+
+```
+
+---
+
+### 📄 src/bilancio/scenarios/__init__.py
+
+```python
+"""Scenario generation utilities."""
 
 from __future__ import annotations
 
@@ -51428,7 +55730,10 @@ from bilancio.config.models import (
     RingExplorerGeneratorConfig,
 )
 
-from .ring_explorer import compile_ring_explorer
+from .ring_explorer import (
+    compile_ring_explorer,
+    compile_ring_explorer_balanced,
+)
 
 
 def compile_generator(
@@ -51442,13 +55747,17 @@ def compile_generator(
     raise ValueError(f"Unsupported generator '{getattr(config, 'generator', 'unknown')}'")
 
 
-__all__ = ["compile_generator"]
+__all__ = [
+    "compile_generator",
+    "compile_ring_explorer",
+    "compile_ring_explorer_balanced",
+]
 
 ```
 
 ---
 
-### 📄 src/bilancio/scenarios/generators/ring_explorer.py
+### 📄 src/bilancio/scenarios/ring_explorer.py
 
 ```python
 """Ring explorer scenario generator."""
@@ -52182,6 +56491,1389 @@ __all__ = ["compile_ring_explorer", "compile_ring_explorer_balanced"]
 
 ---
 
+### 📄 src/bilancio/storage/__init__.py
+
+```python
+"""Storage abstractions for experiment results."""
+
+from .models import (
+    RunStatus,
+    RunArtifacts,
+    RunResult,
+    RegistryEntry,
+)
+from .protocols import ResultStore, RegistryStore
+from .file_store import FileResultStore, FileRegistryStore
+from .artifact_loaders import ArtifactLoader, LocalArtifactLoader
+from .modal_artifact_loader import ModalVolumeArtifactLoader
+from .supabase_client import (
+    get_supabase_client,
+    is_supabase_configured,
+    SupabaseConfigError,
+)
+from .supabase_registry import SupabaseRegistryStore
+
+__all__ = [
+    "RunStatus",
+    "RunArtifacts",
+    "RunResult",
+    "RegistryEntry",
+    "ResultStore",
+    "RegistryStore",
+    "FileResultStore",
+    "FileRegistryStore",
+    "ArtifactLoader",
+    "LocalArtifactLoader",
+    "ModalVolumeArtifactLoader",
+    # Supabase
+    "get_supabase_client",
+    "is_supabase_configured",
+    "SupabaseConfigError",
+    "SupabaseRegistryStore",
+]
+
+```
+
+---
+
+### 📄 src/bilancio/storage/artifact_loaders.py
+
+```python
+"""Artifact loaders for fetching artifacts from various storage backends."""
+
+from pathlib import Path
+from typing import Protocol, runtime_checkable
+
+
+@runtime_checkable
+class ArtifactLoader(Protocol):
+    """Protocol for loading artifacts from any storage backend.
+
+    This protocol defines the interface for artifact loading, allowing
+    different implementations for local filesystem, cloud storage, etc.
+    """
+
+    def load_bytes(self, reference: str) -> bytes:
+        """Load artifact as bytes.
+
+        Args:
+            reference: The artifact reference (e.g., relative path or URI).
+
+        Returns:
+            The artifact contents as bytes.
+
+        Raises:
+            FileNotFoundError: If the artifact does not exist.
+        """
+        ...
+
+    def load_text(self, reference: str) -> str:
+        """Load artifact as text.
+
+        Args:
+            reference: The artifact reference (e.g., relative path or URI).
+
+        Returns:
+            The artifact contents as a string.
+
+        Raises:
+            FileNotFoundError: If the artifact does not exist.
+        """
+        ...
+
+    def exists(self, reference: str) -> bool:
+        """Check if artifact exists.
+
+        Args:
+            reference: The artifact reference (e.g., relative path or URI).
+
+        Returns:
+            True if the artifact exists, False otherwise.
+        """
+        ...
+
+
+class LocalArtifactLoader:
+    """Load artifacts from local filesystem.
+
+    This implementation resolves artifact references as paths relative
+    to a base directory.
+    """
+
+    def __init__(self, base_path: Path) -> None:
+        """Initialize with base path for relative references.
+
+        Args:
+            base_path: The base directory for resolving relative paths.
+        """
+        self.base_path = Path(base_path)
+
+    def load_bytes(self, reference: str) -> bytes:
+        """Load artifact as bytes from filesystem.
+
+        Args:
+            reference: Relative path to the artifact from base_path.
+
+        Returns:
+            The artifact contents as bytes.
+
+        Raises:
+            FileNotFoundError: If the artifact does not exist.
+        """
+        path = self.base_path / reference
+        return path.read_bytes()
+
+    def load_text(self, reference: str) -> str:
+        """Load artifact as text from filesystem.
+
+        Args:
+            reference: Relative path to the artifact from base_path.
+
+        Returns:
+            The artifact contents as a string.
+
+        Raises:
+            FileNotFoundError: If the artifact does not exist.
+        """
+        path = self.base_path / reference
+        return path.read_text()
+
+    def exists(self, reference: str) -> bool:
+        """Check if artifact exists on filesystem.
+
+        Args:
+            reference: Relative path to the artifact from base_path.
+
+        Returns:
+            True if the artifact exists, False otherwise.
+        """
+        path = self.base_path / reference
+        return path.exists()
+
+```
+
+---
+
+### 📄 src/bilancio/storage/file_store.py
+
+```python
+"""File-based result storage implementation."""
+
+from __future__ import annotations
+
+import csv
+import json
+import re
+from pathlib import Path
+from typing import Optional, List, Dict, Any
+
+from .models import RunResult, RegistryEntry, RunArtifacts, RunStatus
+
+
+# Pattern for valid IDs (alphanumeric, dash, underscore, dot)
+_VALID_ID_PATTERN = re.compile(r'^[a-zA-Z0-9_\-\.]+$')
+
+
+def _validate_id(value: str, field_name: str) -> None:
+    """Validate an ID to prevent path traversal attacks.
+
+    Args:
+        value: The ID value to validate.
+        field_name: Name of the field for error messages.
+
+    Raises:
+        ValueError: If the ID contains invalid characters.
+    """
+    if not value:
+        return  # Empty is allowed for some cases (e.g., empty experiment_id)
+    if not _VALID_ID_PATTERN.match(value):
+        raise ValueError(
+            f"Invalid {field_name}: '{value}'. "
+            f"Must contain only alphanumeric characters, dashes, underscores, and dots."
+        )
+
+
+class FileResultStore:
+    """Store results as files on local filesystem."""
+
+    def __init__(self, base_dir: Path | str):
+        self.base_dir = Path(base_dir)
+        self.base_dir.mkdir(parents=True, exist_ok=True)
+
+    def _run_dir(self, experiment_id: str, run_id: str) -> Path:
+        _validate_id(experiment_id, "experiment_id")
+        _validate_id(run_id, "run_id")
+        return self.base_dir / experiment_id / "runs" / run_id
+
+    def save_artifact(
+        self,
+        experiment_id: str,
+        run_id: str,
+        name: str,
+        content: bytes,
+        content_type: str = "application/octet-stream"
+    ) -> str:
+        """Save artifact to file, return relative path."""
+        run_dir = self._run_dir(experiment_id, run_id)
+        run_dir.mkdir(parents=True, exist_ok=True)
+
+        # Determine subdirectory based on artifact type
+        if name in ("scenario.yaml",):
+            path = run_dir / name
+        else:
+            out_dir = run_dir / "out"
+            out_dir.mkdir(exist_ok=True)
+            path = out_dir / name
+
+        path.write_bytes(content)
+        return str(path.relative_to(self.base_dir))
+
+    def save_run(self, experiment_id: str, result: RunResult) -> None:
+        """Save run result metadata as JSON."""
+        run_dir = self._run_dir(experiment_id, result.run_id)
+        run_dir.mkdir(parents=True, exist_ok=True)
+
+        meta_path = run_dir / "result.json"
+        meta = {
+            "run_id": result.run_id,
+            "status": result.status.value,
+            "parameters": result.parameters,
+            "metrics": result.metrics,
+            "artifacts": {
+                k: v for k, v in vars(result.artifacts).items() if v is not None
+            },
+            "error": result.error,
+            "execution_time_ms": result.execution_time_ms,
+        }
+        meta_path.write_text(json.dumps(meta, indent=2))
+
+    def load_run(self, experiment_id: str, run_id: str) -> Optional[RunResult]:
+        """Load run result from file."""
+        meta_path = self._run_dir(experiment_id, run_id) / "result.json"
+        if not meta_path.exists():
+            return None
+
+        meta = json.loads(meta_path.read_text())
+        return RunResult(
+            run_id=meta["run_id"],
+            status=RunStatus(meta["status"]),
+            parameters=meta.get("parameters", {}),
+            metrics=meta.get("metrics", {}),
+            artifacts=RunArtifacts(**meta.get("artifacts", {})),
+            error=meta.get("error"),
+            execution_time_ms=meta.get("execution_time_ms"),
+        )
+
+    def load_artifact(self, reference: str) -> bytes:
+        """Load artifact content by path.
+
+        Raises:
+            ValueError: If reference attempts path traversal outside base_dir.
+        """
+        path = self.base_dir / reference
+        # Validate path doesn't escape base_dir (security: prevent path traversal)
+        try:
+            path.resolve().relative_to(self.base_dir.resolve())
+        except ValueError:
+            raise ValueError(f"Invalid artifact reference: path traversal detected in '{reference}'")
+        return path.read_bytes()
+
+
+class FileRegistryStore:
+    """Store registry as CSV file."""
+
+    # Default fields - will be extended dynamically
+    DEFAULT_FIELDS = [
+        "run_id", "experiment_id", "phase", "status", "error",
+        # Common parameters
+        "seed", "n_agents", "kappa", "concentration", "mu", "monotonicity",
+        "maturity_days", "Q_total", "S1", "L0", "default_handling", "dealer_enabled",
+        # Common metrics
+        "phi_total", "delta_total", "time_to_stability",
+        # Common artifact paths
+        "scenario_yaml", "events_jsonl", "balances_csv", "metrics_csv",
+        "metrics_html", "run_html",
+    ]
+
+    def __init__(self, base_dir: Path | str):
+        self.base_dir = Path(base_dir)
+
+    def _registry_path(self, experiment_id: str) -> Path:
+        _validate_id(experiment_id, "experiment_id")
+        if experiment_id:
+            return self.base_dir / experiment_id / "registry" / "experiments.csv"
+        # Empty experiment_id means use base_dir directly
+        return self.base_dir / "registry" / "experiments.csv"
+
+    def upsert(self, entry: RegistryEntry) -> None:
+        """Insert or update registry entry."""
+        registry_path = self._registry_path(entry.experiment_id)
+        registry_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Load existing entries
+        entries: Dict[str, Dict[str, str]] = {}
+        fieldnames = list(self.DEFAULT_FIELDS)
+
+        if registry_path.exists():
+            with open(registry_path, "r", newline="") as f:
+                reader = csv.DictReader(f)
+                if reader.fieldnames:
+                    fieldnames = list(reader.fieldnames)
+                for row in reader:
+                    entries[row["run_id"]] = dict(row)
+
+        # Build row from entry
+        row: Dict[str, str] = {
+            "run_id": entry.run_id,
+            "experiment_id": entry.experiment_id,
+            "status": entry.status.value,
+            "error": entry.error or "",
+        }
+
+        # Add parameters, metrics, artifact paths
+        for k, v in entry.parameters.items():
+            row[k] = str(v) if v is not None else ""
+            if k not in fieldnames:
+                fieldnames.append(k)
+
+        for k, v in entry.metrics.items():
+            row[k] = str(v) if v is not None else ""
+            if k not in fieldnames:
+                fieldnames.append(k)
+
+        for k, v in entry.artifact_paths.items():
+            row[k] = str(v) if v is not None else ""
+            if k not in fieldnames:
+                fieldnames.append(k)
+
+        entries[entry.run_id] = row
+
+        # Write back
+        with open(registry_path, "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
+            writer.writeheader()
+            for r in entries.values():
+                writer.writerow(r)
+
+    def get(self, experiment_id: str, run_id: str) -> Optional[RegistryEntry]:
+        """Get registry entry by ID."""
+        registry_path = self._registry_path(experiment_id)
+        if not registry_path.exists():
+            return None
+
+        with open(registry_path, "r", newline="") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                if row["run_id"] == run_id:
+                    return self._row_to_entry(row)
+        return None
+
+    def list_runs(self, experiment_id: str) -> List[str]:
+        """List all run IDs."""
+        registry_path = self._registry_path(experiment_id)
+        if not registry_path.exists():
+            return []
+
+        with open(registry_path, "r", newline="") as f:
+            reader = csv.DictReader(f)
+            return [row["run_id"] for row in reader]
+
+    def get_completed_keys(
+        self,
+        experiment_id: str,
+        key_fields: Optional[List[str]] = None
+    ) -> set:
+        """Get completed parameter keys for resumption."""
+        if key_fields is None:
+            key_fields = ["seed", "kappa", "concentration"]
+
+        registry_path = self._registry_path(experiment_id)
+        if not registry_path.exists():
+            return set()
+
+        completed = set()
+        with open(registry_path, "r", newline="") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                if row.get("status") == "completed":
+                    key_values = []
+                    for field in key_fields:
+                        val = row.get(field, "")
+                        # Try to parse as number for consistent hashing
+                        try:
+                            if "." in val:
+                                key_values.append(float(val))
+                            else:
+                                key_values.append(int(val))
+                        except (ValueError, TypeError):
+                            key_values.append(val)
+                    completed.add(tuple(key_values))
+        return completed
+
+    def query(
+        self,
+        experiment_id: str,
+        filters: Optional[Dict[str, Any]] = None
+    ) -> List[RegistryEntry]:
+        """Query registry with filters."""
+        registry_path = self._registry_path(experiment_id)
+        if not registry_path.exists():
+            return []
+
+        results = []
+        with open(registry_path, "r", newline="") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                if filters:
+                    match = all(
+                        str(row.get(k, "")) == str(v)
+                        for k, v in filters.items()
+                    )
+                    if not match:
+                        continue
+                results.append(self._row_to_entry(row))
+        return results
+
+    def _row_to_entry(self, row: Dict[str, str]) -> RegistryEntry:
+        """Convert CSV row to RegistryEntry."""
+        # Known parameter, metric, and artifact keys
+        param_keys = {"phase", "seed", "n_agents", "kappa", "concentration", "mu",
+                      "monotonicity", "maturity_days", "Q_total", "S1", "L0",
+                      "default_handling", "dealer_enabled"}
+        metric_keys = {"phi_total", "delta_total", "time_to_stability"}
+        artifact_keys = {"scenario_yaml", "events_jsonl", "balances_csv",
+                        "metrics_csv", "metrics_json", "metrics_html", "run_html",
+                        "dealer_metrics_json", "trades_csv", "repayment_events_csv"}
+        meta_keys = {"run_id", "experiment_id", "status", "error"}
+
+        parameters: Dict[str, Any] = {}
+        metrics: Dict[str, Any] = {}
+        artifact_paths: Dict[str, str] = {}
+
+        for k, v in row.items():
+            if not v or k in meta_keys:
+                continue
+            if k in param_keys:
+                # Try to parse as number
+                try:
+                    if "." in v:
+                        parameters[k] = float(v)
+                    else:
+                        parameters[k] = int(v)
+                except ValueError:
+                    parameters[k] = v
+            elif k in metric_keys:
+                try:
+                    metrics[k] = float(v)
+                except ValueError:
+                    metrics[k] = v
+            elif k in artifact_keys:
+                artifact_paths[k] = v
+            else:
+                # Unknown field - add to parameters
+                parameters[k] = v
+
+        return RegistryEntry(
+            run_id=row["run_id"],
+            experiment_id=row.get("experiment_id", ""),
+            status=RunStatus(row.get("status", "completed")),
+            parameters=parameters,
+            metrics=metrics,
+            artifact_paths=artifact_paths,
+            error=row.get("error") or None,
+        )
+
+```
+
+---
+
+### 📄 src/bilancio/storage/modal_artifact_loader.py
+
+```python
+"""Artifact loader for Modal Volume storage."""
+
+from __future__ import annotations
+
+import subprocess
+import tempfile
+from pathlib import Path
+from typing import Optional
+
+
+class ModalVolumeArtifactLoader:
+    """Load artifacts from a Modal Volume.
+
+    Uses the Modal CLI to download files on demand.
+    Implements caching to avoid repeated downloads.
+
+    Example:
+        loader = ModalVolumeArtifactLoader(
+            volume_name="bilancio-results",
+            base_path="my_experiment/runs/run_001",
+        )
+        events_text = loader.load_text("out/events.jsonl")
+        html_bytes = loader.load_bytes("run.html")
+    """
+
+    def __init__(
+        self,
+        volume_name: str = "bilancio-results",
+        base_path: str = "",
+        cache_dir: Optional[Path] = None,
+    ):
+        """Initialize loader.
+
+        Args:
+            volume_name: Name of the Modal Volume.
+            base_path: Base path within the volume (e.g., "experiment_001/runs/run_001").
+            cache_dir: Local directory for caching downloads. If None, uses a
+                temporary directory.
+        """
+        self.volume_name = volume_name
+        self.base_path = base_path
+        self._cache_dir = cache_dir
+        self._temp_dir: Optional[tempfile.TemporaryDirectory] = None
+
+    @property
+    def cache_dir(self) -> Path:
+        """Get the cache directory, creating it if necessary."""
+        if self._cache_dir is not None:
+            self._cache_dir.mkdir(parents=True, exist_ok=True)
+            return self._cache_dir
+
+        if self._temp_dir is None:
+            self._temp_dir = tempfile.TemporaryDirectory(prefix="modal_cache_")
+        return Path(self._temp_dir.name)
+
+    def load_bytes(self, reference: str) -> bytes:
+        """Load artifact as bytes.
+
+        Args:
+            reference: Relative path to artifact within base_path.
+
+        Returns:
+            File contents as bytes.
+
+        Raises:
+            FileNotFoundError: If the artifact doesn't exist.
+            subprocess.CalledProcessError: If download fails.
+        """
+        local_path = self._ensure_downloaded(reference)
+        return local_path.read_bytes()
+
+    def load_text(self, reference: str, encoding: str = "utf-8") -> str:
+        """Load artifact as text.
+
+        Args:
+            reference: Relative path to artifact within base_path.
+            encoding: Text encoding (default: utf-8).
+
+        Returns:
+            File contents as string.
+
+        Raises:
+            FileNotFoundError: If the artifact doesn't exist.
+            subprocess.CalledProcessError: If download fails.
+        """
+        local_path = self._ensure_downloaded(reference)
+        return local_path.read_text(encoding=encoding)
+
+    def exists(self, reference: str) -> bool:
+        """Check if artifact exists on volume.
+
+        Args:
+            reference: Relative path to artifact within base_path.
+
+        Returns:
+            True if the file exists, False otherwise.
+        """
+        remote_path = f"{self.base_path}/{reference}" if self.base_path else reference
+
+        result = subprocess.run(
+            ["modal", "volume", "ls", self.volume_name, remote_path],
+            capture_output=True,
+            text=True,
+        )
+        return result.returncode == 0
+
+    def get_local_path(self, reference: str) -> Path:
+        """Get local path to cached artifact, downloading if necessary.
+
+        Args:
+            reference: Relative path to artifact within base_path.
+
+        Returns:
+            Path to the locally cached file.
+        """
+        return self._ensure_downloaded(reference)
+
+    def _ensure_downloaded(self, reference: str) -> Path:
+        """Download artifact if not already cached.
+
+        Args:
+            reference: Relative path to artifact within base_path.
+
+        Returns:
+            Path to the locally cached file.
+
+        Raises:
+            subprocess.CalledProcessError: If download fails.
+        """
+        # Create cache path maintaining directory structure
+        cache_path = self.cache_dir / reference
+
+        if cache_path.exists():
+            return cache_path
+
+        # Ensure parent directory exists
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Download from Modal Volume
+        remote_path = f"{self.base_path}/{reference}" if self.base_path else reference
+
+        subprocess.run(
+            ["modal", "volume", "get", self.volume_name, remote_path, str(cache_path)],
+            check=True,
+            capture_output=True,
+        )
+
+        return cache_path
+
+    def clear_cache(self) -> None:
+        """Clear all cached files."""
+        if self._temp_dir is not None:
+            self._temp_dir.cleanup()
+            self._temp_dir = None
+        elif self._cache_dir is not None and self._cache_dir.exists():
+            import shutil
+
+            shutil.rmtree(self._cache_dir)
+            self._cache_dir.mkdir(parents=True, exist_ok=True)
+
+    def __del__(self):
+        """Cleanup temporary directory on deletion."""
+        if self._temp_dir is not None:
+            self._temp_dir.cleanup()
+
+```
+
+---
+
+### 📄 src/bilancio/storage/models.py
+
+```python
+"""Data models for storage abstractions."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Dict, Any, Optional
+from enum import Enum
+
+
+class RunStatus(Enum):
+    """Status of a simulation run."""
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+@dataclass
+class RunArtifacts:
+    """References to simulation output artifacts."""
+    scenario_yaml: Optional[str] = None
+    events_jsonl: Optional[str] = None
+    balances_csv: Optional[str] = None
+    metrics_csv: Optional[str] = None
+    metrics_json: Optional[str] = None
+    run_html: Optional[str] = None
+    dealer_metrics_json: Optional[str] = None
+    trades_csv: Optional[str] = None
+    repayment_events_csv: Optional[str] = None
+
+
+@dataclass
+class RunResult:
+    """Complete result of a single simulation run."""
+    run_id: str
+    status: RunStatus
+    parameters: Dict[str, Any] = field(default_factory=dict)
+    metrics: Dict[str, Any] = field(default_factory=dict)
+    artifacts: RunArtifacts = field(default_factory=RunArtifacts)
+    error: Optional[str] = None
+    execution_time_ms: Optional[int] = None
+
+
+@dataclass
+class RegistryEntry:
+    """Metadata for registry storage."""
+    run_id: str
+    experiment_id: str
+    status: RunStatus
+    parameters: Dict[str, Any] = field(default_factory=dict)
+    metrics: Dict[str, Any] = field(default_factory=dict)
+    artifact_paths: Dict[str, str] = field(default_factory=dict)
+    error: Optional[str] = None
+
+```
+
+---
+
+### 📄 src/bilancio/storage/protocols.py
+
+```python
+"""Protocol definitions for storage backends."""
+
+from __future__ import annotations
+
+from typing import Protocol, Optional, List, Dict, Any, runtime_checkable
+
+from .models import RunResult, RegistryEntry
+
+
+@runtime_checkable
+class ResultStore(Protocol):
+    """Protocol for storing simulation results."""
+
+    def save_artifact(
+        self,
+        experiment_id: str,
+        run_id: str,
+        name: str,
+        content: bytes,
+        content_type: str = "application/octet-stream"
+    ) -> str:
+        """Save an artifact, return its reference (path or key)."""
+        ...
+
+    def save_run(self, experiment_id: str, result: RunResult) -> None:
+        """Save a complete run result."""
+        ...
+
+    def load_run(self, experiment_id: str, run_id: str) -> Optional[RunResult]:
+        """Load a run result by ID."""
+        ...
+
+    def load_artifact(self, reference: str) -> bytes:
+        """Load artifact content by reference."""
+        ...
+
+
+@runtime_checkable
+class RegistryStore(Protocol):
+    """Protocol for experiment registry storage."""
+
+    def upsert(self, entry: RegistryEntry) -> None:
+        """Insert or update a registry entry."""
+        ...
+
+    def get(self, experiment_id: str, run_id: str) -> Optional[RegistryEntry]:
+        """Get a specific registry entry."""
+        ...
+
+    def list_runs(self, experiment_id: str) -> List[str]:
+        """List all run IDs for an experiment."""
+        ...
+
+    def get_completed_keys(
+        self,
+        experiment_id: str,
+        key_fields: Optional[List[str]] = None
+    ) -> set:
+        """Get set of completed parameter keys for resumption."""
+        ...
+
+    def query(
+        self,
+        experiment_id: str,
+        filters: Optional[Dict[str, Any]] = None
+    ) -> List[RegistryEntry]:
+        """Query registry entries with optional filters."""
+        ...
+
+```
+
+---
+
+### 📄 src/bilancio/storage/supabase_client.py
+
+```python
+"""Supabase client wrapper for bilancio storage.
+
+This module provides a configured Supabase client for persisting simulation
+results and job metadata to the Supabase database.
+
+Environment variables required:
+    BILANCIO_SUPABASE_URL: The Supabase project URL
+    BILANCIO_SUPABASE_ANON_KEY: The Supabase anonymous/public key
+
+Note: In environments with TLS-inspecting proxies (like Claude Code web),
+this module automatically configures the httpx client with the custom CA
+certificate to allow connections through the proxy.
+"""
+
+from __future__ import annotations
+
+import os
+import ssl
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from supabase import Client
+
+# Custom CA certificate path for TLS inspection proxy
+PROXY_CA_CERT = Path("/usr/local/share/ca-certificates/swp-ca-production.crt")
+
+# Module-level singleton for client reuse
+_supabase_client: Client | None = None
+
+
+class SupabaseConfigError(Exception):
+    """Raised when Supabase credentials are missing or invalid."""
+
+    pass
+
+
+def is_supabase_configured() -> bool:
+    """Check if Supabase environment variables are set.
+
+    Returns:
+        True if both BILANCIO_SUPABASE_URL and BILANCIO_SUPABASE_ANON_KEY
+        are set in the environment, False otherwise.
+    """
+    url = os.environ.get("BILANCIO_SUPABASE_URL")
+    key = os.environ.get("BILANCIO_SUPABASE_ANON_KEY")
+    return bool(url and key)
+
+
+def _create_proxy_aware_httpx_client():
+    """Create an httpx client configured for TLS-inspecting proxies.
+
+    If a custom CA certificate exists (for environments like Claude Code web
+    that use TLS inspection), creates an httpx client with the custom CA.
+    Otherwise returns None to use the default client.
+
+    Returns:
+        httpx.Client configured with custom CA, or None for default behavior.
+    """
+    if not PROXY_CA_CERT.exists():
+        return None
+
+    # Check if we're going through a proxy
+    proxy_url = os.environ.get("https_proxy") or os.environ.get("HTTPS_PROXY")
+    if not proxy_url:
+        return None
+
+    import httpx
+
+    # Create SSL context with the proxy's CA certificate
+    ssl_context = ssl.create_default_context()
+    ssl_context.load_verify_locations(str(PROXY_CA_CERT))
+
+    # Create httpx client with custom SSL and proxy support
+    return httpx.Client(
+        verify=ssl_context,
+        proxy=proxy_url,
+        timeout=httpx.Timeout(120.0),
+    )
+
+
+def get_supabase_client() -> Client:
+    """Get a configured Supabase client instance.
+
+    This function implements a singleton pattern - the client is created
+    once and reused for subsequent calls. This is efficient for connection
+    pooling and reduces overhead.
+
+    In environments with TLS-inspecting proxies (like Claude Code web),
+    automatically configures the httpx client with the custom CA certificate.
+
+    Returns:
+        A configured Supabase Client instance.
+
+    Raises:
+        SupabaseConfigError: If BILANCIO_SUPABASE_URL or
+            BILANCIO_SUPABASE_ANON_KEY environment variables are not set.
+
+    Example:
+        >>> client = get_supabase_client()
+        >>> response = client.table("jobs").select("*").execute()
+    """
+    global _supabase_client
+
+    if _supabase_client is not None:
+        return _supabase_client
+
+    url = os.environ.get("BILANCIO_SUPABASE_URL")
+    key = os.environ.get("BILANCIO_SUPABASE_ANON_KEY")
+
+    if not url:
+        raise SupabaseConfigError(
+            "BILANCIO_SUPABASE_URL environment variable is not set. "
+            "Please set it to your Supabase project URL "
+            "(e.g., https://xxxxx.supabase.co)"
+        )
+
+    if not key:
+        raise SupabaseConfigError(
+            "BILANCIO_SUPABASE_ANON_KEY environment variable is not set. "
+            "Please set it to your Supabase anonymous/public key."
+        )
+
+    from supabase import create_client
+    from supabase.lib.client_options import SyncClientOptions
+
+    # Create proxy-aware httpx client if in a TLS-inspecting environment
+    httpx_client = _create_proxy_aware_httpx_client()
+
+    if httpx_client:
+        options = SyncClientOptions(httpx_client=httpx_client)
+        _supabase_client = create_client(url, key, options=options)
+    else:
+        _supabase_client = create_client(url, key)
+
+    return _supabase_client
+
+
+def reset_client() -> None:
+    """Reset the singleton client instance.
+
+    This is primarily useful for testing or when credentials change.
+    The next call to get_supabase_client() will create a new client.
+    """
+    global _supabase_client
+    _supabase_client = None
+
+```
+
+---
+
+### 📄 src/bilancio/storage/supabase_registry.py
+
+```python
+"""Supabase-based registry store implementation."""
+
+from __future__ import annotations
+
+import logging
+from datetime import datetime, timezone
+from decimal import Decimal
+from typing import Optional, List, Dict, Any, TYPE_CHECKING
+
+from .models import RegistryEntry, RunStatus
+
+if TYPE_CHECKING:
+    from supabase import Client
+
+logger = logging.getLogger(__name__)
+
+
+class SupabaseRegistryStore:
+    """Store registry entries in Supabase PostgreSQL database.
+
+    This implementation stores run metadata in the `runs` table and
+    associated metrics in the `metrics` table. It implements the
+    RegistryStore protocol for compatibility with the storage abstraction.
+
+    The schema expects:
+    - runs: run_id, job_id, status, kappa, concentration, mu, seed, etc.
+    - metrics: run_id, job_id, delta_total, phi_total, raw_metrics, etc.
+    """
+
+    # Parameter fields that map directly to runs table columns
+    RUNS_PARAM_COLUMNS = {
+        "kappa", "concentration", "mu", "outside_mid_ratio", "seed", "regime"
+    }
+
+    # Metric fields that map directly to metrics table columns
+    METRICS_COLUMNS = {
+        "delta_total", "phi_total", "n_defaults", "n_clears",
+        "time_to_stability", "trading_effect", "total_trades", "total_trade_volume"
+    }
+
+    def __init__(self, client: Optional["Client"] = None):
+        """Initialize Supabase registry store.
+
+        Args:
+            client: Optional Supabase client. If not provided, will be
+                    created lazily using get_supabase_client().
+        """
+        self._client = client
+        self._initialized = client is not None
+
+    @property
+    def client(self) -> "Client":
+        """Get or create the Supabase client.
+
+        Returns:
+            Supabase client instance.
+
+        Raises:
+            RuntimeError: If Supabase is not configured.
+        """
+        if not self._initialized:
+            from bilancio.storage.supabase_client import (
+                get_supabase_client,
+                is_supabase_configured,
+            )
+
+            if not is_supabase_configured():
+                raise RuntimeError(
+                    "Supabase is not configured. Set SUPABASE_URL and "
+                    "SUPABASE_KEY environment variables."
+                )
+            self._client = get_supabase_client()
+            self._initialized = True
+
+        return self._client
+
+    def upsert(self, entry: RegistryEntry) -> None:
+        """Insert or update a registry entry.
+
+        This method performs two operations:
+        1. Upserts the run record in the `runs` table
+        2. Upserts the metrics record in the `metrics` table
+
+        Args:
+            entry: The registry entry to upsert.
+        """
+        try:
+            # Build runs table row
+            runs_row = self._build_runs_row(entry)
+
+            # Upsert into runs table
+            self.client.table("runs").upsert(
+                runs_row,
+                on_conflict="run_id"
+            ).execute()
+
+            # Build and upsert metrics if we have any
+            if entry.metrics:
+                metrics_row = self._build_metrics_row(entry)
+
+                # Check if metrics row already exists for this run
+                existing = self.client.table("metrics").select("id").eq(
+                    "run_id", entry.run_id
+                ).execute()
+
+                if existing.data:
+                    # Update existing metrics row
+                    self.client.table("metrics").update(metrics_row).eq(
+                        "run_id", entry.run_id
+                    ).execute()
+                else:
+                    # Insert new metrics row
+                    self.client.table("metrics").insert(metrics_row).execute()
+
+            logger.debug(f"Upserted registry entry for run {entry.run_id}")
+
+        except Exception as e:
+            logger.warning(f"Failed to upsert registry entry {entry.run_id}: {e}")
+
+    def get(self, experiment_id: str, run_id: str) -> Optional[RegistryEntry]:
+        """Get a specific registry entry.
+
+        Args:
+            experiment_id: The job/experiment ID.
+            run_id: The run ID to retrieve.
+
+        Returns:
+            RegistryEntry if found, None otherwise.
+        """
+        try:
+            # Query runs table with metrics join
+            result = self.client.table("runs").select(
+                "*, metrics(*)"
+            ).eq("run_id", run_id).eq("job_id", experiment_id).execute()
+
+            if not result.data:
+                return None
+
+            row = result.data[0]
+            return self._row_to_entry(row)
+
+        except Exception as e:
+            logger.warning(f"Failed to get registry entry {run_id}: {e}")
+            return None
+
+    def list_runs(self, experiment_id: str) -> List[str]:
+        """List all run IDs for an experiment.
+
+        Args:
+            experiment_id: The job/experiment ID.
+
+        Returns:
+            List of run IDs.
+        """
+        try:
+            result = self.client.table("runs").select("run_id").eq(
+                "job_id", experiment_id
+            ).execute()
+
+            return [row["run_id"] for row in result.data]
+
+        except Exception as e:
+            logger.warning(f"Failed to list runs for {experiment_id}: {e}")
+            return []
+
+    def get_completed_keys(
+        self,
+        experiment_id: str,
+        key_fields: Optional[List[str]] = None
+    ) -> set:
+        """Get set of completed parameter combinations.
+
+        Used for sweep resumption to identify which parameter combinations
+        have already been completed.
+
+        Args:
+            experiment_id: The job/experiment ID.
+            key_fields: List of parameter field names to use as keys.
+                       Defaults to ["seed", "kappa", "concentration"].
+
+        Returns:
+            Set of tuples containing completed parameter combinations.
+        """
+        if key_fields is None:
+            key_fields = ["seed", "kappa", "concentration"]
+
+        try:
+            # Build select clause for requested fields
+            select_fields = ",".join(key_fields)
+
+            result = self.client.table("runs").select(select_fields).eq(
+                "job_id", experiment_id
+            ).eq("status", "completed").execute()
+
+            completed = set()
+            for row in result.data:
+                key_values = []
+                for field in key_fields:
+                    val = row.get(field)
+                    if val is not None:
+                        # Convert Decimal to float for consistent hashing
+                        if isinstance(val, (Decimal, str)):
+                            try:
+                                val = float(val)
+                            except (ValueError, TypeError):
+                                pass
+                        key_values.append(val)
+                    else:
+                        key_values.append(None)
+                completed.add(tuple(key_values))
+
+            return completed
+
+        except Exception as e:
+            logger.warning(
+                f"Failed to get completed keys for {experiment_id}: {e}"
+            )
+            return set()
+
+    def query(
+        self,
+        experiment_id: str,
+        filters: Optional[Dict[str, Any]] = None
+    ) -> List[RegistryEntry]:
+        """Query registry entries with optional filters.
+
+        Args:
+            experiment_id: The job/experiment ID.
+            filters: Optional dict of field=value filters to apply.
+
+        Returns:
+            List of matching RegistryEntry objects.
+        """
+        try:
+            # Start with base query including metrics
+            query = self.client.table("runs").select("*, metrics(*)").eq(
+                "job_id", experiment_id
+            )
+
+            # Apply filters
+            if filters:
+                for field, value in filters.items():
+                    query = query.eq(field, value)
+
+            result = query.execute()
+
+            return [self._row_to_entry(row) for row in result.data]
+
+        except Exception as e:
+            logger.warning(
+                f"Failed to query registry for {experiment_id}: {e}"
+            )
+            return []
+
+    def _build_runs_row(self, entry: RegistryEntry) -> Dict[str, Any]:
+        """Build a row dict for the runs table.
+
+        Args:
+            entry: The registry entry to convert.
+
+        Returns:
+            Dict suitable for inserting into runs table.
+        """
+        row: Dict[str, Any] = {
+            "run_id": entry.run_id,
+            "job_id": entry.experiment_id,
+            "status": entry.status.value,
+        }
+
+        # Add error if present
+        if entry.error:
+            row["error"] = entry.error
+
+        # Add timestamps based on status
+        now = datetime.now(timezone.utc).isoformat()
+        if entry.status == RunStatus.COMPLETED:
+            row["completed_at"] = now
+        elif entry.status == RunStatus.FAILED:
+            row["completed_at"] = now
+
+        # Map parameters to runs table columns
+        for param, value in entry.parameters.items():
+            if param in self.RUNS_PARAM_COLUMNS:
+                row[param] = self._convert_value(value)
+
+        # Store Modal volume path if present in artifact_paths
+        if entry.artifact_paths:
+            # Derive volume path from any artifact path
+            for artifact_path in entry.artifact_paths.values():
+                if artifact_path:
+                    # Extract base path (e.g., "experiment/runs/run_id")
+                    parts = artifact_path.split("/")
+                    if "runs" in parts:
+                        idx = parts.index("runs")
+                        if idx + 2 <= len(parts):
+                            row["modal_volume_path"] = "/".join(parts[:idx + 2])
+                            break
+
+        return row
+
+    def _build_metrics_row(self, entry: RegistryEntry) -> Dict[str, Any]:
+        """Build a row dict for the metrics table.
+
+        Args:
+            entry: The registry entry to convert.
+
+        Returns:
+            Dict suitable for inserting into metrics table.
+        """
+        row: Dict[str, Any] = {
+            "run_id": entry.run_id,
+            "job_id": entry.experiment_id,
+            "raw_metrics": entry.metrics,  # Store full metrics as JSONB
+        }
+
+        # Map known metrics to dedicated columns
+        for metric, value in entry.metrics.items():
+            if metric in self.METRICS_COLUMNS:
+                row[metric] = self._convert_value(value)
+
+        return row
+
+    def _row_to_entry(self, row: Dict[str, Any]) -> RegistryEntry:
+        """Convert a database row to RegistryEntry.
+
+        Args:
+            row: Dict from Supabase query result.
+
+        Returns:
+            RegistryEntry object.
+        """
+        # Extract parameters from runs table columns
+        parameters: Dict[str, Any] = {}
+        for param in self.RUNS_PARAM_COLUMNS:
+            if param in row and row[param] is not None:
+                parameters[param] = self._parse_value(row[param])
+
+        # Extract metrics from nested metrics relation or raw_metrics
+        metrics: Dict[str, Any] = {}
+        metrics_data = row.get("metrics")
+
+        if metrics_data:
+            # metrics is a list from the join, take first item
+            if isinstance(metrics_data, list) and metrics_data:
+                metrics_row = metrics_data[0]
+            else:
+                metrics_row = metrics_data
+
+            # Prefer raw_metrics if available (has all metrics)
+            raw_metrics = metrics_row.get("raw_metrics")
+            if raw_metrics and isinstance(raw_metrics, dict):
+                metrics = raw_metrics
+            else:
+                # Fall back to individual columns
+                for metric in self.METRICS_COLUMNS:
+                    if metric in metrics_row and metrics_row[metric] is not None:
+                        metrics[metric] = self._parse_value(metrics_row[metric])
+
+        # Build artifact paths from modal_volume_path
+        artifact_paths: Dict[str, str] = {}
+        volume_path = row.get("modal_volume_path")
+        if volume_path:
+            # Reconstruct standard artifact paths
+            artifact_paths["scenario_yaml"] = f"{volume_path}/scenario.yaml"
+            artifact_paths["events_jsonl"] = f"{volume_path}/out/events.jsonl"
+            artifact_paths["balances_csv"] = f"{volume_path}/out/balances.csv"
+            artifact_paths["metrics_csv"] = f"{volume_path}/out/metrics.csv"
+            artifact_paths["run_html"] = f"{volume_path}/run.html"
+
+        return RegistryEntry(
+            run_id=row["run_id"],
+            experiment_id=row.get("job_id", ""),
+            status=RunStatus(row.get("status", "completed")),
+            parameters=parameters,
+            metrics=metrics,
+            artifact_paths=artifact_paths,
+            error=row.get("error"),
+        )
+
+    @staticmethod
+    def _convert_value(value: Any) -> Any:
+        """Convert Python value for Supabase storage.
+
+        Args:
+            value: Value to convert.
+
+        Returns:
+            Converted value suitable for database storage.
+        """
+        if isinstance(value, Decimal):
+            return float(value)
+        if isinstance(value, bool):
+            return value
+        return value
+
+    @staticmethod
+    def _parse_value(value: Any) -> Any:
+        """Parse database value to Python type.
+
+        Args:
+            value: Value from database.
+
+        Returns:
+            Parsed Python value.
+        """
+        if isinstance(value, str):
+            # Try to parse as number
+            try:
+                if "." in value:
+                    return float(value)
+                return int(value)
+            except ValueError:
+                return value
+        if isinstance(value, Decimal):
+            return float(value)
+        return value
+
+```
+
+---
+
 ### 📄 src/bilancio/ui/__init__.py
 
 ```python
@@ -52194,25 +57886,420 @@ __all__ = ["main"]
 
 ---
 
-### 📄 src/bilancio/ui/cli.py
+### 📄 src/bilancio/ui/cli/__init__.py
 
 ```python
 """Command-line interface for Bilancio."""
 
+from __future__ import annotations
+
 import click
+
+from .run import run, validate, new, analyze
+from .sweep import sweep
+from .volume import volume
+from .jobs import jobs
+
+
+@click.group()
+def cli():
+    """Bilancio - Economic simulation framework."""
+    pass
+
+
+# Add all commands to the main CLI group
+cli.add_command(run)
+cli.add_command(validate)
+cli.add_command(new)
+cli.add_command(analyze)
+cli.add_command(sweep)
+cli.add_command(volume)
+cli.add_command(jobs)
+
+
+def main():
+    """Main entry point for the CLI."""
+    cli()
+
+
+# Re-export for backwards compatibility
+__all__ = ['cli', 'main']
+
+```
+
+---
+
+### 📄 src/bilancio/ui/cli/jobs.py
+
+```python
+"""Job management CLI commands."""
+
+from __future__ import annotations
+
 from datetime import datetime
-from decimal import Decimal
 from pathlib import Path
 from typing import Optional
+
+import click
+
+
+def format_datetime(dt: Optional[datetime]) -> str:
+    """Format datetime for display."""
+    if dt is None:
+        return "-"
+    return dt.strftime("%Y-%m-%d %H:%M")
+
+
+def format_duration(start: datetime, end: Optional[datetime]) -> str:
+    """Format duration between two datetimes."""
+    if end is None:
+        return "running"
+    delta = end - start
+    minutes = delta.total_seconds() / 60
+    if minutes < 1:
+        return f"{delta.total_seconds():.0f}s"
+    if minutes < 60:
+        return f"{minutes:.1f}m"
+    return f"{minutes/60:.1f}h"
+
+
+@click.group()
+def jobs():
+    """Query and manage simulation jobs."""
+    pass
+
+
+@jobs.command("ls")
+@click.option(
+    "--cloud", is_flag=True, help="Query from Supabase cloud storage"
+)
+@click.option(
+    "--local",
+    type=click.Path(exists=True, path_type=Path),
+    help="Local directory containing job manifests",
+)
+@click.option(
+    "--status",
+    type=click.Choice(["pending", "running", "completed", "failed"]),
+    help="Filter by job status",
+)
+@click.option("--limit", default=20, help="Maximum number of jobs to show")
+def list_jobs(
+    cloud: bool, local: Optional[Path], status: Optional[str], limit: int
+):
+    """List simulation jobs.
+
+    By default, lists from Supabase if configured.
+
+    Examples:
+        bilancio jobs ls --cloud
+        bilancio jobs ls --local out/experiments
+        bilancio jobs ls --status completed --limit 10
+    """
+    jobs_list = []
+
+    if cloud:
+        # Query from Supabase
+        try:
+            from bilancio.jobs.supabase_store import SupabaseJobStore
+
+            store = SupabaseJobStore()
+            if store.client is None:
+                raise click.ClickException(
+                    "Supabase not configured. Set BILANCIO_SUPABASE_URL and "
+                    "BILANCIO_SUPABASE_ANON_KEY environment variables."
+                )
+            jobs_list = store.list_jobs(status=status, limit=limit)
+        except ImportError as e:
+            raise click.ClickException(f"Failed to import Supabase: {e}")
+
+    elif local:
+        # Query from local filesystem
+        from bilancio.jobs import JobManager
+
+        manager = JobManager(jobs_dir=local)
+        jobs_list = manager.list_jobs()
+
+        # Apply filters
+        if status:
+            jobs_list = [j for j in jobs_list if j.status.value == status]
+
+        # Sort by creation time (newest first) and limit
+        jobs_list = sorted(jobs_list, key=lambda j: j.created_at, reverse=True)[
+            :limit
+        ]
+
+    else:
+        # Try Supabase first, fall back to error
+        try:
+            from bilancio.storage.supabase_client import is_supabase_configured
+
+            if is_supabase_configured():
+                from bilancio.jobs.supabase_store import SupabaseJobStore
+
+                store = SupabaseJobStore()
+                jobs_list = store.list_jobs(status=status, limit=limit)
+            else:
+                click.echo(
+                    "No source specified. Use --cloud or --local <path>.\n"
+                    "Tip: Set BILANCIO_SUPABASE_* env vars to use --cloud."
+                )
+                return
+        except Exception as e:
+            raise click.ClickException(f"Failed to query jobs: {e}")
+
+    if not jobs_list:
+        click.echo("No jobs found.")
+        return
+
+    # Get run counts from Supabase if available
+    run_counts: dict[str, int] = {}
+    if cloud or (not local):  # If using cloud or auto-detected Supabase
+        try:
+            from bilancio.jobs.supabase_store import SupabaseJobStore
+
+            store = SupabaseJobStore()
+            job_ids = [j.job_id for j in jobs_list]
+            run_counts = store.get_run_counts(job_ids)
+        except Exception:
+            pass  # Fall back to job.run_ids
+
+    # Display jobs
+    click.echo(f"{'JOB ID':<36} {'STATUS':<10} {'CREATED':<16} {'DURATION':<10} {'RUNS':<6}")
+    click.echo("-" * 80)
+
+    for job in jobs_list:
+        duration = format_duration(job.created_at, job.completed_at)
+        # Prefer run count from Supabase, fall back to job.run_ids
+        runs = run_counts.get(job.job_id, len(job.run_ids) if job.run_ids else 0)
+        click.echo(
+            f"{job.job_id:<36} {job.status.value:<10} "
+            f"{format_datetime(job.created_at):<16} {duration:<10} {runs:<6}"
+        )
+
+    click.echo("-" * 80)
+    click.echo(f"Total: {len(jobs_list)} jobs")
+
+
+@jobs.command("get")
+@click.argument("job_id")
+@click.option("--cloud", is_flag=True, help="Query from Supabase cloud storage")
+@click.option(
+    "--local",
+    type=click.Path(exists=True, path_type=Path),
+    help="Local directory containing job manifests",
+)
+def get_job(job_id: str, cloud: bool, local: Optional[Path]):
+    """Get detailed information about a job.
+
+    Examples:
+        bilancio jobs get castle-river-mountain-forest
+        bilancio jobs get castle-river-mountain-forest --cloud
+    """
+    job = None
+
+    if cloud:
+        try:
+            from bilancio.jobs.supabase_store import SupabaseJobStore
+
+            store = SupabaseJobStore()
+            if store.client is None:
+                raise click.ClickException("Supabase not configured.")
+            job = store.get_job(job_id)
+        except ImportError as e:
+            raise click.ClickException(f"Failed to import Supabase: {e}")
+
+    elif local:
+        from bilancio.jobs import JobManager
+
+        manager = JobManager(jobs_dir=local)
+        job = manager.get_job(job_id)
+
+    else:
+        # Try Supabase first, then local
+        try:
+            from bilancio.storage.supabase_client import is_supabase_configured
+
+            if is_supabase_configured():
+                from bilancio.jobs.supabase_store import SupabaseJobStore
+
+                store = SupabaseJobStore()
+                job = store.get_job(job_id)
+        except Exception:
+            pass
+
+        if job is None:
+            # Try common local paths
+            for path in [Path("out/experiments"), Path(".")]:
+                if path.exists():
+                    from bilancio.jobs import JobManager
+
+                    manager = JobManager(jobs_dir=path)
+                    job = manager.get_job(job_id)
+                    if job:
+                        break
+
+    if job is None:
+        raise click.ClickException(f"Job not found: {job_id}")
+
+    # Display job details
+    click.echo(f"Job ID:      {job.job_id}")
+    click.echo(f"Status:      {job.status.value}")
+    click.echo(f"Description: {job.description}")
+    click.echo(f"Created:     {format_datetime(job.created_at)}")
+    click.echo(f"Completed:   {format_datetime(job.completed_at)}")
+    if job.error:
+        click.echo(f"Error:       {job.error}")
+    click.echo()
+
+    # Configuration
+    click.echo("Configuration:")
+    config = job.config
+    click.echo(f"  Sweep Type:    {config.sweep_type}")
+    click.echo(f"  N Agents:      {config.n_agents}")
+    click.echo(f"  Maturity Days: {config.maturity_days}")
+    click.echo(f"  Kappas:        {', '.join(str(k) for k in config.kappas)}")
+    click.echo(f"  Concentrations: {', '.join(str(c) for c in config.concentrations)}")
+    click.echo(f"  Mus:           {', '.join(str(m) for m in config.mus)}")
+    click.echo(f"  Cloud:         {config.cloud}")
+    click.echo()
+
+    # Runs
+    if job.run_ids:
+        click.echo(f"Runs ({len(job.run_ids)}):")
+        for run_id in job.run_ids[:10]:  # Show first 10
+            click.echo(f"  - {run_id}")
+        if len(job.run_ids) > 10:
+            click.echo(f"  ... and {len(job.run_ids) - 10} more")
+
+
+@jobs.command("runs")
+@click.argument("job_id")
+@click.option("--cloud", is_flag=True, help="Query from Supabase cloud storage")
+@click.option(
+    "--status",
+    type=click.Choice(["pending", "running", "completed", "failed"]),
+    help="Filter by run status",
+)
+def list_runs(job_id: str, cloud: bool, status: Optional[str]):
+    """List runs for a specific job.
+
+    Examples:
+        bilancio jobs runs castle-river-mountain-forest
+        bilancio jobs runs castle-river-mountain-forest --cloud
+    """
+    if not cloud:
+        click.echo("Note: Use --cloud to query runs from Supabase.")
+        click.echo("Local run listing requires reading registry CSV files.")
+        return
+
+    try:
+        from bilancio.storage.supabase_registry import SupabaseRegistryStore
+
+        store = SupabaseRegistryStore()
+        entries = store.query(job_id, {"status": status} if status else None)
+
+        if not entries:
+            click.echo(f"No runs found for job: {job_id}")
+            return
+
+        click.echo(f"{'RUN ID':<40} {'STATUS':<10} {'KAPPA':<8} {'CONC':<8} {'DELTA':<10}")
+        click.echo("-" * 80)
+
+        for entry in entries:
+            kappa = entry.parameters.get("kappa", "-")
+            conc = entry.parameters.get("concentration", "-")
+            delta = entry.metrics.get("delta_total", "-")
+            if isinstance(delta, float):
+                delta = f"{delta:.4f}"
+            click.echo(
+                f"{entry.run_id:<40} {entry.status.value:<10} "
+                f"{kappa:<8} {conc:<8} {delta:<10}"
+            )
+
+        click.echo("-" * 80)
+        click.echo(f"Total: {len(entries)} runs")
+
+    except Exception as e:
+        raise click.ClickException(f"Failed to query runs: {e}")
+
+
+@jobs.command("metrics")
+@click.argument("job_id")
+@click.option("--cloud", is_flag=True, help="Query from Supabase cloud storage")
+def show_metrics(job_id: str, cloud: bool):
+    """Show aggregate metrics for a job.
+
+    Examples:
+        bilancio jobs metrics castle-river-mountain-forest --cloud
+    """
+    if not cloud:
+        click.echo("Use --cloud to query metrics from Supabase.")
+        return
+
+    try:
+        from bilancio.storage.supabase_registry import SupabaseRegistryStore
+
+        store = SupabaseRegistryStore()
+        entries = store.query(job_id)
+
+        if not entries:
+            click.echo(f"No runs found for job: {job_id}")
+            return
+
+        # Calculate aggregate metrics
+        completed = [e for e in entries if e.status.value == "completed"]
+
+        if not completed:
+            click.echo("No completed runs to show metrics for.")
+            return
+
+        # Collect delta values
+        deltas = [
+            e.metrics.get("delta_total", 0) for e in completed if "delta_total" in e.metrics
+        ]
+        phis = [
+            e.metrics.get("phi_total", 0) for e in completed if "phi_total" in e.metrics
+        ]
+
+        click.echo(f"Job: {job_id}")
+        click.echo(f"Completed runs: {len(completed)} / {len(entries)}")
+        click.echo()
+
+        if deltas:
+            click.echo("Delta (default rate):")
+            click.echo(f"  Mean:   {sum(deltas)/len(deltas):.4f}")
+            click.echo(f"  Min:    {min(deltas):.4f}")
+            click.echo(f"  Max:    {max(deltas):.4f}")
+
+        if phis:
+            click.echo("Phi (clearing rate):")
+            click.echo(f"  Mean:   {sum(phis)/len(phis):.4f}")
+            click.echo(f"  Min:    {min(phis):.4f}")
+            click.echo(f"  Max:    {max(phis):.4f}")
+
+    except Exception as e:
+        raise click.ClickException(f"Failed to query metrics: {e}")
+
+```
+
+---
+
+### 📄 src/bilancio/ui/cli/run.py
+
+```python
+"""CLI commands for running and analyzing scenarios."""
+
+from __future__ import annotations
+
 import sys
+from pathlib import Path
+from typing import Optional
 
-from click.core import ParameterSource
-
+import click
 from rich.console import Console
 from rich.panel import Panel
 
-from .run import run_scenario
-from .wizard import create_scenario_wizard
 from bilancio.analysis.loaders import read_events_jsonl, read_balances_csv
 from bilancio.analysis.report import (
     write_day_metrics_csv,
@@ -52222,35 +58309,322 @@ from bilancio.analysis.report import (
     write_metrics_html,
     compute_day_metrics,
     parse_day_ranges,
-    aggregate_runs,
-    render_dashboard,
 )
+from bilancio.ui.run import run_scenario
+from bilancio.ui.wizard import create_scenario_wizard
+
+
+console = Console()
+
+
+@click.command()
+@click.argument('scenario_file', type=click.Path(exists=True, path_type=Path))
+@click.option('--mode', type=click.Choice(['step', 'until-stable']),
+              default='until-stable', help='Simulation run mode')
+@click.option('--max-days', type=int, default=90,
+              help='Maximum days to simulate')
+@click.option('--quiet-days', type=int, default=2,
+              help='Required quiet days for stable state')
+@click.option('--show', type=click.Choice(['summary', 'detailed', 'table']),
+              default='detailed', help='Event display mode')
+@click.option('--agents', type=str, default=None,
+              help='Comma-separated list of agent IDs to show balances for')
+@click.option('--check-invariants',
+              type=click.Choice(['setup', 'daily', 'none']),
+              default='setup',
+              help='When to check system invariants')
+@click.option('--export-balances', type=click.Path(path_type=Path),
+              default=None, help='Path to export balances CSV')
+@click.option('--export-events', type=click.Path(path_type=Path),
+              default=None, help='Path to export events JSONL')
+@click.option('--html', type=click.Path(path_type=Path),
+              default=None, help='Path to export colored output as HTML')
+@click.option('--t-account/--no-t-account', default=False, help='Use detailed T-account layout for balances')
+@click.option('--default-handling', type=click.Choice(['fail-fast', 'expel-agent']),
+              default=None, help='Default-handling mode (override scenario setting)')
+def run(scenario_file: Path,
+        mode: str,
+        max_days: int,
+        quiet_days: int,
+        show: str,
+        agents: Optional[str],
+        check_invariants: str,
+        export_balances: Optional[Path],
+        export_events: Optional[Path],
+        html: Optional[Path],
+        t_account: bool,
+        default_handling: Optional[str]):
+    """Run a Bilancio simulation scenario.
+
+    Load a scenario from a YAML file and run the simulation either
+    step-by-step or until a stable state is reached.
+    """
+    try:
+        # Parse agent list if provided
+        agent_ids = None
+        if agents:
+            agent_ids = [a.strip() for a in agents.split(',')]
+
+        # Override export paths if provided via CLI
+        export = {
+            'balances_csv': str(export_balances) if export_balances else None,
+            'events_jsonl': str(export_events) if export_events else None
+        }
+
+        # Run the scenario
+        run_scenario(
+            path=scenario_file,
+            mode=mode,
+            max_days=max_days,
+            quiet_days=quiet_days,
+            show=show,
+            agent_ids=agent_ids,
+            check_invariants=check_invariants,
+            export=export,
+            html_output=html,
+            t_account=t_account,
+            default_handling=default_handling
+        )
+
+    except FileNotFoundError as e:
+        console.print(Panel(
+            f"[red]File not found:[/red] {e}",
+            title="Error",
+            border_style="red"
+        ))
+        sys.exit(1)
+
+    except ValueError as e:
+        console.print(Panel(
+            f"[red]Configuration error:[/red]\n{e}",
+            title="Error",
+            border_style="red"
+        ))
+        sys.exit(1)
+
+    except Exception as e:
+        console.print(Panel(
+            f"[red]Unexpected error:[/red]\n{e}",
+            title="Error",
+            border_style="red"
+        ))
+        if '--debug' in sys.argv:
+            raise
+        sys.exit(1)
+
+
+@click.command()
+@click.argument('scenario_file', type=click.Path(exists=True, path_type=Path))
+def validate(scenario_file: Path):
+    """Validate a Bilancio scenario configuration file.
+
+    Check that a YAML configuration file is valid without running
+    the simulation. Reports any errors in the configuration structure,
+    agent definitions, or initial actions.
+    """
+    try:
+        from bilancio.config import load_yaml
+        from bilancio.engines.system import System
+        from bilancio.config import apply_to_system
+
+        # Load and parse the configuration
+        console.print(f"[dim]Validating {scenario_file}...[/dim]")
+        config = load_yaml(scenario_file)
+
+        console.print(f"[green]✓[/green] Configuration syntax is valid")
+        console.print(f"  Name: {config.name}")
+        console.print(f"  Version: {config.version}")
+        console.print(f"  Agents: {len(config.agents)}")
+        console.print(f"  Initial actions: {len(config.initial_actions)}")
+
+        # Try to apply to a test system to validate actions
+        console.print("[dim]Checking if configuration can be applied...[/dim]")
+        test_system = System()
+        apply_to_system(config, test_system)
+
+        console.print(f"[green]✓[/green] Configuration can be applied successfully")
+
+        # Run invariant checks
+        test_system.assert_invariants()
+        console.print(f"[green]✓[/green] System invariants pass")
+
+        # Summary
+        console.print("\n[bold green]Configuration is valid![/bold green]")
+        console.print(f"\nAgents defined:")
+        for agent in config.agents:
+            console.print(f"  • {agent.id} ({agent.kind}): {agent.name}")
+
+        if config.run.export.balances_csv or config.run.export.events_jsonl:
+            console.print(f"\nExports configured:")
+            if config.run.export.balances_csv:
+                console.print(f"  • Balances: {config.run.export.balances_csv}")
+            if config.run.export.events_jsonl:
+                console.print(f"  • Events: {config.run.export.events_jsonl}")
+
+    except FileNotFoundError as e:
+        console.print(Panel(
+            f"[red]File not found:[/red] {e}",
+            title="Error",
+            border_style="red"
+        ))
+        sys.exit(1)
+
+    except ValueError as e:
+        console.print(Panel(
+            f"[red]Configuration error:[/red]\n{e}",
+            title="Validation Failed",
+            border_style="red"
+        ))
+        sys.exit(1)
+
+    except Exception as e:
+        console.print(Panel(
+            f"[red]Validation error:[/red]\n{e}",
+            title="Validation Failed",
+            border_style="red"
+        ))
+        if '--debug' in sys.argv:
+            raise
+        sys.exit(1)
+
+
+@click.command()
+@click.option('--from', 'from_template', type=str, default=None,
+              help='Base template to use')
+@click.option('-o', '--output', type=click.Path(path_type=Path),
+              required=True, help='Output YAML file path')
+def new(from_template: Optional[str], output: Path):
+    """Create a new scenario configuration.
+
+    Interactive wizard to create a new Bilancio scenario
+    configuration file.
+    """
+    try:
+        create_scenario_wizard(output, from_template)
+        console.print(f"[green]✓[/green] Created scenario file: {output}")
+
+    except Exception as e:
+        console.print(Panel(
+            f"[red]Failed to create scenario:[/red]\n{e}",
+            title="Error",
+            border_style="red"
+        ))
+        sys.exit(1)
+
+
+@click.command()
+@click.option('--events', 'events_path', type=click.Path(exists=True, path_type=Path), required=True,
+              help='Path to events JSONL exported by a run')
+@click.option('--balances', 'balances_path', type=click.Path(exists=False, path_type=Path), required=False,
+              help='Path to balances CSV (optional, improves G_t/M_t)')
+@click.option('--days', type=str, default=None,
+              help='Days to analyze, e.g. "1,2-3". Default: infer from events')
+@click.option('--out-csv', 'out_csv', type=click.Path(path_type=Path), default=None,
+              help='Output CSV for day-level metrics')
+@click.option('--out-json', 'out_json', type=click.Path(path_type=Path), default=None,
+              help='Output JSON for day-level metrics')
+@click.option('--intraday-csv', 'intraday_csv', type=click.Path(path_type=Path), default=None,
+              help='Optional CSV for intraday P_prefix steps')
+@click.option('--html', 'html_out', type=click.Path(path_type=Path), default=None,
+              help='Optional HTML analytics report')
+def analyze(
+    events_path: Path,
+    balances_path: Optional[Path],
+    days: Optional[str],
+    out_csv: Optional[Path],
+    out_json: Optional[Path],
+    intraday_csv: Optional[Path],
+    html_out: Optional[Path],
+):
+    """Analyze a completed run and export Kalecki-style metrics.
+
+    Produces a day-level metrics CSV/JSON, optional intraday CSV (diagnostic).
+    """
+    # Load inputs
+    console.print(f"[dim]Reading events from {events_path}...[/dim]")
+    events = list(read_events_jsonl(events_path))
+
+    balances_rows = None
+    if balances_path and balances_path.exists():
+        console.print(f"[dim]Reading balances from {balances_path}...[/dim]")
+        balances_rows = read_balances_csv(balances_path)
+
+    day_list = parse_day_ranges(days) if days else None
+
+    bundle = compute_day_metrics(events, balances_rows, day_list)
+
+    if not bundle["day_metrics"]:
+        console.print("[yellow]No days found to analyze.[/yellow]")
+        return
+
+    # Determine default output paths if not provided
+    base = events_path.stem.replace("_events", "") or "metrics"
+    out_dir = events_path.parent
+    if not out_csv:
+        out_csv = out_dir / f"{base}_metrics_day.csv"
+    if not out_json:
+        out_json = out_dir / f"{base}_metrics_day.json"
+    if intraday_csv:
+        intraday_csv.parent.mkdir(parents=True, exist_ok=True)
+
+    # Write outputs
+    metrics_rows = bundle["day_metrics"]
+    ds_rows = bundle["debtor_shares"]
+    intraday_rows = bundle["intraday"]
+
+    write_day_metrics_csv(out_csv, metrics_rows)
+    console.print(f"[green]✓[/green] Wrote day metrics CSV: {out_csv}")
+    write_day_metrics_json(out_json, metrics_rows)
+    console.print(f"[green]✓[/green] Wrote day metrics JSON: {out_json}")
+
+    # Debtor shares and intraday are optional; only write if path provided
+    base_name = out_csv.stem.replace("_metrics_day", "") if out_csv else "metrics"
+    ds_path = out_csv.parent / f"{base_name}_ds.csv"
+    write_debtor_shares_csv(ds_path, ds_rows)
+    console.print(f"[green]✓[/green] Wrote debtor shares CSV: {ds_path}")
+
+    if intraday_csv:
+        write_intraday_csv(intraday_csv, intraday_rows)
+        console.print(f"[green]✓[/green] Wrote intraday CSV: {intraday_csv}")
+
+    if html_out:
+        title = f"Bilancio Analytics — {events_path.stem.replace('_events','')}"
+        subtitle = f"Events: {events_path.name}{' | Balances: ' + balances_path.name if balances_path else ''}"
+        write_metrics_html(html_out, metrics_rows, ds_rows, intraday_rows, title=title, subtitle=subtitle)
+        console.print(f"[green]✓[/green] Wrote HTML analytics: {html_out}")
+
+```
+
+---
+
+### 📄 src/bilancio/ui/cli/sweep.py
+
+```python
+"""CLI commands for running experiment sweeps."""
+
+from __future__ import annotations
+
+from datetime import datetime
+from decimal import Decimal
+from pathlib import Path
+from typing import Optional
+
+import click
+from click.core import ParameterSource
+
+from bilancio.analysis.report import aggregate_runs, render_dashboard
 from bilancio.experiments.ring import (
     RingSweepRunner,
     RingSweepConfig,
     load_ring_sweep_config,
     _decimal_list,
 )
-# Comparison imports deferred to avoid circular import
-# from bilancio.experiments.comparison import ComparisonSweepRunner, ComparisonSweepConfig
+from bilancio.jobs import JobManager, JobConfig, generate_job_id, create_job_manager
 
-
-console = Console()
-
-
-def _as_decimal_list(value):
-    if isinstance(value, (list, tuple)):
-        return [Decimal(str(item)) for item in value]
-    return _decimal_list(value)
+from .utils import console, _as_decimal_list
 
 
 @click.group()
-def cli():
-    """Bilancio - Economic simulation framework."""
-    pass
-
-
-@cli.group()
 def sweep():
     """Experiment sweeps."""
     pass
@@ -52259,6 +58633,7 @@ def sweep():
 @sweep.command("ring")
 @click.option('--config', type=click.Path(path_type=Path), default=None, help='Path to sweep config YAML')
 @click.option('--out-dir', type=click.Path(path_type=Path), default=None, help='Base output directory')
+@click.option('--cloud', is_flag=True, help='Run simulations on Modal cloud')
 @click.option('--grid/--no-grid', default=True, help='Run coarse grid sweep')
 @click.option('--kappas', type=str, default="0.25,0.5,1,2,4", help='Comma list for grid kappa values')
 @click.option('--concentrations', type=str, default="0.2,0.5,1,2,5", help='Comma list for grid Dirichlet concentrations')
@@ -52286,11 +58661,13 @@ def sweep():
 @click.option('--base-seed', type=int, default=42, help='Base PRNG seed')
 @click.option('--name-prefix', type=str, default='Kalecki Ring Sweep', help='Scenario name prefix')
 @click.option('--default-handling', type=click.Choice(['fail-fast', 'expel-agent']), default='fail-fast', help='Default handling mode for runs')
+@click.option('--job-id', type=str, default=None, help='Job ID (auto-generated if not provided)')
 @click.pass_context
 def sweep_ring(
     ctx,
     config: Optional[Path],
     out_dir: Optional[Path],
+    cloud: bool,
     grid: bool,
     kappas: str,
     concentrations: str,
@@ -52318,6 +58695,7 @@ def sweep_ring(
     base_seed: int,
     name_prefix: str,
     default_handling: str,
+    job_id: Optional[str],
 ):
     """Run the Kalecki ring experiment sweep."""
     sweep_config: Optional[RingSweepConfig] = None
@@ -52415,6 +58793,55 @@ def sweep_ring(
 
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    # Generate job ID if not provided
+    if job_id is None:
+        job_id = generate_job_id()
+
+    # Create job manager and job config
+    manager: Optional[JobManager] = None
+    try:
+        manager = create_job_manager(jobs_dir=out_dir, cloud=cloud, local=True)
+
+        grid_kappas = _as_decimal_list(kappas)
+        grid_concentrations = _as_decimal_list(concentrations)
+        grid_mus = _as_decimal_list(mus)
+
+        job_config = JobConfig(
+            sweep_type="ring",
+            n_agents=n_agents,
+            kappas=grid_kappas,
+            concentrations=grid_concentrations,
+            mus=grid_mus,
+            cloud=cloud,
+            maturity_days=maturity_days,
+            seeds=[base_seed],
+        )
+
+        job = manager.create_job(
+            description=f"Ring sweep (n={n_agents}, cloud={cloud})",
+            config=job_config,
+            job_id=job_id,
+        )
+
+        console.print(f"[cyan]Job ID: {job.job_id}[/cyan]")
+        manager.start_job(job.job_id)
+    except Exception as e:
+        console.print(f"[yellow]Warning: Job tracking initialization failed: {e}[/yellow]")
+        manager = None
+
+    # Create executor based on --cloud flag
+    executor = None
+    if cloud:
+        from bilancio.runners import CloudExecutor
+
+        executor = CloudExecutor(
+            experiment_id=job_id,  # Use job_id as experiment_id for simplicity
+            download_artifacts=False,
+            local_output_dir=out_dir,
+            job_id=job_id,
+        )
+        console.print(f"[cyan]Cloud execution enabled[/cyan]")
+
     q_total_dec = Decimal(str(q_total))
     runner = RingSweepRunner(
         out_dir,
@@ -52428,6 +58855,7 @@ def sweep_ring(
         default_handling=default_handling,
         dealer_enabled=dealer_enabled,
         dealer_config=dealer_config,
+        executor=executor,
     )
 
     console.print(f"[dim]Output directory: {out_dir}[/dim]")
@@ -52437,43 +58865,64 @@ def sweep_ring(
     grid_mus = _as_decimal_list(mus)
     grid_monotonicities = _as_decimal_list(monotonicities)
 
-    if grid:
-        total_runs = len(grid_kappas) * len(grid_concentrations) * len(grid_mus) * len(grid_monotonicities)
-        console.print(f"[dim]Running grid sweep: {total_runs} runs[/dim]")
-        runner.run_grid(grid_kappas, grid_concentrations, grid_mus, grid_monotonicities)
+    try:
+        if grid:
+            total_runs = len(grid_kappas) * len(grid_concentrations) * len(grid_mus) * len(grid_monotonicities)
+            console.print(f"[dim]Running grid sweep: {total_runs} runs[/dim]")
+            runner.run_grid(grid_kappas, grid_concentrations, grid_mus, grid_monotonicities)
 
-    if lhs_count > 0:
-        console.print(f"[dim]Running Latin Hypercube ({lhs_count})[/dim]")
-        runner.run_lhs(
-            lhs_count,
-            kappa_range=(Decimal(str(kappa_min)), Decimal(str(kappa_max))),
-            concentration_range=(Decimal(str(c_min)), Decimal(str(c_max))),
-            mu_range=(Decimal(str(mu_min)), Decimal(str(mu_max))),
-            monotonicity_range=(Decimal(str(monotonicity_min)), Decimal(str(monotonicity_max))),
-        )
+        if lhs_count > 0:
+            console.print(f"[dim]Running Latin Hypercube ({lhs_count})[/dim]")
+            runner.run_lhs(
+                lhs_count,
+                kappa_range=(Decimal(str(kappa_min)), Decimal(str(kappa_max))),
+                concentration_range=(Decimal(str(c_min)), Decimal(str(c_max))),
+                mu_range=(Decimal(str(mu_min)), Decimal(str(mu_max))),
+                monotonicity_range=(Decimal(str(monotonicity_min)), Decimal(str(monotonicity_max))),
+            )
 
-    if frontier:
-        console.print(f"[dim]Running frontier search across {len(grid_concentrations) * len(grid_mus) * len(grid_monotonicities)} cells[/dim]")
-        runner.run_frontier(
-            grid_concentrations,
-            grid_mus,
-            grid_monotonicities,
-            kappa_low=Decimal(str(frontier_low)),
-            kappa_high=Decimal(str(frontier_high)),
-            tolerance=Decimal(str(frontier_tolerance)),
-            max_iterations=frontier_iterations,
-        )
+        if frontier:
+            console.print(f"[dim]Running frontier search across {len(grid_concentrations) * len(grid_mus) * len(grid_monotonicities)} cells[/dim]")
+            runner.run_frontier(
+                grid_concentrations,
+                grid_mus,
+                grid_monotonicities,
+                kappa_low=Decimal(str(frontier_low)),
+                kappa_high=Decimal(str(frontier_high)),
+                tolerance=Decimal(str(frontier_tolerance)),
+                max_iterations=frontier_iterations,
+            )
 
-    registry_csv = runner.registry_dir / "experiments.csv"
-    results_csv = runner.aggregate_dir / "results.csv"
-    dashboard_html = runner.aggregate_dir / "dashboard.html"
+        registry_csv = runner.registry_dir / "experiments.csv"
+        results_csv = runner.aggregate_dir / "results.csv"
+        dashboard_html = runner.aggregate_dir / "dashboard.html"
 
-    aggregate_runs(registry_csv, results_csv)
-    render_dashboard(results_csv, dashboard_html)
+        aggregate_runs(registry_csv, results_csv)
+        render_dashboard(results_csv, dashboard_html)
 
-    console.print(f"[green]Sweep complete.[/green] Registry: {registry_csv}")
-    console.print(f"[green]Aggregated results: {results_csv}")
-    console.print(f"[green]Dashboard: {dashboard_html}")
+        # Complete job
+        if manager is not None:
+            try:
+                manager.complete_job(job_id, {
+                    "grid_runs": total_runs if grid else 0,
+                    "lhs_runs": lhs_count,
+                    "frontier": frontier,
+                })
+            except Exception as e:
+                console.print(f"[yellow]Warning: Failed to complete job tracking: {e}[/yellow]")
+
+        console.print(f"[green]Sweep complete.[/green] Registry: {registry_csv}")
+        console.print(f"[green]Aggregated results: {results_csv}")
+        console.print(f"[green]Dashboard: {dashboard_html}")
+
+    except Exception as e:
+        # Fail job on error
+        if manager is not None:
+            try:
+                manager.fail_job(job_id, str(e))
+            except Exception:
+                pass  # Don't let job tracking failure mask the original error
+        raise
 
 
 @sweep.command("comparison")
@@ -52636,6 +59085,13 @@ def sweep_comparison(
     default=True,
     help="Enable detailed CSV logging (trades.csv, repayment_events.csv, etc.)",
 )
+@click.option('--cloud', is_flag=True, help='Run simulations on Modal cloud')
+@click.option('--job-id', type=str, default=None, help='Job ID (auto-generated if not provided)')
+@click.option(
+    '--quiet/--verbose',
+    default=True,
+    help='Suppress verbose console output during sweeps (default: quiet)',
+)
 def sweep_balanced(
     out_dir: Path,
     n_agents: int,
@@ -52650,6 +59106,9 @@ def sweep_balanced(
     big_entity_share: Decimal,
     default_handling: str,
     detailed_logging: bool,
+    cloud: bool,
+    job_id: Optional[str],
+    quiet: bool,
 ) -> None:
     """
     Run balanced C vs D comparison experiments.
@@ -52671,6 +59130,55 @@ def sweep_balanced(
         BalancedComparisonRunner,
     )
 
+    out_dir = Path(out_dir)
+
+    # Generate job ID if not provided
+    if job_id is None:
+        job_id = generate_job_id()
+
+    # Create job manager with Supabase cloud storage
+    manager: Optional[JobManager] = None
+    try:
+        manager = create_job_manager(jobs_dir=out_dir, cloud=cloud, local=True)
+
+        # Create job config
+        job_config = JobConfig(
+            sweep_type="balanced",
+            n_agents=n_agents,
+            kappas=_decimal_list(kappas),
+            concentrations=_decimal_list(concentrations),
+            mus=_decimal_list(mus),
+            cloud=cloud,
+            outside_mid_ratios=_decimal_list(outside_mid_ratios),
+            maturity_days=maturity_days,
+            seeds=[base_seed],
+        )
+
+        # Create and start job
+        job = manager.create_job(
+            description=f"Balanced comparison sweep (n={n_agents}, cloud={cloud})",
+            config=job_config,
+            job_id=job_id,
+        )
+
+        click.echo(f"Job ID: {job.job_id}")
+        manager.start_job(job.job_id)
+    except Exception as e:
+        click.echo(f"Warning: Job tracking initialization failed: {e}")
+        manager = None
+
+    # Create executor (Plan 028)
+    executor = None
+    if cloud:
+        from bilancio.runners import CloudExecutor
+        executor = CloudExecutor(
+            experiment_id=job_id,  # Use job_id as experiment_id for simplicity
+            download_artifacts=False,
+            local_output_dir=out_dir,
+            job_id=job_id,
+        )
+        click.echo(f"Cloud execution enabled")
+
     config = BalancedComparisonConfig(
         n_agents=n_agents,
         maturity_days=maturity_days,
@@ -52684,20 +59192,60 @@ def sweep_balanced(
         big_entity_share=big_entity_share,
         default_handling=default_handling,
         detailed_logging=detailed_logging,
+        quiet=quiet,  # Plan 030
     )
 
-    runner = BalancedComparisonRunner(config, out_dir)
-    results = runner.run_all()
+    runner = BalancedComparisonRunner(config, out_dir, executor=executor, job_id=job_id)
 
-    # Print summary
-    completed = sum(1 for r in results if r.trading_effect is not None)
-    improved = sum(1 for r in results if r.trading_effect and r.trading_effect > 0)
+    try:
+        results = runner.run_all()
 
-    click.echo(f"\nBalanced comparison complete!")
-    click.echo(f"  Total pairs: {len(results)}")
-    click.echo(f"  Completed: {completed}")
-    click.echo(f"  Improved with trading: {improved}")
-    click.echo(f"\nResults at: {out_dir / 'aggregate' / 'comparison.csv'}")
+        # Record run IDs from results
+        if manager is not None:
+            try:
+                for r in results:
+                    if r.passive_run_id:
+                        manager.record_progress(
+                            job_id, r.passive_run_id,
+                            modal_call_id=r.passive_modal_call_id
+                        )
+                    if r.active_run_id:
+                        manager.record_progress(
+                            job_id, r.active_run_id,
+                            modal_call_id=r.active_modal_call_id
+                        )
+            except Exception as e:
+                click.echo(f"Warning: Failed to record run progress: {e}")
+
+        # Print summary
+        completed = sum(1 for r in results if r.trading_effect is not None)
+        improved = sum(1 for r in results if r.trading_effect and r.trading_effect > 0)
+
+        # Complete job with summary
+        if manager is not None:
+            try:
+                manager.complete_job(job_id, {
+                    "total_pairs": len(results),
+                    "completed": completed,
+                    "improved_with_trading": improved,
+                })
+            except Exception as e:
+                click.echo(f"Warning: Failed to complete job tracking: {e}")
+
+        click.echo(f"\nBalanced comparison complete!")
+        click.echo(f"  Total pairs: {len(results)}")
+        click.echo(f"  Completed: {completed}")
+        click.echo(f"  Improved with trading: {improved}")
+        click.echo(f"\nResults at: {out_dir / 'aggregate' / 'comparison.csv'}")
+
+    except Exception as e:
+        # Fail job on error
+        if manager is not None:
+            try:
+                manager.fail_job(job_id, str(e))
+            except Exception:
+                pass  # Don't let job tracking failure mask the original error
+        raise
 
 
 @sweep.command("strategy-outcomes")
@@ -52727,10 +59275,10 @@ def sweep_strategy_outcomes(experiment: Path, verbose: bool):
     by_run_path, overall_path = run_strategy_analysis(experiment)
 
     if by_run_path and by_run_path.exists():
-        click.echo(f"[green]✓[/green] Strategy outcomes by run: {by_run_path}")
-        click.echo(f"[green]✓[/green] Strategy outcomes overall: {overall_path}")
+        console.print(f"[green]✓[/green] Strategy outcomes by run: {by_run_path}")
+        console.print(f"[green]✓[/green] Strategy outcomes overall: {overall_path}")
     else:
-        click.echo("[yellow]No output generated - check that repayment_events.csv files exist[/yellow]")
+        console.print("[yellow]No output generated - check that repayment_events.csv files exist[/yellow]")
 
 
 @sweep.command("dealer-usage")
@@ -52757,295 +59305,262 @@ def sweep_dealer_usage(experiment: Path, verbose: bool):
     output_path = run_dealer_usage_analysis(experiment)
 
     if output_path and output_path.exists():
-        click.echo(f"[green]✓[/green] Dealer usage summary: {output_path}")
+        console.print(f"[green]✓[/green] Dealer usage summary: {output_path}")
     else:
-        click.echo("[yellow]No output generated - check that required CSV files exist[/yellow]")
+        console.print("[yellow]No output generated - check that required CSV files exist[/yellow]")
+
+```
+
+---
+
+### 📄 src/bilancio/ui/cli/utils.py
+
+```python
+"""Shared utilities for CLI commands."""
+
+from __future__ import annotations
+
+from decimal import Decimal
+
+from rich.console import Console
+
+from bilancio.experiments.ring import _decimal_list
 
 
-@cli.command()
-@click.argument('scenario_file', type=click.Path(exists=True, path_type=Path))
-@click.option('--mode', type=click.Choice(['step', 'until-stable']), 
-              default='until-stable', help='Simulation run mode')
-@click.option('--max-days', type=int, default=90, 
-              help='Maximum days to simulate')
-@click.option('--quiet-days', type=int, default=2,
-              help='Required quiet days for stable state')
-@click.option('--show', type=click.Choice(['summary', 'detailed', 'table']),
-              default='detailed', help='Event display mode')
-@click.option('--agents', type=str, default=None,
-              help='Comma-separated list of agent IDs to show balances for')
-@click.option('--check-invariants', 
-              type=click.Choice(['setup', 'daily', 'none']),
-              default='setup',
-              help='When to check system invariants')
-@click.option('--export-balances', type=click.Path(path_type=Path),
-              default=None, help='Path to export balances CSV')
-@click.option('--export-events', type=click.Path(path_type=Path),
-              default=None, help='Path to export events JSONL')
-@click.option('--html', type=click.Path(path_type=Path),
-              default=None, help='Path to export colored output as HTML')
-@click.option('--t-account/--no-t-account', default=False, help='Use detailed T-account layout for balances')
-@click.option('--default-handling', type=click.Choice(['fail-fast', 'expel-agent']),
-              default=None, help='Default-handling mode (override scenario setting)')
-def run(scenario_file: Path, 
-        mode: str,
-        max_days: int,
-        quiet_days: int,
-        show: str,
-        agents: Optional[str],
-        check_invariants: str,
-        export_balances: Optional[Path],
-        export_events: Optional[Path],
-        html: Optional[Path],
-        t_account: bool,
-        default_handling: Optional[str]):
-    """Run a Bilancio simulation scenario.
-    
-    Load a scenario from a YAML file and run the simulation either
-    step-by-step or until a stable state is reached.
+console = Console()
+
+
+def _as_decimal_list(value):
+    """Convert value to list of Decimals.
+
+    Handles both list/tuple input and comma-separated string input.
     """
+    if isinstance(value, (list, tuple)):
+        return [Decimal(str(item)) for item in value]
+    return _decimal_list(value)
+
+```
+
+---
+
+### 📄 src/bilancio/ui/cli/volume.py
+
+```python
+"""Modal Volume management commands."""
+
+from __future__ import annotations
+
+import subprocess
+import json
+from datetime import datetime, timedelta
+from typing import Optional
+
+import click
+
+
+def get_volume_contents(volume_name: str = "bilancio-results") -> list[dict]:
+    """Get contents of Modal Volume as list of dicts."""
+    result = subprocess.run(
+        ["uv", "run", "modal", "volume", "ls", volume_name, "--json"],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        raise click.ClickException(f"Failed to list volume: {result.stderr}")
+    return json.loads(result.stdout)
+
+
+def delete_volume_path(volume_name: str, path: str) -> bool:
+    """Delete a path from Modal Volume."""
+    result = subprocess.run(
+        ["uv", "run", "modal", "volume", "rm", volume_name, path, "-r"],
+        capture_output=True,
+        text=True,
+    )
+    return result.returncode == 0
+
+
+def parse_modal_date(date_str: str) -> datetime:
+    """Parse Modal's date format (e.g., '2026-01-12 16:20 CET')."""
+    # Remove timezone abbreviation and parse
+    parts = date_str.rsplit(" ", 1)
+    date_part = parts[0]
     try:
-        # Parse agent list if provided
-        agent_ids = None
-        if agents:
-            agent_ids = [a.strip() for a in agents.split(',')]
-        
-        # Override export paths if provided via CLI
-        export = {
-            'balances_csv': str(export_balances) if export_balances else None,
-            'events_jsonl': str(export_events) if export_events else None
-        }
-        
-        # Run the scenario
-        run_scenario(
-            path=scenario_file,
-            mode=mode,
-            max_days=max_days,
-            quiet_days=quiet_days,
-            show=show,
-            agent_ids=agent_ids,
-            check_invariants=check_invariants,
-            export=export,
-            html_output=html,
-            t_account=t_account,
-            default_handling=default_handling
-        )
-        
-    except FileNotFoundError as e:
-        console.print(Panel(
-            f"[red]File not found:[/red] {e}",
-            title="Error",
-            border_style="red"
-        ))
-        sys.exit(1)
-        
-    except ValueError as e:
-        console.print(Panel(
-            f"[red]Configuration error:[/red]\n{e}",
-            title="Error",
-            border_style="red"
-        ))
-        sys.exit(1)
-        
-    except Exception as e:
-        console.print(Panel(
-            f"[red]Unexpected error:[/red]\n{e}",
-            title="Error",
-            border_style="red"
-        ))
-        if '--debug' in sys.argv:
-            raise
-        sys.exit(1)
+        return datetime.strptime(date_part, "%Y-%m-%d %H:%M")
+    except ValueError:
+        # Fallback: return now if parsing fails
+        return datetime.now()
 
 
-@cli.command()
-@click.argument('scenario_file', type=click.Path(exists=True, path_type=Path))
-def validate(scenario_file: Path):
-    """Validate a Bilancio scenario configuration file.
-    
-    Check that a YAML configuration file is valid without running
-    the simulation. Reports any errors in the configuration structure,
-    agent definitions, or initial actions.
-    """
+@click.group()
+def volume():
+    """Manage Modal Volume storage."""
+    pass
+
+
+@volume.command("ls")
+@click.option("--volume", "volume_name", default="bilancio-results", help="Volume name")
+def list_volume(volume_name: str):
+    """List experiments in Modal Volume."""
     try:
-        from bilancio.config import load_yaml
-        from bilancio.engines.system import System
-        from bilancio.config import apply_to_system
-        
-        # Load and parse the configuration
-        console.print(f"[dim]Validating {scenario_file}...[/dim]")
-        config = load_yaml(scenario_file)
-        
-        console.print(f"[green]✓[/green] Configuration syntax is valid")
-        console.print(f"  Name: {config.name}")
-        console.print(f"  Version: {config.version}")
-        console.print(f"  Agents: {len(config.agents)}")
-        console.print(f"  Initial actions: {len(config.initial_actions)}")
-        
-        # Try to apply to a test system to validate actions
-        console.print("[dim]Checking if configuration can be applied...[/dim]")
-        test_system = System()
-        apply_to_system(config, test_system)
-        
-        console.print(f"[green]✓[/green] Configuration can be applied successfully")
-        
-        # Run invariant checks
-        test_system.assert_invariants()
-        console.print(f"[green]✓[/green] System invariants pass")
-        
-        # Summary
-        console.print("\n[bold green]Configuration is valid![/bold green]")
-        console.print(f"\nAgents defined:")
-        for agent in config.agents:
-            console.print(f"  • {agent.id} ({agent.kind}): {agent.name}")
-        
-        if config.run.export.balances_csv or config.run.export.events_jsonl:
-            console.print(f"\nExports configured:")
-            if config.run.export.balances_csv:
-                console.print(f"  • Balances: {config.run.export.balances_csv}")
-            if config.run.export.events_jsonl:
-                console.print(f"  • Events: {config.run.export.events_jsonl}")
-        
-    except FileNotFoundError as e:
-        console.print(Panel(
-            f"[red]File not found:[/red] {e}",
-            title="Error",
-            border_style="red"
-        ))
-        sys.exit(1)
-        
-    except ValueError as e:
-        console.print(Panel(
-            f"[red]Configuration error:[/red]\n{e}",
-            title="Validation Failed",
-            border_style="red"
-        ))
-        sys.exit(1)
-        
+        contents = get_volume_contents(volume_name)
     except Exception as e:
-        console.print(Panel(
-            f"[red]Validation error:[/red]\n{e}",
-            title="Validation Failed",
-            border_style="red"
-        ))
-        if '--debug' in sys.argv:
-            raise
-        sys.exit(1)
+        raise click.ClickException(str(e))
 
-
-@cli.command()
-@click.option('--from', 'from_template', type=str, default=None,
-              help='Base template to use')
-@click.option('-o', '--output', type=click.Path(path_type=Path),
-              required=True, help='Output YAML file path')
-def new(from_template: Optional[str], output: Path):
-    """Create a new scenario configuration.
-    
-    Interactive wizard to create a new Bilancio scenario
-    configuration file.
-    """
-    try:
-        create_scenario_wizard(output, from_template)
-        console.print(f"[green]✓[/green] Created scenario file: {output}")
-        
-    except Exception as e:
-        console.print(Panel(
-            f"[red]Failed to create scenario:[/red]\n{e}",
-            title="Error",
-            border_style="red"
-        ))
-        sys.exit(1)
-
-
-@cli.command()
-@click.option('--events', 'events_path', type=click.Path(exists=True, path_type=Path), required=True,
-              help='Path to events JSONL exported by a run')
-@click.option('--balances', 'balances_path', type=click.Path(exists=False, path_type=Path), required=False,
-              help='Path to balances CSV (optional, improves G_t/M_t)')
-@click.option('--days', type=str, default=None,
-              help='Days to analyze, e.g. "1,2-3". Default: infer from events')
-@click.option('--out-csv', 'out_csv', type=click.Path(path_type=Path), default=None,
-              help='Output CSV for day-level metrics')
-@click.option('--out-json', 'out_json', type=click.Path(path_type=Path), default=None,
-              help='Output JSON for day-level metrics')
-@click.option('--intraday-csv', 'intraday_csv', type=click.Path(path_type=Path), default=None,
-              help='Optional CSV for intraday P_prefix steps')
-@click.option('--html', 'html_out', type=click.Path(path_type=Path), default=None,
-              help='Optional HTML analytics report')
-def analyze(
-    events_path: Path,
-    balances_path: Optional[Path],
-    days: Optional[str],
-    out_csv: Optional[Path],
-    out_json: Optional[Path],
-    intraday_csv: Optional[Path],
-    html_out: Optional[Path],
-):
-    """Analyze a completed run and export Kalecki-style metrics.
-
-    Produces a day-level metrics CSV/JSON, optional intraday CSV (diagnostic).
-    """
-    # Load inputs
-    console.print(f"[dim]Reading events from {events_path}...[/dim]")
-    events = list(read_events_jsonl(events_path))
-
-    balances_rows = None
-    if balances_path and balances_path.exists():
-        console.print(f"[dim]Reading balances from {balances_path}...[/dim]")
-        balances_rows = read_balances_csv(balances_path)
-
-    day_list = parse_day_ranges(days) if days else None
-
-    bundle = compute_day_metrics(events, balances_rows, day_list)
-
-    if not bundle["day_metrics"]:
-        console.print("[yellow]No days found to analyze.[/yellow]")
+    if not contents:
+        click.echo("Volume is empty.")
         return
 
-    # Determine default output paths if not provided
-    base = events_path.stem.replace("_events", "") or "metrics"
-    out_dir = events_path.parent
-    if not out_csv:
-        out_csv = out_dir / f"{base}_metrics_day.csv"
-    if not out_json:
-        out_json = out_dir / f"{base}_metrics_day.json"
-    if intraday_csv:
-        intraday_csv.parent.mkdir(parents=True, exist_ok=True)
+    click.echo(f"Experiments in {volume_name}:")
+    click.echo("-" * 60)
 
-    # Write outputs
-    metrics_rows = bundle["day_metrics"]
-    ds_rows = bundle["debtor_shares"]
-    intraday_rows = bundle["intraday"]
+    for item in contents:
+        name = item.get("Filename", "unknown")
+        modified = item.get("Created/Modified", "unknown")
+        item_type = item.get("Type", "unknown")
+        if item_type == "dir":
+            click.echo(f"  {name:<40} {modified}")
 
-    write_day_metrics_csv(out_csv, metrics_rows)
-    console.print(f"[green]✓[/green] Wrote day metrics CSV: {out_csv}")
-    write_day_metrics_json(out_json, metrics_rows)
-    console.print(f"[green]✓[/green] Wrote day metrics JSON: {out_json}")
-
-    # Debtor shares and intraday are optional; only write if path provided
-    base_name = out_csv.stem.replace("_metrics_day", "") if out_csv else "metrics"
-    ds_path = out_csv.parent / f"{base_name}_ds.csv"
-    write_debtor_shares_csv(ds_path, ds_rows)
-    console.print(f"[green]✓[/green] Wrote debtor shares CSV: {ds_path}")
-
-    if intraday_csv:
-        write_intraday_csv(intraday_csv, intraday_rows)
-        console.print(f"[green]✓[/green] Wrote intraday CSV: {intraday_csv}")
-
-    if html_out:
-        title = f"Bilancio Analytics — {events_path.stem.replace('_events','')}"
-        subtitle = f"Events: {events_path.name}{' | Balances: ' + balances_path.name if balances_path else ''}"
-        write_metrics_html(html_out, metrics_rows, ds_rows, intraday_rows, title=title, subtitle=subtitle)
-        console.print(f"[green]✓[/green] Wrote HTML analytics: {html_out}")
+    click.echo("-" * 60)
+    click.echo(f"Total: {len([i for i in contents if i.get('Type') == 'dir'])} experiments")
 
 
-def main():
-    """Main entry point for the CLI."""
-    cli()
+@volume.command("cleanup")
+@click.option("--volume", "volume_name", default="bilancio-results", help="Volume name")
+@click.option(
+    "--older-than",
+    type=int,
+    default=None,
+    help="Delete experiments older than N days",
+)
+@click.option(
+    "--pattern",
+    type=str,
+    default=None,
+    help="Delete experiments matching pattern (e.g., 'test_*')",
+)
+@click.option("--dry-run", is_flag=True, help="Show what would be deleted without deleting")
+@click.option("--yes", "-y", is_flag=True, help="Skip confirmation prompt")
+def cleanup(
+    volume_name: str,
+    older_than: Optional[int],
+    pattern: Optional[str],
+    dry_run: bool,
+    yes: bool,
+):
+    """Clean up old experiments from Modal Volume.
+
+    Examples:
+        bilancio volume cleanup --older-than 30
+        bilancio volume cleanup --pattern "test_*" --dry-run
+        bilancio volume cleanup --older-than 7 --yes
+    """
+    try:
+        contents = get_volume_contents(volume_name)
+    except Exception as e:
+        raise click.ClickException(str(e))
+
+    # Filter directories only
+    experiments = [i for i in contents if i.get("Type") == "dir"]
+
+    if not experiments:
+        click.echo("No experiments found in volume.")
+        return
+
+    # Apply filters
+    to_delete = []
+    now = datetime.now()
+
+    for exp in experiments:
+        name = exp.get("Filename", "")
+        modified_str = exp.get("Created/Modified", "")
+        modified = parse_modal_date(modified_str)
+
+        should_delete = False
+
+        # Age filter
+        if older_than is not None:
+            age_days = (now - modified).days
+            if age_days >= older_than:
+                should_delete = True
+
+        # Pattern filter
+        if pattern is not None:
+            import fnmatch
+
+            if fnmatch.fnmatch(name, pattern):
+                should_delete = True
+
+        # If no filters specified, don't delete anything
+        if older_than is None and pattern is None:
+            click.echo("Error: Specify --older-than or --pattern to select experiments to delete.")
+            click.echo("Use 'bilancio volume ls' to see all experiments.")
+            return
+
+        if should_delete:
+            to_delete.append(exp)
+
+    if not to_delete:
+        click.echo("No experiments match the criteria.")
+        return
+
+    # Show what will be deleted
+    click.echo(f"{'[DRY RUN] ' if dry_run else ''}Experiments to delete:")
+    click.echo("-" * 60)
+    for exp in to_delete:
+        name = exp.get("Filename", "")
+        modified = exp.get("Created/Modified", "")
+        click.echo(f"  {name:<40} {modified}")
+    click.echo("-" * 60)
+    click.echo(f"Total: {len(to_delete)} experiments")
+
+    if dry_run:
+        click.echo("\n[DRY RUN] No changes made.")
+        return
+
+    # Confirm
+    if not yes:
+        if not click.confirm(f"\nDelete {len(to_delete)} experiments?"):
+            click.echo("Aborted.")
+            return
+
+    # Delete
+    deleted = 0
+    failed = 0
+    for exp in to_delete:
+        name = exp.get("Filename", "")
+        click.echo(f"Deleting {name}...", nl=False)
+        if delete_volume_path(volume_name, name):
+            click.echo(" OK")
+            deleted += 1
+        else:
+            click.echo(" FAILED")
+            failed += 1
+
+    click.echo(f"\nDeleted: {deleted}, Failed: {failed}")
 
 
-if __name__ == '__main__':
-    main()
+@volume.command("rm")
+@click.argument("experiment_id")
+@click.option("--volume", "volume_name", default="bilancio-results", help="Volume name")
+@click.option("--yes", "-y", is_flag=True, help="Skip confirmation prompt")
+def remove(experiment_id: str, volume_name: str, yes: bool):
+    """Remove a specific experiment from Modal Volume.
+
+    Example:
+        bilancio volume rm castle-river-mountain-forest
+    """
+    if not yes:
+        if not click.confirm(f"Delete experiment '{experiment_id}'?"):
+            click.echo("Aborted.")
+            return
+
+    click.echo(f"Deleting {experiment_id}...", nl=False)
+    if delete_volume_path(volume_name, experiment_id):
+        click.echo(" OK")
+    else:
+        click.echo(" FAILED")
+        raise click.ClickException("Failed to delete experiment")
 
 ```
 
@@ -53158,18 +59673,22 @@ def show_day_summary_renderable(
     t_account: bool = False
 ) -> List[RenderableType]:
     """Return renderables for a simulation day summary.
-    
+
     Args:
         system: System instance
         agent_ids: Agent IDs to show balances for
-        event_mode: "summary" or "detailed"
+        event_mode: "summary", "detailed", "table", or "none"
         day: Day number to display events for (None for all)
-        
+
     Returns:
-        List of renderables
+        List of renderables (empty list if event_mode="none")
     """
+    # Plan 030: "none" mode suppresses all output for sweep performance
+    if event_mode == "none":
+        return []
+
     renderables = []
-    
+
     # Show events
     if day is not None:
         # Show events for specific day
@@ -54846,17 +61365,21 @@ def run_scenario(
     if not export.get('events_jsonl') and config.run.export.events_jsonl:
         export['events_jsonl'] = config.run.export.events_jsonl
     
-    # Show scenario header with agent list
-    header_renderables = show_scenario_header_renderable(config.name, config.description, config.agents)
-    for renderable in header_renderables:
-        console.print(renderable)
-    console.print(f"[dim]Default handling mode: {effective_default_handling}[/dim]")
-    
-    # Show initial state
-    console.print("\n[bold cyan]📅 Day 0 (After Setup)[/bold cyan]")
-    renderables = show_day_summary_renderable(system, agent_ids, show, t_account=t_account)
-    for renderable in renderables:
-        console.print(renderable)
+    # Plan 030: Check for quiet mode (show="none") to suppress verbose output
+    quiet_mode = show == "none"
+
+    # Show scenario header with agent list (skip in quiet mode)
+    if not quiet_mode:
+        header_renderables = show_scenario_header_renderable(config.name, config.description, config.agents)
+        for renderable in header_renderables:
+            console.print(renderable)
+        console.print(f"[dim]Default handling mode: {effective_default_handling}[/dim]")
+
+        # Show initial state
+        console.print("\n[bold cyan]📅 Day 0 (After Setup)[/bold cyan]")
+        renderables = show_day_summary_renderable(system, agent_ids, show, t_account=t_account)
+        for renderable in renderables:
+            console.print(renderable)
     
     # Capture initial balance state for HTML export
     initial_balances: Dict[str, Any] = {}
@@ -55199,7 +61722,10 @@ def run_until_stable_mode(
     Returns:
         List of day data dictionaries
     """
-    console.print(f"\n[dim]Running simulation until stable (max {max_days} days)...[/dim]\n")
+    # Plan 030: Skip verbose output in quiet mode (show="none")
+    quiet_mode = show == "none"
+    if not quiet_mode:
+        console.print(f"\n[dim]Running simulation until stable (max {max_days} days)...[/dim]\n")
 
     try:
         # Run simulation day by day to capture correct balance snapshots
@@ -55243,21 +61769,27 @@ def run_until_stable_mode(
                     })
             if day_before >= 1:
                 # Display this day's results immediately (with correct balance state)
-                console.print(f"[bold cyan]📅 Day {day_before}[/bold cyan]")
-                
+                # Plan 030: Skip day headers in quiet mode
+                if not quiet_mode:
+                    console.print(f"[bold cyan]📅 Day {day_before}[/bold cyan]")
+
                 # Check invariants if requested
                 if check_invariants == "daily":
                     try:
                         system.assert_invariants()
                     except Exception as e:
-                        console.print(f"[yellow]⚠ Invariant check failed: {e}[/yellow]")
-                
+                        if not quiet_mode:
+                            console.print(f"[yellow]⚠ Invariant check failed: {e}[/yellow]")
+
                 # Show events and balances for this specific day
                 # Note: events are stored with 0-based day numbers
+                # Plan 030: show_day_summary_renderable returns [] for show="none"
+                # Always compute display_agent_ids (needed for HTML export even in quiet mode)
                 display_agent_ids = _filter_active_agent_ids(system, agent_ids) if agent_ids is not None else None
-                renderables = show_day_summary_renderable(system, display_agent_ids, show, day=day_before, t_account=t_account)
-                for renderable in renderables:
-                    console.print(renderable)
+                if not quiet_mode:
+                    renderables = show_day_summary_renderable(system, display_agent_ids, show, day=day_before, t_account=t_account)
+                    for renderable in renderables:
+                        console.print(renderable)
                 
                 # Collect day data for HTML export
                 # We want simulation events from the day that was just displayed
@@ -55304,16 +61836,17 @@ def run_until_stable_mode(
                     'agent_ids': active_agents_for_day if active_agents_for_day is not None else [],
                 })
                 
-                # Show activity summary
-                if report.impacted > 0:
-                    console.print(f"[dim]Activity: {report.impacted} impactful events[/dim]")
-                else:
-                    console.print("[dim]→ Quiet day (no activity)[/dim]")
-                
-                if report.notes:
-                    console.print(f"[dim]Note: {report.notes}[/dim]")
-                
-                console.print()
+                # Show activity summary (Plan 030: skip in quiet mode)
+                if not quiet_mode:
+                    if report.impacted > 0:
+                        console.print(f"[dim]Activity: {report.impacted} impactful events[/dim]")
+                    else:
+                        console.print("[dim]→ Quiet day (no activity)[/dim]")
+
+                    if report.notes:
+                        console.print(f"[dim]Note: {report.notes}[/dim]")
+
+                    console.print()
             
             # Check for stable state
             if impacted == 0:
@@ -55906,6 +62439,368 @@ class TestBalanceAnalytics:
 
 ---
 
+### 🧪 tests/analysis/test_metrics_computer.py
+
+```python
+"""Tests for MetricsComputer."""
+
+import json
+import pytest
+from pathlib import Path
+from typing import Dict, Any, List
+
+from bilancio.storage.artifact_loaders import LocalArtifactLoader
+from bilancio.analysis.metrics_computer import MetricsComputer, MetricsBundle
+
+
+# Sample events in JSONL format for testing
+SAMPLE_EVENTS_JSONL = """{"type": "setup", "event": "mint_reserves", "day": 0, "amount": 10000, "to": "Bank1"}
+{"type": "setup", "event": "create_payable", "day": 0, "from": "Firm1", "to": "Firm2", "amount": 500, "due_day": 1}
+{"type": "phase", "day": 1, "phase": "B"}
+{"type": "settlement", "day": 1, "from": "Firm1", "to": "Firm2", "amount": 500, "event": "settled"}
+{"type": "phase", "day": 1, "phase": "C"}
+{"type": "end_day", "day": 1}
+{"type": "phase", "day": 2, "phase": "B"}
+{"type": "phase", "day": 2, "phase": "C"}
+{"type": "end_day", "day": 2}
+"""
+
+# Sample balances CSV content
+SAMPLE_BALANCES_CSV = """day,agent,account,balance
+0,Bank1,reserves,10000
+0,Firm1,deposits,2000
+0,Firm2,deposits,1000
+1,Bank1,reserves,10000
+1,Firm1,deposits,1500
+1,Firm2,deposits,1500
+"""
+
+
+@pytest.fixture
+def sample_events_file(tmp_path: Path) -> Path:
+    """Create a sample events.jsonl file."""
+    events_file = tmp_path / "events.jsonl"
+    events_file.write_text(SAMPLE_EVENTS_JSONL)
+    return events_file
+
+
+@pytest.fixture
+def sample_balances_file(tmp_path: Path) -> Path:
+    """Create a sample balances.csv file."""
+    balances_file = tmp_path / "balances.csv"
+    balances_file.write_text(SAMPLE_BALANCES_CSV)
+    return balances_file
+
+
+@pytest.fixture
+def loader(tmp_path: Path) -> LocalArtifactLoader:
+    """Create a LocalArtifactLoader for temp directory."""
+    return LocalArtifactLoader(tmp_path)
+
+
+@pytest.fixture
+def computer(loader: LocalArtifactLoader) -> MetricsComputer:
+    """Create a MetricsComputer instance."""
+    return MetricsComputer(loader)
+
+
+class TestMetricsComputerCompute:
+    """Tests for MetricsComputer.compute()."""
+
+    def test_compute_with_events_only(
+        self, computer: MetricsComputer, sample_events_file: Path
+    ):
+        """compute() works with only events_jsonl artifact."""
+        artifacts = {"events_jsonl": "events.jsonl"}
+        bundle = computer.compute(artifacts)
+
+        assert isinstance(bundle, MetricsBundle)
+        assert isinstance(bundle.day_metrics, list)
+        assert isinstance(bundle.debtor_shares, list)
+        assert isinstance(bundle.intraday, list)
+        assert isinstance(bundle.summary, dict)
+
+    def test_compute_with_events_and_balances(
+        self,
+        computer: MetricsComputer,
+        sample_events_file: Path,
+        sample_balances_file: Path,
+    ):
+        """compute() works with both events_jsonl and balances_csv."""
+        artifacts = {
+            "events_jsonl": "events.jsonl",
+            "balances_csv": "balances.csv",
+        }
+        bundle = computer.compute(artifacts)
+
+        assert isinstance(bundle, MetricsBundle)
+        # With balances, M_t and G_t should potentially be computed
+        assert bundle.day_metrics is not None
+
+    def test_compute_raises_keyerror_when_events_missing(
+        self, computer: MetricsComputer
+    ):
+        """compute() raises KeyError when events_jsonl is missing."""
+        artifacts: Dict[str, str] = {}
+
+        with pytest.raises(KeyError) as exc_info:
+            computer.compute(artifacts)
+
+        assert "events_jsonl" in str(exc_info.value)
+
+    def test_compute_raises_keyerror_when_events_none(
+        self, computer: MetricsComputer
+    ):
+        """compute() raises KeyError when events_jsonl is None."""
+        artifacts = {"events_jsonl": None}
+
+        with pytest.raises(KeyError):
+            computer.compute(artifacts)
+
+    def test_compute_raises_filenotfound_for_missing_events_file(
+        self, computer: MetricsComputer, tmp_path: Path
+    ):
+        """compute() raises FileNotFoundError when events file doesn't exist."""
+        artifacts = {"events_jsonl": "nonexistent.jsonl"}
+
+        with pytest.raises(FileNotFoundError):
+            computer.compute(artifacts)
+
+    def test_compute_with_day_list(
+        self, computer: MetricsComputer, sample_events_file: Path
+    ):
+        """compute() accepts optional day_list parameter."""
+        artifacts = {"events_jsonl": "events.jsonl"}
+        bundle = computer.compute(artifacts, day_list=[1])
+
+        assert isinstance(bundle, MetricsBundle)
+
+    def test_compute_ignores_missing_balances_file(
+        self, computer: MetricsComputer, sample_events_file: Path
+    ):
+        """compute() ignores balances_csv if file doesn't exist."""
+        artifacts = {
+            "events_jsonl": "events.jsonl",
+            "balances_csv": "nonexistent_balances.csv",
+        }
+
+        # Should not raise, just skip balances
+        bundle = computer.compute(artifacts)
+        assert isinstance(bundle, MetricsBundle)
+
+    def test_compute_returns_metrics_bundle(
+        self, computer: MetricsComputer, sample_events_file: Path
+    ):
+        """compute() returns a MetricsBundle instance."""
+        artifacts = {"events_jsonl": "events.jsonl"}
+        result = computer.compute(artifacts)
+
+        assert isinstance(result, MetricsBundle)
+
+
+class TestMetricsComputerWriteOutputs:
+    """Tests for MetricsComputer.write_outputs()."""
+
+    def test_write_outputs_creates_metrics_csv(
+        self, computer: MetricsComputer, sample_events_file: Path, tmp_path: Path
+    ):
+        """write_outputs() creates metrics.csv file."""
+        artifacts = {"events_jsonl": "events.jsonl"}
+        bundle = computer.compute(artifacts)
+
+        output_dir = tmp_path / "output"
+        paths = computer.write_outputs(bundle, output_dir)
+
+        assert "metrics_csv" in paths
+        assert paths["metrics_csv"].exists()
+        assert paths["metrics_csv"].name == "metrics.csv"
+
+    def test_write_outputs_creates_metrics_json(
+        self, computer: MetricsComputer, sample_events_file: Path, tmp_path: Path
+    ):
+        """write_outputs() creates metrics.json file."""
+        artifacts = {"events_jsonl": "events.jsonl"}
+        bundle = computer.compute(artifacts)
+
+        output_dir = tmp_path / "output"
+        paths = computer.write_outputs(bundle, output_dir)
+
+        assert "metrics_json" in paths
+        assert paths["metrics_json"].exists()
+        assert paths["metrics_json"].name == "metrics.json"
+
+    def test_write_outputs_creates_debtor_shares_csv(
+        self, computer: MetricsComputer, sample_events_file: Path, tmp_path: Path
+    ):
+        """write_outputs() creates debtor_shares.csv file."""
+        artifacts = {"events_jsonl": "events.jsonl"}
+        bundle = computer.compute(artifacts)
+
+        output_dir = tmp_path / "output"
+        paths = computer.write_outputs(bundle, output_dir)
+
+        assert "debtor_shares_csv" in paths
+        assert paths["debtor_shares_csv"].exists()
+        assert paths["debtor_shares_csv"].name == "debtor_shares.csv"
+
+    def test_write_outputs_creates_intraday_csv(
+        self, computer: MetricsComputer, sample_events_file: Path, tmp_path: Path
+    ):
+        """write_outputs() creates intraday.csv file."""
+        artifacts = {"events_jsonl": "events.jsonl"}
+        bundle = computer.compute(artifacts)
+
+        output_dir = tmp_path / "output"
+        paths = computer.write_outputs(bundle, output_dir)
+
+        assert "intraday_csv" in paths
+        assert paths["intraday_csv"].exists()
+        assert paths["intraday_csv"].name == "intraday.csv"
+
+    def test_write_outputs_creates_metrics_html(
+        self, computer: MetricsComputer, sample_events_file: Path, tmp_path: Path
+    ):
+        """write_outputs() creates metrics.html file."""
+        artifacts = {"events_jsonl": "events.jsonl"}
+        bundle = computer.compute(artifacts)
+
+        output_dir = tmp_path / "output"
+        paths = computer.write_outputs(bundle, output_dir)
+
+        assert "metrics_html" in paths
+        assert paths["metrics_html"].exists()
+        assert paths["metrics_html"].name == "metrics.html"
+
+    def test_write_outputs_creates_all_expected_files(
+        self, computer: MetricsComputer, sample_events_file: Path, tmp_path: Path
+    ):
+        """write_outputs() creates all 5 expected output files."""
+        artifacts = {"events_jsonl": "events.jsonl"}
+        bundle = computer.compute(artifacts)
+
+        output_dir = tmp_path / "output"
+        paths = computer.write_outputs(bundle, output_dir)
+
+        expected_files = {
+            "metrics_csv",
+            "metrics_json",
+            "debtor_shares_csv",
+            "intraday_csv",
+            "metrics_html",
+        }
+        assert set(paths.keys()) == expected_files
+
+    def test_write_outputs_creates_output_directory(
+        self, computer: MetricsComputer, sample_events_file: Path, tmp_path: Path
+    ):
+        """write_outputs() creates output directory if it doesn't exist."""
+        artifacts = {"events_jsonl": "events.jsonl"}
+        bundle = computer.compute(artifacts)
+
+        output_dir = tmp_path / "nested" / "output"
+        assert not output_dir.exists()
+
+        computer.write_outputs(bundle, output_dir)
+
+        assert output_dir.exists()
+
+    def test_write_outputs_accepts_title_and_subtitle(
+        self, computer: MetricsComputer, sample_events_file: Path, tmp_path: Path
+    ):
+        """write_outputs() accepts optional title and subtitle."""
+        artifacts = {"events_jsonl": "events.jsonl"}
+        bundle = computer.compute(artifacts)
+
+        output_dir = tmp_path / "output"
+        paths = computer.write_outputs(
+            bundle, output_dir, title="Test Report", subtitle="Test Subtitle"
+        )
+
+        # Just verify it doesn't raise and creates the files
+        assert paths["metrics_html"].exists()
+
+
+class TestMetricsBundle:
+    """Tests for MetricsBundle dataclass."""
+
+    def test_metrics_bundle_has_day_metrics_attribute(self):
+        """MetricsBundle has day_metrics attribute."""
+        bundle = MetricsBundle(
+            day_metrics=[],
+            debtor_shares=[],
+            intraday=[],
+            summary={},
+        )
+        assert hasattr(bundle, "day_metrics")
+
+    def test_metrics_bundle_has_debtor_shares_attribute(self):
+        """MetricsBundle has debtor_shares attribute."""
+        bundle = MetricsBundle(
+            day_metrics=[],
+            debtor_shares=[],
+            intraday=[],
+            summary={},
+        )
+        assert hasattr(bundle, "debtor_shares")
+
+    def test_metrics_bundle_has_intraday_attribute(self):
+        """MetricsBundle has intraday attribute."""
+        bundle = MetricsBundle(
+            day_metrics=[],
+            debtor_shares=[],
+            intraday=[],
+            summary={},
+        )
+        assert hasattr(bundle, "intraday")
+
+    def test_metrics_bundle_has_summary_attribute(self):
+        """MetricsBundle has summary attribute."""
+        bundle = MetricsBundle(
+            day_metrics=[],
+            debtor_shares=[],
+            intraday=[],
+            summary={},
+        )
+        assert hasattr(bundle, "summary")
+
+    def test_metrics_bundle_stores_values(self):
+        """MetricsBundle stores provided values correctly."""
+        day_metrics = [{"day": 1, "S_t": 100}]
+        debtor_shares = [{"day": 1, "agent": "A", "DS_t": 0.5}]
+        intraday = [{"day": 1, "step": 0, "P_prefix": 50}]
+        summary = {"phi_total": 100.0, "delta_total": 50.0}
+
+        bundle = MetricsBundle(
+            day_metrics=day_metrics,
+            debtor_shares=debtor_shares,
+            intraday=intraday,
+            summary=summary,
+        )
+
+        assert bundle.day_metrics == day_metrics
+        assert bundle.debtor_shares == debtor_shares
+        assert bundle.intraday == intraday
+        assert bundle.summary == summary
+
+
+class TestMetricsComputerInit:
+    """Tests for MetricsComputer initialization."""
+
+    def test_init_stores_loader(self, loader: LocalArtifactLoader):
+        """__init__ stores the loader."""
+        computer = MetricsComputer(loader)
+        assert computer.loader is loader
+
+    def test_accepts_artifact_loader_protocol(self, tmp_path: Path):
+        """__init__ accepts any ArtifactLoader implementation."""
+        loader = LocalArtifactLoader(tmp_path)
+        computer = MetricsComputer(loader)
+        assert computer.loader is not None
+
+```
+
+---
+
 ### 🧪 tests/analysis/test_report_aggregate.py
 
 ```python
@@ -56004,6 +62899,1006 @@ def test_build_t_account_rows_sorting_by_maturity():
     # Build keys using the same helper
     asset_due_days = [parse_day_from_maturity(r.maturity) for r in acct_f1.assets if r.name.endswith("receivable")]
     assert asset_due_days == sorted(asset_due_days)
+
+```
+
+---
+
+### 🧪 tests/analysis/test_visualization.py
+
+```python
+"""Tests for the analysis/visualization module.
+
+Tests cover:
+- Balance sheet display functions (rich and simple formats)
+- Event display functions
+- Build helper functions (build_t_account_rows, etc.)
+"""
+
+from io import StringIO
+from decimal import Decimal
+import sys as python_sys
+
+import pytest
+
+from bilancio.engines.system import System
+from bilancio.engines.simulation import run_day
+from bilancio.domain.agents import CentralBank, Bank, Household, Firm
+from bilancio.domain.instruments.credit import Payable
+from bilancio.ops.banking import deposit_cash, client_payment
+from bilancio.analysis.balances import agent_balance
+
+from bilancio.analysis.visualization import (
+    # Balance functions
+    display_agent_balance_table,
+    display_agent_balance_from_balance,
+    display_multiple_agent_balances,
+    build_t_account_rows,
+    display_agent_balance_table_renderable,
+    display_multiple_agent_balances_renderable,
+    # Event functions
+    display_events,
+    display_events_table,
+    display_events_table_renderable,
+    display_events_for_day,
+    display_events_renderable,
+    display_events_for_day_renderable,
+    # Phase functions
+    display_events_tables_by_phase_renderables,
+    # Common utilities
+    RICH_AVAILABLE,
+    BalanceRow,
+    TAccount,
+    parse_day_from_maturity,
+)
+
+
+# ============================================================================
+# Fixtures
+# ============================================================================
+
+
+@pytest.fixture
+def simple_system():
+    """Create a simple system with bank and household for basic tests.
+
+    Setup:
+    - Central Bank (CB01)
+    - Bank (BK01) with 5000 in reserves
+    - Household (HH01) with 1000 cash, 600 deposited at bank
+    """
+    system = System()
+    cb = CentralBank(id="CB01", name="Central Bank", kind="central_bank")
+    bank = Bank(id="BK01", name="Test Bank", kind="bank")
+    household = Household(id="HH01", name="Test Household", kind="household")
+
+    system.bootstrap_cb(cb)
+    system.add_agent(bank)
+    system.add_agent(household)
+
+    # Mint reserves to bank
+    system.mint_reserves("BK01", 5000)
+
+    # Mint cash to household and deposit some
+    system.mint_cash("HH01", 1000)
+    deposit_cash(system, "HH01", "BK01", 600)
+
+    return system
+
+
+@pytest.fixture
+def multi_agent_system():
+    """Create a system with multiple agents for comparison tests.
+
+    Setup:
+    - Central Bank (CB01)
+    - Two Banks (BK01, BK02) with reserves
+    - Two Households (HH01, HH02) with deposits at different banks
+    """
+    system = System()
+    cb = CentralBank(id="CB01", name="Central Bank", kind="central_bank")
+    bank1 = Bank(id="BK01", name="Bank One", kind="bank")
+    bank2 = Bank(id="BK02", name="Bank Two", kind="bank")
+    hh1 = Household(id="HH01", name="Household One", kind="household")
+    hh2 = Household(id="HH02", name="Household Two", kind="household")
+
+    system.bootstrap_cb(cb)
+    system.add_agent(bank1)
+    system.add_agent(bank2)
+    system.add_agent(hh1)
+    system.add_agent(hh2)
+
+    # Setup reserves
+    system.mint_reserves("BK01", 5000)
+    system.mint_reserves("BK02", 3000)
+
+    # Setup household deposits
+    system.mint_cash("HH01", 2000)
+    system.mint_cash("HH02", 1500)
+    deposit_cash(system, "HH01", "BK01", 1500)
+    deposit_cash(system, "HH02", "BK02", 1000)
+
+    return system
+
+
+@pytest.fixture
+def system_with_events():
+    """Create a system that has run a day simulation to generate events.
+
+    This includes payables, payments, and interbank clearing.
+    """
+    system = System()
+    cb = CentralBank(id="CB01", name="Central Bank", kind="central_bank")
+    bank1 = Bank(id="BK01", name="Bank One", kind="bank")
+    bank2 = Bank(id="BK02", name="Bank Two", kind="bank")
+    hh1 = Household(id="HH01", name="Alice", kind="household")
+    hh2 = Household(id="HH02", name="Bob", kind="household")
+    hh3 = Household(id="HH03", name="Charlie", kind="household")
+
+    system.bootstrap_cb(cb)
+    system.add_agent(bank1)
+    system.add_agent(bank2)
+    system.add_agent(hh1)
+    system.add_agent(hh2)
+    system.add_agent(hh3)
+
+    # Banks get reserves
+    system.mint_reserves("BK01", 500)
+    system.mint_reserves("BK02", 500)
+
+    # Households get cash and deposit
+    system.mint_cash("HH01", 300)
+    system.mint_cash("HH02", 200)
+    system.mint_cash("HH03", 100)
+    deposit_cash(system, "HH01", "BK01", 300)
+    deposit_cash(system, "HH02", "BK01", 200)
+    deposit_cash(system, "HH03", "BK02", 100)
+
+    # Create a payable due today
+    payable_id = system.new_contract_id("P")
+    payable = Payable(
+        id=payable_id,
+        kind="payable",
+        amount=100,
+        denom="X",
+        asset_holder_id="HH02",
+        liability_issuer_id="HH01",
+        due_day=system.state.day
+    )
+    system.add_contract(payable)
+
+    # Create cross-bank payment
+    client_payment(system, "HH02", "BK01", "HH03", "BK02", 50)
+
+    # Run a day to generate phase events
+    run_day(system)
+
+    return system
+
+
+# ============================================================================
+# Tests for Balance Display Functions
+# ============================================================================
+
+
+class TestDisplayAgentBalanceTable:
+    """Tests for display_agent_balance_table function."""
+
+    def test_display_rich_format_runs_without_error(self, simple_system, capsys):
+        """Test that rich format display executes without errors."""
+        if not RICH_AVAILABLE:
+            pytest.skip("Rich library not available")
+
+        display_agent_balance_table(simple_system, "HH01", format='rich')
+        # Just verify it runs - output goes to console
+        captured = capsys.readouterr()
+        # Rich output may or may not be captured depending on console setup
+
+    def test_display_simple_format(self, simple_system, capsys):
+        """Test that simple format produces text output."""
+        display_agent_balance_table(simple_system, "HH01", format='simple')
+        captured = capsys.readouterr()
+
+        # Verify key elements are in output
+        assert "HH01" in captured.out or "Test Household" in captured.out
+        assert "ASSETS" in captured.out
+        assert "LIABILITIES" in captured.out
+
+    def test_display_with_custom_title(self, simple_system, capsys):
+        """Test display with custom title."""
+        custom_title = "Custom Balance Title"
+        display_agent_balance_table(simple_system, "HH01", format='simple', title=custom_title)
+        captured = capsys.readouterr()
+
+        assert custom_title in captured.out
+
+    def test_display_bank_balance(self, simple_system, capsys):
+        """Test displaying bank balance (has both assets and liabilities)."""
+        display_agent_balance_table(simple_system, "BK01", format='simple')
+        captured = capsys.readouterr()
+
+        # Bank should have reserves as assets and deposits as liabilities
+        assert "ASSETS" in captured.out
+        assert "LIABILITIES" in captured.out
+
+
+class TestDisplayAgentBalanceFromBalance:
+    """Tests for display_agent_balance_from_balance function."""
+
+    def test_display_from_balance_object(self, simple_system, capsys):
+        """Test displaying from a pre-computed AgentBalance object."""
+        balance = agent_balance(simple_system, "HH01")
+        display_agent_balance_from_balance(balance, format='simple')
+        captured = capsys.readouterr()
+
+        assert "ASSETS" in captured.out
+        assert "LIABILITIES" in captured.out
+
+    def test_display_from_balance_with_title(self, simple_system, capsys):
+        """Test displaying from balance with custom title."""
+        balance = agent_balance(simple_system, "BK01")
+        display_agent_balance_from_balance(balance, format='simple', title="Bank Balance Sheet")
+        captured = capsys.readouterr()
+
+        assert "Bank Balance Sheet" in captured.out
+
+
+class TestDisplayMultipleAgentBalances:
+    """Tests for display_multiple_agent_balances function."""
+
+    def test_display_multiple_by_id(self, multi_agent_system, capsys):
+        """Test displaying multiple agents by ID."""
+        display_multiple_agent_balances(
+            multi_agent_system,
+            ["HH01", "HH02"],
+            format='simple'
+        )
+        captured = capsys.readouterr()
+
+        # Both agents should appear in output
+        assert "HH01" in captured.out or "Household One" in captured.out
+        assert "HH02" in captured.out or "Household Two" in captured.out
+
+    def test_display_multiple_by_balance_objects(self, multi_agent_system, capsys):
+        """Test displaying multiple agents using AgentBalance objects."""
+        balances = [
+            agent_balance(multi_agent_system, "BK01"),
+            agent_balance(multi_agent_system, "BK02")
+        ]
+        display_multiple_agent_balances(multi_agent_system, balances, format='simple')
+        captured = capsys.readouterr()
+
+        # Both banks should appear
+        assert "BK01" in captured.out or "Bank One" in captured.out
+        assert "BK02" in captured.out or "Bank Two" in captured.out
+
+    def test_display_mixed_items(self, multi_agent_system, capsys):
+        """Test displaying with mix of IDs and balance objects."""
+        balance_hh1 = agent_balance(multi_agent_system, "HH01")
+        display_multiple_agent_balances(
+            multi_agent_system,
+            [balance_hh1, "HH02"],
+            format='simple'
+        )
+        captured = capsys.readouterr()
+
+        # Both should appear
+        assert "HH01" in captured.out or "Household One" in captured.out
+
+
+# ============================================================================
+# Tests for Balance Renderable Functions
+# ============================================================================
+
+
+class TestBalanceRenderables:
+    """Tests for balance renderable functions."""
+
+    def test_balance_table_renderable_rich(self, simple_system):
+        """Test that renderable returns appropriate type for rich format."""
+        if not RICH_AVAILABLE:
+            pytest.skip("Rich library not available")
+
+        result = display_agent_balance_table_renderable(
+            simple_system, "HH01", format='rich'
+        )
+        # Should return a Rich Table
+        assert result is not None
+        # Rich Table has specific attributes
+        assert hasattr(result, 'columns') or isinstance(result, str)
+
+    def test_balance_table_renderable_simple(self, simple_system):
+        """Test that renderable returns string for simple format."""
+        result = display_agent_balance_table_renderable(
+            simple_system, "HH01", format='simple'
+        )
+        assert isinstance(result, str)
+        assert "ASSETS" in result
+
+    def test_multiple_balances_renderable_simple(self, multi_agent_system):
+        """Test multiple balances renderable in simple format."""
+        result = display_multiple_agent_balances_renderable(
+            multi_agent_system,
+            ["HH01", "HH02"],
+            format='simple'
+        )
+        assert isinstance(result, str)
+        assert "HH01" in result or "Household One" in result
+
+
+# ============================================================================
+# Tests for Build Functions
+# ============================================================================
+
+
+class TestBuildTAccountRows:
+    """Tests for build_t_account_rows function."""
+
+    def test_returns_taccount_structure(self, simple_system):
+        """Test that build_t_account_rows returns proper TAccount structure."""
+        taccount = build_t_account_rows(simple_system, "HH01")
+
+        assert isinstance(taccount, TAccount)
+        assert isinstance(taccount.assets, list)
+        assert isinstance(taccount.liabilities, list)
+
+    def test_asset_rows_have_expected_fields(self, simple_system):
+        """Test that asset rows contain expected BalanceRow fields."""
+        taccount = build_t_account_rows(simple_system, "HH01")
+
+        # Household should have assets (cash, deposit)
+        assert len(taccount.assets) > 0
+
+        for row in taccount.assets:
+            assert isinstance(row, BalanceRow)
+            assert row.name is not None
+            # value_minor should be set for financial assets
+            assert row.value_minor is not None or row.quantity is not None
+
+    def test_liability_rows_for_bank(self, simple_system):
+        """Test that bank liability rows are built correctly."""
+        taccount = build_t_account_rows(simple_system, "BK01")
+
+        # Bank should have liabilities (deposits from household)
+        assert len(taccount.liabilities) > 0
+
+        deposit_found = False
+        for row in taccount.liabilities:
+            if "bank_deposit" in row.name or "deposit" in row.name.lower():
+                deposit_found = True
+                assert row.value_minor == 600  # HH01 deposited 600
+
+        assert deposit_found, "Bank should have deposit liability"
+
+    def test_counterparty_info_present(self, simple_system):
+        """Test that counterparty information is included in rows."""
+        taccount = build_t_account_rows(simple_system, "HH01")
+
+        # Find the bank deposit asset
+        for row in taccount.assets:
+            if "bank_deposit" in row.name:
+                # Counterparty should be the bank
+                assert row.counterparty_name is not None
+                assert "BK01" in row.counterparty_name or "Test Bank" in row.counterparty_name
+
+    def test_delivery_obligations_as_receivables(self, simple_system):
+        """Test that delivery obligations appear as receivables on asset side."""
+        # Add delivery obligation
+        simple_system.create_delivery_obligation(
+            "BK01", "HH01", sku="GOODS", quantity=10,
+            unit_price=Decimal("5"), due_day=1
+        )
+
+        taccount = build_t_account_rows(simple_system, "HH01")
+
+        # HH01 should now have a receivable (right to receive goods)
+        receivable_found = any(
+            "receivable" in row.name.lower()
+            for row in taccount.assets
+        )
+        assert receivable_found, "Should have receivable for delivery obligation"
+
+    def test_delivery_obligations_as_liabilities(self, simple_system):
+        """Test that delivery obligations appear on liability side for issuer."""
+        simple_system.create_delivery_obligation(
+            "HH01", "BK01", sku="WIDGETS", quantity=5,
+            unit_price=Decimal("10"), due_day=2
+        )
+
+        taccount = build_t_account_rows(simple_system, "HH01")
+
+        # HH01 should have an obligation liability
+        obligation_found = any(
+            "obligation" in row.name.lower()
+            for row in taccount.liabilities
+        )
+        assert obligation_found, "Should have obligation liability"
+
+
+class TestParseDayFromMaturity:
+    """Tests for parse_day_from_maturity helper function."""
+
+    def test_parses_valid_day_string(self):
+        """Test parsing valid 'Day N' format."""
+        assert parse_day_from_maturity("Day 1") == 1
+        assert parse_day_from_maturity("Day 10") == 10
+        assert parse_day_from_maturity("Day 100") == 100
+
+    def test_returns_infinity_for_invalid(self):
+        """Test that invalid formats return infinity."""
+        import math
+
+        assert parse_day_from_maturity(None) == math.inf
+        assert parse_day_from_maturity("") > 10**9
+        assert parse_day_from_maturity("on-demand") > 10**9
+        assert parse_day_from_maturity("Day X") > 10**9
+        assert parse_day_from_maturity("Tomorrow") > 10**9
+
+
+# ============================================================================
+# Tests for Event Display Functions
+# ============================================================================
+
+
+class TestDisplayEvents:
+    """Tests for display_events function."""
+
+    def test_display_empty_events(self, capsys):
+        """Test displaying empty event list."""
+        display_events([], format='detailed')
+        captured = capsys.readouterr()
+
+        assert "No events" in captured.out
+
+    def test_display_detailed_format(self, system_with_events, capsys):
+        """Test detailed format includes phase information."""
+        events = system_with_events.state.events
+        display_events(events, format='detailed')
+        captured = capsys.readouterr()
+
+        # Should include phase labels
+        assert "Phase" in captured.out or "Day" in captured.out
+
+    def test_display_summary_format(self, system_with_events, capsys):
+        """Test summary format shows condensed events."""
+        events = system_with_events.state.events
+        display_events(events, format='summary')
+        # Should run without error - summary format may produce less output
+
+
+class TestDisplayEventsTable:
+    """Tests for display_events_table function."""
+
+    def test_display_events_table_has_columns(self, system_with_events, capsys):
+        """Test that events table includes expected columns."""
+        events = system_with_events.state.events
+        display_events_table(events)
+        # Should run without error
+
+
+class TestDisplayEventsTableRenderable:
+    """Tests for display_events_table_renderable function."""
+
+    def test_renderable_empty_events(self):
+        """Test renderable with empty events returns appropriate message."""
+        result = display_events_table_renderable([])
+
+        if RICH_AVAILABLE:
+            # Returns Rich Text or similar
+            assert result is not None
+        else:
+            assert "No events" in str(result)
+
+    def test_renderable_with_events(self, system_with_events):
+        """Test renderable with actual events returns table structure."""
+        events = system_with_events.state.events
+        result = display_events_table_renderable(events)
+
+        assert result is not None
+        if RICH_AVAILABLE:
+            # Should be a Rich Table with columns
+            assert hasattr(result, 'columns') or isinstance(result, str)
+        else:
+            assert isinstance(result, str)
+
+
+class TestDisplayEventsForDay:
+    """Tests for display_events_for_day function."""
+
+    def test_display_events_for_specific_day(self, system_with_events, capsys):
+        """Test displaying events for a specific day."""
+        # Day 0 should have events (run_day increments day)
+        display_events_for_day(system_with_events, 0)
+        captured = capsys.readouterr()
+
+        # Should show day events or "no events" message
+        assert len(captured.out) > 0
+
+    def test_display_events_for_future_day(self, system_with_events, capsys):
+        """Test displaying events for day with no events."""
+        display_events_for_day(system_with_events, 999)
+        captured = capsys.readouterr()
+
+        assert "No events" in captured.out
+
+
+class TestDisplayEventsRenderable:
+    """Tests for display_events_renderable function."""
+
+    def test_renderable_returns_list(self, system_with_events):
+        """Test that renderable returns list of renderables."""
+        events = system_with_events.state.events
+        result = display_events_renderable(events, format='detailed')
+
+        assert isinstance(result, list)
+
+    def test_renderable_empty_events(self):
+        """Test renderable with empty events."""
+        result = display_events_renderable([])
+
+        assert isinstance(result, list)
+        assert len(result) > 0  # Should have "no events" message
+
+
+class TestDisplayEventsForDayRenderable:
+    """Tests for display_events_for_day_renderable function."""
+
+    def test_renderable_for_day_with_events(self, system_with_events):
+        """Test getting renderables for a day with events."""
+        result = display_events_for_day_renderable(system_with_events, 0)
+
+        assert isinstance(result, list)
+
+    def test_renderable_for_empty_day(self, system_with_events):
+        """Test getting renderables for a day without events."""
+        result = display_events_for_day_renderable(system_with_events, 999)
+
+        assert isinstance(result, list)
+        assert len(result) > 0  # Should have "no events" message
+
+
+# ============================================================================
+# Tests for Phase Display Functions
+# ============================================================================
+
+
+class TestDisplayEventsTablesByPhase:
+    """Tests for display_events_tables_by_phase_renderables function."""
+
+    def test_phase_tables_returns_list(self, system_with_events):
+        """Test that phase tables returns list of renderables."""
+        # Get events for day 0
+        day_events = [e for e in system_with_events.state.events if e.get("day") == 0]
+        result = display_events_tables_by_phase_renderables(day_events, day=0)
+
+        assert isinstance(result, list)
+
+    def test_phase_tables_include_phases_b_and_c(self, system_with_events):
+        """Test that result includes Phase B and C tables."""
+        day_events = [e for e in system_with_events.state.events if e.get("day") == 0]
+        result = display_events_tables_by_phase_renderables(day_events, day=0)
+
+        # Should have at least 2 tables (Phase B and C, possibly A)
+        assert len(result) >= 2
+
+    def test_phase_tables_with_empty_events(self):
+        """Test phase tables with empty events."""
+        result = display_events_tables_by_phase_renderables([])
+
+        assert isinstance(result, list)
+        # Should still return phase table structures even if empty
+
+
+# ============================================================================
+# Tests for Common Types and Constants
+# ============================================================================
+
+
+class TestCommonTypes:
+    """Tests for common types exported from the module."""
+
+    def test_balance_row_dataclass(self):
+        """Test BalanceRow dataclass creation."""
+        row = BalanceRow(
+            name="cash",
+            quantity=None,
+            value_minor=1000,
+            counterparty_name="CB01",
+            maturity="on-demand"
+        )
+
+        assert row.name == "cash"
+        assert row.value_minor == 1000
+        assert row.counterparty_name == "CB01"
+
+    def test_balance_row_with_quantity(self):
+        """Test BalanceRow with quantity for non-financial items."""
+        row = BalanceRow(
+            name="WIDGETS receivable",
+            quantity=50,
+            value_minor=5000,
+            counterparty_name="Firm A",
+            maturity="Day 5"
+        )
+
+        assert row.quantity == 50
+        assert row.maturity == "Day 5"
+
+    def test_taccount_dataclass(self):
+        """Test TAccount dataclass creation."""
+        assets = [
+            BalanceRow("cash", None, 1000, "CB", "on-demand")
+        ]
+        liabilities = [
+            BalanceRow("deposit", None, 500, "HH01", "on-demand")
+        ]
+
+        taccount = TAccount(assets=assets, liabilities=liabilities)
+
+        assert len(taccount.assets) == 1
+        assert len(taccount.liabilities) == 1
+        assert taccount.assets[0].name == "cash"
+
+    def test_rich_available_constant(self):
+        """Test that RICH_AVAILABLE is a boolean."""
+        assert isinstance(RICH_AVAILABLE, bool)
+
+
+# ============================================================================
+# Integration Tests
+# ============================================================================
+
+
+class TestVisualizationIntegration:
+    """Integration tests combining multiple visualization functions."""
+
+    def test_full_visualization_workflow(self, system_with_events, capsys):
+        """Test a complete visualization workflow."""
+        # Display balances for all households
+        display_multiple_agent_balances(
+            system_with_events,
+            ["HH01", "HH02", "HH03"],
+            format='simple'
+        )
+
+        # Display events for day 0
+        display_events_for_day(system_with_events, 0)
+
+        # Build T-accounts for bank
+        taccount = build_t_account_rows(system_with_events, "BK01")
+
+        captured = capsys.readouterr()
+
+        # Verify all components ran
+        assert "HH01" in captured.out or "Alice" in captured.out
+        assert isinstance(taccount, TAccount)
+
+    def test_display_before_and_after_adding_obligation(self, simple_system, capsys):
+        """Test displaying state before and after adding delivery obligation."""
+        # Display initial state
+        display_agent_balance_table(simple_system, "HH01", format='simple')
+        initial_output = capsys.readouterr().out
+
+        # Add a delivery obligation (doesn't require complex settlement)
+        simple_system.create_delivery_obligation(
+            from_agent="HH01",
+            to_agent="BK01",
+            sku="WIDGETS",
+            quantity=10,
+            unit_price=Decimal("5"),
+            due_day=1
+        )
+
+        # Display after state
+        display_agent_balance_table(simple_system, "HH01", format='simple')
+        after_output = capsys.readouterr().out
+
+        # Verify both outputs were generated
+        assert len(initial_output) > 0
+        assert len(after_output) > 0
+
+```
+
+---
+
+### 🧪 tests/cloud/__init__.py
+
+```python
+"""Tests for cloud execution module."""
+
+```
+
+---
+
+### 🧪 tests/cloud/test_cloud_executor.py
+
+```python
+"""Unit tests for CloudExecutor (mocked Modal)."""
+
+import sys
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import pytest
+
+from bilancio.runners.cloud_executor import CloudExecutor
+from bilancio.runners.models import RunOptions
+from bilancio.storage.models import RunStatus
+
+
+class TestCloudExecutor:
+    """Unit tests for CloudExecutor with mocked Modal functions."""
+
+    def test_execute_success(self, tmp_path):
+        """Test successful cloud execution."""
+        # Setup mock function
+        mock_func = MagicMock()
+        mock_func.remote.return_value = {
+            "run_id": "test_001",
+            "status": "completed",
+            "storage_type": "modal_volume",
+            "storage_base": "exp/runs/test_001",
+            "artifacts": {
+                "events_jsonl": "out/events.jsonl",
+                "balances_csv": "out/balances.csv",
+            },
+            "execution_time_ms": 5000,
+            "error": None,
+        }
+
+        # Mock modal module
+        mock_modal = MagicMock()
+        mock_modal.Function.from_name.return_value = mock_func
+
+        with patch.dict(sys.modules, {"modal": mock_modal}):
+            executor = CloudExecutor(
+                experiment_id="exp",
+                download_artifacts=False,  # Don't try to download
+            )
+
+            result = executor.execute(
+                scenario_config={"agents": []},
+                run_id="test_001",
+                output_dir=tmp_path / "test_001",
+                options=RunOptions(),
+            )
+
+        assert result.status == RunStatus.COMPLETED
+        assert result.run_id == "test_001"
+        assert "events_jsonl" in result.artifacts
+
+    def test_execute_failure(self, tmp_path):
+        """Test failed cloud execution."""
+        mock_func = MagicMock()
+        mock_func.remote.return_value = {
+            "run_id": "test_001",
+            "status": "failed",
+            "storage_type": "modal_volume",
+            "storage_base": "exp/runs/test_001",
+            "artifacts": {},
+            "execution_time_ms": 1000,
+            "error": "Simulation diverged",
+        }
+
+        mock_modal = MagicMock()
+        mock_modal.Function.from_name.return_value = mock_func
+
+        with patch.dict(sys.modules, {"modal": mock_modal}):
+            executor = CloudExecutor(
+                experiment_id="exp",
+                download_artifacts=False,
+            )
+
+            result = executor.execute(
+                scenario_config={"agents": []},
+                run_id="test_001",
+                output_dir=tmp_path / "test_001",
+                options=RunOptions(),
+            )
+
+        assert result.status == RunStatus.FAILED
+        assert result.error == "Simulation diverged"
+
+    def test_options_serialization(self, tmp_path):
+        """Test that RunOptions are properly serialized."""
+        mock_func = MagicMock()
+        mock_func.remote.return_value = {
+            "run_id": "test_001",
+            "status": "completed",
+            "storage_type": "modal_volume",
+            "storage_base": "exp/runs/test_001",
+            "artifacts": {},
+            "execution_time_ms": 1000,
+            "error": None,
+        }
+
+        mock_modal = MagicMock()
+        mock_modal.Function.from_name.return_value = mock_func
+
+        with patch.dict(sys.modules, {"modal": mock_modal}):
+            executor = CloudExecutor(
+                experiment_id="exp",
+                download_artifacts=False,
+            )
+
+            options = RunOptions(
+                mode="fixed_days",
+                max_days=10,
+                quiet_days=3,
+                check_invariants="end",
+            )
+
+            executor.execute(
+                scenario_config={"agents": []},
+                run_id="test_001",
+                output_dir=tmp_path / "test_001",
+                options=options,
+            )
+
+        # Verify the options were serialized correctly
+        call_kwargs = mock_func.remote.call_args[1]
+        assert call_kwargs["options"]["mode"] == "fixed_days"
+        assert call_kwargs["options"]["max_days"] == 10
+        assert call_kwargs["options"]["quiet_days"] == 3
+        assert call_kwargs["options"]["check_invariants"] == "end"
+
+
+class TestCloudConfig:
+    """Tests for CloudConfig dataclass."""
+
+    def test_default_values(self):
+        """Test default configuration values."""
+        from bilancio.cloud.config import CloudConfig
+
+        config = CloudConfig()
+        assert config.volume_name == "bilancio-results"
+        assert config.timeout_seconds == 600
+        assert config.memory_mb == 2048
+        assert config.max_parallel == 50
+        assert config.gpu is None
+
+    def test_env_override(self, monkeypatch):
+        """Test environment variable overrides."""
+        from bilancio.cloud.config import CloudConfig
+
+        monkeypatch.setenv("BILANCIO_MODAL_VOLUME", "custom-volume")
+        monkeypatch.setenv("BILANCIO_CLOUD_TIMEOUT", "1200")
+        monkeypatch.setenv("BILANCIO_CLOUD_MEMORY", "4096")
+
+        config = CloudConfig()
+        assert config.volume_name == "custom-volume"
+        assert config.timeout_seconds == 1200
+        assert config.memory_mb == 4096
+
+```
+
+---
+
+### 🧪 tests/cloud/test_modal_artifact_loader.py
+
+```python
+"""Tests for ModalVolumeArtifactLoader."""
+
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+import subprocess
+
+import pytest
+
+from bilancio.storage.modal_artifact_loader import ModalVolumeArtifactLoader
+
+
+class TestModalVolumeArtifactLoader:
+    """Tests for ModalVolumeArtifactLoader."""
+
+    def test_init_defaults(self):
+        """Test default initialization."""
+        loader = ModalVolumeArtifactLoader()
+        assert loader.volume_name == "bilancio-results"
+        assert loader.base_path == ""
+
+    def test_init_custom(self, tmp_path):
+        """Test custom initialization."""
+        loader = ModalVolumeArtifactLoader(
+            volume_name="custom-volume",
+            base_path="exp/runs/run_001",
+            cache_dir=tmp_path / "cache",
+        )
+        assert loader.volume_name == "custom-volume"
+        assert loader.base_path == "exp/runs/run_001"
+
+    @patch("bilancio.storage.modal_artifact_loader.subprocess.run")
+    def test_load_text(self, mock_run, tmp_path):
+        """Test loading text file."""
+        cache_dir = tmp_path / "cache"
+        cache_dir.mkdir()
+
+        # Create cached file
+        test_file = cache_dir / "out" / "events.jsonl"
+        test_file.parent.mkdir(parents=True)
+        test_file.write_text('{"event": "test"}\n')
+
+        loader = ModalVolumeArtifactLoader(
+            volume_name="test-volume",
+            base_path="exp/runs/run_001",
+            cache_dir=cache_dir,
+        )
+
+        # File exists in cache, so no download should happen
+        content = loader.load_text("out/events.jsonl")
+        assert content == '{"event": "test"}\n'
+        mock_run.assert_not_called()
+
+    @patch("bilancio.storage.modal_artifact_loader.subprocess.run")
+    def test_load_text_downloads_if_not_cached(self, mock_run, tmp_path):
+        """Test that file is downloaded if not in cache."""
+        cache_dir = tmp_path / "cache"
+        cache_dir.mkdir()
+
+        # Mock successful download
+        def side_effect(cmd, check, capture_output):
+            # Create the file when modal volume get is called
+            target = Path(cmd[5])  # The local path argument
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text("downloaded content")
+            return MagicMock(returncode=0)
+
+        mock_run.side_effect = side_effect
+
+        loader = ModalVolumeArtifactLoader(
+            volume_name="test-volume",
+            base_path="exp/runs/run_001",
+            cache_dir=cache_dir,
+        )
+
+        content = loader.load_text("test.txt")
+        assert content == "downloaded content"
+
+        # Verify modal CLI was called
+        mock_run.assert_called_once()
+        call_args = mock_run.call_args[0][0]
+        assert call_args[0] == "modal"
+        assert call_args[1] == "volume"
+        assert call_args[2] == "get"
+        assert call_args[3] == "test-volume"
+        assert "exp/runs/run_001/test.txt" in call_args[4]
+
+    @patch("bilancio.storage.modal_artifact_loader.subprocess.run")
+    def test_exists_true(self, mock_run):
+        """Test exists returns True when file exists."""
+        mock_run.return_value = MagicMock(returncode=0)
+
+        loader = ModalVolumeArtifactLoader(
+            volume_name="test-volume",
+            base_path="exp/runs/run_001",
+        )
+
+        assert loader.exists("test.txt") is True
+
+    @patch("bilancio.storage.modal_artifact_loader.subprocess.run")
+    def test_exists_false(self, mock_run):
+        """Test exists returns False when file doesn't exist."""
+        mock_run.return_value = MagicMock(returncode=1)
+
+        loader = ModalVolumeArtifactLoader(
+            volume_name="test-volume",
+            base_path="exp/runs/run_001",
+        )
+
+        assert loader.exists("nonexistent.txt") is False
+
+    def test_clear_cache(self, tmp_path):
+        """Test cache clearing."""
+        cache_dir = tmp_path / "cache"
+        cache_dir.mkdir()
+        (cache_dir / "test.txt").write_text("cached")
+
+        loader = ModalVolumeArtifactLoader(cache_dir=cache_dir)
+        loader.clear_cache()
+
+        # Directory should still exist but be empty
+        assert cache_dir.exists()
+        assert list(cache_dir.iterdir()) == []
 
 ```
 
@@ -60871,6 +68766,849 @@ def test_b1_executes_before_b2(tmp_path: Path):
 
 ---
 
+### 🧪 tests/experiments/__init__.py
+
+```python
+# Tests for bilancio.experiments module
+
+```
+
+---
+
+### 🧪 tests/experiments/test_sweep_runners.py
+
+```python
+"""Tests for experiment sweep runners and sampling functions.
+
+This module tests:
+- RingSweepRunner grid and LHS execution
+- Sampling functions: generate_grid_params, generate_lhs_params, generate_frontier_params
+- Registry CSV creation
+"""
+
+from __future__ import annotations
+
+from decimal import Decimal
+from pathlib import Path
+from typing import Optional
+from unittest.mock import patch, MagicMock
+
+import pytest
+
+from bilancio.experiments.sampling import (
+    generate_grid_params,
+    generate_lhs_params,
+    generate_frontier_params,
+)
+
+
+# =============================================================================
+# Tests for generate_grid_params
+# =============================================================================
+
+
+class TestGenerateGridParams:
+    """Tests for Cartesian product grid sampling."""
+
+    def test_basic_2x2_grid(self):
+        """A 2x2x1x1 grid produces 4 combinations."""
+        kappas = [Decimal("1"), Decimal("2")]
+        concentrations = [Decimal("0.5"), Decimal("1")]
+        mus = [Decimal("0")]
+        monotonicities = [Decimal("0")]
+
+        result = list(generate_grid_params(kappas, concentrations, mus, monotonicities))
+
+        assert len(result) == 4
+        # Check that all combinations are present
+        expected = [
+            (Decimal("1"), Decimal("0.5"), Decimal("0"), Decimal("0")),
+            (Decimal("1"), Decimal("1"), Decimal("0"), Decimal("0")),
+            (Decimal("2"), Decimal("0.5"), Decimal("0"), Decimal("0")),
+            (Decimal("2"), Decimal("1"), Decimal("0"), Decimal("0")),
+        ]
+        assert set(result) == set(expected)
+
+    def test_single_values(self):
+        """Grid with single values per dimension produces one combination."""
+        kappas = [Decimal("1")]
+        concentrations = [Decimal("0.5")]
+        mus = [Decimal("0.25")]
+        monotonicities = [Decimal("0")]
+
+        result = list(generate_grid_params(kappas, concentrations, mus, monotonicities))
+
+        assert len(result) == 1
+        assert result[0] == (Decimal("1"), Decimal("0.5"), Decimal("0.25"), Decimal("0"))
+
+    def test_empty_dimension(self):
+        """Grid with empty dimension produces no combinations."""
+        kappas = []
+        concentrations = [Decimal("0.5")]
+        mus = [Decimal("0")]
+        monotonicities = [Decimal("0")]
+
+        result = list(generate_grid_params(kappas, concentrations, mus, monotonicities))
+
+        assert len(result) == 0
+
+    def test_full_grid_count(self):
+        """Grid count equals product of dimensions."""
+        kappas = [Decimal("1"), Decimal("2"), Decimal("4")]
+        concentrations = [Decimal("0.5"), Decimal("1")]
+        mus = [Decimal("0"), Decimal("0.5"), Decimal("1")]
+        monotonicities = [Decimal("0"), Decimal("0.5")]
+
+        result = list(generate_grid_params(kappas, concentrations, mus, monotonicities))
+
+        expected_count = 3 * 2 * 3 * 2  # 36
+        assert len(result) == expected_count
+
+    def test_iterator_returns_tuples_of_decimals(self):
+        """All returned values are Decimal tuples."""
+        kappas = [Decimal("1")]
+        concentrations = [Decimal("0.5")]
+        mus = [Decimal("0")]
+        monotonicities = [Decimal("0")]
+
+        result = list(generate_grid_params(kappas, concentrations, mus, monotonicities))
+
+        assert len(result) == 1
+        kappa, concentration, mu, monotonicity = result[0]
+        assert isinstance(kappa, Decimal)
+        assert isinstance(concentration, Decimal)
+        assert isinstance(mu, Decimal)
+        assert isinstance(monotonicity, Decimal)
+
+
+# =============================================================================
+# Tests for generate_lhs_params
+# =============================================================================
+
+
+class TestGenerateLHSParams:
+    """Tests for Latin Hypercube Sampling."""
+
+    def test_count_matches_request(self):
+        """LHS generates exactly the requested number of samples."""
+        count = 10
+        result = list(generate_lhs_params(
+            count,
+            kappa_range=(Decimal("0.5"), Decimal("4")),
+            concentration_range=(Decimal("0.1"), Decimal("5")),
+            mu_range=(Decimal("0"), Decimal("1")),
+            monotonicity_range=(Decimal("0"), Decimal("0.5")),
+            seed=42,
+        ))
+
+        assert len(result) == count
+
+    def test_zero_count_returns_empty(self):
+        """LHS with count=0 returns empty iterator."""
+        result = list(generate_lhs_params(
+            0,
+            kappa_range=(Decimal("0.5"), Decimal("4")),
+            concentration_range=(Decimal("0.1"), Decimal("5")),
+            mu_range=(Decimal("0"), Decimal("1")),
+            monotonicity_range=(Decimal("0"), Decimal("0.5")),
+            seed=42,
+        ))
+
+        assert len(result) == 0
+
+    def test_values_within_range(self):
+        """All LHS samples fall within specified ranges."""
+        count = 20
+        kappa_range = (Decimal("0.5"), Decimal("4"))
+        concentration_range = (Decimal("0.1"), Decimal("5"))
+        mu_range = (Decimal("0"), Decimal("1"))
+        monotonicity_range = (Decimal("-0.5"), Decimal("0.5"))
+
+        result = list(generate_lhs_params(
+            count,
+            kappa_range=kappa_range,
+            concentration_range=concentration_range,
+            mu_range=mu_range,
+            monotonicity_range=monotonicity_range,
+            seed=42,
+        ))
+
+        for kappa, concentration, mu, monotonicity in result:
+            assert kappa_range[0] <= kappa <= kappa_range[1]
+            assert concentration_range[0] <= concentration <= concentration_range[1]
+            assert mu_range[0] <= mu <= mu_range[1]
+            assert monotonicity_range[0] <= monotonicity <= monotonicity_range[1]
+
+    def test_reproducibility_with_same_seed(self):
+        """Same seed produces identical samples."""
+        kwargs = dict(
+            count=5,
+            kappa_range=(Decimal("0.5"), Decimal("4")),
+            concentration_range=(Decimal("0.1"), Decimal("5")),
+            mu_range=(Decimal("0"), Decimal("1")),
+            monotonicity_range=(Decimal("0"), Decimal("0.5")),
+            seed=12345,
+        )
+
+        result1 = list(generate_lhs_params(**kwargs))
+        result2 = list(generate_lhs_params(**kwargs))
+
+        assert result1 == result2
+
+    def test_different_seeds_produce_different_samples(self):
+        """Different seeds produce different samples."""
+        base_kwargs = dict(
+            count=5,
+            kappa_range=(Decimal("0.5"), Decimal("4")),
+            concentration_range=(Decimal("0.1"), Decimal("5")),
+            mu_range=(Decimal("0"), Decimal("1")),
+            monotonicity_range=(Decimal("0"), Decimal("0.5")),
+        )
+
+        result1 = list(generate_lhs_params(**base_kwargs, seed=42))
+        result2 = list(generate_lhs_params(**base_kwargs, seed=43))
+
+        assert result1 != result2
+
+    def test_returns_decimal_tuples(self):
+        """All returned values are Decimal tuples."""
+        result = list(generate_lhs_params(
+            1,
+            kappa_range=(Decimal("1"), Decimal("2")),
+            concentration_range=(Decimal("0.5"), Decimal("1")),
+            mu_range=(Decimal("0"), Decimal("1")),
+            monotonicity_range=(Decimal("0"), Decimal("0")),
+            seed=42,
+        ))
+
+        assert len(result) == 1
+        kappa, concentration, mu, monotonicity = result[0]
+        assert isinstance(kappa, Decimal)
+        assert isinstance(concentration, Decimal)
+        assert isinstance(mu, Decimal)
+        assert isinstance(monotonicity, Decimal)
+
+
+# =============================================================================
+# Tests for generate_frontier_params
+# =============================================================================
+
+
+class TestGenerateFrontierParams:
+    """Tests for frontier/binary search sampling."""
+
+    def test_calls_execute_fn(self):
+        """Frontier sampling calls execute_fn for each test."""
+        calls = []
+
+        def mock_execute(label: str, kappa: Decimal, concentration: Decimal, mu: Decimal, monotonicity: Decimal) -> Optional[Decimal]:
+            calls.append((label, kappa, concentration, mu, monotonicity))
+            # Return stable for high kappa, unstable for low
+            if kappa >= Decimal("2"):
+                return Decimal("0.01")  # Stable
+            return Decimal("1.0")  # Unstable
+
+        generate_frontier_params(
+            concentrations=[Decimal("1")],
+            mus=[Decimal("0.5")],
+            monotonicities=[Decimal("0")],
+            kappa_low=Decimal("0.5"),
+            kappa_high=Decimal("4"),
+            tolerance=Decimal("0.1"),
+            max_iterations=3,
+            execute_fn=mock_execute,
+        )
+
+        # Should have called execute_fn multiple times
+        assert len(calls) > 0
+        # First call should be with kappa_low
+        assert calls[0][1] == Decimal("0.5")  # kappa_low
+
+    def test_frontier_stops_if_low_is_stable(self):
+        """Frontier stops immediately if kappa_low is already stable."""
+        calls = []
+
+        def mock_execute(label: str, kappa: Decimal, concentration: Decimal, mu: Decimal, monotonicity: Decimal) -> Optional[Decimal]:
+            calls.append((label, kappa, concentration, mu, monotonicity))
+            # Always stable
+            return Decimal("0.01")
+
+        generate_frontier_params(
+            concentrations=[Decimal("1")],
+            mus=[Decimal("0.5")],
+            monotonicities=[Decimal("0")],
+            kappa_low=Decimal("0.5"),
+            kappa_high=Decimal("4"),
+            tolerance=Decimal("0.1"),
+            max_iterations=10,
+            execute_fn=mock_execute,
+        )
+
+        # Should only call once for kappa_low since it's already stable
+        assert len(calls) == 1
+        assert calls[0][0] == "low"  # label
+
+    def test_frontier_iterates_over_all_cells(self):
+        """Frontier iterates over all (concentration, mu, monotonicity) combinations."""
+        cells_visited = set()
+
+        def mock_execute(label: str, kappa: Decimal, concentration: Decimal, mu: Decimal, monotonicity: Decimal) -> Optional[Decimal]:
+            cells_visited.add((concentration, mu, monotonicity))
+            return Decimal("0.01")  # Always stable
+
+        generate_frontier_params(
+            concentrations=[Decimal("1"), Decimal("2")],
+            mus=[Decimal("0"), Decimal("0.5")],
+            monotonicities=[Decimal("0")],
+            kappa_low=Decimal("0.5"),
+            kappa_high=Decimal("4"),
+            tolerance=Decimal("0.1"),
+            max_iterations=3,
+            execute_fn=mock_execute,
+        )
+
+        # Should have visited 2*2*1 = 4 cells
+        expected_cells = {
+            (Decimal("1"), Decimal("0"), Decimal("0")),
+            (Decimal("1"), Decimal("0.5"), Decimal("0")),
+            (Decimal("2"), Decimal("0"), Decimal("0")),
+            (Decimal("2"), Decimal("0.5"), Decimal("0")),
+        }
+        assert cells_visited == expected_cells
+
+    def test_frontier_handles_failed_runs(self):
+        """Frontier continues when execute_fn returns None (failed run)."""
+        calls = []
+
+        def mock_execute(label: str, kappa: Decimal, concentration: Decimal, mu: Decimal, monotonicity: Decimal) -> Optional[Decimal]:
+            calls.append(label)
+            # Return None for low (failed), stable for high
+            if kappa < Decimal("2"):
+                return None  # Failed
+            return Decimal("0.01")  # Stable
+
+        generate_frontier_params(
+            concentrations=[Decimal("1")],
+            mus=[Decimal("0.5")],
+            monotonicities=[Decimal("0")],
+            kappa_low=Decimal("0.5"),
+            kappa_high=Decimal("4"),
+            tolerance=Decimal("0.1"),
+            max_iterations=3,
+            execute_fn=mock_execute,
+        )
+
+        # Should have tried low, then high, then some mid points
+        assert "low" in calls
+        assert "high" in calls
+
+
+# =============================================================================
+# Tests for RingSweepRunner (mocked to avoid full simulation)
+# =============================================================================
+
+
+class TestRingSweepRunnerSetup:
+    """Tests for RingSweepRunner initialization and configuration."""
+
+    def test_creates_output_directories(self, tmp_path: Path):
+        """RingSweepRunner creates registry, runs, and aggregate directories."""
+        from bilancio.experiments.ring import RingSweepRunner
+
+        runner = RingSweepRunner(
+            out_dir=tmp_path,
+            name_prefix="Test",
+            n_agents=2,
+            maturity_days=3,
+            Q_total=Decimal("100"),
+            liquidity_mode="uniform",
+            liquidity_agent=None,
+            base_seed=42,
+        )
+
+        assert (tmp_path / "registry").exists()
+        assert (tmp_path / "runs").exists()
+        assert (tmp_path / "aggregate").exists()
+
+    def test_creates_empty_registry_csv(self, tmp_path: Path):
+        """RingSweepRunner creates registry CSV with headers."""
+        from bilancio.experiments.ring import RingSweepRunner
+
+        runner = RingSweepRunner(
+            out_dir=tmp_path,
+            name_prefix="Test",
+            n_agents=2,
+            maturity_days=3,
+            Q_total=Decimal("100"),
+            liquidity_mode="uniform",
+            liquidity_agent=None,
+            base_seed=42,
+        )
+
+        registry_path = tmp_path / "registry" / "experiments.csv"
+        assert registry_path.exists()
+
+        # Check headers
+        content = registry_path.read_text()
+        assert "run_id" in content
+        assert "kappa" in content
+        assert "status" in content
+
+    def test_seed_increments(self, tmp_path: Path):
+        """Seed counter increments with each call to _next_seed()."""
+        from bilancio.experiments.ring import RingSweepRunner
+
+        runner = RingSweepRunner(
+            out_dir=tmp_path,
+            name_prefix="Test",
+            n_agents=2,
+            maturity_days=3,
+            Q_total=Decimal("100"),
+            liquidity_mode="uniform",
+            liquidity_agent=None,
+            base_seed=100,
+        )
+
+        assert runner._next_seed() == 100
+        assert runner._next_seed() == 101
+        assert runner._next_seed() == 102
+
+
+class TestRingSweepRunnerGridMocked:
+    """Tests for RingSweepRunner.run_grid with mocked execution."""
+
+    def test_run_grid_calls_execute_for_each_combination(self, tmp_path: Path):
+        """run_grid calls _execute_run for each parameter combination."""
+        from bilancio.experiments.ring import RingSweepRunner, RingRunSummary
+
+        runner = RingSweepRunner(
+            out_dir=tmp_path,
+            name_prefix="Test",
+            n_agents=2,
+            maturity_days=3,
+            Q_total=Decimal("100"),
+            liquidity_mode="uniform",
+            liquidity_agent=None,
+            base_seed=42,
+        )
+
+        # Mock _execute_run to avoid actual simulation
+        calls = []
+
+        def mock_execute(phase, kappa, concentration, mu, monotonicity, seed, **kwargs):
+            calls.append((kappa, concentration, mu, monotonicity))
+            return RingRunSummary(
+                run_id=f"test_{len(calls)}",
+                phase=phase,
+                kappa=kappa,
+                concentration=concentration,
+                mu=mu,
+                monotonicity=monotonicity,
+                delta_total=Decimal("0.1"),
+                phi_total=Decimal("0.5"),
+                time_to_stability=5,
+            )
+
+        with patch.object(runner, "_execute_run", mock_execute):
+            kappas = [Decimal("1"), Decimal("2")]
+            concentrations = [Decimal("0.5"), Decimal("1")]
+            mus = [Decimal("0")]
+            monotonicities = [Decimal("0")]
+
+            summaries = runner.run_grid(kappas, concentrations, mus, monotonicities)
+
+        # Should have 2*2*1*1 = 4 calls
+        assert len(calls) == 4
+        assert len(summaries) == 4
+
+    def test_run_grid_returns_summaries(self, tmp_path: Path):
+        """run_grid returns list of RingRunSummary objects."""
+        from bilancio.experiments.ring import RingSweepRunner, RingRunSummary
+
+        runner = RingSweepRunner(
+            out_dir=tmp_path,
+            name_prefix="Test",
+            n_agents=2,
+            maturity_days=3,
+            Q_total=Decimal("100"),
+            liquidity_mode="uniform",
+            liquidity_agent=None,
+            base_seed=42,
+        )
+
+        def mock_execute(phase, kappa, concentration, mu, monotonicity, seed, **kwargs):
+            return RingRunSummary(
+                run_id=f"test_{seed}",
+                phase=phase,
+                kappa=kappa,
+                concentration=concentration,
+                mu=mu,
+                monotonicity=monotonicity,
+                delta_total=Decimal("0.1"),
+                phi_total=Decimal("0.5"),
+                time_to_stability=5,
+            )
+
+        with patch.object(runner, "_execute_run", mock_execute):
+            summaries = runner.run_grid(
+                [Decimal("1")],
+                [Decimal("0.5")],
+                [Decimal("0")],
+                [Decimal("0")],
+            )
+
+        assert len(summaries) == 1
+        assert isinstance(summaries[0], RingRunSummary)
+        assert summaries[0].kappa == Decimal("1")
+
+
+class TestRingSweepRunnerLHSMocked:
+    """Tests for RingSweepRunner.run_lhs with mocked execution."""
+
+    def test_run_lhs_generates_requested_count(self, tmp_path: Path):
+        """run_lhs generates exactly the requested number of samples."""
+        from bilancio.experiments.ring import RingSweepRunner, RingRunSummary
+
+        runner = RingSweepRunner(
+            out_dir=tmp_path,
+            name_prefix="Test",
+            n_agents=2,
+            maturity_days=3,
+            Q_total=Decimal("100"),
+            liquidity_mode="uniform",
+            liquidity_agent=None,
+            base_seed=42,
+        )
+
+        call_count = [0]
+
+        def mock_execute(phase, kappa, concentration, mu, monotonicity, seed, **kwargs):
+            call_count[0] += 1
+            return RingRunSummary(
+                run_id=f"test_{seed}",
+                phase=phase,
+                kappa=kappa,
+                concentration=concentration,
+                mu=mu,
+                monotonicity=monotonicity,
+                delta_total=Decimal("0.1"),
+                phi_total=Decimal("0.5"),
+                time_to_stability=5,
+            )
+
+        with patch.object(runner, "_execute_run", mock_execute):
+            summaries = runner.run_lhs(
+                count=5,
+                kappa_range=(Decimal("0.5"), Decimal("4")),
+                concentration_range=(Decimal("0.1"), Decimal("5")),
+                mu_range=(Decimal("0"), Decimal("1")),
+                monotonicity_range=(Decimal("0"), Decimal("0.5")),
+            )
+
+        assert call_count[0] == 5
+        assert len(summaries) == 5
+
+    def test_run_lhs_zero_count_returns_empty(self, tmp_path: Path):
+        """run_lhs with count=0 returns empty list without executing."""
+        from bilancio.experiments.ring import RingSweepRunner
+
+        runner = RingSweepRunner(
+            out_dir=tmp_path,
+            name_prefix="Test",
+            n_agents=2,
+            maturity_days=3,
+            Q_total=Decimal("100"),
+            liquidity_mode="uniform",
+            liquidity_agent=None,
+            base_seed=42,
+        )
+
+        # Should not need to mock since no runs should happen
+        summaries = runner.run_lhs(
+            count=0,
+            kappa_range=(Decimal("0.5"), Decimal("4")),
+            concentration_range=(Decimal("0.1"), Decimal("5")),
+            mu_range=(Decimal("0"), Decimal("1")),
+            monotonicity_range=(Decimal("0"), Decimal("0.5")),
+        )
+
+        assert summaries == []
+
+
+# =============================================================================
+# Tests for RingSweepConfig loading
+# =============================================================================
+
+
+class TestRingSweepConfigLoading:
+    """Tests for loading sweep configuration from YAML."""
+
+    def test_load_valid_grid_config(self, tmp_path: Path):
+        """Valid grid config loads correctly."""
+        from bilancio.experiments.ring import load_ring_sweep_config
+
+        config_yaml = """
+version: 1
+out_dir: ./output
+grid:
+  enabled: true
+  kappas: [0.5, 1, 2]
+  concentrations: [0.5, 1]
+  mus: [0, 0.5]
+runner:
+  n_agents: 50
+  maturity_days: 5
+  q_total: 5000
+  liquidity_mode: uniform
+  base_seed: 100
+"""
+        config_path = tmp_path / "sweep.yaml"
+        config_path.write_text(config_yaml)
+
+        config = load_ring_sweep_config(config_path)
+
+        assert config.version == 1
+        assert config.grid is not None
+        assert config.grid.enabled is True
+        assert len(config.grid.kappas) == 3
+        assert config.runner.n_agents == 50
+
+    def test_load_config_file_not_found(self, tmp_path: Path):
+        """Missing config file raises FileNotFoundError."""
+        from bilancio.experiments.ring import load_ring_sweep_config
+
+        with pytest.raises(FileNotFoundError):
+            load_ring_sweep_config(tmp_path / "nonexistent.yaml")
+
+    def test_load_config_invalid_version(self, tmp_path: Path):
+        """Invalid version raises ValueError."""
+        from bilancio.experiments.ring import load_ring_sweep_config
+
+        config_yaml = """
+version: 99
+grid:
+  enabled: true
+  kappas: [1]
+  concentrations: [1]
+  mus: [0]
+"""
+        config_path = tmp_path / "sweep.yaml"
+        config_path.write_text(config_yaml)
+
+        with pytest.raises(ValueError, match="Unsupported sweep config version"):
+            load_ring_sweep_config(config_path)
+
+
+# =============================================================================
+# Tests for ComparisonSweepRunner setup
+# =============================================================================
+
+
+class TestComparisonSweepRunnerSetup:
+    """Tests for ComparisonSweepRunner initialization."""
+
+    def test_creates_output_directories(self, tmp_path: Path):
+        """ComparisonSweepRunner creates control, treatment, and aggregate directories."""
+        from bilancio.experiments.comparison import ComparisonSweepRunner, ComparisonSweepConfig
+
+        config = ComparisonSweepConfig(
+            n_agents=5,
+            maturity_days=3,
+            kappas=[Decimal("1")],
+            concentrations=[Decimal("1")],
+            mus=[Decimal("0")],
+        )
+
+        runner = ComparisonSweepRunner(config, tmp_path)
+
+        assert (tmp_path / "control").exists()
+        assert (tmp_path / "treatment").exists()
+        assert (tmp_path / "aggregate").exists()
+
+
+# =============================================================================
+# Tests for BalancedComparisonRunner setup
+# =============================================================================
+
+
+class TestBalancedComparisonRunnerSetup:
+    """Tests for BalancedComparisonRunner initialization."""
+
+    def test_creates_output_directories(self, tmp_path: Path):
+        """BalancedComparisonRunner creates passive, active, and aggregate directories."""
+        from bilancio.experiments.balanced_comparison import BalancedComparisonRunner, BalancedComparisonConfig
+
+        config = BalancedComparisonConfig(
+            n_agents=5,
+            maturity_days=3,
+            kappas=[Decimal("1")],
+            concentrations=[Decimal("1")],
+            mus=[Decimal("0")],
+            outside_mid_ratios=[Decimal("0.75")],
+        )
+
+        runner = BalancedComparisonRunner(config, tmp_path)
+
+        assert (tmp_path / "passive").exists()
+        assert (tmp_path / "active").exists()
+        assert (tmp_path / "aggregate").exists()
+
+
+# =============================================================================
+# Tests for ComparisonResult and BalancedComparisonResult
+# =============================================================================
+
+
+class TestComparisonResult:
+    """Tests for ComparisonResult dataclass."""
+
+    def test_delta_reduction_calculation(self):
+        """delta_reduction is control minus treatment."""
+        from bilancio.experiments.comparison import ComparisonResult
+
+        result = ComparisonResult(
+            kappa=Decimal("1"),
+            concentration=Decimal("1"),
+            mu=Decimal("0"),
+            monotonicity=Decimal("0"),
+            seed=42,
+            delta_control=Decimal("0.5"),
+            phi_control=Decimal("1"),
+            control_run_id="c1",
+            control_status="completed",
+            delta_treatment=Decimal("0.3"),
+            phi_treatment=Decimal("0.8"),
+            treatment_run_id="t1",
+            treatment_status="completed",
+        )
+
+        assert result.delta_reduction == Decimal("0.2")
+
+    def test_relief_ratio_calculation(self):
+        """relief_ratio is reduction divided by control."""
+        from bilancio.experiments.comparison import ComparisonResult
+
+        result = ComparisonResult(
+            kappa=Decimal("1"),
+            concentration=Decimal("1"),
+            mu=Decimal("0"),
+            monotonicity=Decimal("0"),
+            seed=42,
+            delta_control=Decimal("0.5"),
+            phi_control=Decimal("1"),
+            control_run_id="c1",
+            control_status="completed",
+            delta_treatment=Decimal("0.25"),
+            phi_treatment=Decimal("0.8"),
+            treatment_run_id="t1",
+            treatment_status="completed",
+        )
+
+        assert result.relief_ratio == Decimal("0.5")
+
+    def test_relief_ratio_zero_control(self):
+        """relief_ratio is 0 when control has no defaults."""
+        from bilancio.experiments.comparison import ComparisonResult
+
+        result = ComparisonResult(
+            kappa=Decimal("1"),
+            concentration=Decimal("1"),
+            mu=Decimal("0"),
+            monotonicity=Decimal("0"),
+            seed=42,
+            delta_control=Decimal("0"),
+            phi_control=Decimal("1"),
+            control_run_id="c1",
+            control_status="completed",
+            delta_treatment=Decimal("0"),
+            phi_treatment=Decimal("1"),
+            treatment_run_id="t1",
+            treatment_status="completed",
+        )
+
+        assert result.relief_ratio == Decimal("0")
+
+    def test_delta_reduction_none_when_missing(self):
+        """delta_reduction is None when control or treatment is None."""
+        from bilancio.experiments.comparison import ComparisonResult
+
+        result = ComparisonResult(
+            kappa=Decimal("1"),
+            concentration=Decimal("1"),
+            mu=Decimal("0"),
+            monotonicity=Decimal("0"),
+            seed=42,
+            delta_control=None,
+            phi_control=None,
+            control_run_id="c1",
+            control_status="failed",
+            delta_treatment=Decimal("0.3"),
+            phi_treatment=Decimal("0.8"),
+            treatment_run_id="t1",
+            treatment_status="completed",
+        )
+
+        assert result.delta_reduction is None
+        assert result.relief_ratio is None
+
+
+class TestBalancedComparisonResult:
+    """Tests for BalancedComparisonResult dataclass."""
+
+    def test_trading_effect_calculation(self):
+        """trading_effect is passive minus active."""
+        from bilancio.experiments.balanced_comparison import BalancedComparisonResult
+
+        result = BalancedComparisonResult(
+            kappa=Decimal("1"),
+            concentration=Decimal("1"),
+            mu=Decimal("0"),
+            monotonicity=Decimal("0"),
+            seed=42,
+            face_value=Decimal("20"),
+            outside_mid_ratio=Decimal("0.75"),
+            big_entity_share=Decimal("0.25"),
+            delta_passive=Decimal("0.5"),
+            phi_passive=Decimal("1"),
+            passive_run_id="p1",
+            passive_status="completed",
+            delta_active=Decimal("0.3"),
+            phi_active=Decimal("0.8"),
+            active_run_id="a1",
+            active_status="completed",
+        )
+
+        assert result.trading_effect == Decimal("0.2")
+
+    def test_trading_relief_ratio_calculation(self):
+        """trading_relief_ratio is effect divided by passive."""
+        from bilancio.experiments.balanced_comparison import BalancedComparisonResult
+
+        result = BalancedComparisonResult(
+            kappa=Decimal("1"),
+            concentration=Decimal("1"),
+            mu=Decimal("0"),
+            monotonicity=Decimal("0"),
+            seed=42,
+            face_value=Decimal("20"),
+            outside_mid_ratio=Decimal("0.75"),
+            big_entity_share=Decimal("0.25"),
+            delta_passive=Decimal("0.5"),
+            phi_passive=Decimal("1"),
+            passive_run_id="p1",
+            passive_status="completed",
+            delta_active=Decimal("0.25"),
+            phi_active=Decimal("0.8"),
+            active_run_id="a1",
+            active_status="completed",
+        )
+
+        assert result.trading_relief_ratio == Decimal("0.5")
+
+```
+
+---
+
 ### 🧪 tests/integration/test_banking_ops.py
 
 ```python
@@ -62494,6 +71232,952 @@ def test_alias_helpers_roundtrip():
 
 ---
 
+### 🧪 tests/runners/__init__.py
+
+```python
+# Tests for bilancio.runners module
+
+```
+
+---
+
+### 🧪 tests/runners/test_local_executor.py
+
+```python
+"""Tests for LocalExecutor simulation execution.
+
+This module tests:
+- Basic execution and result handling
+- Output file creation
+- Error handling
+- Directory management
+
+Note: Metrics computation is NOT tested here because LocalExecutor
+no longer computes metrics. That's MetricsComputer's job.
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Dict, Any
+
+import pytest
+
+from bilancio.runners.local_executor import LocalExecutor
+from bilancio.runners.models import RunOptions, ExecutionResult
+from bilancio.storage.models import RunStatus
+
+
+# Minimal scenario configuration for testing
+MINIMAL_SCENARIO: Dict[str, Any] = {
+    "version": 1,
+    "name": "Test Scenario",
+    "description": "Minimal test scenario",
+    "agents": [
+        {"id": "bank", "kind": "bank", "name": "Test Bank"},
+        {"id": "firm1", "kind": "firm", "name": "Test Firm 1"},
+        {"id": "firm2", "kind": "firm", "name": "Test Firm 2"},
+    ],
+    "initial_actions": [],
+    "run": {"max_days": 5},
+}
+
+# Scenario with activity that produces events
+SCENARIO_WITH_ACTIVITY: Dict[str, Any] = {
+    "version": 1,
+    "name": "Activity Test Scenario",
+    "description": "Scenario with payment activity to generate events",
+    "agents": [
+        {"id": "CB", "kind": "central_bank", "name": "Central Bank"},
+        {"id": "bank", "kind": "bank", "name": "Test Bank"},
+        {"id": "firm1", "kind": "firm", "name": "Test Firm 1"},
+        {"id": "firm2", "kind": "firm", "name": "Test Firm 2"},
+    ],
+    "initial_actions": [
+        {"mint_reserves": {"to": "bank", "amount": 10000}},
+        {"mint_cash": {"to": "firm1", "amount": 2000}},
+        {"mint_cash": {"to": "firm2", "amount": 1500}},
+        {"deposit_cash": {"customer": "firm1", "bank": "bank", "amount": 1800}},
+        {"deposit_cash": {"customer": "firm2", "bank": "bank", "amount": 1000}},
+        {"create_payable": {"from": "firm1", "to": "firm2", "amount": 500, "due_day": 1}},
+    ],
+    "run": {"max_days": 10},
+}
+
+
+class TestLocalExecutorBasicExecution:
+    """Tests for basic LocalExecutor.execute functionality."""
+
+    @pytest.mark.slow
+    def test_execute_returns_execution_result(self, tmp_path: Path):
+        """execute() returns an ExecutionResult object."""
+        executor = LocalExecutor()
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_basic_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        assert isinstance(result, ExecutionResult)
+        assert result.run_id == "test_basic_001"
+
+    @pytest.mark.slow
+    def test_execute_simple_scenario_returns_completed_status(self, tmp_path: Path):
+        """execute() with valid scenario returns COMPLETED status."""
+        executor = LocalExecutor()
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_completed_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        assert result.status == RunStatus.COMPLETED
+        assert result.error is None
+
+    @pytest.mark.slow
+    def test_execute_populates_execution_time(self, tmp_path: Path):
+        """execute() populates execution_time_ms."""
+        executor = LocalExecutor()
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_time_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        assert result.execution_time_ms is not None
+        assert result.execution_time_ms > 0
+
+    @pytest.mark.slow
+    def test_execute_returns_local_storage_type(self, tmp_path: Path):
+        """execute() returns storage_type='local'."""
+        executor = LocalExecutor()
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_storage_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        assert result.storage_type == "local"
+
+    @pytest.mark.slow
+    def test_execute_returns_absolute_storage_base(self, tmp_path: Path):
+        """execute() returns absolute path as storage_base."""
+        executor = LocalExecutor()
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_storage_base_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        assert result.storage_base == str(tmp_path.resolve())
+
+
+class TestLocalExecutorOutputFiles:
+    """Tests for output file creation."""
+
+    @pytest.mark.slow
+    def test_execute_creates_scenario_yaml(self, tmp_path: Path):
+        """execute() creates scenario.yaml file."""
+        executor = LocalExecutor()
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_yaml_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        scenario_path = tmp_path / "scenario.yaml"
+        assert scenario_path.exists()
+        assert result.artifacts.get("scenario_yaml") == "scenario.yaml"
+
+    @pytest.mark.slow
+    def test_execute_creates_exports_directory(self, tmp_path: Path):
+        """execute() creates out/ exports directory."""
+        executor = LocalExecutor()
+        executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_exports_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        exports_dir = tmp_path / "out"
+        assert exports_dir.exists()
+        assert exports_dir.is_dir()
+
+    @pytest.mark.slow
+    def test_execute_creates_balances_csv(self, tmp_path: Path):
+        """execute() creates balances.csv file."""
+        executor = LocalExecutor()
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_balances_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        balances_path = tmp_path / "out" / "balances.csv"
+        assert balances_path.exists()
+        assert result.artifacts.get("balances_csv") == "out/balances.csv"
+
+    @pytest.mark.slow
+    def test_execute_creates_events_jsonl(self, tmp_path: Path):
+        """execute() creates events.jsonl file."""
+        executor = LocalExecutor()
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_events_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        events_path = tmp_path / "out" / "events.jsonl"
+        assert events_path.exists()
+        assert result.artifacts.get("events_jsonl") == "out/events.jsonl"
+
+    @pytest.mark.slow
+    def test_execute_creates_run_html(self, tmp_path: Path):
+        """execute() creates run.html file."""
+        executor = LocalExecutor()
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_html_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        html_path = tmp_path / "run.html"
+        assert html_path.exists()
+        assert result.artifacts.get("run_html") == "run.html"
+
+    @pytest.mark.slow
+    def test_artifacts_are_relative_paths(self, tmp_path: Path):
+        """execute() returns artifacts as relative paths."""
+        executor = LocalExecutor()
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_relative_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        # All artifact paths should be relative (not starting with /)
+        for key, path in result.artifacts.items():
+            assert not path.startswith("/"), f"Artifact {key} should be relative: {path}"
+
+
+class TestLocalExecutorErrorHandling:
+    """Tests for error handling in LocalExecutor."""
+
+    @pytest.mark.slow
+    def test_execute_returns_failed_status_on_invalid_scenario(self, tmp_path: Path):
+        """execute() returns FAILED status when scenario is invalid."""
+        executor = LocalExecutor()
+
+        # Invalid scenario - missing required fields
+        invalid_scenario: Dict[str, Any] = {
+            "agents": "not_a_list",  # Should be a list
+            "setup": [],
+        }
+
+        result = executor.execute(
+            scenario_config=invalid_scenario,
+            run_id="test_failed_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        assert result.status == RunStatus.FAILED
+
+    @pytest.mark.slow
+    def test_execute_returns_error_message_on_failure(self, tmp_path: Path):
+        """execute() includes error message when simulation fails."""
+        executor = LocalExecutor()
+
+        # Invalid scenario configuration
+        invalid_scenario: Dict[str, Any] = {
+            "agents": [{"id": "bank"}],  # Missing 'kind'
+            "setup": [],
+        }
+
+        result = executor.execute(
+            scenario_config=invalid_scenario,
+            run_id="test_error_msg_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        assert result.status == RunStatus.FAILED
+        assert result.error is not None
+        assert len(result.error) > 0
+
+    @pytest.mark.slow
+    def test_execute_records_execution_time_on_failure(self, tmp_path: Path):
+        """execute() records execution_time_ms even on failure."""
+        executor = LocalExecutor()
+
+        invalid_scenario: Dict[str, Any] = {
+            "agents": "invalid",
+            "setup": [],
+        }
+
+        result = executor.execute(
+            scenario_config=invalid_scenario,
+            run_id="test_time_fail_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        assert result.execution_time_ms is not None
+        assert result.execution_time_ms >= 0
+
+    @pytest.mark.slow
+    def test_failed_execution_still_includes_scenario_yaml(self, tmp_path: Path):
+        """execute() includes scenario_yaml artifact even on failure."""
+        executor = LocalExecutor()
+
+        invalid_scenario: Dict[str, Any] = {
+            "agents": "invalid",
+            "setup": [],
+        }
+
+        result = executor.execute(
+            scenario_config=invalid_scenario,
+            run_id="test_yaml_fail_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        # scenario.yaml should still be written and referenced
+        assert "scenario_yaml" in result.artifacts
+        scenario_path = tmp_path / result.artifacts["scenario_yaml"]
+        assert scenario_path.exists()
+
+
+class TestLocalExecutorDirectoryManagement:
+    """Tests for output directory management."""
+
+    @pytest.mark.slow
+    def test_output_dir_parameter_is_respected(self, tmp_path: Path):
+        """execute() uses provided output_dir."""
+        executor = LocalExecutor()
+        custom_dir = tmp_path / "custom_output"
+        custom_dir.mkdir()
+
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_custom_dir_001",
+            output_dir=custom_dir,
+            options=RunOptions(max_days=5),
+        )
+
+        # storage_base should be the custom directory
+        assert str(custom_dir.resolve()) in result.storage_base
+
+    @pytest.mark.slow
+    def test_output_dir_created_if_not_exists(self, tmp_path: Path):
+        """execute() creates output_dir if it doesn't exist."""
+        executor = LocalExecutor()
+        new_dir = tmp_path / "new_output_dir"
+
+        # Directory should not exist yet
+        assert not new_dir.exists()
+
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_create_dir_001",
+            output_dir=new_dir,
+            options=RunOptions(max_days=5),
+        )
+
+        # Directory should now exist
+        assert new_dir.exists()
+        assert result.status == RunStatus.COMPLETED
+
+    @pytest.mark.slow
+    def test_nested_output_dir_created(self, tmp_path: Path):
+        """execute() creates nested output directories."""
+        executor = LocalExecutor()
+        nested_dir = tmp_path / "level1" / "level2" / "level3"
+
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_nested_dir_001",
+            output_dir=nested_dir,
+            options=RunOptions(max_days=5),
+        )
+
+        assert nested_dir.exists()
+        assert result.status == RunStatus.COMPLETED
+
+
+class TestLocalExecutorRunIdHandling:
+    """Tests for run_id handling in results."""
+
+    @pytest.mark.slow
+    def test_run_id_preserved_in_result(self, tmp_path: Path):
+        """execute() preserves run_id in result."""
+        executor = LocalExecutor()
+        custom_run_id = "unique_run_id_12345"
+
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id=custom_run_id,
+            output_dir=tmp_path,
+            options=RunOptions(max_days=5),
+        )
+
+        assert result.run_id == custom_run_id
+
+
+class TestLocalExecutorRunOptions:
+    """Tests for RunOptions parameter handling."""
+
+    @pytest.mark.slow
+    def test_options_max_days_is_used(self, tmp_path: Path):
+        """execute() uses max_days from RunOptions."""
+        executor = LocalExecutor()
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_options_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=3),
+        )
+
+        assert result.status == RunStatus.COMPLETED
+
+    @pytest.mark.slow
+    def test_options_mode_is_used(self, tmp_path: Path):
+        """execute() uses mode from RunOptions."""
+        executor = LocalExecutor()
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_mode_001",
+            output_dir=tmp_path,
+            options=RunOptions(mode="until_stable", max_days=5),
+        )
+
+        assert result.status == RunStatus.COMPLETED
+
+    @pytest.mark.slow
+    def test_default_options_work(self, tmp_path: Path):
+        """execute() works with default RunOptions."""
+        executor = LocalExecutor()
+        result = executor.execute(
+            scenario_config=MINIMAL_SCENARIO,
+            run_id="test_defaults_001",
+            output_dir=tmp_path,
+            options=RunOptions(),
+        )
+
+        assert result.status == RunStatus.COMPLETED
+
+
+class TestLocalExecutorScenarioWithActivity:
+    """Tests with scenarios that have actual activity."""
+
+    @pytest.mark.slow
+    def test_scenario_with_obligations_produces_events(self, tmp_path: Path):
+        """Scenario with setup events produces events.jsonl."""
+        executor = LocalExecutor()
+
+        result = executor.execute(
+            scenario_config=SCENARIO_WITH_ACTIVITY,
+            run_id="test_activity_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=10),
+        )
+
+        assert result.status == RunStatus.COMPLETED
+        # Events file should be created
+        events_path = tmp_path / "out" / "events.jsonl"
+        assert events_path.exists()
+        # And it should have content
+        assert events_path.stat().st_size > 0
+
+    @pytest.mark.slow
+    def test_result_artifacts_are_relative(self, tmp_path: Path):
+        """execute() returns artifacts as relative paths for active scenario."""
+        executor = LocalExecutor()
+
+        result = executor.execute(
+            scenario_config=SCENARIO_WITH_ACTIVITY,
+            run_id="test_artifacts_001",
+            output_dir=tmp_path,
+            options=RunOptions(max_days=10),
+        )
+
+        assert isinstance(result, ExecutionResult)
+
+        # All artifact paths should be relative
+        for key, path in result.artifacts.items():
+            assert not path.startswith("/"), f"{key} should be relative"
+            # And should resolve to existing files
+            full_path = tmp_path / path
+            assert full_path.exists(), f"{key} at {path} should exist"
+
+```
+
+---
+
+### 🧪 tests/runners/test_models.py
+
+```python
+"""Tests for runner data models."""
+
+import pytest
+
+from bilancio.runners.models import RunOptions, ExecutionResult
+from bilancio.storage.models import RunStatus
+
+
+class TestRunOptionsDefaults:
+    """Tests for RunOptions default values."""
+
+    def test_mode_defaults_to_until_stable(self):
+        """mode defaults to 'until_stable'."""
+        options = RunOptions()
+        assert options.mode == "until_stable"
+
+    def test_max_days_defaults_to_90(self):
+        """max_days defaults to 90."""
+        options = RunOptions()
+        assert options.max_days == 90
+
+    def test_quiet_days_defaults_to_2(self):
+        """quiet_days defaults to 2."""
+        options = RunOptions()
+        assert options.quiet_days == 2
+
+    def test_check_invariants_defaults_to_daily(self):
+        """check_invariants defaults to 'daily'."""
+        options = RunOptions()
+        assert options.check_invariants == "daily"
+
+    def test_default_handling_defaults_to_fail_fast(self):
+        """default_handling defaults to 'fail-fast'."""
+        options = RunOptions()
+        assert options.default_handling == "fail-fast"
+
+    def test_show_events_defaults_to_detailed(self):
+        """show_events defaults to 'detailed'."""
+        options = RunOptions()
+        assert options.show_events == "detailed"
+
+    def test_show_balances_defaults_to_none(self):
+        """show_balances defaults to None."""
+        options = RunOptions()
+        assert options.show_balances is None
+
+    def test_t_account_defaults_to_false(self):
+        """t_account defaults to False."""
+        options = RunOptions()
+        assert options.t_account is False
+
+    def test_detailed_dealer_logging_defaults_to_false(self):
+        """detailed_dealer_logging defaults to False."""
+        options = RunOptions()
+        assert options.detailed_dealer_logging is False
+
+    def test_run_id_defaults_to_none(self):
+        """run_id defaults to None."""
+        options = RunOptions()
+        assert options.run_id is None
+
+    def test_regime_defaults_to_none(self):
+        """regime defaults to None."""
+        options = RunOptions()
+        assert options.regime is None
+
+
+class TestRunOptionsCustomization:
+    """Tests for customizing RunOptions."""
+
+    def test_mode_can_be_customized(self):
+        """mode can be set to custom value."""
+        options = RunOptions(mode="fixed_days")
+        assert options.mode == "fixed_days"
+
+    def test_max_days_can_be_customized(self):
+        """max_days can be set to custom value."""
+        options = RunOptions(max_days=30)
+        assert options.max_days == 30
+
+    def test_quiet_days_can_be_customized(self):
+        """quiet_days can be set to custom value."""
+        options = RunOptions(quiet_days=5)
+        assert options.quiet_days == 5
+
+    def test_check_invariants_can_be_customized(self):
+        """check_invariants can be set to custom value."""
+        options = RunOptions(check_invariants="end")
+        assert options.check_invariants == "end"
+
+    def test_default_handling_can_be_customized(self):
+        """default_handling can be set to custom value."""
+        options = RunOptions(default_handling="continue")
+        assert options.default_handling == "continue"
+
+    def test_show_events_can_be_customized(self):
+        """show_events can be set to custom value."""
+        options = RunOptions(show_events="summary")
+        assert options.show_events == "summary"
+
+    def test_show_balances_can_be_customized(self):
+        """show_balances can be set to list of agent names."""
+        options = RunOptions(show_balances=["Bank1", "Firm1"])
+        assert options.show_balances == ["Bank1", "Firm1"]
+
+    def test_t_account_can_be_customized(self):
+        """t_account can be set to True."""
+        options = RunOptions(t_account=True)
+        assert options.t_account is True
+
+    def test_detailed_dealer_logging_can_be_customized(self):
+        """detailed_dealer_logging can be set to True."""
+        options = RunOptions(detailed_dealer_logging=True)
+        assert options.detailed_dealer_logging is True
+
+    def test_run_id_can_be_customized(self):
+        """run_id can be set to custom value."""
+        options = RunOptions(run_id="custom_run_001")
+        assert options.run_id == "custom_run_001"
+
+    def test_regime_can_be_customized(self):
+        """regime can be set to custom value."""
+        options = RunOptions(regime="baseline")
+        assert options.regime == "baseline"
+
+    def test_multiple_options_can_be_customized(self):
+        """Multiple options can be customized at once."""
+        options = RunOptions(
+            mode="continuous",
+            max_days=100,
+            quiet_days=3,
+            check_invariants="never",
+            default_handling="continue",
+            show_events="none",
+            show_balances=["Bank1"],
+            t_account=True,
+            detailed_dealer_logging=True,
+            run_id="test_run",
+            regime="treatment",
+        )
+
+        assert options.mode == "continuous"
+        assert options.max_days == 100
+        assert options.quiet_days == 3
+        assert options.check_invariants == "never"
+        assert options.default_handling == "continue"
+        assert options.show_events == "none"
+        assert options.show_balances == ["Bank1"]
+        assert options.t_account is True
+        assert options.detailed_dealer_logging is True
+        assert options.run_id == "test_run"
+        assert options.regime == "treatment"
+
+
+class TestExecutionResultCreation:
+    """Tests for ExecutionResult creation."""
+
+    def test_creation_with_all_required_fields(self):
+        """ExecutionResult can be created with all required fields."""
+        result = ExecutionResult(
+            run_id="run_001",
+            status=RunStatus.COMPLETED,
+            storage_type="local",
+            storage_base="/path/to/run",
+        )
+
+        assert result.run_id == "run_001"
+        assert result.status == RunStatus.COMPLETED
+        assert result.storage_type == "local"
+        assert result.storage_base == "/path/to/run"
+
+    def test_creation_with_failed_status(self):
+        """ExecutionResult can be created with FAILED status."""
+        result = ExecutionResult(
+            run_id="run_fail",
+            status=RunStatus.FAILED,
+            storage_type="local",
+            storage_base="/path/to/run",
+            error="Simulation diverged",
+        )
+
+        assert result.status == RunStatus.FAILED
+        assert result.error == "Simulation diverged"
+
+    def test_creation_with_all_fields(self):
+        """ExecutionResult can be created with all fields."""
+        result = ExecutionResult(
+            run_id="run_002",
+            status=RunStatus.COMPLETED,
+            storage_type="s3",
+            storage_base="s3://bucket/prefix",
+            artifacts={
+                "events_jsonl": "out/events.jsonl",
+                "balances_csv": "out/balances.csv",
+            },
+            error=None,
+            execution_time_ms=5000,
+        )
+
+        assert result.run_id == "run_002"
+        assert result.status == RunStatus.COMPLETED
+        assert result.storage_type == "s3"
+        assert result.storage_base == "s3://bucket/prefix"
+        assert result.artifacts["events_jsonl"] == "out/events.jsonl"
+        assert result.artifacts["balances_csv"] == "out/balances.csv"
+        assert result.error is None
+        assert result.execution_time_ms == 5000
+
+
+class TestExecutionResultDefaults:
+    """Tests for ExecutionResult default values."""
+
+    def test_artifacts_defaults_to_empty_dict(self):
+        """artifacts defaults to empty dict."""
+        result = ExecutionResult(
+            run_id="run_001",
+            status=RunStatus.COMPLETED,
+            storage_type="local",
+            storage_base="/path",
+        )
+        assert result.artifacts == {}
+
+    def test_error_defaults_to_none(self):
+        """error defaults to None."""
+        result = ExecutionResult(
+            run_id="run_001",
+            status=RunStatus.COMPLETED,
+            storage_type="local",
+            storage_base="/path",
+        )
+        assert result.error is None
+
+    def test_execution_time_ms_defaults_to_none(self):
+        """execution_time_ms defaults to None."""
+        result = ExecutionResult(
+            run_id="run_001",
+            status=RunStatus.COMPLETED,
+            storage_type="local",
+            storage_base="/path",
+        )
+        assert result.execution_time_ms is None
+
+
+class TestExecutionResultArtifacts:
+    """Tests for ExecutionResult artifacts handling."""
+
+    def test_artifacts_can_store_multiple_paths(self):
+        """artifacts can store multiple artifact paths."""
+        artifacts = {
+            "scenario_yaml": "scenario.yaml",
+            "events_jsonl": "out/events.jsonl",
+            "balances_csv": "out/balances.csv",
+            "run_html": "run.html",
+            "metrics_csv": "out/metrics.csv",
+        }
+
+        result = ExecutionResult(
+            run_id="run_001",
+            status=RunStatus.COMPLETED,
+            storage_type="local",
+            storage_base="/path",
+            artifacts=artifacts,
+        )
+
+        assert len(result.artifacts) == 5
+        assert result.artifacts["scenario_yaml"] == "scenario.yaml"
+        assert result.artifacts["events_jsonl"] == "out/events.jsonl"
+
+    def test_artifacts_can_be_modified(self):
+        """artifacts dict can be modified after creation."""
+        result = ExecutionResult(
+            run_id="run_001",
+            status=RunStatus.COMPLETED,
+            storage_type="local",
+            storage_base="/path",
+        )
+
+        result.artifacts["new_artifact"] = "path/to/artifact"
+        assert result.artifacts["new_artifact"] == "path/to/artifact"
+
+
+class TestExecutionResultStorageTypes:
+    """Tests for ExecutionResult storage type variants."""
+
+    def test_local_storage_type(self):
+        """ExecutionResult supports 'local' storage type."""
+        result = ExecutionResult(
+            run_id="run_001",
+            status=RunStatus.COMPLETED,
+            storage_type="local",
+            storage_base="/Users/test/experiments/run_001",
+        )
+        assert result.storage_type == "local"
+
+    def test_s3_storage_type(self):
+        """ExecutionResult supports 's3' storage type."""
+        result = ExecutionResult(
+            run_id="run_001",
+            status=RunStatus.COMPLETED,
+            storage_type="s3",
+            storage_base="s3://my-bucket/experiments/run_001",
+        )
+        assert result.storage_type == "s3"
+
+    def test_gcs_storage_type(self):
+        """ExecutionResult supports 'gcs' storage type."""
+        result = ExecutionResult(
+            run_id="run_001",
+            status=RunStatus.COMPLETED,
+            storage_type="gcs",
+            storage_base="gs://my-bucket/experiments/run_001",
+        )
+        assert result.storage_type == "gcs"
+
+```
+
+---
+
+### 🧪 tests/runners/test_protocols.py
+
+```python
+"""Tests for simulation executor protocol definitions.
+
+This module tests:
+- Protocol structure validation
+- Protocol conformance checking
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Dict, Any, Optional
+
+import pytest
+
+from bilancio.runners.protocols import SimulationExecutor, JobExecutor
+from bilancio.runners.local_executor import LocalExecutor
+from bilancio.runners.models import RunOptions, ExecutionResult
+from bilancio.storage.models import RunResult, RunStatus
+
+
+class TestSimulationExecutorProtocol:
+    """Tests for SimulationExecutor protocol definition."""
+
+    def test_local_executor_is_instance_of_protocol(self):
+        """LocalExecutor should satisfy SimulationExecutor protocol."""
+        executor = LocalExecutor()
+        assert isinstance(executor, SimulationExecutor)
+
+    def test_protocol_has_execute_method(self):
+        """SimulationExecutor protocol requires execute method."""
+        # Check that the protocol has the execute method defined
+        assert hasattr(SimulationExecutor, "execute")
+
+    def test_custom_class_satisfying_protocol(self):
+        """A custom class with execute method should satisfy the protocol."""
+
+        class CustomExecutor:
+            def execute(
+                self,
+                scenario_config: Dict[str, Any],
+                run_id: str,
+                output_dir: Path,
+                options: RunOptions,
+            ) -> ExecutionResult:
+                return ExecutionResult(
+                    run_id=run_id,
+                    status=RunStatus.COMPLETED,
+                    storage_type="local",
+                    storage_base=str(output_dir),
+                    artifacts={},
+                )
+
+        executor = CustomExecutor()
+        assert isinstance(executor, SimulationExecutor)
+
+    def test_class_missing_execute_does_not_satisfy_protocol(self):
+        """A class without execute method should not satisfy the protocol."""
+
+        class IncompleteExecutor:
+            pass
+
+        executor = IncompleteExecutor()
+        assert not isinstance(executor, SimulationExecutor)
+
+    def test_class_with_wrong_signature_still_satisfies_protocol(self):
+        """Protocol checking is structural, not signature-exact at runtime."""
+        # Note: Python's Protocol runtime checking only checks method existence,
+        # not exact signatures. This is a known limitation.
+
+        class WrongSignatureExecutor:
+            def execute(self):
+                pass
+
+        executor = WrongSignatureExecutor()
+        # This will still pass isinstance check because Python only checks
+        # method existence at runtime, not the full signature
+        assert isinstance(executor, SimulationExecutor)
+
+
+class TestJobExecutorProtocol:
+    """Tests for JobExecutor protocol definition."""
+
+    def test_protocol_has_required_methods(self):
+        """JobExecutor protocol requires submit, status, result, and cancel methods."""
+        assert hasattr(JobExecutor, "submit")
+        assert hasattr(JobExecutor, "status")
+        assert hasattr(JobExecutor, "result")
+        assert hasattr(JobExecutor, "cancel")
+
+    def test_custom_class_satisfying_job_executor_protocol(self):
+        """A custom class with all required methods should satisfy the protocol."""
+
+        class CustomJobExecutor:
+            def submit(self, scenario_config: Dict[str, Any], run_id: str) -> str:
+                return "job_123"
+
+            def status(self, job_id: str) -> RunStatus:
+                return RunStatus.RUNNING
+
+            def result(self, job_id: str) -> Optional[RunResult]:
+                return None
+
+            def cancel(self, job_id: str) -> bool:
+                return True
+
+        executor = CustomJobExecutor()
+        assert isinstance(executor, JobExecutor)
+
+    def test_class_missing_method_does_not_satisfy_protocol(self):
+        """A class missing any required method should not satisfy the protocol."""
+
+        class IncompleteJobExecutor:
+            def submit(self, scenario_config: Dict[str, Any], run_id: str) -> str:
+                return "job_123"
+
+            # Missing: status, result, cancel
+
+        executor = IncompleteJobExecutor()
+        assert not isinstance(executor, JobExecutor)
+
+    def test_local_executor_does_not_satisfy_job_executor(self):
+        """LocalExecutor should not satisfy JobExecutor protocol."""
+        executor = LocalExecutor()
+        assert not isinstance(executor, JobExecutor)
+
+```
+
+---
+
 ### 🧪 tests/scenarios/test_ring_explorer.py
 
 ```python
@@ -62503,7 +72187,7 @@ from pathlib import Path
 
 from bilancio.config.loaders import load_yaml
 from bilancio.config.models import RingExplorerGeneratorConfig
-from bilancio.scenarios.generators.ring_explorer import compile_ring_explorer
+from bilancio.scenarios import compile_ring_explorer
 
 
 def _sum_amounts(actions, key):
@@ -62670,6 +72354,1108 @@ def test_monotonicity_extremes():
 
 ---
 
+### 🧪 tests/storage/__init__.py
+
+```python
+
+```
+
+---
+
+### 🧪 tests/storage/test_artifact_loaders.py
+
+```python
+"""Tests for artifact loader implementations."""
+
+import pytest
+from pathlib import Path
+
+from bilancio.storage.artifact_loaders import ArtifactLoader, LocalArtifactLoader
+
+
+class TestLocalArtifactLoaderLoadText:
+    """Tests for LocalArtifactLoader.load_text()."""
+
+    def test_load_text_returns_file_contents(self, tmp_path: Path):
+        """load_text() returns text content of a file."""
+        test_file = tmp_path / "test.txt"
+        test_file.write_text("Hello, World!")
+
+        loader = LocalArtifactLoader(tmp_path)
+        result = loader.load_text("test.txt")
+
+        assert result == "Hello, World!"
+
+    def test_load_text_handles_unicode(self, tmp_path: Path):
+        """load_text() correctly handles unicode content."""
+        test_file = tmp_path / "unicode.txt"
+        test_file.write_text("Hello, \u4e16\u754c! \u00e9\u00e8\u00ea")
+
+        loader = LocalArtifactLoader(tmp_path)
+        result = loader.load_text("unicode.txt")
+
+        assert result == "Hello, \u4e16\u754c! \u00e9\u00e8\u00ea"
+
+    def test_load_text_handles_multiline_content(self, tmp_path: Path):
+        """load_text() preserves multiline content."""
+        test_file = tmp_path / "multiline.txt"
+        content = "line1\nline2\nline3"
+        test_file.write_text(content)
+
+        loader = LocalArtifactLoader(tmp_path)
+        result = loader.load_text("multiline.txt")
+
+        assert result == content
+
+    def test_load_text_raises_for_missing_file(self, tmp_path: Path):
+        """load_text() raises FileNotFoundError for missing files."""
+        loader = LocalArtifactLoader(tmp_path)
+
+        with pytest.raises(FileNotFoundError):
+            loader.load_text("nonexistent.txt")
+
+    def test_load_text_nested_path(self, tmp_path: Path):
+        """load_text() handles nested path references."""
+        nested_dir = tmp_path / "subdir" / "deeper"
+        nested_dir.mkdir(parents=True)
+        test_file = nested_dir / "nested.txt"
+        test_file.write_text("nested content")
+
+        loader = LocalArtifactLoader(tmp_path)
+        result = loader.load_text("subdir/deeper/nested.txt")
+
+        assert result == "nested content"
+
+
+class TestLocalArtifactLoaderLoadBytes:
+    """Tests for LocalArtifactLoader.load_bytes()."""
+
+    def test_load_bytes_returns_file_contents(self, tmp_path: Path):
+        """load_bytes() returns binary content of a file."""
+        test_file = tmp_path / "test.bin"
+        test_file.write_bytes(b"\x00\x01\x02\x03")
+
+        loader = LocalArtifactLoader(tmp_path)
+        result = loader.load_bytes("test.bin")
+
+        assert result == b"\x00\x01\x02\x03"
+
+    def test_load_bytes_handles_text_files(self, tmp_path: Path):
+        """load_bytes() can read text files as bytes."""
+        test_file = tmp_path / "text.txt"
+        test_file.write_text("Hello, World!")
+
+        loader = LocalArtifactLoader(tmp_path)
+        result = loader.load_bytes("text.txt")
+
+        assert result == b"Hello, World!"
+
+    def test_load_bytes_raises_for_missing_file(self, tmp_path: Path):
+        """load_bytes() raises FileNotFoundError for missing files."""
+        loader = LocalArtifactLoader(tmp_path)
+
+        with pytest.raises(FileNotFoundError):
+            loader.load_bytes("nonexistent.bin")
+
+    def test_load_bytes_nested_path(self, tmp_path: Path):
+        """load_bytes() handles nested path references."""
+        nested_dir = tmp_path / "data"
+        nested_dir.mkdir()
+        test_file = nested_dir / "file.bin"
+        test_file.write_bytes(b"\xff\xfe")
+
+        loader = LocalArtifactLoader(tmp_path)
+        result = loader.load_bytes("data/file.bin")
+
+        assert result == b"\xff\xfe"
+
+
+class TestLocalArtifactLoaderExists:
+    """Tests for LocalArtifactLoader.exists()."""
+
+    def test_exists_returns_true_for_existing_file(self, tmp_path: Path):
+        """exists() returns True when file exists."""
+        test_file = tmp_path / "exists.txt"
+        test_file.write_text("content")
+
+        loader = LocalArtifactLoader(tmp_path)
+        result = loader.exists("exists.txt")
+
+        assert result is True
+
+    def test_exists_returns_false_for_missing_file(self, tmp_path: Path):
+        """exists() returns False when file does not exist."""
+        loader = LocalArtifactLoader(tmp_path)
+        result = loader.exists("nonexistent.txt")
+
+        assert result is False
+
+    def test_exists_handles_nested_paths(self, tmp_path: Path):
+        """exists() handles nested path references."""
+        nested_dir = tmp_path / "subdir"
+        nested_dir.mkdir()
+        test_file = nested_dir / "file.txt"
+        test_file.write_text("content")
+
+        loader = LocalArtifactLoader(tmp_path)
+
+        assert loader.exists("subdir/file.txt") is True
+        assert loader.exists("subdir/missing.txt") is False
+
+    def test_exists_returns_false_for_directory(self, tmp_path: Path):
+        """exists() returns True for directory (matches Path.exists behavior)."""
+        subdir = tmp_path / "subdir"
+        subdir.mkdir()
+
+        loader = LocalArtifactLoader(tmp_path)
+        # Note: Path.exists() returns True for directories
+        assert loader.exists("subdir") is True
+
+
+class TestLocalArtifactLoaderInit:
+    """Tests for LocalArtifactLoader initialization."""
+
+    def test_init_stores_base_path(self, tmp_path: Path):
+        """__init__ stores base_path as Path object."""
+        loader = LocalArtifactLoader(tmp_path)
+        assert loader.base_path == tmp_path
+
+    def test_init_converts_string_to_path(self, tmp_path: Path):
+        """__init__ converts string path to Path object."""
+        loader = LocalArtifactLoader(str(tmp_path))
+        assert isinstance(loader.base_path, Path)
+        assert loader.base_path == tmp_path
+
+    def test_base_path_not_required_to_exist(self):
+        """__init__ does not require base_path to exist."""
+        # This should not raise
+        loader = LocalArtifactLoader(Path("/nonexistent/path"))
+        assert loader.base_path == Path("/nonexistent/path")
+
+
+class TestLocalArtifactLoaderProtocol:
+    """Tests for LocalArtifactLoader implementing ArtifactLoader protocol."""
+
+    def test_implements_artifact_loader_protocol(self, tmp_path: Path):
+        """LocalArtifactLoader implements ArtifactLoader protocol."""
+        loader = LocalArtifactLoader(tmp_path)
+        # ArtifactLoader is a runtime_checkable Protocol
+        assert isinstance(loader, ArtifactLoader)
+
+    def test_has_load_text_method(self, tmp_path: Path):
+        """LocalArtifactLoader has load_text method."""
+        loader = LocalArtifactLoader(tmp_path)
+        assert hasattr(loader, "load_text")
+        assert callable(loader.load_text)
+
+    def test_has_load_bytes_method(self, tmp_path: Path):
+        """LocalArtifactLoader has load_bytes method."""
+        loader = LocalArtifactLoader(tmp_path)
+        assert hasattr(loader, "load_bytes")
+        assert callable(loader.load_bytes)
+
+    def test_has_exists_method(self, tmp_path: Path):
+        """LocalArtifactLoader has exists method."""
+        loader = LocalArtifactLoader(tmp_path)
+        assert hasattr(loader, "exists")
+        assert callable(loader.exists)
+
+```
+
+---
+
+### 🧪 tests/storage/test_file_store.py
+
+```python
+"""Tests for file-based storage implementations."""
+
+import json
+import csv
+import pytest
+from pathlib import Path
+
+from bilancio.storage.models import (
+    RunStatus,
+    RunArtifacts,
+    RunResult,
+    RegistryEntry,
+)
+from bilancio.storage.file_store import FileResultStore, FileRegistryStore
+
+
+class TestFileResultStore:
+    """Tests for FileResultStore."""
+
+    def test_init_creates_base_dir(self, tmp_path):
+        """Test that initialization creates the base directory."""
+        base_dir = tmp_path / "results"
+        assert not base_dir.exists()
+        store = FileResultStore(base_dir)
+        assert base_dir.exists()
+
+    def test_init_accepts_string_path(self, tmp_path):
+        """Test that initialization accepts string path."""
+        base_dir = str(tmp_path / "results")
+        store = FileResultStore(base_dir)
+        assert Path(base_dir).exists()
+
+    def test_save_artifact_creates_correct_structure(self, tmp_path):
+        """Test that save_artifact creates correct directory structure."""
+        store = FileResultStore(tmp_path)
+        content = b"test content"
+
+        store.save_artifact(
+            experiment_id="exp_001",
+            run_id="run_001",
+            name="events.jsonl",
+            content=content,
+        )
+
+        # Check that the file exists in the correct location
+        expected_path = tmp_path / "exp_001" / "runs" / "run_001" / "out" / "events.jsonl"
+        assert expected_path.exists()
+        assert expected_path.read_bytes() == content
+
+    def test_save_artifact_scenario_yaml_at_run_level(self, tmp_path):
+        """Test that scenario.yaml is saved at run level, not in out/."""
+        store = FileResultStore(tmp_path)
+        content = b"scenario: test"
+
+        store.save_artifact(
+            experiment_id="exp_001",
+            run_id="run_001",
+            name="scenario.yaml",
+            content=content,
+        )
+
+        # scenario.yaml should be at run level, not in out/
+        expected_path = tmp_path / "exp_001" / "runs" / "run_001" / "scenario.yaml"
+        assert expected_path.exists()
+        out_path = tmp_path / "exp_001" / "runs" / "run_001" / "out" / "scenario.yaml"
+        assert not out_path.exists()
+
+    def test_save_artifact_returns_relative_path(self, tmp_path):
+        """Test that save_artifact returns correct relative path."""
+        store = FileResultStore(tmp_path)
+
+        rel_path = store.save_artifact(
+            experiment_id="exp_001",
+            run_id="run_001",
+            name="events.jsonl",
+            content=b"test",
+        )
+
+        assert rel_path == "exp_001/runs/run_001/out/events.jsonl"
+
+    def test_save_artifact_scenario_returns_relative_path(self, tmp_path):
+        """Test that save_artifact returns correct relative path for scenario."""
+        store = FileResultStore(tmp_path)
+
+        rel_path = store.save_artifact(
+            experiment_id="exp_001",
+            run_id="run_001",
+            name="scenario.yaml",
+            content=b"test",
+        )
+
+        assert rel_path == "exp_001/runs/run_001/scenario.yaml"
+
+    def test_save_run_creates_result_json(self, tmp_path):
+        """Test that save_run creates result.json with correct format."""
+        store = FileResultStore(tmp_path)
+        result = RunResult(
+            run_id="run_001",
+            status=RunStatus.COMPLETED,
+            parameters={"seed": 42, "kappa": 0.1},
+            metrics={"phi_total": 100.0},
+            artifacts=RunArtifacts(scenario_yaml="exp/runs/run_001/scenario.yaml"),
+            execution_time_ms=5000,
+        )
+
+        store.save_run("exp_001", result)
+
+        result_path = tmp_path / "exp_001" / "runs" / "run_001" / "result.json"
+        assert result_path.exists()
+
+        data = json.loads(result_path.read_text())
+        assert data["run_id"] == "run_001"
+        assert data["status"] == "completed"
+        assert data["parameters"] == {"seed": 42, "kappa": 0.1}
+        assert data["metrics"] == {"phi_total": 100.0}
+        assert data["artifacts"]["scenario_yaml"] == "exp/runs/run_001/scenario.yaml"
+        assert data["execution_time_ms"] == 5000
+        assert data["error"] is None
+
+    def test_save_run_with_error(self, tmp_path):
+        """Test that save_run correctly saves error field."""
+        store = FileResultStore(tmp_path)
+        result = RunResult(
+            run_id="run_fail",
+            status=RunStatus.FAILED,
+            error="Simulation diverged",
+        )
+
+        store.save_run("exp_001", result)
+
+        result_path = tmp_path / "exp_001" / "runs" / "run_fail" / "result.json"
+        data = json.loads(result_path.read_text())
+        assert data["status"] == "failed"
+        assert data["error"] == "Simulation diverged"
+
+    def test_load_run_returns_none_for_nonexistent(self, tmp_path):
+        """Test that load_run returns None for non-existent run."""
+        store = FileResultStore(tmp_path)
+        result = store.load_run("exp_001", "nonexistent_run")
+        assert result is None
+
+    def test_load_run_returns_none_for_nonexistent_experiment(self, tmp_path):
+        """Test that load_run returns None for non-existent experiment."""
+        store = FileResultStore(tmp_path)
+        result = store.load_run("nonexistent_exp", "run_001")
+        assert result is None
+
+    def test_load_run_correctly_deserializes(self, tmp_path):
+        """Test that load_run correctly deserializes saved run."""
+        store = FileResultStore(tmp_path)
+        original = RunResult(
+            run_id="run_001",
+            status=RunStatus.COMPLETED,
+            parameters={"seed": 42, "kappa": 0.1},
+            metrics={"phi_total": 100.0, "delta_total": 50.0},
+            artifacts=RunArtifacts(
+                scenario_yaml="exp/runs/run_001/scenario.yaml",
+                events_jsonl="exp/runs/run_001/out/events.jsonl",
+            ),
+            execution_time_ms=5000,
+        )
+
+        store.save_run("exp_001", original)
+        loaded = store.load_run("exp_001", "run_001")
+
+        assert loaded is not None
+        assert loaded.run_id == original.run_id
+        assert loaded.status == original.status
+        assert loaded.parameters == original.parameters
+        assert loaded.metrics == original.metrics
+        assert loaded.artifacts.scenario_yaml == original.artifacts.scenario_yaml
+        assert loaded.artifacts.events_jsonl == original.artifacts.events_jsonl
+        assert loaded.execution_time_ms == original.execution_time_ms
+
+    def test_load_artifact_returns_correct_content(self, tmp_path):
+        """Test that load_artifact returns correct content."""
+        store = FileResultStore(tmp_path)
+        content = b"test artifact content"
+
+        rel_path = store.save_artifact(
+            experiment_id="exp_001",
+            run_id="run_001",
+            name="events.jsonl",
+            content=content,
+        )
+
+        loaded_content = store.load_artifact(rel_path)
+        assert loaded_content == content
+
+    def test_roundtrip_save_then_load(self, tmp_path):
+        """Test complete round-trip: save then load preserves all data."""
+        store = FileResultStore(tmp_path)
+
+        # Save artifacts
+        scenario_content = b"agents:\n  - name: Bank1"
+        events_content = b'{"day": 1, "event": "payment"}\n'
+
+        scenario_path = store.save_artifact(
+            "exp_001", "run_001", "scenario.yaml", scenario_content
+        )
+        events_path = store.save_artifact(
+            "exp_001", "run_001", "events.jsonl", events_content
+        )
+
+        # Save run result
+        original = RunResult(
+            run_id="run_001",
+            status=RunStatus.COMPLETED,
+            parameters={"seed": 42, "kappa": 0.15, "n_agents": 10},
+            metrics={"phi_total": 150.0, "delta_total": 75.0, "time_to_stability": 5},
+            artifacts=RunArtifacts(
+                scenario_yaml=scenario_path,
+                events_jsonl=events_path,
+            ),
+            execution_time_ms=10000,
+        )
+        store.save_run("exp_001", original)
+
+        # Load everything back
+        loaded = store.load_run("exp_001", "run_001")
+        loaded_scenario = store.load_artifact(loaded.artifacts.scenario_yaml)
+        loaded_events = store.load_artifact(loaded.artifacts.events_jsonl)
+
+        # Verify everything matches
+        assert loaded.run_id == original.run_id
+        assert loaded.status == original.status
+        assert loaded.parameters == original.parameters
+        assert loaded.metrics == original.metrics
+        assert loaded.execution_time_ms == original.execution_time_ms
+        assert loaded_scenario == scenario_content
+        assert loaded_events == events_content
+
+
+class TestFileRegistryStore:
+    """Tests for FileRegistryStore."""
+
+    def test_upsert_creates_registry_file_and_directory(self, tmp_path):
+        """Test that upsert creates registry file and directory structure."""
+        store = FileRegistryStore(tmp_path)
+        entry = RegistryEntry(
+            run_id="run_001",
+            experiment_id="exp_001",
+            status=RunStatus.COMPLETED,
+        )
+
+        store.upsert(entry)
+
+        registry_path = tmp_path / "exp_001" / "registry" / "experiments.csv"
+        assert registry_path.exists()
+
+    def test_upsert_updates_existing_entry(self, tmp_path):
+        """Test that upsert updates existing entry (not duplicates)."""
+        store = FileRegistryStore(tmp_path)
+
+        # First upsert
+        entry1 = RegistryEntry(
+            run_id="run_001",
+            experiment_id="exp_001",
+            status=RunStatus.RUNNING,
+            parameters={"seed": 42},
+        )
+        store.upsert(entry1)
+
+        # Second upsert with same run_id
+        entry2 = RegistryEntry(
+            run_id="run_001",
+            experiment_id="exp_001",
+            status=RunStatus.COMPLETED,
+            parameters={"seed": 42},
+            metrics={"phi_total": 100.0},
+        )
+        store.upsert(entry2)
+
+        # Should only have one entry
+        run_ids = store.list_runs("exp_001")
+        assert len(run_ids) == 1
+        assert run_ids[0] == "run_001"
+
+        # Entry should be updated
+        loaded = store.get("exp_001", "run_001")
+        assert loaded.status == RunStatus.COMPLETED
+
+    def test_get_returns_none_for_nonexistent_entry(self, tmp_path):
+        """Test that get returns None for non-existent entry."""
+        store = FileRegistryStore(tmp_path)
+        result = store.get("exp_001", "nonexistent_run")
+        assert result is None
+
+    def test_get_returns_none_for_nonexistent_experiment(self, tmp_path):
+        """Test that get returns None for non-existent experiment."""
+        store = FileRegistryStore(tmp_path)
+        result = store.get("nonexistent_exp", "run_001")
+        assert result is None
+
+    def test_get_returns_correct_entry(self, tmp_path):
+        """Test that get returns correct entry."""
+        store = FileRegistryStore(tmp_path)
+        entry = RegistryEntry(
+            run_id="run_001",
+            experiment_id="exp_001",
+            status=RunStatus.COMPLETED,
+            parameters={"seed": 42, "kappa": 0.1},
+            metrics={"phi_total": 100.0},
+            artifact_paths={"scenario_yaml": "exp_001/runs/run_001/scenario.yaml"},
+        )
+        store.upsert(entry)
+
+        loaded = store.get("exp_001", "run_001")
+
+        assert loaded is not None
+        assert loaded.run_id == "run_001"
+        assert loaded.experiment_id == "exp_001"
+        assert loaded.status == RunStatus.COMPLETED
+        assert loaded.parameters["seed"] == 42
+
+    def test_list_runs_returns_all_run_ids(self, tmp_path):
+        """Test that list_runs returns all run IDs."""
+        store = FileRegistryStore(tmp_path)
+
+        # Add multiple entries
+        for i in range(5):
+            entry = RegistryEntry(
+                run_id=f"run_{i:03d}",
+                experiment_id="exp_001",
+                status=RunStatus.COMPLETED,
+            )
+            store.upsert(entry)
+
+        run_ids = store.list_runs("exp_001")
+
+        assert len(run_ids) == 5
+        assert set(run_ids) == {"run_000", "run_001", "run_002", "run_003", "run_004"}
+
+    def test_list_runs_returns_empty_for_nonexistent_experiment(self, tmp_path):
+        """Test that list_runs returns empty list for non-existent experiment."""
+        store = FileRegistryStore(tmp_path)
+        run_ids = store.list_runs("nonexistent_exp")
+        assert run_ids == []
+
+    def test_get_completed_keys_returns_correct_keys(self, tmp_path):
+        """Test that get_completed_keys returns correct keys."""
+        store = FileRegistryStore(tmp_path)
+
+        # Add some completed entries
+        for seed in [1, 2, 3]:
+            for kappa in [0.1, 0.2]:
+                entry = RegistryEntry(
+                    run_id=f"run_s{seed}_k{kappa}",
+                    experiment_id="exp_001",
+                    status=RunStatus.COMPLETED,
+                    parameters={"seed": seed, "kappa": kappa, "concentration": 0.5},
+                )
+                store.upsert(entry)
+
+        completed = store.get_completed_keys("exp_001")
+
+        # Default key_fields is ["seed", "kappa", "concentration"]
+        assert len(completed) == 6
+        assert (1, 0.1, 0.5) in completed
+        assert (2, 0.2, 0.5) in completed
+
+    def test_get_completed_keys_excludes_non_completed(self, tmp_path):
+        """Test that get_completed_keys excludes non-completed runs."""
+        store = FileRegistryStore(tmp_path)
+
+        # Add completed entry
+        entry1 = RegistryEntry(
+            run_id="run_001",
+            experiment_id="exp_001",
+            status=RunStatus.COMPLETED,
+            parameters={"seed": 1, "kappa": 0.1, "concentration": 0.5},
+        )
+        store.upsert(entry1)
+
+        # Add failed entry
+        entry2 = RegistryEntry(
+            run_id="run_002",
+            experiment_id="exp_001",
+            status=RunStatus.FAILED,
+            parameters={"seed": 2, "kappa": 0.1, "concentration": 0.5},
+        )
+        store.upsert(entry2)
+
+        completed = store.get_completed_keys("exp_001")
+
+        assert len(completed) == 1
+        assert (1, 0.1, 0.5) in completed
+        assert (2, 0.1, 0.5) not in completed
+
+    def test_get_completed_keys_with_custom_key_fields(self, tmp_path):
+        """Test that get_completed_keys works with custom key_fields."""
+        store = FileRegistryStore(tmp_path)
+
+        entry = RegistryEntry(
+            run_id="run_001",
+            experiment_id="exp_001",
+            status=RunStatus.COMPLETED,
+            parameters={"seed": 42, "n_agents": 10, "mu": 0.5},
+        )
+        store.upsert(entry)
+
+        completed = store.get_completed_keys("exp_001", key_fields=["seed", "n_agents"])
+
+        assert len(completed) == 1
+        assert (42, 10) in completed
+
+    def test_get_completed_keys_returns_empty_for_nonexistent(self, tmp_path):
+        """Test that get_completed_keys returns empty set for non-existent experiment."""
+        store = FileRegistryStore(tmp_path)
+        completed = store.get_completed_keys("nonexistent_exp")
+        assert completed == set()
+
+    def test_query_with_no_filters_returns_all(self, tmp_path):
+        """Test that query with no filters returns all entries."""
+        store = FileRegistryStore(tmp_path)
+
+        # Add multiple entries with different statuses
+        for i, status in enumerate([RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.COMPLETED]):
+            entry = RegistryEntry(
+                run_id=f"run_{i:03d}",
+                experiment_id="exp_001",
+                status=status,
+            )
+            store.upsert(entry)
+
+        results = store.query("exp_001")
+
+        assert len(results) == 3
+        run_ids = {r.run_id for r in results}
+        assert run_ids == {"run_000", "run_001", "run_002"}
+
+    def test_query_with_filters_returns_matching(self, tmp_path):
+        """Test that query with filters returns matching entries only."""
+        store = FileRegistryStore(tmp_path)
+
+        # Add entries with different parameters
+        for seed in [1, 2, 3]:
+            for kappa in [0.1, 0.2]:
+                entry = RegistryEntry(
+                    run_id=f"run_s{seed}_k{kappa}",
+                    experiment_id="exp_001",
+                    status=RunStatus.COMPLETED,
+                    parameters={"seed": seed, "kappa": kappa},
+                )
+                store.upsert(entry)
+
+        # Filter by kappa
+        results = store.query("exp_001", filters={"kappa": 0.1})
+
+        assert len(results) == 3
+        for r in results:
+            assert r.parameters["kappa"] == 0.1
+
+    def test_query_with_status_filter(self, tmp_path):
+        """Test that query can filter by status."""
+        store = FileRegistryStore(tmp_path)
+
+        # Add entries with different statuses
+        entry1 = RegistryEntry(
+            run_id="run_001",
+            experiment_id="exp_001",
+            status=RunStatus.COMPLETED,
+        )
+        entry2 = RegistryEntry(
+            run_id="run_002",
+            experiment_id="exp_001",
+            status=RunStatus.FAILED,
+        )
+        entry3 = RegistryEntry(
+            run_id="run_003",
+            experiment_id="exp_001",
+            status=RunStatus.COMPLETED,
+        )
+        store.upsert(entry1)
+        store.upsert(entry2)
+        store.upsert(entry3)
+
+        results = store.query("exp_001", filters={"status": "completed"})
+
+        assert len(results) == 2
+        assert all(r.status == RunStatus.COMPLETED for r in results)
+
+    def test_query_returns_empty_for_nonexistent_experiment(self, tmp_path):
+        """Test that query returns empty list for non-existent experiment."""
+        store = FileRegistryStore(tmp_path)
+        results = store.query("nonexistent_exp")
+        assert results == []
+
+    def test_query_with_multiple_filters(self, tmp_path):
+        """Test that query with multiple filters works correctly."""
+        store = FileRegistryStore(tmp_path)
+
+        # Add various entries
+        for seed in [1, 2]:
+            for kappa in [0.1, 0.2]:
+                for status in [RunStatus.COMPLETED, RunStatus.FAILED]:
+                    entry = RegistryEntry(
+                        run_id=f"run_s{seed}_k{kappa}_{status.value}",
+                        experiment_id="exp_001",
+                        status=status,
+                        parameters={"seed": seed, "kappa": kappa},
+                    )
+                    store.upsert(entry)
+
+        # Filter by multiple criteria
+        results = store.query(
+            "exp_001",
+            filters={"seed": 1, "status": "completed"}
+        )
+
+        assert len(results) == 2
+        for r in results:
+            assert r.parameters["seed"] == 1
+            assert r.status == RunStatus.COMPLETED
+
+    def test_upsert_preserves_existing_entries(self, tmp_path):
+        """Test that upsert preserves other entries when adding new ones."""
+        store = FileRegistryStore(tmp_path)
+
+        # Add first entry
+        entry1 = RegistryEntry(
+            run_id="run_001",
+            experiment_id="exp_001",
+            status=RunStatus.COMPLETED,
+            parameters={"seed": 1},
+        )
+        store.upsert(entry1)
+
+        # Add second entry
+        entry2 = RegistryEntry(
+            run_id="run_002",
+            experiment_id="exp_001",
+            status=RunStatus.COMPLETED,
+            parameters={"seed": 2},
+        )
+        store.upsert(entry2)
+
+        # Both entries should exist
+        loaded1 = store.get("exp_001", "run_001")
+        loaded2 = store.get("exp_001", "run_002")
+
+        assert loaded1 is not None
+        assert loaded1.parameters["seed"] == 1
+        assert loaded2 is not None
+        assert loaded2.parameters["seed"] == 2
+
+    def test_dynamic_fields_are_preserved(self, tmp_path):
+        """Test that dynamically added fields are preserved in registry."""
+        store = FileRegistryStore(tmp_path)
+
+        # Add entry with non-standard parameters
+        entry = RegistryEntry(
+            run_id="run_001",
+            experiment_id="exp_001",
+            status=RunStatus.COMPLETED,
+            parameters={"custom_param": "custom_value", "another_param": 123},
+        )
+        store.upsert(entry)
+
+        # Load it back
+        loaded = store.get("exp_001", "run_001")
+
+        assert loaded is not None
+        assert "custom_param" in loaded.parameters
+        assert loaded.parameters["custom_param"] == "custom_value"
+
+    def test_metrics_roundtrip_through_csv(self, tmp_path):
+        """Test that metrics are correctly stored and retrieved from CSV.
+
+        This test verifies the fix for the bug where metrics were incorrectly
+        assigned to parameters instead of metrics dict in _row_to_entry.
+        """
+        store = FileRegistryStore(tmp_path)
+
+        # Create entry with all standard metrics
+        entry = RegistryEntry(
+            run_id="run_001",
+            experiment_id="exp_001",
+            status=RunStatus.COMPLETED,
+            parameters={"seed": 42, "kappa": 0.1},
+            metrics={
+                "phi_total": 150.5,
+                "delta_total": 75.25,
+                "time_to_stability": 12.0,
+            },
+        )
+        store.upsert(entry)
+
+        # Load it back
+        loaded = store.get("exp_001", "run_001")
+
+        assert loaded is not None
+        # Verify metrics are in metrics dict (not parameters)
+        assert "phi_total" in loaded.metrics
+        assert "delta_total" in loaded.metrics
+        assert "time_to_stability" in loaded.metrics
+        assert loaded.metrics["phi_total"] == 150.5
+        assert loaded.metrics["delta_total"] == 75.25
+        assert loaded.metrics["time_to_stability"] == 12.0
+
+        # Verify metrics are NOT in parameters
+        assert "phi_total" not in loaded.parameters
+        assert "delta_total" not in loaded.parameters
+        assert "time_to_stability" not in loaded.parameters
+
+        # Verify parameters are still in parameters dict
+        assert loaded.parameters["seed"] == 42
+        assert loaded.parameters["kappa"] == 0.1
+
+
+class TestFileStoreSecurityValidation:
+    """Tests for security validations in file stores."""
+
+    def test_load_artifact_rejects_path_traversal(self, tmp_path):
+        """Test that load_artifact rejects path traversal attempts."""
+        store = FileResultStore(tmp_path)
+
+        # Create a legitimate file
+        (tmp_path / "test.txt").write_bytes(b"test")
+
+        # Try to traverse outside base_dir
+        with pytest.raises(ValueError, match="path traversal detected"):
+            store.load_artifact("../../../etc/passwd")
+
+    def test_load_artifact_rejects_absolute_path_traversal(self, tmp_path):
+        """Test that load_artifact rejects absolute path traversal."""
+        store = FileResultStore(tmp_path)
+
+        with pytest.raises(ValueError, match="path traversal detected"):
+            store.load_artifact("foo/../../../etc/passwd")
+
+    def test_save_artifact_rejects_invalid_experiment_id(self, tmp_path):
+        """Test that save_artifact rejects invalid experiment_id."""
+        store = FileResultStore(tmp_path)
+
+        with pytest.raises(ValueError, match="Invalid experiment_id"):
+            store.save_artifact(
+                experiment_id="../malicious",
+                run_id="run_001",
+                name="test.txt",
+                content=b"test",
+            )
+
+    def test_save_artifact_rejects_invalid_run_id(self, tmp_path):
+        """Test that save_artifact rejects invalid run_id."""
+        store = FileResultStore(tmp_path)
+
+        with pytest.raises(ValueError, match="Invalid run_id"):
+            store.save_artifact(
+                experiment_id="exp_001",
+                run_id="../../../etc",
+                name="test.txt",
+                content=b"test",
+            )
+
+    def test_registry_rejects_invalid_experiment_id(self, tmp_path):
+        """Test that registry operations reject invalid experiment_id."""
+        store = FileRegistryStore(tmp_path)
+
+        with pytest.raises(ValueError, match="Invalid experiment_id"):
+            store.get("../malicious", "run_001")
+
+    def test_valid_ids_with_special_chars_allowed(self, tmp_path):
+        """Test that valid IDs with dashes, underscores, dots are allowed."""
+        store = FileResultStore(tmp_path)
+
+        # These should all work
+        ref = store.save_artifact(
+            experiment_id="exp-001_test.v2",
+            run_id="run.001-abc_123",
+            name="test.txt",
+            content=b"test",
+        )
+        assert "exp-001_test.v2" in ref
+        assert "run.001-abc_123" in ref
+
+```
+
+---
+
+### 🧪 tests/storage/test_models.py
+
+```python
+"""Tests for storage data models."""
+
+import pytest
+
+from bilancio.storage.models import (
+    RunStatus,
+    RunArtifacts,
+    RunResult,
+    RegistryEntry,
+)
+
+
+class TestRunStatus:
+    """Tests for RunStatus enum."""
+
+    def test_pending_value(self):
+        """Test PENDING enum has correct value."""
+        assert RunStatus.PENDING.value == "pending"
+
+    def test_running_value(self):
+        """Test RUNNING enum has correct value."""
+        assert RunStatus.RUNNING.value == "running"
+
+    def test_completed_value(self):
+        """Test COMPLETED enum has correct value."""
+        assert RunStatus.COMPLETED.value == "completed"
+
+    def test_failed_value(self):
+        """Test FAILED enum has correct value."""
+        assert RunStatus.FAILED.value == "failed"
+
+    def test_all_statuses_exist(self):
+        """Test all expected statuses exist."""
+        statuses = {s.value for s in RunStatus}
+        assert statuses == {"pending", "running", "completed", "failed"}
+
+    def test_status_from_string(self):
+        """Test creating status from string value."""
+        assert RunStatus("completed") == RunStatus.COMPLETED
+        assert RunStatus("failed") == RunStatus.FAILED
+
+
+class TestRunArtifacts:
+    """Tests for RunArtifacts dataclass."""
+
+    def test_defaults_all_none(self):
+        """Test all fields default to None."""
+        artifacts = RunArtifacts()
+        assert artifacts.scenario_yaml is None
+        assert artifacts.events_jsonl is None
+        assert artifacts.balances_csv is None
+        assert artifacts.metrics_csv is None
+        assert artifacts.metrics_json is None
+        assert artifacts.run_html is None
+        assert artifacts.dealer_metrics_json is None
+        assert artifacts.trades_csv is None
+        assert artifacts.repayment_events_csv is None
+
+    def test_with_some_values(self):
+        """Test creating with specific values."""
+        artifacts = RunArtifacts(
+            scenario_yaml="path/to/scenario.yaml",
+            events_jsonl="path/to/events.jsonl",
+        )
+        assert artifacts.scenario_yaml == "path/to/scenario.yaml"
+        assert artifacts.events_jsonl == "path/to/events.jsonl"
+        assert artifacts.balances_csv is None
+
+    def test_with_all_values(self):
+        """Test creating with all values set."""
+        artifacts = RunArtifacts(
+            scenario_yaml="scenario.yaml",
+            events_jsonl="events.jsonl",
+            balances_csv="balances.csv",
+            metrics_csv="metrics.csv",
+            metrics_json="metrics.json",
+            run_html="run.html",
+            dealer_metrics_json="dealer_metrics.json",
+            trades_csv="trades.csv",
+            repayment_events_csv="repayment_events.csv",
+        )
+        assert artifacts.scenario_yaml == "scenario.yaml"
+        assert artifacts.events_jsonl == "events.jsonl"
+        assert artifacts.balances_csv == "balances.csv"
+        assert artifacts.metrics_csv == "metrics.csv"
+        assert artifacts.metrics_json == "metrics.json"
+        assert artifacts.run_html == "run.html"
+        assert artifacts.dealer_metrics_json == "dealer_metrics.json"
+        assert artifacts.trades_csv == "trades.csv"
+        assert artifacts.repayment_events_csv == "repayment_events.csv"
+
+
+class TestRunResult:
+    """Tests for RunResult dataclass."""
+
+    def test_minimal_creation(self):
+        """Test creating with only required fields."""
+        result = RunResult(
+            run_id="run_001",
+            status=RunStatus.COMPLETED,
+        )
+        assert result.run_id == "run_001"
+        assert result.status == RunStatus.COMPLETED
+        assert result.parameters == {}
+        assert result.metrics == {}
+        assert isinstance(result.artifacts, RunArtifacts)
+        assert result.error is None
+        assert result.execution_time_ms is None
+
+    def test_full_creation(self):
+        """Test creating with all fields."""
+        artifacts = RunArtifacts(scenario_yaml="scenario.yaml")
+        result = RunResult(
+            run_id="run_002",
+            status=RunStatus.FAILED,
+            parameters={"seed": 42, "kappa": 0.1},
+            metrics={"phi_total": 100.5},
+            artifacts=artifacts,
+            error="Simulation diverged",
+            execution_time_ms=5000,
+        )
+        assert result.run_id == "run_002"
+        assert result.status == RunStatus.FAILED
+        assert result.parameters == {"seed": 42, "kappa": 0.1}
+        assert result.metrics == {"phi_total": 100.5}
+        assert result.artifacts.scenario_yaml == "scenario.yaml"
+        assert result.error == "Simulation diverged"
+        assert result.execution_time_ms == 5000
+
+    def test_field_access(self):
+        """Test accessing various field types."""
+        result = RunResult(
+            run_id="test_run",
+            status=RunStatus.RUNNING,
+            parameters={"n_agents": 10, "mu": 0.5},
+            metrics={"delta_total": 42.0},
+        )
+        # Access parameters
+        assert result.parameters["n_agents"] == 10
+        assert result.parameters["mu"] == 0.5
+        # Access metrics
+        assert result.metrics["delta_total"] == 42.0
+        # Status comparison
+        assert result.status == RunStatus.RUNNING
+        assert result.status.value == "running"
+
+
+class TestRegistryEntry:
+    """Tests for RegistryEntry dataclass."""
+
+    def test_minimal_creation(self):
+        """Test creating with only required fields."""
+        entry = RegistryEntry(
+            run_id="run_001",
+            experiment_id="exp_001",
+            status=RunStatus.COMPLETED,
+        )
+        assert entry.run_id == "run_001"
+        assert entry.experiment_id == "exp_001"
+        assert entry.status == RunStatus.COMPLETED
+        assert entry.parameters == {}
+        assert entry.metrics == {}
+        assert entry.artifact_paths == {}
+        assert entry.error is None
+
+    def test_full_creation(self):
+        """Test creating with all fields."""
+        entry = RegistryEntry(
+            run_id="run_002",
+            experiment_id="exp_001",
+            status=RunStatus.FAILED,
+            parameters={"seed": 123, "kappa": 0.2},
+            metrics={"phi_total": 50.0, "delta_total": 25.0},
+            artifact_paths={
+                "scenario_yaml": "exp_001/runs/run_002/scenario.yaml",
+                "events_jsonl": "exp_001/runs/run_002/out/events.jsonl",
+            },
+            error="OOM error",
+        )
+        assert entry.run_id == "run_002"
+        assert entry.experiment_id == "exp_001"
+        assert entry.status == RunStatus.FAILED
+        assert entry.parameters == {"seed": 123, "kappa": 0.2}
+        assert entry.metrics == {"phi_total": 50.0, "delta_total": 25.0}
+        assert "scenario_yaml" in entry.artifact_paths
+        assert entry.error == "OOM error"
+
+    def test_field_access(self):
+        """Test accessing entry fields."""
+        entry = RegistryEntry(
+            run_id="test_run",
+            experiment_id="test_exp",
+            status=RunStatus.PENDING,
+            parameters={"concentration": 0.8},
+            artifact_paths={"run_html": "path/to/run.html"},
+        )
+        # Access by key
+        assert entry.parameters["concentration"] == 0.8
+        assert entry.artifact_paths["run_html"] == "path/to/run.html"
+        # Status value
+        assert entry.status.value == "pending"
+
+```
+
+---
+
 ### 🧪 tests/test_smoke.py
 
 ```python
@@ -62769,19 +73555,6 @@ def test_analysis_imports():
     
     with pytest.raises(NotImplementedError):
         calculate_irr([])
-
-
-def test_io_imports():
-    """Test that IO modules can be imported."""
-    from bilancio.io.readers import read_cashflows_csv
-    from bilancio.io.writers import write_cashflows_csv
-    
-    # These are placeholders so they should raise NotImplementedError
-    with pytest.raises(NotImplementedError):
-        read_cashflows_csv("dummy.csv")
-    
-    with pytest.raises(NotImplementedError):
-        write_cashflows_csv([], "dummy.csv")
 
 
 def test_package_metadata():
@@ -63125,6 +73898,331 @@ def test_renderable_functions_return_correct_types():
     system = System()
     summary = show_simulation_summary_renderable(system)
     assert summary is not None
+```
+
+---
+
+### 🧪 tests/ui/test_cli_integration.py
+
+```python
+"""Integration tests for CLI module.
+
+Tests the CLI commands work correctly with real scenario files.
+Uses Click's CliRunner for testing.
+"""
+
+import pytest
+from pathlib import Path
+from click.testing import CliRunner
+
+from bilancio.ui.cli import cli
+
+
+# Path to example scenarios
+EXAMPLES_DIR = Path(__file__).parent.parent.parent / "examples" / "scenarios"
+
+
+class TestCLIHelp:
+    """Test CLI help output for all commands."""
+
+    def test_main_help_shows_expected_commands(self):
+        """Test that main --help shows all expected commands."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ['--help'])
+
+        assert result.exit_code == 0
+        assert 'run' in result.output
+        assert 'validate' in result.output
+        assert 'new' in result.output
+        assert 'analyze' in result.output
+        assert 'sweep' in result.output
+
+    def test_validate_help(self):
+        """Test that validate command help works."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ['validate', '--help'])
+
+        assert result.exit_code == 0
+        assert 'Validate' in result.output
+        assert 'scenario' in result.output.lower()
+
+    def test_analyze_help(self):
+        """Test that analyze command help works."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ['analyze', '--help'])
+
+        assert result.exit_code == 0
+        assert '--events' in result.output
+        assert '--balances' in result.output
+        assert '--out-csv' in result.output
+
+    def test_sweep_help_shows_subcommands(self):
+        """Test that sweep --help shows sweep subcommands."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ['sweep', '--help'])
+
+        assert result.exit_code == 0
+        assert 'ring' in result.output
+        assert 'comparison' in result.output
+        assert 'balanced' in result.output
+
+    def test_sweep_ring_help_shows_options(self):
+        """Test that sweep ring --help shows ring options."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ['sweep', 'ring', '--help'])
+
+        assert result.exit_code == 0
+        assert '--config' in result.output
+        assert '--out-dir' in result.output
+        assert '--kappas' in result.output
+        assert '--n-agents' in result.output
+        assert '--grid' in result.output
+
+    def test_sweep_comparison_help(self):
+        """Test that sweep comparison --help works."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ['sweep', 'comparison', '--help'])
+
+        assert result.exit_code == 0
+        assert '--out-dir' in result.output
+        assert '--n-agents' in result.output
+        assert '--dealer-share' in result.output
+
+    def test_sweep_balanced_help(self):
+        """Test that sweep balanced --help works."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ['sweep', 'balanced', '--help'])
+
+        assert result.exit_code == 0
+        assert '--out-dir' in result.output
+        assert '--face-value' in result.output
+        assert '--big-entity-share' in result.output
+
+
+class TestValidateCommand:
+    """Test the validate command with real scenarios."""
+
+    def test_validate_simple_bank_scenario(self):
+        """Test validating the simple_bank.yaml scenario."""
+        scenario_path = EXAMPLES_DIR / "simple_bank.yaml"
+        if not scenario_path.exists():
+            pytest.skip(f"Scenario file not found: {scenario_path}")
+
+        runner = CliRunner()
+        result = runner.invoke(cli, ['validate', str(scenario_path)])
+
+        assert result.exit_code == 0
+        assert 'valid' in result.output.lower()
+
+    def test_validate_two_banks_scenario(self):
+        """Test validating the two_banks_interbank.yaml scenario."""
+        scenario_path = EXAMPLES_DIR / "two_banks_interbank.yaml"
+        if not scenario_path.exists():
+            pytest.skip(f"Scenario file not found: {scenario_path}")
+
+        runner = CliRunner()
+        result = runner.invoke(cli, ['validate', str(scenario_path)])
+
+        assert result.exit_code == 0
+        assert 'valid' in result.output.lower()
+
+    def test_validate_nonexistent_file(self):
+        """Test validate with non-existent file."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ['validate', 'nonexistent_file.yaml'])
+
+        assert result.exit_code != 0
+
+
+class TestRunCommand:
+    """Test the run command with real scenarios."""
+
+    def test_run_simple_bank_with_max_days(self):
+        """Test running simple_bank.yaml with --max-days limit."""
+        scenario_path = EXAMPLES_DIR / "simple_bank.yaml"
+        if not scenario_path.exists():
+            pytest.skip(f"Scenario file not found: {scenario_path}")
+
+        runner = CliRunner()
+        result = runner.invoke(cli, [
+            'run', str(scenario_path),
+            '--max-days', '3'
+        ])
+
+        assert result.exit_code == 0
+        # Check that the scenario name appears
+        assert 'Simple Banking System' in result.output
+
+    def test_run_with_show_summary(self):
+        """Test running with --show summary option."""
+        scenario_path = EXAMPLES_DIR / "simple_bank.yaml"
+        if not scenario_path.exists():
+            pytest.skip(f"Scenario file not found: {scenario_path}")
+
+        runner = CliRunner()
+        result = runner.invoke(cli, [
+            'run', str(scenario_path),
+            '--max-days', '2',
+            '--show', 'summary'
+        ])
+
+        assert result.exit_code == 0
+
+    def test_run_with_agent_filter(self):
+        """Test running with --agents filter option."""
+        scenario_path = EXAMPLES_DIR / "simple_bank.yaml"
+        if not scenario_path.exists():
+            pytest.skip(f"Scenario file not found: {scenario_path}")
+
+        runner = CliRunner()
+        result = runner.invoke(cli, [
+            'run', str(scenario_path),
+            '--max-days', '2',
+            '--agents', 'CB,B1'
+        ])
+
+        assert result.exit_code == 0
+
+    def test_run_with_check_invariants_none(self):
+        """Test running with --check-invariants none."""
+        scenario_path = EXAMPLES_DIR / "simple_bank.yaml"
+        if not scenario_path.exists():
+            pytest.skip(f"Scenario file not found: {scenario_path}")
+
+        runner = CliRunner()
+        result = runner.invoke(cli, [
+            'run', str(scenario_path),
+            '--max-days', '2',
+            '--check-invariants', 'none'
+        ])
+
+        assert result.exit_code == 0
+
+    def test_run_t_account_option(self):
+        """Test running with --t-account option."""
+        scenario_path = EXAMPLES_DIR / "simple_bank.yaml"
+        if not scenario_path.exists():
+            pytest.skip(f"Scenario file not found: {scenario_path}")
+
+        runner = CliRunner()
+        result = runner.invoke(cli, [
+            'run', str(scenario_path),
+            '--max-days', '2',
+            '--t-account'
+        ])
+
+        assert result.exit_code == 0
+
+
+class TestRunWithExport:
+    """Test run command with export options."""
+
+    def test_run_with_export_balances(self, tmp_path):
+        """Test running with --export-balances option."""
+        scenario_path = EXAMPLES_DIR / "simple_bank.yaml"
+        if not scenario_path.exists():
+            pytest.skip(f"Scenario file not found: {scenario_path}")
+
+        balances_file = tmp_path / "balances.csv"
+
+        runner = CliRunner()
+        result = runner.invoke(cli, [
+            'run', str(scenario_path),
+            '--max-days', '2',
+            '--export-balances', str(balances_file)
+        ])
+
+        assert result.exit_code == 0
+        assert balances_file.exists()
+        assert balances_file.stat().st_size > 0
+
+    def test_run_with_export_events(self, tmp_path):
+        """Test running with --export-events option."""
+        scenario_path = EXAMPLES_DIR / "simple_bank.yaml"
+        if not scenario_path.exists():
+            pytest.skip(f"Scenario file not found: {scenario_path}")
+
+        events_file = tmp_path / "events.jsonl"
+
+        runner = CliRunner()
+        result = runner.invoke(cli, [
+            'run', str(scenario_path),
+            '--max-days', '2',
+            '--export-events', str(events_file)
+        ])
+
+        assert result.exit_code == 0
+        assert events_file.exists()
+        assert events_file.stat().st_size > 0
+
+    def test_run_with_html_export(self, tmp_path):
+        """Test running with --html export option."""
+        scenario_path = EXAMPLES_DIR / "simple_bank.yaml"
+        if not scenario_path.exists():
+            pytest.skip(f"Scenario file not found: {scenario_path}")
+
+        html_file = tmp_path / "output.html"
+
+        runner = CliRunner()
+        result = runner.invoke(cli, [
+            'run', str(scenario_path),
+            '--max-days', '2',
+            '--html', str(html_file)
+        ])
+
+        assert result.exit_code == 0
+        assert html_file.exists()
+        content = html_file.read_text()
+        assert 'html' in content.lower()
+
+
+class TestErrorHandling:
+    """Test CLI error handling."""
+
+    def test_run_invalid_mode(self):
+        """Test running with invalid --mode option."""
+        scenario_path = EXAMPLES_DIR / "simple_bank.yaml"
+        if not scenario_path.exists():
+            pytest.skip(f"Scenario file not found: {scenario_path}")
+
+        runner = CliRunner()
+        result = runner.invoke(cli, [
+            'run', str(scenario_path),
+            '--mode', 'invalid-mode'
+        ])
+
+        # Click should reject invalid choice
+        assert result.exit_code != 0
+
+    def test_run_invalid_show(self):
+        """Test running with invalid --show option."""
+        scenario_path = EXAMPLES_DIR / "simple_bank.yaml"
+        if not scenario_path.exists():
+            pytest.skip(f"Scenario file not found: {scenario_path}")
+
+        runner = CliRunner()
+        result = runner.invoke(cli, [
+            'run', str(scenario_path),
+            '--show', 'invalid-show'
+        ])
+
+        # Click should reject invalid choice
+        assert result.exit_code != 0
+
+    def test_unknown_command(self):
+        """Test invoking unknown command."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ['unknown-command'])
+
+        assert result.exit_code != 0
+
+    def test_sweep_unknown_subcommand(self):
+        """Test invoking unknown sweep subcommand."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ['sweep', 'unknown-subcommand'])
+
+        assert result.exit_code != 0
+
 ```
 
 ---
@@ -63721,6 +74819,675 @@ def test_policy_allows_and_blocks_expected_cases():
     sys.add_contract(Payable(id="p", kind="payable", amount=7, denom="X",
                              asset_holder_id="B1", liability_issuer_id="H1", due_day=0))
     sys.assert_invariants()
+```
+
+---
+
+### 🧪 tests/unit/test_jobs.py
+
+```python
+"""Unit tests for the job system."""
+
+import json
+import tempfile
+from datetime import datetime
+from decimal import Decimal
+from pathlib import Path
+
+import pytest
+
+from bilancio.jobs import (
+    Job,
+    JobConfig,
+    JobEvent,
+    JobManager,
+    JobStatus,
+    generate_job_id,
+    validate_job_id,
+)
+
+
+class TestJobId:
+    """Tests for job ID generation and validation."""
+
+    def test_generate_job_id_format(self):
+        """Test generate_job_id returns correct format (4 words, hyphen-separated)."""
+        job_id = generate_job_id()
+        parts = job_id.split("-")
+        assert len(parts) == 4
+        assert all(part.isalpha() and part.islower() for part in parts)
+
+    def test_validate_job_id_accepts_valid_ids(self):
+        """Test validate_job_id accepts valid IDs."""
+        assert validate_job_id("castle-river-mountain-forest") is True
+        assert validate_job_id("bright-ocean-swift-tiger") is True
+        assert validate_job_id("alpha-beta") is True  # Minimum 2 words
+
+    def test_validate_job_id_rejects_empty(self):
+        """Test validate_job_id rejects empty strings."""
+        assert validate_job_id("") is False
+
+    def test_validate_job_id_rejects_single_word(self):
+        """Test validate_job_id rejects single word IDs."""
+        assert validate_job_id("castle") is False
+        assert validate_job_id("river") is False
+
+    def test_validate_job_id_rejects_uppercase(self):
+        """Test validate_job_id rejects IDs with uppercase letters."""
+        assert validate_job_id("Castle-river-mountain-forest") is False
+        assert validate_job_id("castle-RIVER-mountain-forest") is False
+        assert validate_job_id("CASTLE-RIVER-MOUNTAIN-FOREST") is False
+
+    def test_validate_job_id_rejects_numbers(self):
+        """Test validate_job_id rejects IDs with numbers."""
+        assert validate_job_id("castle-river-123-forest") is False
+        assert validate_job_id("castle1-river-mountain-forest") is False
+        assert validate_job_id("1castle-river-mountain-forest") is False
+
+    def test_validate_job_id_rejects_special_characters(self):
+        """Test validate_job_id rejects IDs with special characters."""
+        assert validate_job_id("castle_river_mountain_forest") is False
+        assert validate_job_id("castle.river.mountain.forest") is False
+        assert validate_job_id("castle river mountain forest") is False
+
+    def test_uniqueness_over_multiple_generations(self):
+        """Test uniqueness over multiple generations."""
+        # Generate many IDs and check for uniqueness
+        job_ids = [generate_job_id() for _ in range(100)]
+        # With 597 words choosing 4, there are many combinations
+        # 100 IDs should all be unique (collision probability is very low)
+        assert len(set(job_ids)) == len(job_ids)
+
+    def test_generated_ids_are_valid(self):
+        """Test that all generated IDs pass validation."""
+        for _ in range(20):
+            job_id = generate_job_id()
+            assert validate_job_id(job_id) is True
+
+
+class TestJobConfig:
+    """Tests for JobConfig serialization."""
+
+    def test_to_dict_from_dict_round_trip(self):
+        """Test to_dict/from_dict round-trip preserves data."""
+        config = JobConfig(
+            sweep_type="balanced",
+            n_agents=100,
+            kappas=[Decimal("0.5"), Decimal("1.0"), Decimal("2.0")],
+            concentrations=[Decimal("0.5"), Decimal("1.0")],
+            mus=[Decimal("0"), Decimal("0.5"), Decimal("1.0")],
+            cloud=True,
+            outside_mid_ratios=[Decimal("0.8"), Decimal("1.0")],
+            maturity_days=10,
+            seeds=[42, 123, 456],
+        )
+
+        data = config.to_dict()
+        restored = JobConfig.from_dict(data)
+
+        assert restored.sweep_type == config.sweep_type
+        assert restored.n_agents == config.n_agents
+        assert restored.kappas == config.kappas
+        assert restored.concentrations == config.concentrations
+        assert restored.mus == config.mus
+        assert restored.cloud == config.cloud
+        assert restored.outside_mid_ratios == config.outside_mid_ratios
+        assert restored.maturity_days == config.maturity_days
+        assert restored.seeds == config.seeds
+
+    def test_defaults(self):
+        """Test JobConfig defaults are applied correctly."""
+        config = JobConfig(
+            sweep_type="ring",
+            n_agents=50,
+            kappas=[Decimal("1")],
+            concentrations=[Decimal("1")],
+            mus=[Decimal("0.5")],
+        )
+
+        assert config.cloud is False
+        assert config.outside_mid_ratios == [Decimal("1")]
+        assert config.maturity_days == 5
+        assert config.seeds == [42]
+
+    def test_from_dict_uses_defaults_for_missing_keys(self):
+        """Test from_dict uses defaults for missing optional keys."""
+        data = {
+            "sweep_type": "ring",
+            "n_agents": 50,
+            "kappas": ["1"],
+            "concentrations": ["1"],
+            "mus": ["0.5"],
+        }
+
+        config = JobConfig.from_dict(data)
+
+        assert config.cloud is False
+        assert config.outside_mid_ratios == [Decimal("1")]
+        assert config.maturity_days == 5
+        assert config.seeds == [42]
+
+    def test_to_dict_serializes_decimals_as_strings(self):
+        """Test to_dict converts Decimals to strings for JSON compatibility."""
+        config = JobConfig(
+            sweep_type="ring",
+            n_agents=50,
+            kappas=[Decimal("0.25")],
+            concentrations=[Decimal("0.5")],
+            mus=[Decimal("0.75")],
+            outside_mid_ratios=[Decimal("0.9")],
+        )
+
+        data = config.to_dict()
+
+        assert data["kappas"] == ["0.25"]
+        assert data["concentrations"] == ["0.5"]
+        assert data["mus"] == ["0.75"]
+        assert data["outside_mid_ratios"] == ["0.9"]
+
+
+class TestJobEvent:
+    """Tests for JobEvent serialization."""
+
+    def test_to_dict_from_dict_round_trip(self):
+        """Test to_dict/from_dict round-trip preserves data."""
+        timestamp = datetime(2025, 1, 12, 10, 30, 45)
+        event = JobEvent(
+            job_id="castle-river-mountain-forest",
+            event_type="progress",
+            timestamp=timestamp,
+            details={"run_id": "run_001", "metrics": {"delta_total": 0.05}},
+        )
+
+        data = event.to_dict()
+        restored = JobEvent.from_dict(data)
+
+        assert restored.job_id == event.job_id
+        assert restored.event_type == event.event_type
+        assert restored.timestamp == event.timestamp
+        assert restored.details == event.details
+
+    def test_to_dict_serializes_timestamp_as_iso(self):
+        """Test to_dict converts timestamp to ISO format string."""
+        timestamp = datetime(2025, 1, 12, 10, 30, 45)
+        event = JobEvent(
+            job_id="test-job",
+            event_type="created",
+            timestamp=timestamp,
+        )
+
+        data = event.to_dict()
+
+        assert data["timestamp"] == "2025-01-12T10:30:45"
+
+    def test_from_dict_uses_empty_dict_for_missing_details(self):
+        """Test from_dict uses empty dict when details is missing."""
+        data = {
+            "job_id": "test-job",
+            "event_type": "started",
+            "timestamp": "2025-01-12T10:30:45",
+        }
+
+        event = JobEvent.from_dict(data)
+
+        assert event.details == {}
+
+
+class TestJob:
+    """Tests for Job serialization."""
+
+    def _create_sample_config(self) -> JobConfig:
+        """Create a sample JobConfig for testing."""
+        return JobConfig(
+            sweep_type="balanced",
+            n_agents=100,
+            kappas=[Decimal("0.5"), Decimal("1.0")],
+            concentrations=[Decimal("1.0")],
+            mus=[Decimal("0.5")],
+            cloud=True,
+        )
+
+    def test_to_dict_from_dict_round_trip(self):
+        """Test to_dict/from_dict round-trip preserves data."""
+        config = self._create_sample_config()
+        created_at = datetime(2025, 1, 12, 10, 0, 0)
+        completed_at = datetime(2025, 1, 12, 11, 30, 0)
+
+        event = JobEvent(
+            job_id="test-id",
+            event_type="created",
+            timestamp=created_at,
+        )
+
+        job = Job(
+            job_id="test-id",
+            created_at=created_at,
+            status=JobStatus.COMPLETED,
+            description="Test simulation",
+            config=config,
+            run_ids=["run_001", "run_002"],
+            completed_at=completed_at,
+            error=None,
+            notes="Some notes",
+            events=[event],
+        )
+
+        data = job.to_dict()
+        restored = Job.from_dict(data)
+
+        assert restored.job_id == job.job_id
+        assert restored.created_at == job.created_at
+        assert restored.status == job.status
+        assert restored.description == job.description
+        assert restored.config.sweep_type == job.config.sweep_type
+        assert restored.config.n_agents == job.config.n_agents
+        assert restored.run_ids == job.run_ids
+        assert restored.completed_at == job.completed_at
+        assert restored.error == job.error
+        assert restored.notes == job.notes
+        assert len(restored.events) == len(job.events)
+        assert restored.events[0].event_type == job.events[0].event_type
+
+    def test_to_dict_handles_none_values(self):
+        """Test to_dict correctly handles None for optional fields."""
+        config = self._create_sample_config()
+        job = Job(
+            job_id="test-id",
+            created_at=datetime(2025, 1, 12, 10, 0, 0),
+            status=JobStatus.PENDING,
+            description="Test",
+            config=config,
+        )
+
+        data = job.to_dict()
+
+        assert data["completed_at"] is None
+        assert data["error"] is None
+        assert data["notes"] is None
+        assert data["run_ids"] == []
+        assert data["events"] == []
+
+    def test_from_dict_handles_missing_optional_fields(self):
+        """Test from_dict handles missing optional fields."""
+        config = self._create_sample_config()
+        data = {
+            "job_id": "test-id",
+            "created_at": "2025-01-12T10:00:00",
+            "status": "pending",
+            "description": "Test",
+            "config": config.to_dict(),
+        }
+
+        job = Job.from_dict(data)
+
+        assert job.run_ids == []
+        assert job.completed_at is None
+        assert job.error is None
+        assert job.notes is None
+        assert job.events == []
+
+    def test_status_serialization(self):
+        """Test JobStatus is serialized/deserialized correctly."""
+        config = self._create_sample_config()
+
+        for status in JobStatus:
+            job = Job(
+                job_id="test-id",
+                created_at=datetime(2025, 1, 12, 10, 0, 0),
+                status=status,
+                description="Test",
+                config=config,
+            )
+
+            data = job.to_dict()
+            assert data["status"] == status.value
+
+            restored = Job.from_dict(data)
+            assert restored.status == status
+
+
+class TestJobManager:
+    """Tests for JobManager functionality."""
+
+    def _create_sample_config(self) -> JobConfig:
+        """Create a sample JobConfig for testing."""
+        return JobConfig(
+            sweep_type="ring",
+            n_agents=50,
+            kappas=[Decimal("1.0")],
+            concentrations=[Decimal("1.0")],
+            mus=[Decimal("0.5")],
+        )
+
+    def test_create_job_auto_generates_id(self):
+        """Test create_job auto-generates ID when not provided."""
+        manager = JobManager()
+        config = self._create_sample_config()
+
+        job = manager.create_job(
+            description="Test simulation",
+            config=config,
+        )
+
+        # Should have a valid auto-generated ID
+        assert validate_job_id(job.job_id) is True
+        assert job.status == JobStatus.PENDING
+        assert job.description == "Test simulation"
+
+    def test_create_job_with_custom_id(self):
+        """Test create_job with custom ID."""
+        manager = JobManager()
+        config = self._create_sample_config()
+
+        job = manager.create_job(
+            description="Test simulation",
+            config=config,
+            job_id="custom-test-job-id",
+        )
+
+        assert job.job_id == "custom-test-job-id"
+
+    def test_create_job_adds_created_event(self):
+        """Test create_job adds a 'created' event."""
+        manager = JobManager()
+        config = self._create_sample_config()
+
+        job = manager.create_job(
+            description="Test simulation",
+            config=config,
+        )
+
+        assert len(job.events) == 1
+        assert job.events[0].event_type == "created"
+        assert job.events[0].job_id == job.job_id
+
+    def test_start_job_updates_status(self):
+        """Test start_job updates status to RUNNING."""
+        manager = JobManager()
+        config = self._create_sample_config()
+
+        job = manager.create_job(
+            description="Test",
+            config=config,
+        )
+        assert job.status == JobStatus.PENDING
+
+        manager.start_job(job.job_id)
+
+        updated_job = manager.get_job(job.job_id)
+        assert updated_job.status == JobStatus.RUNNING
+        assert len(updated_job.events) == 2
+        assert updated_job.events[1].event_type == "started"
+
+    def test_start_job_raises_for_unknown_id(self):
+        """Test start_job raises KeyError for unknown job ID."""
+        manager = JobManager()
+
+        with pytest.raises(KeyError, match="Job not found"):
+            manager.start_job("nonexistent-job-id")
+
+    def test_record_progress_adds_run_id(self):
+        """Test record_progress adds run_id to the job."""
+        manager = JobManager()
+        config = self._create_sample_config()
+
+        job = manager.create_job(
+            description="Test",
+            config=config,
+        )
+        manager.start_job(job.job_id)
+
+        manager.record_progress(job.job_id, "run_001", {"delta_total": 0.05})
+        manager.record_progress(job.job_id, "run_002", {"delta_total": 0.03})
+
+        updated_job = manager.get_job(job.job_id)
+        assert updated_job.run_ids == ["run_001", "run_002"]
+        assert len(updated_job.events) == 4  # created, started, progress, progress
+        assert updated_job.events[2].event_type == "progress"
+        assert updated_job.events[2].details["run_id"] == "run_001"
+
+    def test_record_progress_raises_for_unknown_id(self):
+        """Test record_progress raises KeyError for unknown job ID."""
+        manager = JobManager()
+
+        with pytest.raises(KeyError, match="Job not found"):
+            manager.record_progress("nonexistent-job-id", "run_001")
+
+    def test_complete_job_sets_completed_at(self):
+        """Test complete_job sets completed_at timestamp."""
+        manager = JobManager()
+        config = self._create_sample_config()
+
+        job = manager.create_job(
+            description="Test",
+            config=config,
+        )
+        manager.start_job(job.job_id)
+
+        manager.complete_job(job.job_id, {"total_runs": 10})
+
+        updated_job = manager.get_job(job.job_id)
+        assert updated_job.status == JobStatus.COMPLETED
+        assert updated_job.completed_at is not None
+        assert updated_job.events[-1].event_type == "completed"
+        assert updated_job.events[-1].details["summary"] == {"total_runs": 10}
+
+    def test_complete_job_raises_for_unknown_id(self):
+        """Test complete_job raises KeyError for unknown job ID."""
+        manager = JobManager()
+
+        with pytest.raises(KeyError, match="Job not found"):
+            manager.complete_job("nonexistent-job-id")
+
+    def test_fail_job_sets_error(self):
+        """Test fail_job sets error message and status."""
+        manager = JobManager()
+        config = self._create_sample_config()
+
+        job = manager.create_job(
+            description="Test",
+            config=config,
+        )
+        manager.start_job(job.job_id)
+
+        manager.fail_job(job.job_id, "Connection timeout")
+
+        updated_job = manager.get_job(job.job_id)
+        assert updated_job.status == JobStatus.FAILED
+        assert updated_job.error == "Connection timeout"
+        assert updated_job.completed_at is not None
+        assert updated_job.events[-1].event_type == "failed"
+        assert updated_job.events[-1].details["error"] == "Connection timeout"
+
+    def test_fail_job_raises_for_unknown_id(self):
+        """Test fail_job raises KeyError for unknown job ID."""
+        manager = JobManager()
+
+        with pytest.raises(KeyError, match="Job not found"):
+            manager.fail_job("nonexistent-job-id", "Some error")
+
+    def test_get_job_returns_none_for_unknown_id(self):
+        """Test get_job returns None for unknown ID."""
+        manager = JobManager()
+
+        result = manager.get_job("nonexistent-job-id")
+
+        assert result is None
+
+    def test_get_job_returns_job_by_id(self):
+        """Test get_job returns the correct job by ID."""
+        manager = JobManager()
+        config = self._create_sample_config()
+
+        job1 = manager.create_job(description="Job 1", config=config)
+        job2 = manager.create_job(description="Job 2", config=config)
+
+        retrieved = manager.get_job(job1.job_id)
+        assert retrieved.job_id == job1.job_id
+        assert retrieved.description == "Job 1"
+
+        retrieved = manager.get_job(job2.job_id)
+        assert retrieved.job_id == job2.job_id
+        assert retrieved.description == "Job 2"
+
+    def test_list_jobs_returns_all_jobs(self):
+        """Test list_jobs returns all created jobs."""
+        manager = JobManager()
+        config = self._create_sample_config()
+
+        job1 = manager.create_job(description="Job 1", config=config)
+        job2 = manager.create_job(description="Job 2", config=config)
+        job3 = manager.create_job(description="Job 3", config=config)
+
+        jobs = manager.list_jobs()
+
+        assert len(jobs) == 3
+        job_ids = {j.job_id for j in jobs}
+        assert job1.job_id in job_ids
+        assert job2.job_id in job_ids
+        assert job3.job_id in job_ids
+
+
+class TestJobManagerPersistence:
+    """Tests for JobManager persistence to disk."""
+
+    def _create_sample_config(self) -> JobConfig:
+        """Create a sample JobConfig for testing."""
+        return JobConfig(
+            sweep_type="ring",
+            n_agents=50,
+            kappas=[Decimal("1.0")],
+            concentrations=[Decimal("1.0")],
+            mus=[Decimal("0.5")],
+        )
+
+    def test_save_and_load_job_from_disk(self):
+        """Test persistence: save job and load from disk."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jobs_dir = Path(tmpdir)
+            config = self._create_sample_config()
+
+            # Create job with first manager
+            manager1 = JobManager(jobs_dir=jobs_dir)
+            job = manager1.create_job(
+                description="Persistent job",
+                config=config,
+                job_id="test-persistent-job-id",
+            )
+            manager1.start_job(job.job_id)
+            manager1.record_progress(job.job_id, "run_001")
+            manager1.complete_job(job.job_id)
+
+            # Verify manifest file was created
+            manifest_path = jobs_dir / "test-persistent-job-id" / "job_manifest.json"
+            assert manifest_path.exists()
+
+            # Load with new manager instance
+            manager2 = JobManager(jobs_dir=jobs_dir)
+            loaded_job = manager2.get_job("test-persistent-job-id")
+
+            assert loaded_job is not None
+            assert loaded_job.job_id == "test-persistent-job-id"
+            assert loaded_job.description == "Persistent job"
+            assert loaded_job.status == JobStatus.COMPLETED
+            assert loaded_job.run_ids == ["run_001"]
+            assert len(loaded_job.events) == 4  # created, started, progress, completed
+
+    def test_list_jobs_loads_from_disk(self):
+        """Test list_jobs loads jobs from disk."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jobs_dir = Path(tmpdir)
+            config = self._create_sample_config()
+
+            # Create jobs with first manager
+            manager1 = JobManager(jobs_dir=jobs_dir)
+            manager1.create_job(description="Job A", config=config, job_id="job-a-id")
+            manager1.create_job(description="Job B", config=config, job_id="job-b-id")
+
+            # List with new manager instance (should load from disk)
+            manager2 = JobManager(jobs_dir=jobs_dir)
+            jobs = manager2.list_jobs()
+
+            assert len(jobs) == 2
+            job_ids = {j.job_id for j in jobs}
+            assert "job-a-id" in job_ids
+            assert "job-b-id" in job_ids
+
+    def test_manifest_json_structure(self):
+        """Test manifest JSON file has correct structure."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jobs_dir = Path(tmpdir)
+            config = self._create_sample_config()
+
+            manager = JobManager(jobs_dir=jobs_dir)
+            job = manager.create_job(
+                description="Test job",
+                config=config,
+                job_id="test-structure-job",
+                notes="Test notes",
+            )
+
+            manifest_path = jobs_dir / "test-structure-job" / "job_manifest.json"
+            with open(manifest_path) as f:
+                data = json.load(f)
+
+            assert data["job_id"] == "test-structure-job"
+            assert data["description"] == "Test job"
+            assert data["status"] == "pending"
+            assert data["notes"] == "Test notes"
+            assert "config" in data
+            assert data["config"]["sweep_type"] == "ring"
+            assert data["config"]["n_agents"] == 50
+            assert "created_at" in data
+            assert "events" in data
+
+    def test_in_memory_only_when_no_jobs_dir(self):
+        """Test jobs are in-memory only when jobs_dir is None."""
+        config = self._create_sample_config()
+
+        manager = JobManager(jobs_dir=None)
+        job = manager.create_job(
+            description="In-memory job",
+            config=config,
+        )
+
+        # Should be retrievable from in-memory cache
+        retrieved = manager.get_job(job.job_id)
+        assert retrieved is not None
+        assert retrieved.description == "In-memory job"
+
+    def test_updates_persist_to_disk(self):
+        """Test that job updates are persisted to disk."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jobs_dir = Path(tmpdir)
+            config = self._create_sample_config()
+
+            manager = JobManager(jobs_dir=jobs_dir)
+            job = manager.create_job(
+                description="Test",
+                config=config,
+                job_id="test-updates-id",
+            )
+
+            # Initial state
+            manifest_path = jobs_dir / "test-updates-id" / "job_manifest.json"
+            with open(manifest_path) as f:
+                data = json.load(f)
+            assert data["status"] == "pending"
+
+            # After start
+            manager.start_job(job.job_id)
+            with open(manifest_path) as f:
+                data = json.load(f)
+            assert data["status"] == "running"
+
+            # After completion
+            manager.complete_job(job.job_id)
+            with open(manifest_path) as f:
+                data = json.load(f)
+            assert data["status"] == "completed"
+            assert data["completed_at"] is not None
+
 ```
 
 ---
@@ -64464,5 +76231,5 @@ def test_settle_multiple_obligations():
 ## End of Codebase
 
 Generated from: /home/runner/work/bilancio/bilancio
-Total source files: 86
-Total test files: 35
+Total source files: 118
+Total test files: 52

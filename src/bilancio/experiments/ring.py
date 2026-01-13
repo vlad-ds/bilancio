@@ -2,32 +2,33 @@
 
 from __future__ import annotations
 
-import csv
 import uuid
 from dataclasses import dataclass
 from decimal import Decimal
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
-import random
-
 import yaml
 from pydantic import BaseModel, Field, ValidationError, model_validator
 
-from bilancio.analysis.loaders import read_balances_csv, read_events_jsonl
-from bilancio.analysis.report import (
-    compute_day_metrics,
-    summarize_day_metrics,
-    write_day_metrics_csv,
-    write_day_metrics_json,
-    write_debtor_shares_csv,
-    write_intraday_csv,
-    write_metrics_html,
-)
+from bilancio.analysis.metrics_computer import MetricsComputer
 from bilancio.config.models import RingExplorerGeneratorConfig
-from bilancio.scenarios.generators.ring_explorer import compile_ring_explorer
-
-# Note: run_scenario imported lazily in _execute_run to avoid circular import
+from bilancio.runners import LocalExecutor, RunOptions, ExecutionResult
+from bilancio.runners.protocols import SimulationExecutor
+from bilancio.experiments.sampling import (
+    generate_frontier_params,
+    generate_grid_params,
+    generate_lhs_params,
+)
+from bilancio.scenarios import compile_ring_explorer
+from bilancio.storage import (
+    FileRegistryStore,
+    LocalArtifactLoader,
+    ModalVolumeArtifactLoader,
+    RegistryEntry,
+)
+from bilancio.storage.models import RunStatus
+from bilancio.storage.protocols import RegistryStore
 
 
 @dataclass
@@ -43,6 +44,31 @@ class RingRunSummary:
     time_to_stability: int
     # Dealer metrics (only populated for treatment runs with dealer enabled)
     dealer_metrics: Optional[Dict[str, Any]] = None
+    # Modal call ID for cloud execution debugging
+    modal_call_id: Optional[str] = None
+
+
+@dataclass
+class PreparedRun:
+    """Data needed to execute and finalize a prepared run.
+
+    Created by RingSweepRunner._prepare_run(), consumed by _finalize_run().
+    """
+    run_id: str
+    phase: str
+    kappa: Decimal
+    concentration: Decimal
+    mu: Decimal
+    monotonicity: Decimal
+    seed: int
+    scenario_config: Dict[str, Any]
+    options: RunOptions
+    run_dir: Path
+    out_dir: Path
+    scenario_path: Path
+    base_params: Dict[str, Any]
+    S1: Decimal
+    L0: Decimal
 
 
 def _decimal_list(spec: str) -> List[Decimal]:
@@ -194,34 +220,6 @@ def load_ring_sweep_config(path: Path | str) -> RingSweepConfig:
 class RingSweepRunner:
     """Coordinator for running Kalecki ring experiments."""
 
-    REGISTRY_FIELDS = [
-        "run_id",
-        "phase",
-        "seed",
-        "n_agents",
-        "kappa",
-        "concentration",
-        "mu",
-        "monotonicity",
-        "maturity_days",
-        "Q_total",
-        "S1",
-        "L0",
-        "scenario_yaml",
-        "events_jsonl",
-        "balances_csv",
-        "metrics_csv",
-        "metrics_html",
-        "run_html",
-        "default_handling",
-        "dealer_enabled",
-        "status",
-        "time_to_stability",
-        "phi_total",
-        "delta_total",
-        "error",
-    ]
-
     def __init__(
         self,
         out_dir: Path,
@@ -244,6 +242,9 @@ class RingSweepRunner:
         dealer_share_per_bucket: Optional[Decimal] = None,
         rollover_enabled: bool = True,
         detailed_dealer_logging: bool = False,  # Plan 022
+        registry_store: Optional[RegistryStore] = None,  # Plan 026
+        executor: Optional[SimulationExecutor] = None,  # Plan 027
+        quiet: bool = True,  # Plan 030: suppress verbose output for sweeps
     ) -> None:
         self.base_dir = out_dir
         self.registry_dir = self.base_dir / "registry"
@@ -267,40 +268,71 @@ class RingSweepRunner:
         self.dealer_share_per_bucket = dealer_share_per_bucket or Decimal("0.125")
         self.rollover_enabled = rollover_enabled
         self.detailed_dealer_logging = detailed_dealer_logging  # Plan 022
-        self.registry_rows: List[Dict[str, Any]] = []
+        self.quiet = quiet  # Plan 030: suppress verbose output
 
-        self.registry_dir.mkdir(parents=True, exist_ok=True)
-        self.runs_dir.mkdir(parents=True, exist_ok=True)
-        self.aggregate_dir.mkdir(parents=True, exist_ok=True)
+        # Use provided registry store or create default file-based store
+        self.registry_store: RegistryStore = registry_store or FileRegistryStore(self.base_dir)
+        # Use provided executor or create default local executor (Plan 027)
+        self.executor: SimulationExecutor = executor or LocalExecutor()
+        self.experiment_id = ""  # Empty = use base_dir directly
 
-        self.registry_path = self.registry_dir / "experiments.csv"
-        if self.registry_path.exists():
-            with self.registry_path.open("r", newline="") as fh:
-                reader = csv.DictReader(fh)
-                self.registry_rows = list(reader)
-        else:
-            self._write_registry()
+        # Cloud-only mode: skip local processing when using cloud executor
+        # This avoids downloading artifacts just to recompute metrics locally
+        from bilancio.runners.cloud_executor import CloudExecutor
+        self.skip_local_processing = isinstance(executor, CloudExecutor)
+
+        # Only create local directories if we're doing local processing
+        if not self.skip_local_processing:
+            self.registry_dir.mkdir(parents=True, exist_ok=True)
+            self.runs_dir.mkdir(parents=True, exist_ok=True)
+            self.aggregate_dir.mkdir(parents=True, exist_ok=True)
+
+            # Initialize empty registry file if it doesn't exist (backward compatible)
+            registry_path = self.registry_dir / "experiments.csv"
+            if not registry_path.exists():
+                self._init_empty_registry(registry_path)
+
+    def _init_empty_registry(self, registry_path: Path) -> None:
+        """Create an empty registry file with headers."""
+        import csv
+        default_fields = [
+            "run_id", "experiment_id", "phase", "status", "error",
+            "seed", "n_agents", "kappa", "concentration", "mu", "monotonicity",
+            "maturity_days", "Q_total", "S1", "L0", "default_handling", "dealer_enabled",
+            "phi_total", "delta_total", "time_to_stability",
+            "scenario_yaml", "events_jsonl", "balances_csv", "metrics_csv",
+            "metrics_html", "run_html",
+        ]
+        with registry_path.open("w", newline="") as fh:
+            writer = csv.DictWriter(fh, fieldnames=default_fields)
+            writer.writeheader()
 
     def _next_seed(self) -> int:
         value = self.seed_counter
         self.seed_counter += 1
         return value
 
-    def _write_registry(self) -> None:
-        with self.registry_path.open("w", newline="") as fh:
-            writer = csv.DictWriter(fh, fieldnames=self.REGISTRY_FIELDS)
-            writer.writeheader()
-            for row in self.registry_rows:
-                writer.writerow({field: row.get(field, "") for field in self.REGISTRY_FIELDS})
-
-    def _upsert_registry(self, row: Dict[str, Any]) -> None:
-        for existing in self.registry_rows:
-            if existing.get("run_id") == row.get("run_id"):
-                existing.update(row)
-                break
-        else:
-            self.registry_rows.append(row)
-        self._write_registry()
+    def _upsert_registry(
+        self,
+        run_id: str,
+        phase: str,
+        status: RunStatus,
+        parameters: Dict[str, Any],
+        metrics: Optional[Dict[str, Any]] = None,
+        artifact_paths: Optional[Dict[str, str]] = None,
+        error: Optional[str] = None,
+    ) -> None:
+        """Upsert a registry entry using the configured store."""
+        entry = RegistryEntry(
+            run_id=run_id,
+            experiment_id=self.experiment_id,
+            status=status,
+            parameters=parameters,
+            metrics=metrics or {},
+            artifact_paths=artifact_paths or {},
+            error=error,
+        )
+        self.registry_store.upsert(entry)
 
     def run_grid(
         self,
@@ -310,21 +342,20 @@ class RingSweepRunner:
         monotonicities: Sequence[Decimal],
     ) -> List[RingRunSummary]:
         summaries: List[RingRunSummary] = []
-        for kappa in kappas:
-            for concentration in concentrations:
-                for mu in mus:
-                    for monotonicity in monotonicities:
-                        seed = self._next_seed()
-                        summaries.append(
-                            self._execute_run(
-                                "grid",
-                                kappa,
-                                concentration,
-                                mu,
-                                monotonicity,
-                                seed,
-                            )
-                        )
+        for kappa, concentration, mu, monotonicity in generate_grid_params(
+            kappas, concentrations, mus, monotonicities
+        ):
+            seed = self._next_seed()
+            summaries.append(
+                self._execute_run(
+                    "grid",
+                    kappa,
+                    concentration,
+                    mu,
+                    monotonicity,
+                    seed,
+                )
+            )
         return summaries
 
     def run_lhs(
@@ -338,40 +369,27 @@ class RingSweepRunner:
     ) -> List[RingRunSummary]:
         if count <= 0:
             return []
-        rng = random.Random(self.seed_counter + 7919)
-        kappas = self._lhs_axis(count, kappa_range, rng)
-        concentrations = self._lhs_axis(count, concentration_range, rng)
-        mus = self._lhs_axis(count, mu_range, rng)
-        rng.shuffle(concentrations)
-        rng.shuffle(mus)
-        monotonicities = self._lhs_axis(count, monotonicity_range, rng)
-        rng.shuffle(monotonicities)
         summaries: List[RingRunSummary] = []
-        for idx in range(count):
+        for kappa, concentration, mu, monotonicity in generate_lhs_params(
+            count,
+            kappa_range=kappa_range,
+            concentration_range=concentration_range,
+            mu_range=mu_range,
+            monotonicity_range=monotonicity_range,
+            seed=self.seed_counter,
+        ):
             seed = self._next_seed()
             summaries.append(
                 self._execute_run(
                     "lhs",
-                    kappas[idx],
-                    concentrations[idx],
-                    mus[idx],
-                    monotonicities[idx],
+                    kappa,
+                    concentration,
+                    mu,
+                    monotonicity,
                     seed,
                 )
             )
         return summaries
-
-    def _lhs_axis(self, count: int, bounds: Tuple[Decimal, Decimal], rng: random.Random) -> List[Decimal]:
-        low, high = bounds
-        samples: List[Decimal] = []
-        for stratum in range(count):
-            a = Decimal(stratum) / Decimal(count)
-            b = Decimal(stratum + 1) / Decimal(count)
-            u = Decimal(str(rng.random()))
-            frac = a + (b - a) * u
-            samples.append(low + (high - low) * frac)
-        rng.shuffle(samples)
-        return samples
 
     def run_frontier(
         self,
@@ -385,74 +403,42 @@ class RingSweepRunner:
         max_iterations: int,
     ) -> List[RingRunSummary]:
         summaries: List[RingRunSummary] = []
-        for concentration in concentrations:
-            for mu in mus:
-                for monotonicity in monotonicities:
-                    summaries.extend(
-                        self._run_frontier_cell(
-                            concentration,
-                            mu,
-                            monotonicity,
-                            kappa_low,
-                            kappa_high,
-                            tolerance,
-                            max_iterations,
-                        )
-                    )
+
+        # Create execution function that captures self and returns delta_total
+        def execute_fn(
+            label: str,
+            kappa: Decimal,
+            concentration: Decimal,
+            mu: Decimal,
+            monotonicity: Decimal,
+        ) -> Optional[Decimal]:
+            # Execute run with label
+            summary = self._execute_run(
+                "frontier",
+                kappa,
+                concentration,
+                mu,
+                monotonicity,
+                self._next_seed(),
+                label=label,
+            )
+            summaries.append(summary)
+            return summary.delta_total
+
+        # Use frontier sampling to execute runs with binary search
+        # Unlike grid/LHS, frontier calls execute_fn directly for immediate feedback
+        generate_frontier_params(
+            concentrations,
+            mus,
+            monotonicities,
+            kappa_low=kappa_low,
+            kappa_high=kappa_high,
+            tolerance=tolerance,
+            max_iterations=max_iterations,
+            execute_fn=execute_fn,
+        )
+
         return summaries
-
-    def _run_frontier_cell(
-        self,
-        concentration: Decimal,
-        mu: Decimal,
-        monotonicity: Decimal,
-        kappa_low: Decimal,
-        kappa_high: Decimal,
-        tolerance: Decimal,
-        max_iterations: int,
-    ) -> List[RingRunSummary]:
-        runs: List[RingRunSummary] = []
-
-        low_summary = self._execute_run("frontier", kappa_low, concentration, mu, monotonicity, self._next_seed(), label="low")
-        runs.append(low_summary)
-        if low_summary.delta_total is not None and low_summary.delta_total <= tolerance:
-            return runs
-
-        hi_kappa = kappa_high
-        hi_summary = self._execute_run("frontier", hi_kappa, concentration, mu, monotonicity, self._next_seed(), label="high")
-        runs.append(hi_summary)
-
-        while (hi_summary.delta_total is None or hi_summary.delta_total > tolerance) and hi_kappa < kappa_high * 4:
-            hi_kappa = hi_kappa * Decimal("1.5")
-            hi_summary = self._execute_run("frontier", hi_kappa, concentration, mu, monotonicity, self._next_seed(), label="high")
-            runs.append(hi_summary)
-            if hi_kappa > Decimal("128"):
-                break
-
-        if hi_summary.delta_total is None or hi_summary.delta_total > tolerance:
-            return runs
-
-        low = low_summary.kappa
-        high = hi_summary.kappa
-        best = hi_summary
-
-        for _ in range(max_iterations):
-            if high - low <= tolerance:
-                break
-            mid = (low + high) / 2
-            mid_summary = self._execute_run("frontier", mid, concentration, mu, monotonicity, self._next_seed(), label="mid")
-            runs.append(mid_summary)
-            delta = mid_summary.delta_total
-            if delta is None:
-                low = mid
-                continue
-            if delta <= tolerance:
-                best = mid_summary
-                high = mid
-            else:
-                low = mid
-
-        return runs
 
     def _execute_run(
         self,
@@ -477,28 +463,29 @@ class RingSweepRunner:
         run_html_path = run_dir / "run.html"
         balances_path = out_dir / "balances.csv"
         events_path = out_dir / "events.jsonl"
-        metrics_csv_path = out_dir / "metrics.csv"
-        metrics_json_path = out_dir / "metrics.json"
-        ds_csv_path = out_dir / "metrics_ds.csv"
-        intraday_csv_path = out_dir / "metrics_intraday.csv"
-        metrics_html_path = out_dir / "metrics.html"
 
-        registry_entry = {
-            "run_id": run_id,
+        # Common parameters for all registry updates
+        base_params = {
             "phase": phase,
-            "seed": str(seed),
-            "n_agents": str(self.n_agents),
+            "seed": seed,
+            "n_agents": self.n_agents,
             "kappa": str(kappa),
             "concentration": str(concentration),
             "mu": str(mu),
             "monotonicity": str(monotonicity),
-            "maturity_days": str(self.maturity_days),
+            "maturity_days": self.maturity_days,
             "Q_total": str(self.Q_total),
             "default_handling": self.default_handling,
-            "dealer_enabled": str(self.dealer_enabled),
-            "status": "running",
+            "dealer_enabled": self.dealer_enabled,
         }
-        self._upsert_registry(registry_entry)
+
+        # Initial "running" status
+        self._upsert_registry(
+            run_id=run_id,
+            phase=phase,
+            status=RunStatus.RUNNING,
+            parameters=base_params,
+        )
 
         generator_data = {
             "version": 1,
@@ -530,7 +517,7 @@ class RingSweepRunner:
 
         if self.balanced_mode:
             # Use balanced generator for C vs D comparison scenarios (Plan 024)
-            from bilancio.scenarios.generators.ring_explorer import compile_ring_explorer_balanced
+            from bilancio.scenarios import compile_ring_explorer_balanced
             scenario = compile_ring_explorer_balanced(
                 generator_config,
                 face_value=self.face_value,
@@ -561,9 +548,8 @@ class RingSweepRunner:
             scenario_run = scenario.setdefault("run", {})
             scenario_run["default_handling"] = self.default_handling
 
+        # RingSweepRunner writes scenario.yaml itself for control
         with scenario_path.open("w", encoding="utf-8") as fh:
-            import yaml
-
             yaml.safe_dump(_to_yaml_ready(scenario), fh, sort_keys=False, allow_unicode=False)
 
         S1 = Decimal("0")
@@ -577,56 +563,74 @@ class RingSweepRunner:
         # Determine regime for logging (Plan 022)
         regime = "active" if self.dealer_enabled else "passive"
 
-        # Lazy import to avoid circular import
-        from bilancio.ui.run import run_scenario
+        # Build RunOptions from scenario configuration (Plan 027)
+        options = RunOptions(
+            mode="until_stable",
+            max_days=scenario.get("run", {}).get("max_days", 90),
+            quiet_days=scenario.get("run", {}).get("quiet_days", 2),
+            check_invariants="daily",
+            default_handling=self.default_handling,
+            # Plan 030: Use "none" for quiet mode to suppress verbose console output
+            show_events="none" if self.quiet else scenario.get("run", {}).get("show", {}).get("events", "detailed"),
+            show_balances=scenario.get("run", {}).get("show", {}).get("balances"),
+            t_account=False,
+            detailed_dealer_logging=self.detailed_dealer_logging,
+            run_id=run_id,
+            regime=regime,
+            # Run parameters for Supabase tracking
+            kappa=float(kappa),
+            concentration=float(concentration),
+            mu=float(mu),
+            outside_mid_ratio=float(self.outside_mid_ratio) if self.outside_mid_ratio else 1.0,
+            seed=seed,
+        )
 
-        try:
-            run_scenario(
-                path=scenario_path,
-                mode="until_stable",
-                max_days=scenario["run"].get("max_days", 90),
-                quiet_days=scenario["run"].get("quiet_days", 2),
-                show=scenario["run"].get("show", {}).get("events", "detailed"),
-                agent_ids=scenario["run"].get("show", {}).get("balances"),
-                check_invariants="daily",
-                export={
-                    "balances_csv": str(balances_path),
-                    "events_jsonl": str(events_path),
+        # Delegate simulation to executor (Plan 027)
+        result = self.executor.execute(
+            scenario_config=_to_yaml_ready(scenario),
+            run_id=run_id,
+            output_dir=run_dir,
+            options=options,
+        )
+
+        # Handle failure case
+        if result.status == RunStatus.FAILED:
+            fail_params = {**base_params, "S1": str(S1), "L0": str(L0)}
+            self._upsert_registry(
+                run_id=run_id,
+                phase=phase,
+                status=RunStatus.FAILED,
+                parameters=fail_params,
+                artifact_paths={
+                    "scenario_yaml": self._rel_path(scenario_path),
+                    "run_html": self._rel_path(run_html_path),
                 },
-                html_output=run_html_path,
-                t_account=False,
-                default_handling=self.default_handling,
-                detailed_dealer_logging=self.detailed_dealer_logging,  # Plan 022
-                run_id=run_id,  # Plan 022
-                regime=regime,  # Plan 022
-                progress_callback=progress_callback,
+                error=result.error,
             )
-        except Exception as exc:
-            registry_entry.update({
-                "status": "failed",
-                "error": str(exc),
-                "S1": str(S1),
-                "L0": str(L0),
-                "scenario_yaml": self._rel_path(scenario_path),
-                "run_html": self._rel_path(run_html_path),
-            })
-            self._upsert_registry(registry_entry)
-            return RingRunSummary(run_id, phase, kappa, concentration, mu, monotonicity, None, None, 0)
+            return RingRunSummary(
+                run_id, phase, kappa, concentration, mu, monotonicity, None, None, 0,
+                modal_call_id=result.modal_call_id
+            )
 
-        events = list(read_events_jsonl(events_path))
-        balances_rows = read_balances_csv(balances_path) if balances_path.exists() else None
-        bundle = compute_day_metrics(events, balances_rows)
+        # Use MetricsComputer for analytics (Plan 027)
+        # result.artifacts contains relative paths (e.g., "out/events.jsonl")
+        artifacts: Dict[str, str] = {}
+        if "events_jsonl" in result.artifacts:
+            artifacts["events_jsonl"] = result.artifacts["events_jsonl"]
+        if "balances_csv" in result.artifacts:
+            artifacts["balances_csv"] = result.artifacts["balances_csv"]
 
-        write_day_metrics_csv(metrics_csv_path, bundle["day_metrics"])
-        write_day_metrics_json(metrics_json_path, bundle["day_metrics"])
-        write_debtor_shares_csv(ds_csv_path, bundle["debtor_shares"])
-        write_intraday_csv(intraday_csv_path, bundle["intraday"])
-        write_metrics_html(metrics_html_path, bundle["day_metrics"], bundle["debtor_shares"], bundle["intraday"])
+        loader = self._artifact_loader_for_result(result)
+        computer = MetricsComputer(loader)
+        bundle = computer.compute(artifacts)
 
-        summary = summarize_day_metrics(bundle["day_metrics"])
-        delta_total = summary.get("delta_total")
-        phi_total = summary.get("phi_total")
-        time_to_stability = int(summary.get("max_day") or 0)
+        # Write metrics outputs
+        output_paths = computer.write_outputs(bundle, out_dir)
+
+        # Extract summary metrics
+        delta_total = bundle.summary.get("delta_total")
+        phi_total = bundle.summary.get("phi_total")
+        time_to_stability = int(bundle.summary.get("max_day") or 0)
 
         # Read dealer metrics if available (treatment runs with dealer enabled)
         dealer_metrics: Optional[Dict[str, Any]] = None
@@ -636,26 +640,311 @@ class RingSweepRunner:
             with dealer_metrics_path.open() as f:
                 dealer_metrics = json.load(f)
 
-        registry_entry.update({
-            "status": "completed",
-            "S1": str(S1),
-            "L0": str(L0),
-            "scenario_yaml": self._rel_path(scenario_path),
-            "events_jsonl": self._rel_path(events_path),
-            "balances_csv": self._rel_path(balances_path),
-            "metrics_csv": self._rel_path(metrics_csv_path),
-            "metrics_html": self._rel_path(metrics_html_path),
-            "run_html": self._rel_path(run_html_path),
-            "time_to_stability": str(time_to_stability),
+        # Update registry with completed status
+        success_params = {**base_params, "S1": str(S1), "L0": str(L0)}
+        success_metrics = {
+            "time_to_stability": time_to_stability,
             "phi_total": str(phi_total) if phi_total is not None else "",
             "delta_total": str(delta_total) if delta_total is not None else "",
-            "error": "",
-        })
-        self._upsert_registry(registry_entry)
+        }
+        self._upsert_registry(
+            run_id=run_id,
+            phase=phase,
+            status=RunStatus.COMPLETED,
+            parameters=success_params,
+            metrics=success_metrics,
+            artifact_paths={
+                "scenario_yaml": self._rel_path(scenario_path),
+                "events_jsonl": self._rel_path(events_path),
+                "balances_csv": self._rel_path(balances_path),
+                "metrics_csv": self._rel_path(output_paths["metrics_csv"]),
+                "metrics_html": self._rel_path(output_paths["metrics_html"]),
+                "run_html": self._rel_path(run_html_path),
+            },
+        )
 
         return RingRunSummary(
             run_id, phase, kappa, concentration, mu, monotonicity,
-            delta_total, phi_total, time_to_stability, dealer_metrics
+            delta_total, phi_total, time_to_stability, dealer_metrics,
+            modal_call_id=result.modal_call_id
+        )
+
+    def _prepare_run(
+        self,
+        phase: str,
+        kappa: Decimal,
+        concentration: Decimal,
+        mu: Decimal,
+        monotonicity: Decimal,
+        seed: int,
+        label: str = "",
+    ) -> PreparedRun:
+        """Prepare a run without executing it.
+
+        Creates directories, builds scenario config, writes scenario.yaml.
+        Returns PreparedRun that can be passed to execute_batch and then _finalize_run.
+
+        In cloud-only mode, skips local directory creation and file writes.
+        """
+        run_uuid = uuid.uuid4().hex[:12]
+        run_id = f"{phase}_{label}_{run_uuid}" if label else f"{phase}_{run_uuid}"
+
+        # For cloud-only mode, use placeholder paths (won't be used)
+        if self.skip_local_processing:
+            run_dir = Path(f"/tmp/bilancio/{run_id}")  # Placeholder, never created
+            out_dir = run_dir / "out"
+            scenario_path = run_dir / "scenario.yaml"
+        else:
+            run_dir = self.runs_dir / run_id
+            run_dir.mkdir(parents=True, exist_ok=True)
+            out_dir = run_dir / "out"
+            out_dir.mkdir(parents=True, exist_ok=True)
+            scenario_path = run_dir / "scenario.yaml"
+
+        base_params = {
+            "phase": phase,
+            "seed": seed,
+            "n_agents": self.n_agents,
+            "kappa": str(kappa),
+            "concentration": str(concentration),
+            "mu": str(mu),
+            "monotonicity": str(monotonicity),
+            "maturity_days": self.maturity_days,
+            "Q_total": str(self.Q_total),
+            "default_handling": self.default_handling,
+            "dealer_enabled": self.dealer_enabled,
+        }
+
+        # Initial "running" status (skip for cloud-only mode)
+        if not self.skip_local_processing:
+            self._upsert_registry(
+                run_id=run_id,
+                phase=phase,
+                status=RunStatus.RUNNING,
+                parameters=base_params,
+            )
+
+        generator_data = {
+            "version": 1,
+            "generator": "ring_explorer_v1",
+            "name_prefix": self.name_prefix,
+            "params": {
+                "n_agents": self.n_agents,
+                "seed": seed,
+                "kappa": str(kappa),
+                "Q_total": str(self.Q_total),
+                "inequality": {
+                    "scheme": "dirichlet",
+                    "concentration": str(concentration),
+                    "monotonicity": str(monotonicity),
+                },
+                "maturity": {
+                    "days": self.maturity_days,
+                    "mode": "lead_lag",
+                    "mu": str(mu),
+                },
+                "liquidity": {
+                    "allocation": self._liquidity_allocation_dict(),
+                },
+            },
+            "compile": {"emit_yaml": False},
+        }
+
+        generator_config = RingExplorerGeneratorConfig.model_validate(generator_data)
+
+        if self.balanced_mode:
+            from bilancio.scenarios import compile_ring_explorer_balanced
+            scenario = compile_ring_explorer_balanced(
+                generator_config,
+                face_value=self.face_value,
+                outside_mid_ratio=self.outside_mid_ratio,
+                big_entity_share=self.big_entity_share,
+                vbt_share_per_bucket=self.vbt_share_per_bucket,
+                dealer_share_per_bucket=self.dealer_share_per_bucket,
+                mode="active" if self.dealer_enabled else "passive",
+                rollover_enabled=self.rollover_enabled,
+                source_path=None,
+            )
+        else:
+            scenario = compile_ring_explorer(generator_config, source_path=None)
+
+        if self.dealer_enabled:
+            dealer_section: Dict[str, Any] = {"enabled": True}
+            if self.dealer_config:
+                dealer_section.update(self.dealer_config)
+            else:
+                dealer_section.update({
+                    "ticket_size": 1,
+                    "dealer_share": Decimal("0.25"),
+                    "vbt_share": Decimal("0.50"),
+                })
+            scenario["dealer"] = dealer_section
+
+        if self.default_handling:
+            scenario_run = scenario.setdefault("run", {})
+            scenario_run["default_handling"] = self.default_handling
+
+        # Write scenario.yaml (skip for cloud-only mode)
+        if not self.skip_local_processing:
+            with scenario_path.open("w", encoding="utf-8") as fh:
+                yaml.safe_dump(_to_yaml_ready(scenario), fh, sort_keys=False, allow_unicode=False)
+
+        S1 = Decimal("0")
+        L0 = Decimal("0")
+        for action in scenario.get("initial_actions", []):
+            if "create_payable" in action:
+                S1 += action["create_payable"]["amount"]
+            if "mint_cash" in action:
+                L0 += action["mint_cash"]["amount"]
+
+        regime = "active" if self.dealer_enabled else "passive"
+
+        options = RunOptions(
+            mode="until_stable",
+            max_days=scenario.get("run", {}).get("max_days", 90),
+            quiet_days=scenario.get("run", {}).get("quiet_days", 2),
+            check_invariants="daily",
+            default_handling=self.default_handling,
+            show_events="none" if self.quiet else scenario.get("run", {}).get("show", {}).get("events", "detailed"),
+            show_balances=scenario.get("run", {}).get("show", {}).get("balances"),
+            t_account=False,
+            detailed_dealer_logging=self.detailed_dealer_logging,
+            run_id=run_id,
+            regime=regime,
+            # Run parameters for Supabase tracking
+            kappa=float(kappa),
+            concentration=float(concentration),
+            mu=float(mu),
+            outside_mid_ratio=float(self.outside_mid_ratio) if self.outside_mid_ratio else 1.0,
+            seed=seed,
+        )
+
+        return PreparedRun(
+            run_id=run_id,
+            phase=phase,
+            kappa=kappa,
+            concentration=concentration,
+            mu=mu,
+            monotonicity=monotonicity,
+            seed=seed,
+            scenario_config=_to_yaml_ready(scenario),
+            options=options,
+            run_dir=run_dir,
+            out_dir=out_dir,
+            scenario_path=scenario_path,
+            base_params=base_params,
+            S1=S1,
+            L0=L0,
+        )
+
+    def _finalize_run(
+        self,
+        prepared: PreparedRun,
+        result: ExecutionResult,
+    ) -> RingRunSummary:
+        """Finalize a run after execution completes.
+
+        For cloud execution with pre-computed metrics, uses those directly
+        without downloading artifacts. For local execution, computes metrics
+        from artifacts and updates local registry.
+        """
+        # Handle failure case
+        if result.status == RunStatus.FAILED:
+            if not self.skip_local_processing:
+                run_html_path = prepared.run_dir / "run.html"
+                fail_params = {**prepared.base_params, "S1": str(prepared.S1), "L0": str(prepared.L0)}
+                self._upsert_registry(
+                    run_id=prepared.run_id,
+                    phase=prepared.phase,
+                    status=RunStatus.FAILED,
+                    parameters=fail_params,
+                    artifact_paths={
+                        "scenario_yaml": self._rel_path(prepared.scenario_path),
+                        "run_html": self._rel_path(run_html_path),
+                    },
+                    error=result.error,
+                )
+            return RingRunSummary(
+                prepared.run_id, prepared.phase, prepared.kappa, prepared.concentration,
+                prepared.mu, prepared.monotonicity, None, None, 0,
+                modal_call_id=result.modal_call_id
+            )
+
+        # Cloud-only path: use pre-computed metrics from Modal, skip local processing
+        if self.skip_local_processing and result.metrics:
+            delta_total = result.metrics.get("delta_total")
+            phi_total = result.metrics.get("phi_total")
+            time_to_stability = int(result.metrics.get("max_day") or 0)
+
+            # Convert to Decimal for consistency
+            if delta_total is not None:
+                delta_total = Decimal(str(delta_total))
+            if phi_total is not None:
+                phi_total = Decimal(str(phi_total))
+
+            return RingRunSummary(
+                prepared.run_id, prepared.phase, prepared.kappa, prepared.concentration,
+                prepared.mu, prepared.monotonicity,
+                delta_total, phi_total, time_to_stability,
+                dealer_metrics=None,  # Dealer metrics not available in cloud path
+                modal_call_id=result.modal_call_id
+            )
+
+        # Local path: load artifacts, compute metrics, update registry
+        run_html_path = prepared.run_dir / "run.html"
+        balances_path = prepared.out_dir / "balances.csv"
+        events_path = prepared.out_dir / "events.jsonl"
+
+        artifacts: Dict[str, str] = {}
+        if "events_jsonl" in result.artifacts:
+            artifacts["events_jsonl"] = result.artifacts["events_jsonl"]
+        if "balances_csv" in result.artifacts:
+            artifacts["balances_csv"] = result.artifacts["balances_csv"]
+
+        loader = self._artifact_loader_for_result(result)
+        computer = MetricsComputer(loader)
+        bundle = computer.compute(artifacts)
+
+        output_paths = computer.write_outputs(bundle, prepared.out_dir)
+
+        delta_total = bundle.summary.get("delta_total")
+        phi_total = bundle.summary.get("phi_total")
+        time_to_stability = int(bundle.summary.get("max_day") or 0)
+
+        dealer_metrics: Optional[Dict[str, Any]] = None
+        dealer_metrics_path = prepared.out_dir / "dealer_metrics.json"
+        if dealer_metrics_path.exists():
+            import json
+            with dealer_metrics_path.open() as f:
+                dealer_metrics = json.load(f)
+
+        success_params = {**prepared.base_params, "S1": str(prepared.S1), "L0": str(prepared.L0)}
+        success_metrics = {
+            "time_to_stability": time_to_stability,
+            "phi_total": str(phi_total) if phi_total is not None else "",
+            "delta_total": str(delta_total) if delta_total is not None else "",
+        }
+        self._upsert_registry(
+            run_id=prepared.run_id,
+            phase=prepared.phase,
+            status=RunStatus.COMPLETED,
+            parameters=success_params,
+            metrics=success_metrics,
+            artifact_paths={
+                "scenario_yaml": self._rel_path(prepared.scenario_path),
+                "events_jsonl": self._rel_path(events_path),
+                "balances_csv": self._rel_path(balances_path),
+                "metrics_csv": self._rel_path(output_paths["metrics_csv"]),
+                "metrics_html": self._rel_path(output_paths["metrics_html"]),
+                "run_html": self._rel_path(run_html_path),
+            },
+        )
+
+        return RingRunSummary(
+            prepared.run_id, prepared.phase, prepared.kappa, prepared.concentration,
+            prepared.mu, prepared.monotonicity,
+            delta_total, phi_total, time_to_stability, dealer_metrics,
+            modal_call_id=result.modal_call_id
         )
 
     def _rel_path(self, absolute: Path) -> str:
@@ -663,6 +952,11 @@ class RingSweepRunner:
             return str(Path("..").joinpath(absolute.relative_to(self.base_dir)))
         except ValueError:
             return str(absolute)
+
+    def _artifact_loader_for_result(self, result: ExecutionResult):
+        if result.storage_type == "modal_volume":
+            return ModalVolumeArtifactLoader(base_path=result.storage_base)
+        return LocalArtifactLoader(base_path=Path(result.storage_base))
 
     def _liquidity_allocation_dict(self) -> Dict[str, Any]:
         allocation: Dict[str, Any] = {"mode": self.liquidity_mode}
@@ -674,6 +968,7 @@ class RingSweepRunner:
 __all__ = [
     "RingSweepRunner",
     "RingRunSummary",
+    "PreparedRun",
     "RingSweepConfig",
     "load_ring_sweep_config",
     "_decimal_list",

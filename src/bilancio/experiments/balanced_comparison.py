@@ -24,7 +24,8 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Tuple
 
 from pydantic import BaseModel, Field
 
-from bilancio.experiments.ring import RingSweepRunner, RingRunSummary
+from bilancio.experiments.ring import RingSweepRunner, RingRunSummary, PreparedRun
+from bilancio.runners import SimulationExecutor, LocalExecutor, RunOptions
 
 logger = logging.getLogger(__name__)
 
@@ -69,6 +70,10 @@ class BalancedComparisonResult:
     # Big entity loss metrics
     big_entity_loss_passive: Optional[float] = None
     big_entity_pnl_active: Optional[float] = None
+
+    # Modal call IDs for cloud execution debugging
+    passive_modal_call_id: Optional[str] = None
+    active_modal_call_id: Optional[str] = None
 
     @property
     def trading_effect(self) -> Optional[Decimal]:
@@ -141,6 +146,12 @@ class BalancedComparisonConfig(BaseModel):
         description="Enable continuous rollover of matured claims"
     )
 
+    # Plan 030: Quiet mode for faster sweeps
+    quiet: bool = Field(
+        default=True,
+        description="Suppress verbose console output during sweeps"
+    )
+
     # VBT configuration (for active mode)
     vbt_share: Decimal = Field(default=Decimal("0.50"), description="VBT capital as fraction of system cash")
 
@@ -185,16 +196,32 @@ class BalancedComparisonRunner:
         "total_trades",
     ]
 
-    def __init__(self, config: BalancedComparisonConfig, out_dir: Path) -> None:
+    def __init__(
+        self,
+        config: BalancedComparisonConfig,
+        out_dir: Path,
+        executor: Optional[SimulationExecutor] = None,
+        job_id: Optional[str] = None,
+        enable_supabase: bool = True,
+    ) -> None:
         self.config = config
         self.base_dir = out_dir
+        self.executor: SimulationExecutor = executor or LocalExecutor()
+
+        # Cloud-only mode: skip local processing when using cloud executor
+        # Modal already saves runs to Supabase, so no need to duplicate
+        from bilancio.runners.cloud_executor import CloudExecutor
+        self.skip_local_processing = isinstance(executor, CloudExecutor)
+
         self.passive_dir = self.base_dir / "passive"
         self.active_dir = self.base_dir / "active"
         self.aggregate_dir = self.base_dir / "aggregate"
 
-        self.passive_dir.mkdir(parents=True, exist_ok=True)
-        self.active_dir.mkdir(parents=True, exist_ok=True)
-        self.aggregate_dir.mkdir(parents=True, exist_ok=True)
+        # Only create local directories if we're doing local processing
+        if not self.skip_local_processing:
+            self.passive_dir.mkdir(parents=True, exist_ok=True)
+            self.active_dir.mkdir(parents=True, exist_ok=True)
+            self.aggregate_dir.mkdir(parents=True, exist_ok=True)
 
         self.comparison_results: List[BalancedComparisonResult] = []
         self.comparison_path = self.aggregate_dir / "comparison.csv"
@@ -208,11 +235,28 @@ class BalancedComparisonRunner:
         self._start_time: Optional[float] = None
         self._completed_keys: Set[Tuple[str, str, str, str, str]] = set()
 
+        # Job tracking
+        self.job_id = job_id
+
+        # Supabase registry for persisting runs/metrics (only for local execution)
+        self._supabase_store = None
+        if enable_supabase and not self.skip_local_processing:
+            try:
+                from bilancio.storage.supabase_client import is_supabase_configured
+                if is_supabase_configured():
+                    from bilancio.storage.supabase_registry import SupabaseRegistryStore
+                    self._supabase_store = SupabaseRegistryStore()
+                    logger.info("Supabase registry enabled for run persistence")
+            except Exception as e:
+                logger.warning(f"Failed to initialize Supabase registry: {e}")
+
         # Load existing results for resumption
         self._load_existing_results()
 
     def _load_existing_results(self) -> None:
-        """Load existing results from CSV for resumption."""
+        """Load existing results from CSV for resumption (skipped in cloud-only mode)."""
+        if self.skip_local_processing:
+            return  # Cloud-only mode: no local files to load
         if not self.comparison_path.exists():
             return
 
@@ -297,6 +341,8 @@ class BalancedComparisonRunner:
             dealer_share_per_bucket=self.config.dealer_share_per_bucket,
             rollover_enabled=self.config.rollover_enabled,
             detailed_dealer_logging=self.config.detailed_logging,  # Plan 022
+            executor=self.executor,  # Plan 028 cloud support
+            quiet=self.config.quiet,  # Plan 030
         )
 
     def _get_active_runner(self, outside_mid_ratio: Decimal) -> RingSweepRunner:
@@ -328,10 +374,214 @@ class BalancedComparisonRunner:
             dealer_share_per_bucket=self.config.dealer_share_per_bucket,
             rollover_enabled=self.config.rollover_enabled,
             detailed_dealer_logging=self.config.detailed_logging,  # Plan 022
+            executor=self.executor,  # Plan 028 cloud support
+            quiet=self.config.quiet,  # Plan 030
         )
 
     def run_all(self) -> List[BalancedComparisonResult]:
-        """Execute all passive/active pairs and return comparison results."""
+        """Execute all passive/active pairs and return comparison results.
+
+        Uses batch execution if the executor supports it (CloudExecutor),
+        otherwise falls back to sequential execution (LocalExecutor).
+        """
+        # Check if executor supports batch execution
+        if hasattr(self.executor, 'execute_batch'):
+            return self._run_all_batch()
+        else:
+            return self._run_all_sequential()
+
+    def _run_all_batch(self) -> List[BalancedComparisonResult]:
+        """Execute all pairs using batch execution (parallel on Modal)."""
+        total_pairs = (
+            len(self.config.kappas)
+            * len(self.config.concentrations)
+            * len(self.config.mus)
+            * len(self.config.monotonicities)
+            * len(self.config.outside_mid_ratios)
+        )
+
+        skipped = len(self._completed_keys)
+        remaining = total_pairs - skipped
+
+        logger.info(
+            "Starting BATCH balanced comparison sweep: %d kappas × %d concentrations × %d mus × %d ρ = %d pairs",
+            len(self.config.kappas),
+            len(self.config.concentrations),
+            len(self.config.mus),
+            len(self.config.outside_mid_ratios),
+            total_pairs,
+        )
+
+        if skipped > 0:
+            print(f"Resuming: {skipped} pairs already completed, {remaining} remaining", flush=True)
+
+        self._start_time = time.time()
+
+        # Phase 1: Prepare all runs
+        print(f"Preparing {remaining * 2} runs...", flush=True)
+        prepared_runs: List[Tuple[PreparedRun, PreparedRun, Decimal, Decimal, Decimal, Decimal, Decimal, int]] = []
+
+        for outside_mid_ratio in self.config.outside_mid_ratios:
+            passive_runner = self._get_passive_runner(outside_mid_ratio)
+            active_runner = self._get_active_runner(outside_mid_ratio)
+
+            for kappa in self.config.kappas:
+                for concentration in self.config.concentrations:
+                    for mu in self.config.mus:
+                        for monotonicity in self.config.monotonicities:
+                            key = self._make_key(kappa, concentration, mu, monotonicity, outside_mid_ratio)
+                            if key in self._completed_keys:
+                                continue
+
+                            seed = self._next_seed()
+
+                            # Prepare passive run
+                            passive_prep = passive_runner._prepare_run(
+                                phase="balanced_passive",
+                                kappa=kappa,
+                                concentration=concentration,
+                                mu=mu,
+                                monotonicity=monotonicity,
+                                seed=seed,
+                            )
+
+                            # Prepare active run
+                            active_prep = active_runner._prepare_run(
+                                phase="balanced_active",
+                                kappa=kappa,
+                                concentration=concentration,
+                                mu=mu,
+                                monotonicity=monotonicity,
+                                seed=seed,
+                            )
+
+                            prepared_runs.append((
+                                passive_prep, active_prep,
+                                kappa, concentration, mu, monotonicity, outside_mid_ratio, seed
+                            ))
+
+        if not prepared_runs:
+            print("All pairs already completed!", flush=True)
+            return self.comparison_results
+
+        # Phase 2: Build batch and execute
+        print(f"Submitting {len(prepared_runs) * 2} runs to Modal (parallel execution)...", flush=True)
+
+        # Build flat list for batch execution
+        batch_runs: List[Tuple[Dict[str, Any], str, RunOptions, Path]] = []
+        run_index_map: Dict[str, int] = {}  # run_id -> index in prepared_runs
+
+        for idx, (passive_prep, active_prep, *_) in enumerate(prepared_runs):
+            batch_runs.append((
+                passive_prep.scenario_config,
+                passive_prep.run_id,
+                passive_prep.options,
+            ))
+            run_index_map[passive_prep.run_id] = idx * 2  # even indices are passive
+
+            batch_runs.append((
+                active_prep.scenario_config,
+                active_prep.run_id,
+                active_prep.options,
+            ))
+            run_index_map[active_prep.run_id] = idx * 2 + 1  # odd indices are active
+
+        # Execute batch with progress callback
+        completed = [0]
+
+        def progress_callback(done: int, total: int):
+            completed[0] = done
+            elapsed = time.time() - self._start_time
+            if done > 0:
+                eta = elapsed / done * (total - done)
+                print(f"\r  Progress: {done}/{total} runs ({done * 100 // total}%) - ETA: {self._format_time(eta)}    ", end="", flush=True)
+
+        results = self.executor.execute_batch(
+            [(config, run_id, opts) for config, run_id, opts, *_ in batch_runs],
+            progress_callback=progress_callback,
+        )
+        print()  # newline after progress
+
+        # Phase 3: Finalize runs and build results
+        print("Finalizing results...", flush=True)
+
+        for idx, (passive_prep, active_prep, kappa, concentration, mu, monotonicity, outside_mid_ratio, seed) in enumerate(prepared_runs):
+            passive_result = results[idx * 2]
+            active_result = results[idx * 2 + 1]
+
+            # Get runners for finalization
+            passive_runner = self._get_passive_runner(outside_mid_ratio)
+            active_runner = self._get_active_runner(outside_mid_ratio)
+
+            # Finalize runs
+            passive_summary = passive_runner._finalize_run(passive_prep, passive_result)
+            active_summary = active_runner._finalize_run(active_prep, active_result)
+
+            # Extract dealer metrics
+            dm = active_summary.dealer_metrics or {}
+
+            result = BalancedComparisonResult(
+                kappa=kappa,
+                concentration=concentration,
+                mu=mu,
+                monotonicity=monotonicity,
+                seed=seed,
+                face_value=self.config.face_value,
+                outside_mid_ratio=outside_mid_ratio,
+                big_entity_share=self.config.big_entity_share,
+                vbt_share_per_bucket=self.config.vbt_share_per_bucket,
+                dealer_share_per_bucket=self.config.dealer_share_per_bucket,
+                delta_passive=passive_summary.delta_total,
+                phi_passive=passive_summary.phi_total,
+                passive_run_id=passive_summary.run_id,
+                passive_status="completed" if passive_summary.delta_total is not None else "failed",
+                delta_active=active_summary.delta_total,
+                phi_active=active_summary.phi_total,
+                active_run_id=active_summary.run_id,
+                active_status="completed" if active_summary.delta_total is not None else "failed",
+                dealer_total_pnl=dm.get("dealer_total_pnl"),
+                dealer_total_return=dm.get("dealer_total_return"),
+                total_trades=dm.get("total_trades"),
+                passive_modal_call_id=passive_summary.modal_call_id,
+                active_modal_call_id=active_summary.modal_call_id,
+            )
+
+            self.comparison_results.append(result)
+            key = self._make_key(kappa, concentration, mu, monotonicity, outside_mid_ratio)
+            self._completed_keys.add(key)
+
+            # Persist runs to Supabase (batch path)
+            self._persist_run_to_supabase(passive_summary, "passive", kappa, concentration, mu, outside_mid_ratio, seed)
+            self._persist_run_to_supabase(active_summary, "active", kappa, concentration, mu, outside_mid_ratio, seed)
+
+            # Incremental CSV write
+            self._write_comparison_csv()
+
+        # Write final summary
+        self._write_summary_json()
+
+        # Compute aggregate metrics on Modal (if using cloud executor)
+        if hasattr(self.executor, 'compute_aggregate_metrics'):
+            all_run_ids = []
+            for result in self.comparison_results:
+                if result.passive_run_id:
+                    all_run_ids.append(result.passive_run_id)
+                if result.active_run_id:
+                    all_run_ids.append(result.active_run_id)
+            if all_run_ids:
+                self.executor.compute_aggregate_metrics(all_run_ids)
+
+        total_time = time.time() - self._start_time
+        print(f"\nSweep complete! {len(prepared_runs)} pairs in {self._format_time(total_time)}", flush=True)
+        if self.skip_local_processing:
+            print(f"Results saved to Supabase. Query with: bilancio jobs get {self.job_id} --cloud", flush=True)
+        else:
+            print(f"Results at: {self.aggregate_dir}", flush=True)
+
+        return self.comparison_results
+
+    def _run_all_sequential(self) -> List[BalancedComparisonResult]:
+        """Execute all pairs sequentially (fallback for LocalExecutor)."""
         total_pairs = (
             len(self.config.kappas)
             * len(self.config.concentrations)
@@ -397,21 +647,31 @@ class BalancedComparisonRunner:
 
                             # Log completion with timing
                             elapsed = time.time() - self._start_time
-                            print(
-                                f"  Completed in {self._format_time(elapsed / completed_this_run)} avg | "
-                                f"δ_passive={result.delta_passive:.3f}, δ_active={result.delta_active:.3f}, "
-                                f"effect={result.trading_effect:.3f}",
-                                flush=True,
-                            )
+                            if result.delta_passive is not None and result.delta_active is not None:
+                                print(
+                                    f"  Completed in {self._format_time(elapsed / completed_this_run)} avg | "
+                                    f"δ_passive={result.delta_passive:.3f}, δ_active={result.delta_active:.3f}, "
+                                    f"effect={result.trading_effect:.3f}",
+                                    flush=True,
+                                )
+                            else:
+                                print(
+                                    f"  Completed in {self._format_time(elapsed / completed_this_run)} avg | "
+                                    f"(one or both runs failed)",
+                                    flush=True,
+                                )
 
         # Write final summary
         self._write_summary_json()
 
         total_time = time.time() - self._start_time
         print(f"\nSweep complete! {completed_this_run} pairs in {self._format_time(total_time)}", flush=True)
-        print(f"Results at: {self.aggregate_dir}", flush=True)
+        if self.skip_local_processing:
+            print(f"Results saved to Supabase. Query with: bilancio jobs get {self.job_id} --cloud", flush=True)
+        else:
+            print(f"Results at: {self.aggregate_dir}", flush=True)
 
-        logger.info("Balanced comparison sweep complete. Results at: %s", self.aggregate_dir)
+        logger.info("Balanced comparison sweep complete. Job ID: %s", self.job_id)
         return self.comparison_results
 
     def _make_progress_callback(self, run_type: str) -> Callable[[int, int], None]:
@@ -487,6 +747,8 @@ class BalancedComparisonRunner:
             dealer_total_pnl=dm.get("dealer_total_pnl"),
             dealer_total_return=dm.get("dealer_total_return"),
             total_trades=dm.get("total_trades"),
+            passive_modal_call_id=passive_result.modal_call_id,
+            active_modal_call_id=active_result.modal_call_id,
         )
 
         # Log comparison
@@ -501,10 +763,96 @@ class BalancedComparisonRunner:
         else:
             logger.warning("  Comparison: One or both runs failed")
 
+        # Persist runs to Supabase
+        self._persist_run_to_supabase(passive_result, "passive", kappa, concentration, mu, outside_mid_ratio, seed)
+        self._persist_run_to_supabase(active_result, "active", kappa, concentration, mu, outside_mid_ratio, seed)
+
         return result
 
+    def _persist_run_to_supabase(
+        self,
+        run_result: RingRunSummary,
+        regime: str,
+        kappa: Decimal,
+        concentration: Decimal,
+        mu: Decimal,
+        outside_mid_ratio: Decimal,
+        seed: int,
+    ) -> None:
+        """Persist a run and its metrics to Supabase.
+
+        Args:
+            run_result: The run summary from the simulation
+            regime: 'passive' or 'active'
+            kappa: Liquidity ratio parameter
+            concentration: Dirichlet concentration parameter
+            mu: Maturity timing parameter
+            outside_mid_ratio: Outside money ratio
+            seed: Random seed used
+        """
+        if self._supabase_store is None:
+            return
+
+        try:
+            from bilancio.storage.models import RegistryEntry, RunStatus
+
+            # Determine status
+            status = RunStatus.COMPLETED if run_result.delta_total is not None else RunStatus.FAILED
+
+            # Build parameters dict
+            parameters = {
+                "kappa": str(kappa),
+                "concentration": str(concentration),
+                "mu": str(mu),
+                "outside_mid_ratio": str(outside_mid_ratio),
+                "seed": seed,
+                "regime": regime,
+            }
+
+            # Build metrics dict
+            metrics: Dict[str, Any] = {}
+            if run_result.delta_total is not None:
+                metrics["delta_total"] = float(run_result.delta_total)
+            if run_result.phi_total is not None:
+                metrics["phi_total"] = float(run_result.phi_total)
+            if hasattr(run_result, "n_defaults") and run_result.n_defaults is not None:
+                metrics["n_defaults"] = run_result.n_defaults
+            if hasattr(run_result, "n_clears") and run_result.n_clears is not None:
+                metrics["n_clears"] = run_result.n_clears
+            if hasattr(run_result, "time_to_stability") and run_result.time_to_stability is not None:
+                metrics["time_to_stability"] = run_result.time_to_stability
+            if hasattr(run_result, "dealer_metrics") and run_result.dealer_metrics:
+                dm = run_result.dealer_metrics
+                if "total_trades" in dm:
+                    metrics["total_trades"] = dm["total_trades"]
+                if "total_trade_volume" in dm:
+                    metrics["total_trade_volume"] = dm["total_trade_volume"]
+
+            # Build artifact paths (for cloud runs)
+            artifact_paths: Dict[str, str] = {}
+            if hasattr(run_result, "artifact_paths") and run_result.artifact_paths:
+                artifact_paths = run_result.artifact_paths
+
+            entry = RegistryEntry(
+                run_id=run_result.run_id,
+                experiment_id=self.job_id or "unknown",
+                status=status,
+                parameters=parameters,
+                metrics=metrics,
+                artifact_paths=artifact_paths,
+                error=run_result.error if hasattr(run_result, "error") else None,
+            )
+
+            self._supabase_store.upsert(entry)
+            logger.debug(f"Persisted run {run_result.run_id} to Supabase")
+
+        except Exception as e:
+            logger.warning(f"Failed to persist run to Supabase: {e}")
+
     def _write_comparison_csv(self) -> None:
-        """Write comparison results to CSV."""
+        """Write comparison results to CSV (skipped in cloud-only mode)."""
+        if self.skip_local_processing:
+            return  # Cloud-only mode: no local files
         with self.comparison_path.open("w", newline="") as fh:
             writer = csv.DictWriter(fh, fieldnames=self.COMPARISON_FIELDS)
             writer.writeheader()
@@ -535,7 +883,9 @@ class BalancedComparisonRunner:
                 writer.writerow(row)
 
     def _write_summary_json(self) -> None:
-        """Write summary statistics to JSON."""
+        """Write summary statistics to JSON (skipped in cloud-only mode)."""
+        if self.skip_local_processing:
+            return  # Cloud-only mode: no local files
         completed = [r for r in self.comparison_results if r.trading_effect is not None]
 
         if completed:

@@ -4,7 +4,7 @@ from pathlib import Path
 
 from bilancio.config.loaders import load_yaml
 from bilancio.config.models import RingExplorerGeneratorConfig
-from bilancio.scenarios.generators.ring_explorer import compile_ring_explorer
+from bilancio.scenarios import compile_ring_explorer
 
 
 def _sum_amounts(actions, key):

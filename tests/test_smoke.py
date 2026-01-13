@@ -96,19 +96,6 @@ def test_analysis_imports():
         calculate_irr([])
 
 
-def test_io_imports():
-    """Test that IO modules can be imported."""
-    from bilancio.io.readers import read_cashflows_csv
-    from bilancio.io.writers import write_cashflows_csv
-    
-    # These are placeholders so they should raise NotImplementedError
-    with pytest.raises(NotImplementedError):
-        read_cashflows_csv("dummy.csv")
-    
-    with pytest.raises(NotImplementedError):
-        write_cashflows_csv([], "dummy.csv")
-
-
 def test_package_metadata():
     """Test that package metadata is accessible."""
     import bilancio

@@ -1,57 +1,28 @@
-"""Command-line interface for Bilancio."""
+"""CLI commands for running experiment sweeps."""
 
-import click
+from __future__ import annotations
+
 from datetime import datetime
 from decimal import Decimal
 from pathlib import Path
 from typing import Optional
-import sys
 
+import click
 from click.core import ParameterSource
 
-from rich.console import Console
-from rich.panel import Panel
-
-from .run import run_scenario
-from .wizard import create_scenario_wizard
-from bilancio.analysis.loaders import read_events_jsonl, read_balances_csv
-from bilancio.analysis.report import (
-    write_day_metrics_csv,
-    write_day_metrics_json,
-    write_debtor_shares_csv,
-    write_intraday_csv,
-    write_metrics_html,
-    compute_day_metrics,
-    parse_day_ranges,
-    aggregate_runs,
-    render_dashboard,
-)
+from bilancio.analysis.report import aggregate_runs, render_dashboard
 from bilancio.experiments.ring import (
     RingSweepRunner,
     RingSweepConfig,
     load_ring_sweep_config,
     _decimal_list,
 )
-# Comparison imports deferred to avoid circular import
-# from bilancio.experiments.comparison import ComparisonSweepRunner, ComparisonSweepConfig
+from bilancio.jobs import JobManager, JobConfig, generate_job_id, create_job_manager
 
-
-console = Console()
-
-
-def _as_decimal_list(value):
-    if isinstance(value, (list, tuple)):
-        return [Decimal(str(item)) for item in value]
-    return _decimal_list(value)
+from .utils import console, _as_decimal_list
 
 
 @click.group()
-def cli():
-    """Bilancio - Economic simulation framework."""
-    pass
-
-
-@cli.group()
 def sweep():
     """Experiment sweeps."""
     pass
@@ -60,6 +31,7 @@ def sweep():
 @sweep.command("ring")
 @click.option('--config', type=click.Path(path_type=Path), default=None, help='Path to sweep config YAML')
 @click.option('--out-dir', type=click.Path(path_type=Path), default=None, help='Base output directory')
+@click.option('--cloud', is_flag=True, help='Run simulations on Modal cloud')
 @click.option('--grid/--no-grid', default=True, help='Run coarse grid sweep')
 @click.option('--kappas', type=str, default="0.25,0.5,1,2,4", help='Comma list for grid kappa values')
 @click.option('--concentrations', type=str, default="0.2,0.5,1,2,5", help='Comma list for grid Dirichlet concentrations')
@@ -87,11 +59,13 @@ def sweep():
 @click.option('--base-seed', type=int, default=42, help='Base PRNG seed')
 @click.option('--name-prefix', type=str, default='Kalecki Ring Sweep', help='Scenario name prefix')
 @click.option('--default-handling', type=click.Choice(['fail-fast', 'expel-agent']), default='fail-fast', help='Default handling mode for runs')
+@click.option('--job-id', type=str, default=None, help='Job ID (auto-generated if not provided)')
 @click.pass_context
 def sweep_ring(
     ctx,
     config: Optional[Path],
     out_dir: Optional[Path],
+    cloud: bool,
     grid: bool,
     kappas: str,
     concentrations: str,
@@ -119,6 +93,7 @@ def sweep_ring(
     base_seed: int,
     name_prefix: str,
     default_handling: str,
+    job_id: Optional[str],
 ):
     """Run the Kalecki ring experiment sweep."""
     sweep_config: Optional[RingSweepConfig] = None
@@ -216,6 +191,55 @@ def sweep_ring(
 
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    # Generate job ID if not provided
+    if job_id is None:
+        job_id = generate_job_id()
+
+    # Create job manager and job config
+    manager: Optional[JobManager] = None
+    try:
+        manager = create_job_manager(jobs_dir=out_dir, cloud=cloud, local=True)
+
+        grid_kappas = _as_decimal_list(kappas)
+        grid_concentrations = _as_decimal_list(concentrations)
+        grid_mus = _as_decimal_list(mus)
+
+        job_config = JobConfig(
+            sweep_type="ring",
+            n_agents=n_agents,
+            kappas=grid_kappas,
+            concentrations=grid_concentrations,
+            mus=grid_mus,
+            cloud=cloud,
+            maturity_days=maturity_days,
+            seeds=[base_seed],
+        )
+
+        job = manager.create_job(
+            description=f"Ring sweep (n={n_agents}, cloud={cloud})",
+            config=job_config,
+            job_id=job_id,
+        )
+
+        console.print(f"[cyan]Job ID: {job.job_id}[/cyan]")
+        manager.start_job(job.job_id)
+    except Exception as e:
+        console.print(f"[yellow]Warning: Job tracking initialization failed: {e}[/yellow]")
+        manager = None
+
+    # Create executor based on --cloud flag
+    executor = None
+    if cloud:
+        from bilancio.runners import CloudExecutor
+
+        executor = CloudExecutor(
+            experiment_id=job_id,  # Use job_id as experiment_id for simplicity
+            download_artifacts=False,
+            local_output_dir=out_dir,
+            job_id=job_id,
+        )
+        console.print(f"[cyan]Cloud execution enabled[/cyan]")
+
     q_total_dec = Decimal(str(q_total))
     runner = RingSweepRunner(
         out_dir,
@@ -229,6 +253,7 @@ def sweep_ring(
         default_handling=default_handling,
         dealer_enabled=dealer_enabled,
         dealer_config=dealer_config,
+        executor=executor,
     )
 
     console.print(f"[dim]Output directory: {out_dir}[/dim]")
@@ -238,43 +263,64 @@ def sweep_ring(
     grid_mus = _as_decimal_list(mus)
     grid_monotonicities = _as_decimal_list(monotonicities)
 
-    if grid:
-        total_runs = len(grid_kappas) * len(grid_concentrations) * len(grid_mus) * len(grid_monotonicities)
-        console.print(f"[dim]Running grid sweep: {total_runs} runs[/dim]")
-        runner.run_grid(grid_kappas, grid_concentrations, grid_mus, grid_monotonicities)
+    try:
+        if grid:
+            total_runs = len(grid_kappas) * len(grid_concentrations) * len(grid_mus) * len(grid_monotonicities)
+            console.print(f"[dim]Running grid sweep: {total_runs} runs[/dim]")
+            runner.run_grid(grid_kappas, grid_concentrations, grid_mus, grid_monotonicities)
 
-    if lhs_count > 0:
-        console.print(f"[dim]Running Latin Hypercube ({lhs_count})[/dim]")
-        runner.run_lhs(
-            lhs_count,
-            kappa_range=(Decimal(str(kappa_min)), Decimal(str(kappa_max))),
-            concentration_range=(Decimal(str(c_min)), Decimal(str(c_max))),
-            mu_range=(Decimal(str(mu_min)), Decimal(str(mu_max))),
-            monotonicity_range=(Decimal(str(monotonicity_min)), Decimal(str(monotonicity_max))),
-        )
+        if lhs_count > 0:
+            console.print(f"[dim]Running Latin Hypercube ({lhs_count})[/dim]")
+            runner.run_lhs(
+                lhs_count,
+                kappa_range=(Decimal(str(kappa_min)), Decimal(str(kappa_max))),
+                concentration_range=(Decimal(str(c_min)), Decimal(str(c_max))),
+                mu_range=(Decimal(str(mu_min)), Decimal(str(mu_max))),
+                monotonicity_range=(Decimal(str(monotonicity_min)), Decimal(str(monotonicity_max))),
+            )
 
-    if frontier:
-        console.print(f"[dim]Running frontier search across {len(grid_concentrations) * len(grid_mus) * len(grid_monotonicities)} cells[/dim]")
-        runner.run_frontier(
-            grid_concentrations,
-            grid_mus,
-            grid_monotonicities,
-            kappa_low=Decimal(str(frontier_low)),
-            kappa_high=Decimal(str(frontier_high)),
-            tolerance=Decimal(str(frontier_tolerance)),
-            max_iterations=frontier_iterations,
-        )
+        if frontier:
+            console.print(f"[dim]Running frontier search across {len(grid_concentrations) * len(grid_mus) * len(grid_monotonicities)} cells[/dim]")
+            runner.run_frontier(
+                grid_concentrations,
+                grid_mus,
+                grid_monotonicities,
+                kappa_low=Decimal(str(frontier_low)),
+                kappa_high=Decimal(str(frontier_high)),
+                tolerance=Decimal(str(frontier_tolerance)),
+                max_iterations=frontier_iterations,
+            )
 
-    registry_csv = runner.registry_dir / "experiments.csv"
-    results_csv = runner.aggregate_dir / "results.csv"
-    dashboard_html = runner.aggregate_dir / "dashboard.html"
+        registry_csv = runner.registry_dir / "experiments.csv"
+        results_csv = runner.aggregate_dir / "results.csv"
+        dashboard_html = runner.aggregate_dir / "dashboard.html"
 
-    aggregate_runs(registry_csv, results_csv)
-    render_dashboard(results_csv, dashboard_html)
+        aggregate_runs(registry_csv, results_csv)
+        render_dashboard(results_csv, dashboard_html)
 
-    console.print(f"[green]Sweep complete.[/green] Registry: {registry_csv}")
-    console.print(f"[green]Aggregated results: {results_csv}")
-    console.print(f"[green]Dashboard: {dashboard_html}")
+        # Complete job
+        if manager is not None:
+            try:
+                manager.complete_job(job_id, {
+                    "grid_runs": total_runs if grid else 0,
+                    "lhs_runs": lhs_count,
+                    "frontier": frontier,
+                })
+            except Exception as e:
+                console.print(f"[yellow]Warning: Failed to complete job tracking: {e}[/yellow]")
+
+        console.print(f"[green]Sweep complete.[/green] Registry: {registry_csv}")
+        console.print(f"[green]Aggregated results: {results_csv}")
+        console.print(f"[green]Dashboard: {dashboard_html}")
+
+    except Exception as e:
+        # Fail job on error
+        if manager is not None:
+            try:
+                manager.fail_job(job_id, str(e))
+            except Exception:
+                pass  # Don't let job tracking failure mask the original error
+        raise
 
 
 @sweep.command("comparison")
@@ -437,6 +483,13 @@ def sweep_comparison(
     default=True,
     help="Enable detailed CSV logging (trades.csv, repayment_events.csv, etc.)",
 )
+@click.option('--cloud', is_flag=True, help='Run simulations on Modal cloud')
+@click.option('--job-id', type=str, default=None, help='Job ID (auto-generated if not provided)')
+@click.option(
+    '--quiet/--verbose',
+    default=True,
+    help='Suppress verbose console output during sweeps (default: quiet)',
+)
 def sweep_balanced(
     out_dir: Path,
     n_agents: int,
@@ -451,6 +504,9 @@ def sweep_balanced(
     big_entity_share: Decimal,
     default_handling: str,
     detailed_logging: bool,
+    cloud: bool,
+    job_id: Optional[str],
+    quiet: bool,
 ) -> None:
     """
     Run balanced C vs D comparison experiments.
@@ -472,6 +528,55 @@ def sweep_balanced(
         BalancedComparisonRunner,
     )
 
+    out_dir = Path(out_dir)
+
+    # Generate job ID if not provided
+    if job_id is None:
+        job_id = generate_job_id()
+
+    # Create job manager with Supabase cloud storage
+    manager: Optional[JobManager] = None
+    try:
+        manager = create_job_manager(jobs_dir=out_dir, cloud=cloud, local=True)
+
+        # Create job config
+        job_config = JobConfig(
+            sweep_type="balanced",
+            n_agents=n_agents,
+            kappas=_decimal_list(kappas),
+            concentrations=_decimal_list(concentrations),
+            mus=_decimal_list(mus),
+            cloud=cloud,
+            outside_mid_ratios=_decimal_list(outside_mid_ratios),
+            maturity_days=maturity_days,
+            seeds=[base_seed],
+        )
+
+        # Create and start job
+        job = manager.create_job(
+            description=f"Balanced comparison sweep (n={n_agents}, cloud={cloud})",
+            config=job_config,
+            job_id=job_id,
+        )
+
+        click.echo(f"Job ID: {job.job_id}")
+        manager.start_job(job.job_id)
+    except Exception as e:
+        click.echo(f"Warning: Job tracking initialization failed: {e}")
+        manager = None
+
+    # Create executor (Plan 028)
+    executor = None
+    if cloud:
+        from bilancio.runners import CloudExecutor
+        executor = CloudExecutor(
+            experiment_id=job_id,  # Use job_id as experiment_id for simplicity
+            download_artifacts=False,
+            local_output_dir=out_dir,
+            job_id=job_id,
+        )
+        click.echo(f"Cloud execution enabled")
+
     config = BalancedComparisonConfig(
         n_agents=n_agents,
         maturity_days=maturity_days,
@@ -485,20 +590,60 @@ def sweep_balanced(
         big_entity_share=big_entity_share,
         default_handling=default_handling,
         detailed_logging=detailed_logging,
+        quiet=quiet,  # Plan 030
     )
 
-    runner = BalancedComparisonRunner(config, out_dir)
-    results = runner.run_all()
+    runner = BalancedComparisonRunner(config, out_dir, executor=executor, job_id=job_id)
 
-    # Print summary
-    completed = sum(1 for r in results if r.trading_effect is not None)
-    improved = sum(1 for r in results if r.trading_effect and r.trading_effect > 0)
+    try:
+        results = runner.run_all()
 
-    click.echo(f"\nBalanced comparison complete!")
-    click.echo(f"  Total pairs: {len(results)}")
-    click.echo(f"  Completed: {completed}")
-    click.echo(f"  Improved with trading: {improved}")
-    click.echo(f"\nResults at: {out_dir / 'aggregate' / 'comparison.csv'}")
+        # Record run IDs from results
+        if manager is not None:
+            try:
+                for r in results:
+                    if r.passive_run_id:
+                        manager.record_progress(
+                            job_id, r.passive_run_id,
+                            modal_call_id=r.passive_modal_call_id
+                        )
+                    if r.active_run_id:
+                        manager.record_progress(
+                            job_id, r.active_run_id,
+                            modal_call_id=r.active_modal_call_id
+                        )
+            except Exception as e:
+                click.echo(f"Warning: Failed to record run progress: {e}")
+
+        # Print summary
+        completed = sum(1 for r in results if r.trading_effect is not None)
+        improved = sum(1 for r in results if r.trading_effect and r.trading_effect > 0)
+
+        # Complete job with summary
+        if manager is not None:
+            try:
+                manager.complete_job(job_id, {
+                    "total_pairs": len(results),
+                    "completed": completed,
+                    "improved_with_trading": improved,
+                })
+            except Exception as e:
+                click.echo(f"Warning: Failed to complete job tracking: {e}")
+
+        click.echo(f"\nBalanced comparison complete!")
+        click.echo(f"  Total pairs: {len(results)}")
+        click.echo(f"  Completed: {completed}")
+        click.echo(f"  Improved with trading: {improved}")
+        click.echo(f"\nResults at: {out_dir / 'aggregate' / 'comparison.csv'}")
+
+    except Exception as e:
+        # Fail job on error
+        if manager is not None:
+            try:
+                manager.fail_job(job_id, str(e))
+            except Exception:
+                pass  # Don't let job tracking failure mask the original error
+        raise
 
 
 @sweep.command("strategy-outcomes")
@@ -528,10 +673,10 @@ def sweep_strategy_outcomes(experiment: Path, verbose: bool):
     by_run_path, overall_path = run_strategy_analysis(experiment)
 
     if by_run_path and by_run_path.exists():
-        click.echo(f"[green]✓[/green] Strategy outcomes by run: {by_run_path}")
-        click.echo(f"[green]✓[/green] Strategy outcomes overall: {overall_path}")
+        console.print(f"[green]✓[/green] Strategy outcomes by run: {by_run_path}")
+        console.print(f"[green]✓[/green] Strategy outcomes overall: {overall_path}")
     else:
-        click.echo("[yellow]No output generated - check that repayment_events.csv files exist[/yellow]")
+        console.print("[yellow]No output generated - check that repayment_events.csv files exist[/yellow]")
 
 
 @sweep.command("dealer-usage")
@@ -558,292 +703,6 @@ def sweep_dealer_usage(experiment: Path, verbose: bool):
     output_path = run_dealer_usage_analysis(experiment)
 
     if output_path and output_path.exists():
-        click.echo(f"[green]✓[/green] Dealer usage summary: {output_path}")
+        console.print(f"[green]✓[/green] Dealer usage summary: {output_path}")
     else:
-        click.echo("[yellow]No output generated - check that required CSV files exist[/yellow]")
-
-
-@cli.command()
-@click.argument('scenario_file', type=click.Path(exists=True, path_type=Path))
-@click.option('--mode', type=click.Choice(['step', 'until-stable']), 
-              default='until-stable', help='Simulation run mode')
-@click.option('--max-days', type=int, default=90, 
-              help='Maximum days to simulate')
-@click.option('--quiet-days', type=int, default=2,
-              help='Required quiet days for stable state')
-@click.option('--show', type=click.Choice(['summary', 'detailed', 'table']),
-              default='detailed', help='Event display mode')
-@click.option('--agents', type=str, default=None,
-              help='Comma-separated list of agent IDs to show balances for')
-@click.option('--check-invariants', 
-              type=click.Choice(['setup', 'daily', 'none']),
-              default='setup',
-              help='When to check system invariants')
-@click.option('--export-balances', type=click.Path(path_type=Path),
-              default=None, help='Path to export balances CSV')
-@click.option('--export-events', type=click.Path(path_type=Path),
-              default=None, help='Path to export events JSONL')
-@click.option('--html', type=click.Path(path_type=Path),
-              default=None, help='Path to export colored output as HTML')
-@click.option('--t-account/--no-t-account', default=False, help='Use detailed T-account layout for balances')
-@click.option('--default-handling', type=click.Choice(['fail-fast', 'expel-agent']),
-              default=None, help='Default-handling mode (override scenario setting)')
-def run(scenario_file: Path, 
-        mode: str,
-        max_days: int,
-        quiet_days: int,
-        show: str,
-        agents: Optional[str],
-        check_invariants: str,
-        export_balances: Optional[Path],
-        export_events: Optional[Path],
-        html: Optional[Path],
-        t_account: bool,
-        default_handling: Optional[str]):
-    """Run a Bilancio simulation scenario.
-    
-    Load a scenario from a YAML file and run the simulation either
-    step-by-step or until a stable state is reached.
-    """
-    try:
-        # Parse agent list if provided
-        agent_ids = None
-        if agents:
-            agent_ids = [a.strip() for a in agents.split(',')]
-        
-        # Override export paths if provided via CLI
-        export = {
-            'balances_csv': str(export_balances) if export_balances else None,
-            'events_jsonl': str(export_events) if export_events else None
-        }
-        
-        # Run the scenario
-        run_scenario(
-            path=scenario_file,
-            mode=mode,
-            max_days=max_days,
-            quiet_days=quiet_days,
-            show=show,
-            agent_ids=agent_ids,
-            check_invariants=check_invariants,
-            export=export,
-            html_output=html,
-            t_account=t_account,
-            default_handling=default_handling
-        )
-        
-    except FileNotFoundError as e:
-        console.print(Panel(
-            f"[red]File not found:[/red] {e}",
-            title="Error",
-            border_style="red"
-        ))
-        sys.exit(1)
-        
-    except ValueError as e:
-        console.print(Panel(
-            f"[red]Configuration error:[/red]\n{e}",
-            title="Error",
-            border_style="red"
-        ))
-        sys.exit(1)
-        
-    except Exception as e:
-        console.print(Panel(
-            f"[red]Unexpected error:[/red]\n{e}",
-            title="Error",
-            border_style="red"
-        ))
-        if '--debug' in sys.argv:
-            raise
-        sys.exit(1)
-
-
-@cli.command()
-@click.argument('scenario_file', type=click.Path(exists=True, path_type=Path))
-def validate(scenario_file: Path):
-    """Validate a Bilancio scenario configuration file.
-    
-    Check that a YAML configuration file is valid without running
-    the simulation. Reports any errors in the configuration structure,
-    agent definitions, or initial actions.
-    """
-    try:
-        from bilancio.config import load_yaml
-        from bilancio.engines.system import System
-        from bilancio.config import apply_to_system
-        
-        # Load and parse the configuration
-        console.print(f"[dim]Validating {scenario_file}...[/dim]")
-        config = load_yaml(scenario_file)
-        
-        console.print(f"[green]✓[/green] Configuration syntax is valid")
-        console.print(f"  Name: {config.name}")
-        console.print(f"  Version: {config.version}")
-        console.print(f"  Agents: {len(config.agents)}")
-        console.print(f"  Initial actions: {len(config.initial_actions)}")
-        
-        # Try to apply to a test system to validate actions
-        console.print("[dim]Checking if configuration can be applied...[/dim]")
-        test_system = System()
-        apply_to_system(config, test_system)
-        
-        console.print(f"[green]✓[/green] Configuration can be applied successfully")
-        
-        # Run invariant checks
-        test_system.assert_invariants()
-        console.print(f"[green]✓[/green] System invariants pass")
-        
-        # Summary
-        console.print("\n[bold green]Configuration is valid![/bold green]")
-        console.print(f"\nAgents defined:")
-        for agent in config.agents:
-            console.print(f"  • {agent.id} ({agent.kind}): {agent.name}")
-        
-        if config.run.export.balances_csv or config.run.export.events_jsonl:
-            console.print(f"\nExports configured:")
-            if config.run.export.balances_csv:
-                console.print(f"  • Balances: {config.run.export.balances_csv}")
-            if config.run.export.events_jsonl:
-                console.print(f"  • Events: {config.run.export.events_jsonl}")
-        
-    except FileNotFoundError as e:
-        console.print(Panel(
-            f"[red]File not found:[/red] {e}",
-            title="Error",
-            border_style="red"
-        ))
-        sys.exit(1)
-        
-    except ValueError as e:
-        console.print(Panel(
-            f"[red]Configuration error:[/red]\n{e}",
-            title="Validation Failed",
-            border_style="red"
-        ))
-        sys.exit(1)
-        
-    except Exception as e:
-        console.print(Panel(
-            f"[red]Validation error:[/red]\n{e}",
-            title="Validation Failed",
-            border_style="red"
-        ))
-        if '--debug' in sys.argv:
-            raise
-        sys.exit(1)
-
-
-@cli.command()
-@click.option('--from', 'from_template', type=str, default=None,
-              help='Base template to use')
-@click.option('-o', '--output', type=click.Path(path_type=Path),
-              required=True, help='Output YAML file path')
-def new(from_template: Optional[str], output: Path):
-    """Create a new scenario configuration.
-    
-    Interactive wizard to create a new Bilancio scenario
-    configuration file.
-    """
-    try:
-        create_scenario_wizard(output, from_template)
-        console.print(f"[green]✓[/green] Created scenario file: {output}")
-        
-    except Exception as e:
-        console.print(Panel(
-            f"[red]Failed to create scenario:[/red]\n{e}",
-            title="Error",
-            border_style="red"
-        ))
-        sys.exit(1)
-
-
-@cli.command()
-@click.option('--events', 'events_path', type=click.Path(exists=True, path_type=Path), required=True,
-              help='Path to events JSONL exported by a run')
-@click.option('--balances', 'balances_path', type=click.Path(exists=False, path_type=Path), required=False,
-              help='Path to balances CSV (optional, improves G_t/M_t)')
-@click.option('--days', type=str, default=None,
-              help='Days to analyze, e.g. "1,2-3". Default: infer from events')
-@click.option('--out-csv', 'out_csv', type=click.Path(path_type=Path), default=None,
-              help='Output CSV for day-level metrics')
-@click.option('--out-json', 'out_json', type=click.Path(path_type=Path), default=None,
-              help='Output JSON for day-level metrics')
-@click.option('--intraday-csv', 'intraday_csv', type=click.Path(path_type=Path), default=None,
-              help='Optional CSV for intraday P_prefix steps')
-@click.option('--html', 'html_out', type=click.Path(path_type=Path), default=None,
-              help='Optional HTML analytics report')
-def analyze(
-    events_path: Path,
-    balances_path: Optional[Path],
-    days: Optional[str],
-    out_csv: Optional[Path],
-    out_json: Optional[Path],
-    intraday_csv: Optional[Path],
-    html_out: Optional[Path],
-):
-    """Analyze a completed run and export Kalecki-style metrics.
-
-    Produces a day-level metrics CSV/JSON, optional intraday CSV (diagnostic).
-    """
-    # Load inputs
-    console.print(f"[dim]Reading events from {events_path}...[/dim]")
-    events = list(read_events_jsonl(events_path))
-
-    balances_rows = None
-    if balances_path and balances_path.exists():
-        console.print(f"[dim]Reading balances from {balances_path}...[/dim]")
-        balances_rows = read_balances_csv(balances_path)
-
-    day_list = parse_day_ranges(days) if days else None
-
-    bundle = compute_day_metrics(events, balances_rows, day_list)
-
-    if not bundle["day_metrics"]:
-        console.print("[yellow]No days found to analyze.[/yellow]")
-        return
-
-    # Determine default output paths if not provided
-    base = events_path.stem.replace("_events", "") or "metrics"
-    out_dir = events_path.parent
-    if not out_csv:
-        out_csv = out_dir / f"{base}_metrics_day.csv"
-    if not out_json:
-        out_json = out_dir / f"{base}_metrics_day.json"
-    if intraday_csv:
-        intraday_csv.parent.mkdir(parents=True, exist_ok=True)
-
-    # Write outputs
-    metrics_rows = bundle["day_metrics"]
-    ds_rows = bundle["debtor_shares"]
-    intraday_rows = bundle["intraday"]
-
-    write_day_metrics_csv(out_csv, metrics_rows)
-    console.print(f"[green]✓[/green] Wrote day metrics CSV: {out_csv}")
-    write_day_metrics_json(out_json, metrics_rows)
-    console.print(f"[green]✓[/green] Wrote day metrics JSON: {out_json}")
-
-    # Debtor shares and intraday are optional; only write if path provided
-    base_name = out_csv.stem.replace("_metrics_day", "") if out_csv else "metrics"
-    ds_path = out_csv.parent / f"{base_name}_ds.csv"
-    write_debtor_shares_csv(ds_path, ds_rows)
-    console.print(f"[green]✓[/green] Wrote debtor shares CSV: {ds_path}")
-
-    if intraday_csv:
-        write_intraday_csv(intraday_csv, intraday_rows)
-        console.print(f"[green]✓[/green] Wrote intraday CSV: {intraday_csv}")
-
-    if html_out:
-        title = f"Bilancio Analytics — {events_path.stem.replace('_events','')}"
-        subtitle = f"Events: {events_path.name}{' | Balances: ' + balances_path.name if balances_path else ''}"
-        write_metrics_html(html_out, metrics_rows, ds_rows, intraday_rows, title=title, subtitle=subtitle)
-        console.print(f"[green]✓[/green] Wrote HTML analytics: {html_out}")
-
-
-def main():
-    """Main entry point for the CLI."""
-    cli()
-
-
-if __name__ == '__main__':
-    main()
+        console.print("[yellow]No output generated - check that required CSV files exist[/yellow]")
