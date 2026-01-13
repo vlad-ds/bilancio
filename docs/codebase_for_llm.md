@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2026-01-12 21:16:19 UTC | Branch: main | Commit: 71a97055
+Generated: 2026-01-13 00:13:23 UTC | Branch: main | Commit: 586ae251
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -2353,7 +2353,8 @@ This document contains the complete codebase structure and content for LLM inges
 │   │   ├── 024_dealer_simulation_redesign.md
 │   │   ├── 029_job_system.md
 │   │   ├── 031_cloud_storage.md
-│   │   └── Kalecki_debt_simulation (1).pdf
+│   │   ├── Kalecki_debt_simulation (1).pdf
+│   │   └── deploy_cloud_metrics.md
 │   ├── prompts
 │   │   ├── 015_expel_sweep_agent_prompt.md
 │   │   └── scenario_translator_agent.md
@@ -31722,7 +31723,8 @@ This document contains the complete codebase structure and content for LLM inges
 │       ├── cloud
 │       │   ├── __init__.py
 │       │   ├── config.py
-│       │   └── modal_app.py
+│       │   ├── modal_app.py
+│       │   └── proxy_patch.py
 │       ├── config
 │       │   ├── __init__.py
 │       │   ├── apply.py
@@ -31853,7 +31855,8 @@ This document contains the complete codebase structure and content for LLM inges
 │   │   ├── storage-migration
 │   │   └── storage-version
 │   └── migrations
-│       └── 20260112_initial_schema.sql
+│       ├── 20260112_initial_schema.sql
+│       └── 20260113_job_metrics.sql
 └── tests
     ├── analysis
     │   ├── __init__.py
@@ -31921,7 +31924,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-6864 directories, 25047 files
+6864 directories, 25050 files
 
 ```
 
@@ -34013,6 +34016,71 @@ Complete git history from oldest to newest:
   - Pass job_id to runner for correct job association
   - Update CLAUDE.md with env var loading instructions and automatic persistence docs
   Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **0278cd8c** (2026-01-12) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **4626fc4c** (2026-01-12) by Claude
+  feat(cloud): add HTTP proxy support for Claude Code web VM
+  Add proxy_patch.py to enable Modal connections through HTTP CONNECT
+  proxies with TLS inspection. This is required for running cloud sweeps
+  from the Claude Code web environment where all traffic goes through
+  Anthropic's egress proxy.
+  The patch handles:
+  - grpclib (Modal API) via custom socket connection
+  - aiohttp (Modal file downloads) via trust_env and custom CA
+
+- **0bc8a0be** (2026-01-12) by Claude
+  feat(cloud): compute metrics on Modal and save directly to Supabase
+  Major architectural change: simulations on Modal now compute metrics
+  locally and save directly to Supabase, eliminating the need to download
+  artifacts to the local machine.
+  Changes:
+  - modal_app.py: Add compute_metrics_from_events() and save_run_to_supabase()
+  - modal_app.py: Add compute_aggregate_metrics() for post-sweep analysis
+  - modal_app.py: Add supabase secret reference and dependency
+  - RunOptions: Add kappa, concentration, mu, outside_mid_ratio, seed fields
+  - ExecutionResult: Add metrics field for cloud-computed metrics
+  - cloud_executor: Pass run parameters to Modal, add aggregate metrics method
+  - balanced_comparison: Call aggregate metrics after sweep completion
+  - ring.py: Pass run parameters to RunOptions for Supabase tracking
+  This enables cloud sweeps to work in environments with proxy restrictions
+  (like Claude Code web) where downloading from Modal Volume fails.
+
+- **f45b3c4c** (2026-01-12) by Claude
+  fix(cloud): use correct Modal secret name 'supabase'
+
+- **3682855c** (2026-01-12) by Claude
+  feat(cloud): save sweep aggregate metrics to job_metrics table
+  Add storage for sweep-level aggregate metrics in Supabase:
+  - Create job_metrics table with trading effect stats, delta/phi averages
+  - Update compute_aggregate_metrics to save summary to job_metrics
+  - Include phi values in comparisons for complete metric tracking
+  - Add std deviation, neutral effects count
+  SQL to create table:
+  CREATE TABLE job_metrics (
+    job_id TEXT PRIMARY KEY REFERENCES jobs(job_id),
+    n_comparisons INTEGER, mean_trading_effect DOUBLE PRECISION,
+    min/max/std_trading_effect, positive/negative/neutral_effects,
+    mean_delta_passive/active, mean_phi_passive/active, raw_summary JSONB
+  );
+
+- **31924c96** (2026-01-12) by Claude
+  docs: add deployment plan for cloud metrics
+
+- **084f8b5b** (2026-01-12) by vladgheorghe
+  fix(cloud): ensure all global metrics saved to Supabase correctly
+  - Fix Decimal serialization in compute_metrics_from_events()
+  - Fix seed type (int not float) in save_run_to_supabase()
+  - Use create_job_manager(cloud=True) in sweep commands
+  - Use modal.Function.from_name() for compute_aggregate_metrics
+  - Add job_metrics table migration
+  - Document Supabase CLI usage in CLAUDE.md
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **586ae251** (2026-01-13) by Vlad Gheorghe
+  Merge pull request #27 from vlad-ds/claude/slack-analyze-bilancio-sweep-zrC3y
+  Bilancio Sweep Analysis Pipeline
 
 ---
 
@@ -38938,6 +39006,9 @@ class CloudConfig:
 
 This module defines the Modal app, container image, volume, and remote
 function for running bilancio simulations in the cloud.
+
+Simulations run on Modal compute metrics locally and save results directly
+to Supabase, eliminating the need to download artifacts.
 """
 
 from __future__ import annotations
@@ -38954,6 +39025,15 @@ results_volume = modal.Volume.from_name(
     create_if_missing=True,
 )
 
+# Supabase secrets for direct database writes from Modal
+# Set these using: modal secret create bilancio-supabase \
+#   BILANCIO_SUPABASE_URL=https://xxx.supabase.co \
+#   BILANCIO_SUPABASE_ANON_KEY=eyJ...
+supabase_secret = modal.Secret.from_name("supabase", required_keys=[
+    "BILANCIO_SUPABASE_URL",
+    "BILANCIO_SUPABASE_ANON_KEY",
+])
+
 # Define the container image with all bilancio dependencies
 # We add the local source code to the image
 image = (
@@ -38969,6 +39049,7 @@ image = (
         "jinja2>=3.0",
         "click>=8.0",
         "xkcdpass>=1.19.0",
+        "supabase>=2.0.0",  # For direct Supabase writes
     )
     .add_local_python_source("bilancio")
 )
@@ -38976,9 +39057,184 @@ image = (
 RESULTS_MOUNT_PATH = "/results"
 
 
+def compute_metrics_from_events(events_path: str) -> dict:
+    """Compute metrics from events.jsonl file.
+
+    Args:
+        events_path: Path to events.jsonl file.
+
+    Returns:
+        Dict with all global metrics from summarize_day_metrics, properly serialized.
+    """
+    import json
+    from decimal import Decimal
+    from pathlib import Path
+
+    def to_serializable(val):
+        """Convert Decimal to float for JSON serialization."""
+        if isinstance(val, Decimal):
+            return float(val)
+        return val
+
+    # Read events
+    events = []
+    with open(events_path) as f:
+        for line in f:
+            if line.strip():
+                events.append(json.loads(line))
+
+    if not events:
+        return {
+            "delta_total": None,
+            "phi_total": None,
+            "time_to_stability": None,
+            "max_G_t": None,
+            "alpha_1": None,
+            "Mpeak_1": None,
+            "v_1": None,
+            "HHIplus_1": None,
+            "raw_metrics": {},
+        }
+
+    # Use bilancio's metrics computation
+    from bilancio.analysis.report import compute_day_metrics, summarize_day_metrics
+
+    result = compute_day_metrics(events=events, balances_rows=None, day_list=None)
+    summary = summarize_day_metrics(result["day_metrics"])
+
+    # Convert all Decimal values to float for JSON serialization
+    serializable_summary = {k: to_serializable(v) for k, v in summary.items()}
+
+    return {
+        "delta_total": to_serializable(summary.get("delta_total")),
+        "phi_total": to_serializable(summary.get("phi_total")),
+        "time_to_stability": int(summary.get("max_day") or 0),
+        "max_G_t": to_serializable(summary.get("max_G_t")),
+        "alpha_1": to_serializable(summary.get("alpha_1")),
+        "Mpeak_1": to_serializable(summary.get("Mpeak_1")),
+        "v_1": to_serializable(summary.get("v_1")),
+        "HHIplus_1": to_serializable(summary.get("HHIplus_1")),
+        "raw_metrics": serializable_summary,
+    }
+
+
+def save_run_to_supabase(
+    run_id: str,
+    job_id: str,
+    status: str,
+    metrics: dict,
+    params: dict,
+    execution_time_ms: int,
+    modal_call_id: str,
+    modal_volume_path: str,
+    error: str | None = None,
+) -> bool:
+    """Save run and metrics to Supabase.
+
+    Args:
+        run_id: Unique run identifier.
+        job_id: Job/experiment ID.
+        status: Run status (completed, failed).
+        metrics: Computed metrics dict.
+        params: Run parameters (kappa, concentration, etc.).
+        execution_time_ms: Execution time in milliseconds.
+        modal_call_id: Modal function call ID.
+        modal_volume_path: Path to artifacts in Modal volume.
+        error: Error message if failed.
+
+    Returns:
+        True if save succeeded, False otherwise.
+    """
+    import os
+    from datetime import datetime, timezone
+
+    try:
+        from supabase import create_client
+
+        url = os.environ.get("BILANCIO_SUPABASE_URL")
+        key = os.environ.get("BILANCIO_SUPABASE_ANON_KEY")
+
+        if not url or not key:
+            print("Supabase credentials not configured, skipping save")
+            return False
+
+        client = create_client(url, key)
+        now = datetime.now(timezone.utc).isoformat()
+
+        # Build runs table row
+        runs_row = {
+            "run_id": run_id,
+            "job_id": job_id,
+            "status": status,
+            "created_at": now,
+            "completed_at": now if status in ("completed", "failed") else None,
+            "execution_time_ms": execution_time_ms,
+            "modal_call_id": modal_call_id,
+            "modal_volume_path": modal_volume_path,
+            "error": error,
+        }
+
+        # Add parameters
+        param_columns = {"kappa", "concentration", "mu", "outside_mid_ratio", "seed", "regime"}
+        for param, value in params.items():
+            if param in param_columns:
+                if param == "seed":
+                    runs_row[param] = int(value) if value is not None else None
+                elif param == "regime":
+                    runs_row[param] = value
+                else:
+                    runs_row[param] = float(value) if isinstance(value, (int, float, str)) else value
+
+        # Upsert run
+        client.table("runs").upsert(runs_row, on_conflict="run_id").execute()
+        print(f"Saved run {run_id} to Supabase")
+
+        # Build and save metrics if we have them
+        if metrics.get("delta_total") is not None or metrics.get("phi_total") is not None:
+            # Build raw_metrics with all global metrics from summarize_day_metrics
+            raw_metrics = metrics.get("raw_metrics", {})
+            # Ensure all metrics are in raw_metrics even if they came from top-level
+            raw_metrics.update({
+                "delta_total": metrics.get("delta_total"),
+                "phi_total": metrics.get("phi_total"),
+                "time_to_stability": metrics.get("time_to_stability"),
+                "max_G_t": metrics.get("max_G_t"),
+                "alpha_1": metrics.get("alpha_1"),
+                "Mpeak_1": metrics.get("Mpeak_1"),
+                "v_1": metrics.get("v_1"),
+                "HHIplus_1": metrics.get("HHIplus_1"),
+            })
+
+            metrics_row = {
+                "run_id": run_id,
+                "job_id": job_id,
+                "delta_total": metrics.get("delta_total"),
+                "phi_total": metrics.get("phi_total"),
+                "time_to_stability": metrics.get("time_to_stability"),
+                "raw_metrics": raw_metrics,
+            }
+
+            # Check if metrics exist
+            existing = client.table("metrics").select("id").eq("run_id", run_id).execute()
+
+            if existing.data:
+                client.table("metrics").update(metrics_row).eq("run_id", run_id).execute()
+            else:
+                client.table("metrics").insert(metrics_row).execute()
+
+            print(f"Saved metrics for {run_id}: δ={metrics.get('delta_total')}, φ={metrics.get('phi_total')}")
+
+        return True
+
+    except Exception as e:
+        print(f"Failed to save to Supabase: {e}")
+        return False
+
+
 @app.function(
     image=image,
     volumes={RESULTS_MOUNT_PATH: results_volume},
+    secrets=[supabase_secret],
     timeout=1800,  # 30 minutes max per simulation
     memory=2048,  # 2GB RAM
 )
@@ -39030,6 +39286,16 @@ def run_simulation(
     scenario_path = run_dir / "scenario.yaml"
     scenario_path.write_text(yaml.dump(scenario_config, default_flow_style=False))
 
+    # Extract run parameters from options for Supabase
+    run_params = {
+        "kappa": options.get("kappa"),
+        "concentration": options.get("concentration"),
+        "mu": options.get("mu"),
+        "outside_mid_ratio": options.get("outside_mid_ratio"),
+        "seed": options.get("seed"),
+        "regime": options.get("regime", ""),
+    }
+
     try:
         # Import bilancio inside the function (container context)
         from bilancio.ui.run import run_scenario
@@ -39059,6 +39325,14 @@ def run_simulation(
 
         execution_time_ms = int((time.time() - start_time) * 1000)
 
+        # Compute metrics from events
+        events_path = out_dir / "events.jsonl"
+        metrics = {}
+        if events_path.exists():
+            print("Computing metrics from events...", flush=True)
+            metrics = compute_metrics_from_events(str(events_path))
+            print(f"Metrics: δ={metrics.get('delta_total')}, φ={metrics.get('phi_total')}", flush=True)
+
         # Build artifact paths (relative to run directory within volume)
         artifacts = {
             "scenario_yaml": "scenario.yaml",
@@ -39067,15 +39341,30 @@ def run_simulation(
             "run_html": "run.html",
         }
 
+        modal_volume_path = f"{experiment_id}/runs/{run_id}"
+
+        # Save to Supabase
+        save_run_to_supabase(
+            run_id=run_id,
+            job_id=job_id,
+            status="completed",
+            metrics=metrics,
+            params=run_params,
+            execution_time_ms=execution_time_ms,
+            modal_call_id=modal_call_id,
+            modal_volume_path=modal_volume_path,
+        )
+
         return {
             "run_id": run_id,
             "status": "completed",
             "storage_type": "modal_volume",
-            "storage_base": f"{experiment_id}/runs/{run_id}",
+            "storage_base": modal_volume_path,
             "artifacts": artifacts,
             "execution_time_ms": execution_time_ms,
             "error": None,
             "modal_call_id": modal_call_id,
+            "metrics": metrics,  # Include computed metrics in return
         }
 
     except Exception as e:
@@ -39084,16 +39373,216 @@ def run_simulation(
         # Still commit to preserve any partial output
         results_volume.commit()
 
+        modal_volume_path = f"{experiment_id}/runs/{run_id}"
+
+        # Save failed run to Supabase
+        save_run_to_supabase(
+            run_id=run_id,
+            job_id=job_id,
+            status="failed",
+            metrics={},
+            params=run_params,
+            execution_time_ms=execution_time_ms,
+            modal_call_id=modal_call_id,
+            modal_volume_path=modal_volume_path,
+            error=str(e),
+        )
+
         return {
             "run_id": run_id,
             "status": "failed",
             "storage_type": "modal_volume",
-            "storage_base": f"{experiment_id}/runs/{run_id}",
+            "storage_base": modal_volume_path,
             "artifacts": {},
             "execution_time_ms": execution_time_ms,
             "error": str(e),
             "modal_call_id": modal_call_id,
+            "metrics": {},
         }
+
+
+@app.function(
+    image=image,
+    secrets=[supabase_secret],
+    timeout=300,  # 5 minutes for aggregate computation
+    memory=1024,
+)
+def compute_aggregate_metrics(
+    job_id: str,
+    run_ids: list[str],
+) -> dict:
+    """Compute aggregate/comparison metrics for a sweep and save to Supabase.
+
+    This function is called after all runs complete to compute:
+    - Trading effect (δ_passive - δ_active) for each parameter combination
+    - Summary statistics across the sweep
+
+    Args:
+        job_id: The job/experiment ID.
+        run_ids: List of run IDs to aggregate.
+
+    Returns:
+        Dict with aggregate metrics and status.
+    """
+    import os
+    from collections import defaultdict
+
+    try:
+        from supabase import create_client
+
+        url = os.environ.get("BILANCIO_SUPABASE_URL")
+        key = os.environ.get("BILANCIO_SUPABASE_ANON_KEY")
+
+        if not url or not key:
+            return {"status": "error", "error": "Supabase not configured"}
+
+        client = create_client(url, key)
+
+        # Fetch all runs with metrics for this job
+        result = client.table("runs").select(
+            "run_id, kappa, concentration, mu, outside_mid_ratio, seed, regime, metrics(*)"
+        ).eq("job_id", job_id).in_("run_id", run_ids).execute()
+
+        if not result.data:
+            return {"status": "error", "error": "No runs found"}
+
+        # Group runs by parameters (excluding regime)
+        grouped = defaultdict(lambda: {"passive": None, "active": None})
+
+        for row in result.data:
+            key = (
+                row.get("kappa"),
+                row.get("concentration"),
+                row.get("mu"),
+                row.get("outside_mid_ratio"),
+                row.get("seed"),
+            )
+            regime = row.get("regime", "")
+            metrics_data = row.get("metrics")
+
+            if metrics_data:
+                # metrics is a list from join, take first
+                if isinstance(metrics_data, list) and metrics_data:
+                    metrics = metrics_data[0]
+                else:
+                    metrics = metrics_data
+
+                delta = metrics.get("delta_total")
+                phi = metrics.get("phi_total")
+
+                if "passive" in regime or regime == "":
+                    grouped[key]["passive"] = {"delta": delta, "phi": phi, "run_id": row["run_id"]}
+                elif "active" in regime:
+                    grouped[key]["active"] = {"delta": delta, "phi": phi, "run_id": row["run_id"]}
+
+        # Compute trading effects
+        comparisons = []
+        for params, runs in grouped.items():
+            if runs["passive"] and runs["active"]:
+                d_passive = runs["passive"]["delta"]
+                d_active = runs["active"]["delta"]
+
+                if d_passive is not None and d_active is not None:
+                    trading_effect = d_passive - d_active
+
+                    comparisons.append({
+                        "kappa": params[0],
+                        "concentration": params[1],
+                        "mu": params[2],
+                        "outside_mid_ratio": params[3],
+                        "seed": params[4],
+                        "delta_passive": d_passive,
+                        "delta_active": d_active,
+                        "phi_passive": runs["passive"].get("phi"),
+                        "phi_active": runs["active"].get("phi"),
+                        "trading_effect": trading_effect,
+                        "passive_run_id": runs["passive"]["run_id"],
+                        "active_run_id": runs["active"]["run_id"],
+                    })
+
+        # Compute summary statistics
+        from datetime import datetime, timezone
+        import statistics
+
+        if comparisons:
+            effects = [c["trading_effect"] for c in comparisons]
+            deltas_passive = [c["delta_passive"] for c in comparisons if c["delta_passive"] is not None]
+            deltas_active = [c["delta_active"] for c in comparisons if c["delta_active"] is not None]
+            phis_passive = [c.get("phi_passive") for c in comparisons if c.get("phi_passive") is not None]
+            phis_active = [c.get("phi_active") for c in comparisons if c.get("phi_active") is not None]
+
+            # Compute standard deviation if we have enough data
+            std_effect = statistics.stdev(effects) if len(effects) > 1 else 0.0
+
+            summary = {
+                "n_comparisons": len(comparisons),
+                "n_pairs": len(comparisons),
+                "mean_trading_effect": sum(effects) / len(effects),
+                "min_trading_effect": min(effects),
+                "max_trading_effect": max(effects),
+                "std_trading_effect": std_effect,
+                "positive_effects": sum(1 for e in effects if e > 0.001),  # dealers help
+                "negative_effects": sum(1 for e in effects if e < -0.001),  # dealers hurt
+                "neutral_effects": sum(1 for e in effects if -0.001 <= e <= 0.001),
+                "mean_delta_passive": sum(deltas_passive) / len(deltas_passive) if deltas_passive else None,
+                "mean_delta_active": sum(deltas_active) / len(deltas_active) if deltas_active else None,
+                "mean_phi_passive": sum(phis_passive) / len(phis_passive) if phis_passive else None,
+                "mean_phi_active": sum(phis_active) / len(phis_active) if phis_active else None,
+            }
+        else:
+            summary = {"n_comparisons": 0, "n_pairs": 0}
+
+        # Save to job_metrics table
+        job_metrics_row = {
+            "job_id": job_id,
+            "n_comparisons": summary.get("n_comparisons"),
+            "n_pairs": summary.get("n_pairs"),
+            "mean_trading_effect": summary.get("mean_trading_effect"),
+            "min_trading_effect": summary.get("min_trading_effect"),
+            "max_trading_effect": summary.get("max_trading_effect"),
+            "std_trading_effect": summary.get("std_trading_effect"),
+            "positive_effects": summary.get("positive_effects"),
+            "negative_effects": summary.get("negative_effects"),
+            "neutral_effects": summary.get("neutral_effects"),
+            "mean_delta_passive": summary.get("mean_delta_passive"),
+            "mean_delta_active": summary.get("mean_delta_active"),
+            "mean_phi_passive": summary.get("mean_phi_passive"),
+            "mean_phi_active": summary.get("mean_phi_active"),
+            "raw_summary": summary,
+        }
+
+        # Upsert job_metrics (insert or update if exists)
+        try:
+            existing = client.table("job_metrics").select("id").eq("job_id", job_id).execute()
+            if existing.data:
+                client.table("job_metrics").update(job_metrics_row).eq("job_id", job_id).execute()
+            else:
+                client.table("job_metrics").insert(job_metrics_row).execute()
+            print(f"Saved job_metrics for {job_id}")
+        except Exception as e:
+            print(f"Warning: Failed to save job_metrics: {e}")
+
+        # Update job status
+        client.table("jobs").update({
+            "completed_at": datetime.now(timezone.utc).isoformat(),
+            "status": "completed",
+        }).eq("job_id", job_id).execute()
+
+        print(f"Aggregate metrics for job {job_id}:")
+        print(f"  Comparisons: {summary.get('n_comparisons', 0)}")
+        print(f"  Mean trading effect: {summary.get('mean_trading_effect', 'N/A'):.4f}" if summary.get('mean_trading_effect') else "  Mean trading effect: N/A")
+        print(f"  Positive effects: {summary.get('positive_effects', 0)} | Negative: {summary.get('negative_effects', 0)}")
+
+        return {
+            "status": "completed",
+            "job_id": job_id,
+            "summary": summary,
+            "comparisons": comparisons,
+        }
+
+    except Exception as e:
+        print(f"Failed to compute aggregate metrics: {e}")
+        return {"status": "error", "error": str(e)}
 
 
 @app.function(
@@ -39135,6 +39624,174 @@ def main():
         print("Modal deployment is healthy!")
     else:
         print(f"Modal deployment has issues: {result.get('error', 'unknown')}")
+
+```
+
+---
+
+### 📄 src/bilancio/cloud/proxy_patch.py
+
+```python
+"""Patch grpclib and Modal's HTTP client for HTTP CONNECT proxy with TLS inspection.
+
+This module patches:
+1. grpclib's connection handling to work through HTTP CONNECT proxy
+2. Modal's HTTP client to use custom CA for TLS inspection
+
+Required in environments where outbound connections go through an HTTP CONNECT
+proxy that performs TLS inspection (MITM) with a custom CA certificate.
+
+Usage:
+    import bilancio.cloud.proxy_patch  # Apply patch before importing modal
+    import modal
+"""
+import asyncio
+import os
+import ssl
+import base64
+import socket
+from urllib.parse import urlparse
+
+import grpclib.client
+
+# Store original methods
+_original_create_connection = grpclib.client.Channel._create_connection
+_original_http_client_with_tls = None  # Set lazily when modal is imported
+
+# Custom CA certificate path for TLS inspection proxy
+PROXY_CA_CERT = '/usr/local/share/ca-certificates/swp-ca-production.crt'
+
+
+def _should_use_proxy() -> bool:
+    """Check if proxy should be used."""
+    proxy_url = os.environ.get('https_proxy', '') or os.environ.get('HTTPS_PROXY', '')
+    return bool(proxy_url) and os.path.exists(PROXY_CA_CERT)
+
+
+def _create_proxy_ssl_context() -> ssl.SSLContext:
+    """Create SSL context that trusts the proxy's CA certificate."""
+    ctx = ssl.create_default_context()
+    ctx.load_verify_locations(PROXY_CA_CERT)
+    return ctx
+
+
+# =============================================================================
+# grpclib patch for Modal API (gRPC)
+# =============================================================================
+
+async def _proxied_create_connection(self):
+    """Create connection through HTTP CONNECT proxy if proxy is configured."""
+    if not _should_use_proxy():
+        # No proxy configured or no custom CA - use original method
+        return await _original_create_connection(self)
+
+    proxy_url = os.environ.get('https_proxy', '') or os.environ.get('HTTPS_PROXY', '')
+    parsed = urlparse(proxy_url)
+
+    # Create raw socket to proxy
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.setblocking(False)
+
+    loop = asyncio.get_event_loop()
+    await loop.sock_connect(sock, (parsed.hostname, parsed.port))
+
+    # Send HTTP CONNECT request
+    proxy_auth = f"{parsed.username}:{parsed.password}" if parsed.username else None
+    connect_req = f"CONNECT {self._host}:{self._port} HTTP/1.1\r\n"
+    connect_req += f"Host: {self._host}:{self._port}\r\n"
+    if proxy_auth:
+        auth_b64 = base64.b64encode(proxy_auth.encode()).decode()
+        connect_req += f"Proxy-Authorization: Basic {auth_b64}\r\n"
+    connect_req += "\r\n"
+
+    await loop.sock_sendall(sock, connect_req.encode())
+
+    # Read proxy response
+    response = b""
+    while b"\r\n\r\n" not in response:
+        chunk = await loop.sock_recv(sock, 1024)
+        if not chunk:
+            break
+        response += chunk
+
+    if b"200" not in response.split(b"\r\n")[0]:
+        sock.close()
+        raise ConnectionError(f"Proxy CONNECT failed: {response.decode()}")
+
+    # Pass raw socket to create_connection, let asyncio handle SSL
+    ssl_ctx = _create_proxy_ssl_context() if self._ssl else None
+
+    _, protocol = await loop.create_connection(
+        self._protocol_factory,
+        sock=sock,
+        ssl=ssl_ctx,
+        server_hostname=self._host if ssl_ctx else None,
+    )
+
+    return protocol
+
+
+# =============================================================================
+# Modal HTTP client patch for file downloads (aiohttp)
+# =============================================================================
+
+def _patched_http_client_with_tls(timeout):
+    """Create HTTP client with custom CA for TLS inspection proxy."""
+    from aiohttp import ClientSession, ClientTimeout, TCPConnector
+
+    # Create SSL context with custom CA
+    ssl_context = _create_proxy_ssl_context()
+
+    connector = TCPConnector(ssl=ssl_context)
+
+    # Enable trust_env to use HTTPS_PROXY environment variable
+    return ClientSession(
+        connector=connector,
+        timeout=ClientTimeout(total=timeout),
+        trust_env=True,  # Use HTTPS_PROXY from environment
+    )
+
+
+def _patch_modal_http_client():
+    """Patch Modal's HTTP client to use custom CA and proxy."""
+    global _original_http_client_with_tls
+
+    try:
+        import modal._utils.http_utils as http_utils
+
+        if _original_http_client_with_tls is None:
+            _original_http_client_with_tls = http_utils._http_client_with_tls
+
+        http_utils._http_client_with_tls = _patched_http_client_with_tls
+
+        # Also reset the client session registry to use new settings
+        http_utils.ClientSessionRegistry._client_session_active = False
+
+    except ImportError:
+        pass  # Modal not installed or different version
+
+
+# =============================================================================
+# Patch application
+# =============================================================================
+
+def apply_proxy_patch():
+    """Apply all proxy patches."""
+    grpclib.client.Channel._create_connection = _proxied_create_connection
+    _patch_modal_http_client()
+
+
+def is_patched() -> bool:
+    """Check if the grpclib patch has been applied."""
+    return grpclib.client.Channel._create_connection is _proxied_create_connection
+
+
+# Auto-apply patch on import if proxy is configured
+if _should_use_proxy():
+    apply_proxy_patch()
+    _patched = True
+else:
+    _patched = False
 
 ```
 
@@ -50390,6 +51047,17 @@ class BalancedComparisonRunner:
         # Write final summary
         self._write_summary_json()
 
+        # Compute aggregate metrics on Modal (if using cloud executor)
+        if hasattr(self.executor, 'compute_aggregate_metrics'):
+            all_run_ids = []
+            for result in self.comparison_results:
+                if result.passive_run_id:
+                    all_run_ids.append(result.passive_run_id)
+                if result.active_run_id:
+                    all_run_ids.append(result.active_run_id)
+            if all_run_ids:
+                self.executor.compute_aggregate_metrics(all_run_ids)
+
         total_time = time.time() - self._start_time
         print(f"\nSweep complete! {len(prepared_runs)} pairs in {self._format_time(total_time)}", flush=True)
         print(f"Results at: {self.aggregate_dir}", flush=True)
@@ -51941,6 +52609,12 @@ class RingSweepRunner:
             detailed_dealer_logging=self.detailed_dealer_logging,
             run_id=run_id,
             regime=regime,
+            # Run parameters for Supabase tracking
+            kappa=float(kappa),
+            concentration=float(concentration),
+            mu=float(mu),
+            outside_mid_ratio=float(self.outside_mid_ratio) if self.outside_mid_ratio else 1.0,
+            seed=seed,
         )
 
         # Delegate simulation to executor (Plan 027)
@@ -52159,6 +52833,12 @@ class RingSweepRunner:
             detailed_dealer_logging=self.detailed_dealer_logging,
             run_id=run_id,
             regime=regime,
+            # Run parameters for Supabase tracking
+            kappa=float(kappa),
+            concentration=float(concentration),
+            mu=float(mu),
+            outside_mid_ratio=float(self.outside_mid_ratio) if self.outside_mid_ratio else 1.0,
+            seed=seed,
         )
 
         return PreparedRun(
@@ -54287,6 +54967,8 @@ class CloudExecutor:
         which allows calling it from outside the Modal app context.
         """
         if self._run_simulation is None:
+            # Apply proxy patch for environments with HTTP CONNECT proxy (e.g., Claude Code web)
+            import bilancio.cloud.proxy_patch  # noqa: F401
             import modal
 
             self._run_simulation = modal.Function.from_name(
@@ -54350,6 +55032,7 @@ class CloudExecutor:
             error=result.get("error"),
             execution_time_ms=result.get("execution_time_ms"),
             modal_call_id=result.get("modal_call_id"),
+            metrics=result.get("metrics"),
         )
 
     def execute_batch(
@@ -54420,6 +55103,7 @@ class CloudExecutor:
                 error=result.get("error"),
                 execution_time_ms=result.get("execution_time_ms"),
                 modal_call_id=result.get("modal_call_id"),
+                metrics=result.get("metrics"),
             )
 
             completed += 1
@@ -54430,7 +55114,7 @@ class CloudExecutor:
 
     def _options_to_dict(self, options: RunOptions) -> Dict[str, Any]:
         """Convert RunOptions to serializable dict."""
-        return {
+        result = {
             "mode": options.mode,
             "max_days": options.max_days,
             "quiet_days": options.quiet_days,
@@ -54441,6 +55125,18 @@ class CloudExecutor:
             "detailed_dealer_logging": options.detailed_dealer_logging,
             "regime": options.regime or "",
         }
+        # Add run parameters for Supabase tracking
+        if options.kappa is not None:
+            result["kappa"] = options.kappa
+        if options.concentration is not None:
+            result["concentration"] = options.concentration
+        if options.mu is not None:
+            result["mu"] = options.mu
+        if options.outside_mid_ratio is not None:
+            result["outside_mid_ratio"] = options.outside_mid_ratio
+        if options.seed is not None:
+            result["seed"] = options.seed
+        return result
 
     def _download_run_artifacts(
         self,
@@ -54488,6 +55184,42 @@ class CloudExecutor:
                 print(
                     f"Warning: Failed to download {artifact_name}: {e.stderr.decode()}"
                 )
+
+    def compute_aggregate_metrics(self, run_ids: List[str]) -> Dict[str, Any]:
+        """Compute aggregate metrics for completed runs on Modal.
+
+        Calls the compute_aggregate_metrics Modal function to calculate
+        trading effects and summary statistics, and updates the job in Supabase.
+
+        Args:
+            run_ids: List of run IDs to include in aggregation.
+
+        Returns:
+            Dict with aggregate metrics and status.
+        """
+        # Apply proxy patch for environments with HTTP CONNECT proxy
+        import bilancio.cloud.proxy_patch  # noqa: F401
+        import modal
+
+        # Get reference to deployed function (same pattern as run_simulation)
+        modal_aggregate = modal.Function.from_name(self.app_name, "compute_aggregate_metrics")
+
+        print("Computing aggregate metrics on Modal...", flush=True)
+        result = modal_aggregate.remote(
+            job_id=self.job_id,
+            run_ids=run_ids,
+        )
+
+        if result.get("status") == "completed":
+            summary = result.get("summary", {})
+            print(f"Aggregate metrics computed:", flush=True)
+            print(f"  Comparisons: {summary.get('n_comparisons', 0)}", flush=True)
+            print(f"  Mean trading effect: {summary.get('mean_trading_effect', 'N/A'):.4f}"
+                  if summary.get('mean_trading_effect') is not None else "  Mean trading effect: N/A", flush=True)
+        else:
+            print(f"Warning: Aggregate metrics computation failed: {result.get('error')}", flush=True)
+
+        return result
 
 ```
 
@@ -54681,6 +55413,13 @@ class RunOptions:
     run_id: Optional[str] = None
     regime: Optional[str] = None
 
+    # Run parameters (for Supabase tracking in cloud execution)
+    kappa: Optional[float] = None
+    concentration: Optional[float] = None
+    mu: Optional[float] = None
+    outside_mid_ratio: Optional[float] = None
+    seed: Optional[int] = None
+
 
 @dataclass
 class ExecutionResult:
@@ -54719,6 +55458,9 @@ class ExecutionResult:
 
     # Cloud execution info
     modal_call_id: Optional[str] = None
+
+    # Computed metrics (from cloud execution)
+    metrics: Optional[Dict[str, any]] = None
 
 ```
 
@@ -57810,8 +58552,7 @@ def sweep_ring(
     # Create job manager and job config
     manager: Optional[JobManager] = None
     try:
-        # Use create_job_manager to enable Supabase cloud storage
-        manager = create_job_manager(jobs_dir=out_dir, cloud=True, local=True)
+        manager = create_job_manager(jobs_dir=out_dir, cloud=cloud, local=True)
 
         grid_kappas = _as_decimal_list(kappas)
         grid_concentrations = _as_decimal_list(concentrations)
@@ -58150,7 +58891,7 @@ def sweep_balanced(
     # Create job manager with Supabase cloud storage
     manager: Optional[JobManager] = None
     try:
-        manager = create_job_manager(jobs_dir=out_dir, cloud=True, local=True)
+        manager = create_job_manager(jobs_dir=out_dir, cloud=cloud, local=True)
 
         # Create job config
         job_config = JobConfig(
@@ -75242,5 +75983,5 @@ def test_settle_multiple_obligations():
 ## End of Codebase
 
 Generated from: /home/runner/work/bilancio/bilancio
-Total source files: 117
+Total source files: 118
 Total test files: 52
