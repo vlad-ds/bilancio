@@ -220,7 +220,7 @@ def generate_markdown(output_file: str = None):
         )
         f.write(tree_output)
         f.write("\n```\n\n")
-        f.write("---\n\n")
+        f.write("---\n\n") # add a comment
         
         # Git history section
         f.write("## Git Commit History\n\n")
