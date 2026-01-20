@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2026-01-20 11:02:56 UTC | Branch: main | Commit: 9e7a6630
+Generated: 2026-01-20 11:19:11 UTC | Branch: main | Commit: 401c5ddd
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -34166,6 +34166,12 @@ Complete git history from oldest to newest:
 - **9e7a6630** (2026-01-20) by Vlad Gheorghe
   Add a new line in README.md
   Add a new line to the README file.
+
+- **4fa5a2c4** (2026-01-20) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **401c5ddd** (2026-01-20) by Vlad Gheorghe
+  Uncomment Supabase configuration in .env.example
 
 ---
 
