@@ -13,6 +13,10 @@ Bilancio is a Python framework designed for modeling complex financial systems w
 - **Simulation capabilities**: Monte Carlo and other simulation techniques
 - **Time-aware computations**: Sophisticated time modeling for financial calculations
 
+### Balance Sheets
+
+Every agent in Bilancio maintains a double-entry balance sheet tracking assets and liabilities. Use `bilancio.analysis.balances.agent_balance()` to retrieve structured balance sheet data for any agent, and `bilancio.analysis.visualization.display_agent_balance_table()` for formatted output. Balance sheets update automatically as cash flows, payables, and other instruments are created or settled during simulation.
+
 ## Installation
 
 ### Development Setup
