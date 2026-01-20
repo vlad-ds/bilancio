@@ -108,5 +108,3 @@ PYTHONPATH=src .venv/bin/python -m bilancio.ui.cli \
 - Config schema is defined in `src/bilancio/config/models.py`.
 - The CLI entrypoint is `bilancio.ui.cli` (`run`, `validate`, `new`).
 - Default means-of-payment ranking is in `src/bilancio/domain/policy.py` and can be overridden via `policy_overrides.mop_rank`.
-
-New line
