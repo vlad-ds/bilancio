@@ -283,3 +283,5 @@ Or override from the CLI:
 ```bash
 python -m bilancio.ui.cli run examples/scenarios/default_handling_demo.yaml --default-handling expel-agent
 ```
+
+A new line
