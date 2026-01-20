@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2026-01-13 08:02:33 UTC | Branch: main | Commit: 20ac5348
+Generated: 2026-01-20 09:11:03 UTC | Branch: main | Commit: 2d53b155
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -15,6 +15,7 @@ This document contains the complete codebase structure and content for LLM inges
 │   └── workflows
 │       ├── claude-code-review.yml
 │       ├── claude.yml
+│       ├── keep-supabase-alive.yml
 │       └── update-codebase-for-llm.yml
 ├── .gitignore
 ├── AGENTS.md
@@ -31925,7 +31926,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-6864 directories, 25051 files
+6864 directories, 25052 files
 
 ```
 
@@ -34136,6 +34137,14 @@ Complete git history from oldest to newest:
   - Update completion messages to show Supabase query command
   This fixes issues in remote environments (Claude Code web) where artifact
   downloads were failing unnecessarily.
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **0f66e9e2** (2026-01-13) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **2d53b155** (2026-01-20) by vladgheorghe
+  ci: add workflow to keep Supabase active
+  Runs every 3 days to prevent automatic pausing of the free tier project.
   Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 
 ---
