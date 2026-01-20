@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2026-01-20 11:19:11 UTC | Branch: main | Commit: 401c5ddd
+Generated: 2026-01-20 11:27:36 UTC | Branch: main | Commit: 6a816bff
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -34170,8 +34170,24 @@ Complete git history from oldest to newest:
 - **4fa5a2c4** (2026-01-20) by github-actions[bot]
   chore(docs): update codebase_for_llm.md
 
+- **627bf9bb** (2026-01-20) by vladgheorghe
+  Cleanup
+
+- **6e745539** (2026-01-20) by vladgheorghe
+  Cleanup readme
+
 - **401c5ddd** (2026-01-20) by Vlad Gheorghe
   Uncomment Supabase configuration in .env.example
+
+- **389b37e1** (2026-01-20) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **7bfa2b71** (2026-01-20) by vladgheorghe
+  Merge remote-tracking branch 'origin/main' into feature/test-branches
+
+- **6a816bff** (2026-01-20) by Vlad Gheorghe
+  Merge pull request #29 from vlad-ds/feature/test-branches
+  Cleanup docs and config
 
 ---
 
