@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2026-01-21 13:41:32 UTC | Branch: main | Commit: 9b9b6f1e
+Generated: 2026-01-21 13:50:42 UTC | Branch: main | Commit: fce91f81
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -2314,6 +2314,7 @@ This document contains the complete codebase structure and content for LLM inges
 │   ├── changelog.md
 │   ├── cli.md
 │   ├── codebase_for_llm.md
+│   ├── concepts.md
 │   ├── contributing.md
 │   ├── dealer_ring
 │   │   ├── Instructions_for_simulation.pdf
@@ -31939,7 +31940,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-6864 directories, 25065 files
+6864 directories, 25066 files
 
 ```
 
@@ -34281,6 +34282,19 @@ Complete git history from oldest to newest:
 - **9b9b6f1e** (2026-01-21) by vladgheorghe
   docs: add badges to README
   Add badges for license, Python version, documentation status, and version.
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **995f6ae7** (2026-01-21) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **fce91f81** (2026-01-21) by vladgheorghe
+  docs: rewrite documentation with accurate content
+  - Rewrite README.md with accurate description (remove Monte Carlo, valuation engines)
+  - Rewrite docs/index.md with proper overview of payment simulation framework
+  - Rewrite docs/quickstart.md with working examples
+  - Create docs/concepts.md explaining agents, instruments, settlement, Kalecki ring
+  - Rewrite docs/cli.md with complete command reference
+  - Update mkdocs.yml with new concepts page and accurate description
   Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 
 ---
