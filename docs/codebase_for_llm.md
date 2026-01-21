@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2026-01-21 13:31:51 UTC | Branch: main | Commit: 113b7a2a
+Generated: 2026-01-21 13:37:17 UTC | Branch: main | Commit: 89dd4a3f
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -18,6 +18,7 @@ This document contains the complete codebase structure and content for LLM inges
 │       ├── keep-supabase-alive.yml
 │       └── update-codebase-for-llm.yml
 ├── .gitignore
+├── .readthedocs.yaml
 ├── AGENTS.md
 ├── CHANGELOG.md
 ├── CITATION.cff
@@ -2310,7 +2311,10 @@ This document contains the complete codebase structure and content for LLM inges
 │   │   └── 016_dealer_comparison_analysis.md
 │   ├── archive
 │   │   └── TODO_2025.md
+│   ├── changelog.md
+│   ├── cli.md
 │   ├── codebase_for_llm.md
+│   ├── contributing.md
 │   ├── dealer_ring
 │   │   ├── Instructions_for_simulation.pdf
 │   │   ├── Instructions_on_instrumentation_improvement.pdf
@@ -2330,6 +2334,8 @@ This document contains the complete codebase structure and content for LLM inges
 │   ├── exercises_scenarios.md
 │   ├── guides
 │   │   └── kalecki_ring_sweep.md
+│   ├── index.md
+│   ├── installation.md
 │   ├── plans
 │   │   ├── 000_setup.md
 │   │   ├── 001_domain_system.md
@@ -2363,6 +2369,7 @@ This document contains the complete codebase structure and content for LLM inges
 │   ├── prompts
 │   │   ├── 015_expel_sweep_agent_prompt.md
 │   │   └── scenario_translator_agent.md
+│   ├── quickstart.md
 │   ├── refactor_2026
 │   │   ├── 025_phase1_cleanup.md
 │   │   ├── 026_phase4_abstractions.md
@@ -2441,6 +2448,7 @@ This document contains the complete codebase structure and content for LLM inges
 │       ├── simple_bank.yaml
 │       ├── simple_dealer.yaml
 │       └── two_banks_interbank.yaml
+├── mkdocs.yml
 ├── notebooks
 │   └── demo
 │       ├── balance_sheet_display.ipynb
@@ -31931,7 +31939,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-6864 directories, 25057 files
+6864 directories, 25065 files
 
 ```
 
@@ -34250,6 +34258,22 @@ Complete git history from oldest to newest:
 - **113b7a2a** (2026-01-21) by Vlad Gheorghe
   Merge pull request #33 from vlad-ds/claude/slack-revert-garbage-commits-wcPYT
   Find and revert garbage commits from January 20th
+
+- **efaee1da** (2026-01-21) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **89dd4a3f** (2026-01-21) by vladgheorghe
+  docs: add ReadTheDocs configuration and MkDocs documentation
+  - Add .readthedocs.yaml for RTD build configuration
+  - Add mkdocs.yml for MkDocs site configuration
+  - Create docs/ directory with documentation pages:
+    - index.md: Project overview
+    - installation.md: Setup instructions
+    - quickstart.md: Getting started guide
+    - cli.md: CLI reference
+    - contributing.md: Contribution guidelines
+    - changelog.md: Version history
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 
 ---
 
