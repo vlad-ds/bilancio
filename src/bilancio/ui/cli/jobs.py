@@ -346,3 +346,72 @@ def show_metrics(job_id: str, cloud: bool):
 
     except Exception as e:
         raise click.ClickException(f"Failed to query metrics: {e}")
+
+
+@jobs.command("visualize")
+@click.argument("job_id")
+@click.option(
+    "--output",
+    "-o",
+    type=click.Path(path_type=Path),
+    help="Output path for HTML file (default: temp/{job_id}_comparison.html)",
+)
+@click.option(
+    "--title",
+    "-t",
+    help="Custom title for the visualization",
+)
+@click.option(
+    "--open-browser",
+    is_flag=True,
+    help="Open the generated HTML in the default browser",
+)
+def visualize_job(
+    job_id: str,
+    output: Optional[Path],
+    title: Optional[str],
+    open_browser: bool,
+):
+    """Generate interactive visualization comparing passive vs active runs.
+
+    Creates an HTML report with multiple visualization types:
+    - Summary statistics
+    - Passive vs active scatter plot
+    - Default rate by liquidity (κ)
+    - Faceted views by concentration (c)
+    - Trading effect distributions
+    - Heatmaps by maturity timing (μ)
+    - Parallel coordinates overview
+    - 3D surface plot
+
+    Examples:
+        bilancio jobs visualize evacuee-crushed-attentive-flakily
+        bilancio jobs visualize my-job -o results/my-viz.html
+        bilancio jobs visualize my-job --open-browser
+    """
+    try:
+        from bilancio.analysis.visualization.run_comparison import (
+            generate_comparison_html,
+        )
+
+        click.echo(f"Generating visualization for job: {job_id}")
+
+        html_path = generate_comparison_html(
+            job_id=job_id,
+            output_path=output,
+            title=title,
+        )
+
+        click.echo(f"Visualization saved to: {html_path}")
+
+        if open_browser:
+            import webbrowser
+            webbrowser.open(f"file://{html_path.absolute()}")
+            click.echo("Opened in browser.")
+        else:
+            click.echo(f"Open with: open {html_path}")
+
+    except ValueError as e:
+        raise click.ClickException(str(e))
+    except Exception as e:
+        raise click.ClickException(f"Failed to generate visualization: {e}")

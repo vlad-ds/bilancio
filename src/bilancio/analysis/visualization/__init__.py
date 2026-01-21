@@ -47,6 +47,15 @@ from bilancio.analysis.visualization.phases import (
     display_events_tables_by_phase_renderables,
 )
 
+# Run comparison visualizations
+from bilancio.analysis.visualization.run_comparison import (
+    RunComparison,
+    load_job_comparison_data,
+    comparisons_to_dataframe,
+    generate_comparison_html,
+    quick_visualize,
+)
+
 __all__ = [
     # Common
     'RICH_AVAILABLE',
@@ -72,4 +81,10 @@ __all__ = [
     'display_events_for_day_renderable',
     # Phases
     'display_events_tables_by_phase_renderables',
+    # Run comparison
+    'RunComparison',
+    'load_job_comparison_data',
+    'comparisons_to_dataframe',
+    'generate_comparison_html',
+    'quick_visualize',
 ]
