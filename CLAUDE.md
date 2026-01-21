@@ -63,6 +63,52 @@
 - **Verify visual output**: Read the generated HTML file to ensure events, tables, and formatting display correctly
 - **Test with real scenarios**: Use actual scenario files to test rendering changes, not just unit tests
 
+## ReadTheDocs Documentation
+
+Documentation is hosted at https://bilancio.readthedocs.io/
+
+### Configuration Files
+- `.readthedocs.yaml` - RTD build configuration (Python version, MkDocs settings)
+- `mkdocs.yml` - MkDocs site configuration (navigation, theme)
+- `docs/` - Documentation source files (Markdown)
+
+### Documentation Structure
+```
+docs/
+├── index.md          # Homepage
+├── installation.md   # Installation guide
+├── quickstart.md     # Getting started tutorial
+├── concepts.md       # Core concepts (agents, instruments, settlement)
+├── cli.md            # CLI command reference
+├── contributing.md   # Contribution guidelines
+└── changelog.md      # Version history
+```
+
+### Managing Documentation
+
+**Rebuild docs after changes:**
+1. Push changes to `main` branch
+2. Go to https://app.readthedocs.org/projects/bilancio/builds/
+3. Click on the latest build, then click "Rebuild"
+4. Note: No webhook is configured, so rebuilds must be triggered manually
+
+**Test locally before pushing:**
+```bash
+uv pip install mkdocs
+uv run mkdocs serve
+# Open http://127.0.0.1:8000 to preview
+```
+
+**Add new documentation page:**
+1. Create new `.md` file in `docs/`
+2. Add to `nav:` section in `mkdocs.yml`
+3. Commit, push, and trigger rebuild
+
+### RTD Dashboard
+- **Project URL**: https://app.readthedocs.org/projects/bilancio/
+- **Builds**: https://app.readthedocs.org/projects/bilancio/builds/
+- **Settings**: https://app.readthedocs.org/projects/bilancio/settings/
+
 ## Claude Code Web Environment
 
 When running in Claude Code web (claude.ai/code), the VM uses a TLS-inspecting proxy that requires special configuration for external services.
