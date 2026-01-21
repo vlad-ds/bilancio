@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2026-01-21 02:46:17 UTC | Branch: main | Commit: 86311605
+Generated: 2026-01-21 13:31:51 UTC | Branch: main | Commit: 113b7a2a
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -34229,6 +34229,27 @@ Complete git history from oldest to newest:
 - **86311605** (2026-01-21) by situya87
   Merge pull request #32 from vlad-ds/claude/slack-bilancio-softwarex-publication-TsbZZ
   docs: add LICENSE, CITATION.cff, CONTRIBUTING.md, and CHANGELOG.md for SoftwareX publication
+
+- **32b55922** (2026-01-21) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **28b56e53** (2026-01-21) by Claude
+  revert: clean up garbage commits from Jan 20th git teaching session
+  Fixes residual changes from demonstration commits made during git training:
+  - Remove "SECRET" accidentally added to .env.example
+  - Restore trailing newlines in AGENTS.md and README.md
+  These commits were part of teaching git workflows:
+  - 781fab21 Create random file and modify readme
+  - 016e4b6c Revert "Create random file and modify readme"
+  - 26fe24f6 Change 2 files
+  - 9e7a6630 Add a new line in README.md
+  - 627bf9bb Cleanup
+  - 6e745539 Cleanup readme
+  - 401c5ddd Uncomment Supabase configuration in .env.example
+
+- **113b7a2a** (2026-01-21) by Vlad Gheorghe
+  Merge pull request #33 from vlad-ds/claude/slack-revert-garbage-commits-wcPYT
+  Find and revert garbage commits from January 20th
 
 ---
 
