@@ -1,5 +1,10 @@
 # Bilancio
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Documentation Status](https://readthedocs.org/projects/bilancio/badge/?version=latest)](https://bilancio.readthedocs.io/en/latest/?badge=latest)
+[![Version](https://img.shields.io/badge/version-0.1.0-green.svg)](https://github.com/vlad-ds/bilancio/releases/tag/v0.1.0)
+
 A financial modeling framework for multi-agent economic systems.
 
 ## Overview
