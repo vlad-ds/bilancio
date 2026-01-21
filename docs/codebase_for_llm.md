@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2026-01-21 13:53:27 UTC | Branch: main | Commit: 6b386474
+Generated: 2026-01-21 13:58:09 UTC | Branch: main | Commit: 0f2d1c2f
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -34308,6 +34308,19 @@ Complete git history from oldest to newest:
   - How to rebuild docs (manual trigger required)
   - Local preview instructions
   - RTD dashboard links
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **242e6aba** (2026-01-21) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **0f2d1c2f** (2026-01-21) by vladgheorghe
+  docs: expand quickstart with dealer scenarios and metrics
+  - Add Kalecki ring explanation and key parameters (kappa, concentration, mu)
+  - Add metrics section explaining phi (settlement rate) and delta (default rate)
+  - Add dealer secondary markets section with why dealers matter
+  - Add balanced sweep section for comparing passive vs active dealers
+  - Add cloud execution basics with Job ID tracking
+  - Reorganize flow for better learning progression
   Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 
 ---
