@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2026-01-21 13:37:17 UTC | Branch: main | Commit: 89dd4a3f
+Generated: 2026-01-21 13:41:32 UTC | Branch: main | Commit: 9b9b6f1e
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -34273,6 +34273,14 @@ Complete git history from oldest to newest:
     - cli.md: CLI reference
     - contributing.md: Contribution guidelines
     - changelog.md: Version history
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **bc3c9b89** (2026-01-21) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **9b9b6f1e** (2026-01-21) by vladgheorghe
+  docs: add badges to README
+  Add badges for license, Python version, documentation status, and version.
   Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 
 ---
