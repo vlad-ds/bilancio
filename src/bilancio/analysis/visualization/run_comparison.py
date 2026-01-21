@@ -521,7 +521,6 @@ def generate_comparison_html(
 <head>
     <meta charset="utf-8">
     <title>{report_title}</title>
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
         body {{
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
@@ -635,13 +634,15 @@ def generate_comparison_html(
         'surface': '3D Surface Plot',
     }
 
-    for name, fig in figures:
+    for i, (name, fig) in enumerate(figures):
         anchor = name.split('_')[0] if name.startswith('heatmap') else name
         if name == 'heatmap_mu0':
             anchor = 'heatmaps'
 
-        # Get the plotly div
-        div_html = fig.to_html(full_html=False, include_plotlyjs=False)
+        # Get the plotly div - include Plotly.js inline with the first figure
+        # This bundles the library directly in HTML for offline/reliable viewing
+        include_js = True if i == 0 else False
+        div_html = fig.to_html(full_html=False, include_plotlyjs=include_js)
 
         html_parts.append(f'''
     <h2 id="{anchor}">{section_titles.get(name, name.title())}</h2>
