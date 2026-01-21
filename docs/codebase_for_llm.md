@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2026-01-21 02:18:32 UTC | Branch: main | Commit: db3b781b
+Generated: 2026-01-21 02:46:17 UTC | Branch: main | Commit: 86311605
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -19,7 +19,11 @@ This document contains the complete codebase structure and content for LLM inges
 │       └── update-codebase-for-llm.yml
 ├── .gitignore
 ├── AGENTS.md
+├── CHANGELOG.md
+├── CITATION.cff
 ├── CLAUDE.md
+├── CONTRIBUTING.md
+├── LICENSE
 ├── README.md
 ├── dashboards
 │   ├── expel_ring_analysis_dashboard
@@ -31927,7 +31931,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-6864 directories, 25053 files
+6864 directories, 25057 files
 
 ```
 
@@ -34211,6 +34215,20 @@ Complete git history from oldest to newest:
 - **db3b781b** (2026-01-21) by situya87
   Merge pull request #31 from vlad-ds/claude/slack-visualize-run-comparison-WBQSq
   visualization tool part 1
+
+- **459a2dad** (2026-01-21) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **321f057d** (2026-01-21) by Claude
+  docs: add LICENSE, CITATION.cff, CONTRIBUTING.md, and CHANGELOG.md for SoftwareX publication
+  - LICENSE: MIT license file
+  - CITATION.cff: Standard citation format for academic references
+  - CONTRIBUTING.md: Developer contribution guidelines
+  - CHANGELOG.md: Version history following Keep a Changelog format
+
+- **86311605** (2026-01-21) by situya87
+  Merge pull request #32 from vlad-ds/claude/slack-bilancio-softwarex-publication-TsbZZ
+  docs: add LICENSE, CITATION.cff, CONTRIBUTING.md, and CHANGELOG.md for SoftwareX publication
 
 ---
 
