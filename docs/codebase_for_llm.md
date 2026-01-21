@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2026-01-21 13:50:42 UTC | Branch: main | Commit: fce91f81
+Generated: 2026-01-21 13:53:27 UTC | Branch: main | Commit: 6b386474
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -34295,6 +34295,19 @@ Complete git history from oldest to newest:
   - Create docs/concepts.md explaining agents, instruments, settlement, Kalecki ring
   - Rewrite docs/cli.md with complete command reference
   - Update mkdocs.yml with new concepts page and accurate description
+  Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+- **2f408f11** (2026-01-21) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **6b386474** (2026-01-21) by vladgheorghe
+  docs: add ReadTheDocs management instructions to CLAUDE.md
+  Add section explaining how to manage RTD documentation including:
+  - Configuration files (.readthedocs.yaml, mkdocs.yml)
+  - Documentation structure
+  - How to rebuild docs (manual trigger required)
+  - Local preview instructions
+  - RTD dashboard links
   Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 
 ---
