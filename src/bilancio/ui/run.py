@@ -152,7 +152,7 @@ def run_scenario(
         console.print(f"[dim]Default handling mode: {effective_default_handling}[/dim]")
 
         # Show initial state
-        console.print("\n[bold cyan]📅 Day 0 (After Setup)[/bold cyan]")
+        console.print("\n[bold cyan] Day 0 (After Setup)[/bold cyan]")
         renderables = show_day_summary_renderable(system, agent_ids, show, t_account=t_account)
         for renderable in renderables:
             console.print(renderable)
@@ -181,7 +181,11 @@ def run_scenario(
             'assets': [_row_dict(r) for r in acct.assets],
             'liabs': [_row_dict(r) for r in acct.liabilities],
         }
-    
+
+    # Capture initial network snapshot (Day 0)
+    from bilancio.analysis.network import build_network_data
+    initial_network_snapshot = build_network_data(system, day=0)
+
     # Track day data for PDF export
     days_data = []
 
@@ -218,13 +222,13 @@ def run_scenario(
         export_path = Path(export['balances_csv'])
         export_path.parent.mkdir(parents=True, exist_ok=True)
         write_balances_csv(system, export_path)
-        console.print(f"[green]✓[/green] Exported balances to {export_path}")
+        console.print(f"[green]OK[/green] Exported balances to {export_path}")
     
     if export.get('events_jsonl'):
         export_path = Path(export['events_jsonl'])
         export_path.parent.mkdir(parents=True, exist_ok=True)
         write_events_jsonl(system, export_path)
-        console.print(f"[green]✓[/green] Exported events to {export_path}")
+        console.print(f"[green]OK[/green] Exported events to {export_path}")
 
     # Export dealer metrics if dealer subsystem is enabled
     if enable_dealer and hasattr(system.state, 'dealer_subsystem') and system.state.dealer_subsystem is not None:
@@ -239,7 +243,7 @@ def run_scenario(
             dealer_summary = system.state.dealer_subsystem.metrics.summary()
             with dealer_metrics_path.open('w') as f:
                 json.dump(dealer_summary, f, indent=2)
-            console.print(f"[green]✓[/green] Exported dealer metrics to {dealer_metrics_path}")
+            console.print(f"[green]OK[/green] Exported dealer metrics to {dealer_metrics_path}")
 
             # Plan 022: Export detailed dealer CSV logs if enabled
             if detailed_dealer_logging:
@@ -268,17 +272,17 @@ def run_scenario(
                 # trades.csv
                 trades_path = out_dir / "trades.csv"
                 metrics.to_trade_log_csv(str(trades_path))
-                console.print(f"[green]✓[/green] Exported trades to {trades_path}")
+                console.print(f"[green]OK[/green] Exported trades to {trades_path}")
 
                 # inventory_timeseries.csv (uses dealer_snapshots with new fields)
                 inventory_path = out_dir / "inventory_timeseries.csv"
                 metrics.to_inventory_timeseries_csv(str(inventory_path))
-                console.print(f"[green]✓[/green] Exported inventory timeseries to {inventory_path}")
+                console.print(f"[green]OK[/green] Exported inventory timeseries to {inventory_path}")
 
                 # system_state_timeseries.csv
                 system_state_path = out_dir / "system_state_timeseries.csv"
                 metrics.to_system_state_csv(str(system_state_path))
-                console.print(f"[green]✓[/green] Exported system state timeseries to {system_state_path}")
+                console.print(f"[green]OK[/green] Exported system state timeseries to {system_state_path}")
 
                 # repayment_events.csv (Plan 022 - Phase 2)
                 # Build repayment events from the event log and trades
@@ -292,7 +296,7 @@ def run_scenario(
                 metrics.repayment_events = repayment_events
                 repayment_events_path = out_dir / "repayment_events.csv"
                 metrics.to_repayment_events_csv(str(repayment_events_path))
-                console.print(f"[green]✓[/green] Exported repayment events to {repayment_events_path}")
+                console.print(f"[green]OK[/green] Exported repayment events to {repayment_events_path}")
 
     # Export to HTML if requested (semantic HTML for readability)
     if html_output:
@@ -308,8 +312,9 @@ def run_scenario(
             initial_rows=initial_rows,
             max_days=max_days,
             quiet_days=quiet_days,
+            initial_network_snapshot=initial_network_snapshot,
         )
-        console.print(f"[green]✓[/green] Exported HTML report: {html_output}")
+        console.print(f"[green]OK[/green] Exported HTML report: {html_output}")
 
 
 def run_step_mode(
@@ -374,7 +379,7 @@ def run_step_mode(
                     })
             if day_before >= 1:
                 # Show day summary
-                console.print(f"\n[bold cyan]📅 Day {day_before}[/bold cyan]")
+                console.print(f"\n[bold cyan] Day {day_before}[/bold cyan]")
                 display_agent_ids = _filter_active_agent_ids(system, agent_ids) if agent_ids is not None else None
                 renderables = show_day_summary_renderable(system, display_agent_ids, show, day=day_before, t_account=t_account)
                 for renderable in renderables:
@@ -425,7 +430,7 @@ def run_step_mode(
             
             # Check if we've reached a stable state
             if day_report.quiet and not day_report.has_open_obligations:
-                console.print("[green]✓[/green] System reached stable state")
+                console.print("[green]OK[/green] System reached stable state")
                 break
                 
         except DefaultError as e:
@@ -547,7 +552,7 @@ def run_until_stable_mode(
                 # Display this day's results immediately (with correct balance state)
                 # Plan 030: Skip day headers in quiet mode
                 if not quiet_mode:
-                    console.print(f"[bold cyan]📅 Day {day_before}[/bold cyan]")
+                    console.print(f"[bold cyan] Day {day_before}[/bold cyan]")
 
                 # Check invariants if requested
                 if check_invariants == "daily":
@@ -555,7 +560,7 @@ def run_until_stable_mode(
                         system.assert_invariants()
                     except Exception as e:
                         if not quiet_mode:
-                            console.print(f"[yellow]⚠ Invariant check failed: {e}[/yellow]")
+                            console.print(f"[yellow][!] Invariant check failed: {e}[/yellow]")
 
                 # Show events and balances for this specific day
                 # Note: events are stored with 0-based day numbers
@@ -601,7 +606,11 @@ def run_until_stable_mode(
                             'assets': [to_row(r) for r in acct.assets],
                             'liabs': [to_row(r) for r in acct.liabilities],
                         }
-                
+
+                # Capture network snapshot for this day
+                from bilancio.analysis.network import build_network_data
+                network_snapshot = build_network_data(system, day_before)
+
                 days_data.append({
                     'day': day_before,  # Use actual event day, not 1-based counter
                     'events': day_events,
@@ -610,6 +619,7 @@ def run_until_stable_mode(
                     'balances': day_balances,
                     'rows': day_rows,
                     'agent_ids': active_agents_for_day if active_agents_for_day is not None else [],
+                    'network_snapshot': network_snapshot,
                 })
                 
                 # Show activity summary (Plan 030: skip in quiet mode)
@@ -617,7 +627,7 @@ def run_until_stable_mode(
                     if report.impacted > 0:
                         console.print(f"[dim]Activity: {report.impacted} impactful events[/dim]")
                     else:
-                        console.print("[dim]→ Quiet day (no activity)[/dim]")
+                        console.print("[dim]-> Quiet day (no activity)[/dim]")
 
                     if report.notes:
                         console.print(f"[dim]Note: {report.notes}[/dim]")
@@ -637,12 +647,12 @@ def run_until_stable_mode(
                 stability_condition = stability_condition and not _has_open_obligations(system)
 
             if stability_condition:
-                console.print("[green]✓[/green] System reached stable state")
+                console.print("[green]OK[/green] System reached stable state")
                 break
         
         # If we didn't break early, check if we hit max days
         else:
-            console.print("[yellow]⚠[/yellow] Maximum days reached without stable state")
+            console.print("[yellow][!][/yellow] Maximum days reached without stable state")
         
     except DefaultError as e:
         show_error_panel(

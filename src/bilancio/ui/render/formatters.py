@@ -41,7 +41,7 @@ class EventFormatterRegistry:
             if key not in skip_fields:
                 lines.append(f"{key}: {value}")
         
-        return title, lines[:3], "❓"  # Limit to 3 lines
+        return title, lines[:3], "?"  # Limit to 3 lines
 
 
 # Create global registry instance
@@ -56,10 +56,10 @@ def format_cash_transferred(event: Dict[str, Any]) -> Tuple[str, List[str], str]
     frm = event.get("frm", "Unknown")
     to = event.get("to", "Unknown")
     
-    title = f"💰 Cash Transfer: ${amount:,}"
-    lines = [f"{frm} → {to}"]
-    
-    return title, lines, "💰"
+    title = f"Cash Transfer: ${amount:,}"
+    lines = [f"{frm} -> {to}"]
+
+    return title, lines, "$"
 
 
 @registry.register("ReservesTransferred")
@@ -69,10 +69,10 @@ def format_reserves_transferred(event: Dict[str, Any]) -> Tuple[str, List[str], 
     frm = event.get("frm", "Unknown")
     to = event.get("to", "Unknown")
     
-    title = f"🏦 Reserves Transfer: ${amount:,}"
-    lines = [f"{frm} → {to}"]
+    title = f"[BANK] Reserves Transfer: ${amount:,}"
+    lines = [f"{frm} -> {to}"]
     
-    return title, lines, "🏦"
+    return title, lines, "[BANK]"
 
 
 @registry.register("StockTransferred")
@@ -84,12 +84,12 @@ def format_stock_transferred(event: Dict[str, Any]) -> Tuple[str, List[str], str
     to = event.get("to", "Unknown")
     unit_price = event.get("unit_price", None)
     
-    title = f"📦 Stock Transfer: {quantity} {sku}"
-    lines = [f"{frm} → {to}"]
+    title = f"[PKG] Stock Transfer: {quantity} {sku}"
+    lines = [f"{frm} -> {to}"]
     if unit_price:
         lines.append(f"@ ${unit_price:,}/unit")
     
-    return title, lines, "📦"
+    return title, lines, "[PKG]"
 
 
 @registry.register("DeliveryObligationCreated")
@@ -101,12 +101,12 @@ def format_delivery_obligation_created(event: Dict[str, Any]) -> Tuple[str, List
     to = event.get("to", "Unknown")
     due_day = event.get("due_day", None)
     
-    title = f"📋 Delivery Obligation: {quantity} {sku}"
-    lines = [f"{frm} → {to}"]
+    title = f"[DOC] Delivery Obligation: {quantity} {sku}"
+    lines = [f"{frm} -> {to}"]
     if due_day:
         lines.append(f"Due: Day {due_day}")
     
-    return title, lines, "📋"
+    return title, lines, "[DOC]"
 
 
 @registry.register("DeliveryObligationSettled")
@@ -117,10 +117,10 @@ def format_delivery_obligation_settled(event: Dict[str, Any]) -> Tuple[str, List
     debtor = event.get("debtor", "Unknown")
     creditor = event.get("creditor", "Unknown")
     
-    title = f"✅ Delivery Settled: {quantity} {sku}"
-    lines = [f"{debtor} → {creditor}"]
+    title = f"[OK] Delivery Settled: {quantity} {sku}"
+    lines = [f"{debtor} -> {creditor}"]
     
-    return title, lines, "✅"
+    return title, lines, "[OK]"
 
 
 @registry.register("PayableCreated")
@@ -131,12 +131,12 @@ def format_payable_created(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     creditor = event.get("creditor", event.get("to", "Unknown"))
     due_day = event.get("due_day", None)
     
-    title = f"💸 Payable Created: ${amount:,}"
+    title = f"[PAY] Payable Created: ${amount:,}"
     lines = [f"{debtor} owes {creditor}"]
     if due_day is not None:
         lines.append(f"Due: Day {due_day}")
     
-    return title, lines, "💸"
+    return title, lines, "[PAY]"
 
 
 @registry.register("PayableSettled")
@@ -146,10 +146,10 @@ def format_payable_settled(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     debtor = event.get("debtor", "Unknown")
     creditor = event.get("creditor", "Unknown")
     
-    title = f"💰 Payable Settled: ${amount:,}"
-    lines = [f"{debtor} → {creditor}"]
+    title = f"$ Payable Settled: ${amount:,}"
+    lines = [f"{debtor} -> {creditor}"]
     
-    return title, lines, "💰"
+    return title, lines, "$"
 
 
 @registry.register("CashDeposited")
@@ -159,10 +159,10 @@ def format_cash_deposited(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     bank = event.get("bank", "Unknown")
     amount = event.get("amount", 0)
     
-    title = f"🏧 Cash Deposit: ${amount:,}"
-    lines = [f"{customer} → {bank}"]
+    title = f"[ATM] Cash Deposit: ${amount:,}"
+    lines = [f"{customer} -> {bank}"]
     
-    return title, lines, "🏧"
+    return title, lines, "[ATM]"
 
 
 @registry.register("CashWithdrawn")
@@ -172,10 +172,10 @@ def format_cash_withdrawn(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     bank = event.get("bank", "Unknown") 
     amount = event.get("amount", 0)
     
-    title = f"💸 Cash Withdrawal: ${amount:,}"
-    lines = [f"{customer} ← {bank}"]
+    title = f"[PAY] Cash Withdrawal: ${amount:,}"
+    lines = [f"{customer} <- {bank}"]
     
-    return title, lines, "💸"
+    return title, lines, "[PAY]"
 
 
 @registry.register("ClientPayment")
@@ -187,13 +187,13 @@ def format_client_payment(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     payer_bank = event.get("payer_bank", "Unknown")
     payee_bank = event.get("payee_bank", "Unknown")
     
-    title = f"💳 Inter-Bank Payment: ${amount:,}"
+    title = f"[CARD] Inter-Bank Payment: ${amount:,}"
     lines = [
-        f"{payer} → {payee}",
-        f"via {payer_bank} → {payee_bank}"
+        f"{payer} -> {payee}",
+        f"via {payer_bank} -> {payee_bank}"
     ]
     
-    return title, lines, "💳"
+    return title, lines, "[CARD]"
 
 
 @registry.register("IntraBankPayment")
@@ -204,13 +204,13 @@ def format_intra_bank_payment(event: Dict[str, Any]) -> Tuple[str, List[str], st
     amount = event.get("amount", 0)
     bank = event.get("bank", "Unknown")
     
-    title = f"🏦 Intra-Bank Payment: ${amount:,}"
+    title = f"[BANK] Intra-Bank Payment: ${amount:,}"
     lines = [
-        f"{payer} → {payee}",
+        f"{payer} -> {payee}",
         f"at {bank}"
     ]
     
-    return title, lines, "🏦"
+    return title, lines, "[BANK]"
 
 
 @registry.register("CashPayment")
@@ -220,10 +220,10 @@ def format_cash_payment(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     payee = event.get("payee", "Unknown")
     amount = event.get("amount", 0)
     
-    title = f"💵 Cash Payment: ${amount:,}"
-    lines = [f"{payer} → {payee}"]
+    title = f"[CASH] Cash Payment: ${amount:,}"
+    lines = [f"{payer} -> {payee}"]
     
-    return title, lines, "💵"
+    return title, lines, "[CASH]"
 
 
 @registry.register("InstrumentMerged")
@@ -236,13 +236,13 @@ def format_instrument_merged(event: Dict[str, Any]) -> Tuple[str, List[str], str
     keep_short = keep.split('_')[-1][:8] if keep != "Unknown" else keep
     removed_short = removed.split('_')[-1][:8] if removed != "Unknown" else removed
     
-    title = f"🔀 Cash Consolidation"
+    title = f"[MRG] Cash Consolidation"
     lines = [
-        f"Merged: {removed_short} → {keep_short}",
+        f"Merged: {removed_short} -> {keep_short}",
         f"(Reduces fragmentation)"
     ]
     
-    return title, lines, "🔀"
+    return title, lines, "[MRG]"
 
 
 @registry.register("InterbankCleared")
@@ -252,10 +252,10 @@ def format_interbank_cleared(event: Dict[str, Any]) -> Tuple[str, List[str], str
     creditor_bank = event.get("creditor_bank", "Unknown")
     amount = event.get("amount", 0)
     
-    title = f"🔄 Interbank Clearing: ${amount:,}"
-    lines = [f"{debtor_bank} → {creditor_bank}"]
+    title = f"[CLR] Interbank Clearing: ${amount:,}"
+    lines = [f"{debtor_bank} -> {creditor_bank}"]
     
-    return title, lines, "🔄"
+    return title, lines, "[CLR]"
 
 
 @registry.register("CashMinted")
@@ -264,10 +264,10 @@ def format_cash_minted(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     to = event.get("to", "Unknown")
     amount = event.get("amount", 0)
     
-    title = f"🖨️ Cash Minted: ${amount:,}"
+    title = f"[MINT] Cash Minted: ${amount:,}"
     lines = [f"To: {to}"]
     
-    return title, lines, "🖨️"
+    return title, lines, "[MINT]"
 
 
 @registry.register("ReservesMinted")
@@ -276,10 +276,10 @@ def format_reserves_minted(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     to = event.get("to", "Unknown")
     amount = event.get("amount", 0)
     
-    title = f"🏛️ Reserves Minted: ${amount:,}"
+    title = f"[RSV] Reserves Minted: ${amount:,}"
     lines = [f"Bank: {to}"]
     
-    return title, lines, "🏛️"
+    return title, lines, "[RSV]"
 
 
 @registry.register("StockSplit")
@@ -290,13 +290,13 @@ def format_stock_split(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     split_qty = event.get("split_qty", 0)
     remaining_qty = event.get("remaining_qty", 0)
     
-    title = f"✂️ Stock Split: {split_qty} {sku}"
+    title = f"[SPLIT] Stock Split: {split_qty} {sku}"
     lines = [
-        f"From lot of {original_qty} → {remaining_qty} remain",
+        f"From lot of {original_qty} -> {remaining_qty} remain",
         f"(Preparing transfer)"
     ]
     
-    return title, lines, "✂️"
+    return title, lines, "[SPLIT]"
 
 
 @registry.register("DeliveryObligationCancelled")
@@ -308,13 +308,13 @@ def format_delivery_cancelled(event: Dict[str, Any]) -> Tuple[str, List[str], st
     # Short ID for readability
     short_id = obligation_id.split('_')[-1][:8] if obligation_id != "Unknown" else obligation_id
     
-    title = f"✓ Obligation Cleared"
+    title = f"[OK] Obligation Cleared"
     lines = [
         f"By: {debtor}",
         f"ID: ...{short_id}"
     ]
-    
-    return title, lines, "✓"
+
+    return title, lines, "[OK]"
 
 
 @registry.register("StockCreated")
@@ -325,7 +325,7 @@ def format_stock_created(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     qty = event.get("qty", event.get("quantity", 0))
     unit_price = event.get("unit_price", None)
     
-    title = f"📋 Stock Created: {qty} {sku}"
+    title = f"[DOC] Stock Created: {qty} {sku}"
     lines = [f"Owner: {owner}"]
     if unit_price:
         if isinstance(qty, (int, float)) and isinstance(unit_price, (int, float)):
@@ -334,7 +334,7 @@ def format_stock_created(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
         else:
             lines.append(f"Value: ${unit_price}/unit")
     
-    return title, lines, "📋"
+    return title, lines, "[DOC]"
 
 
 # Phase markers
@@ -342,16 +342,16 @@ def format_stock_created(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
 def format_phase_a(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     """Format phase A markers."""
     day = event.get("day", "?")
-    return f"⏰ Day {day} begins", ["Morning activities"], "⏰"
+    return f"[TIME] Day {day} begins", ["Morning activities"], "[TIME]"
 
 
 @registry.register("PhaseB")
 def format_phase_b(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     """Format phase B markers."""
-    return "🌅 Business hours", ["Main economic activity"], "🌅"
+    return "[MORN] Business hours", ["Main economic activity"], "[MORN]"
 
 
 @registry.register("PhaseC")
 def format_phase_c(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     """Format phase C markers."""
-    return "🌙 End of day", ["Settlements and clearing"], "🌙"
+    return "[NIGHT] End of day", ["Settlements and clearing"], "[NIGHT]"

@@ -207,9 +207,9 @@ def show_day_summary_renderable(
         # Check if balanced
         diff = abs(total_assets - total_liabilities)
         if diff < 0.01:
-            table.add_row("Status", "[green]✓ Balanced[/green]")
+            table.add_row("Status", "[green]OK Balanced[/green]")
         else:
-            table.add_row("Status", f"[red]✗ Imbalanced ({diff:,.2f})[/red]")
+            table.add_row("Status", f"[red]X Imbalanced ({diff:,.2f})[/red]")
         
         renderables.append(table)
     

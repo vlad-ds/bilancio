@@ -42,7 +42,7 @@ def create_scenario_wizard(output_path: Path, template: Optional[str] = None) ->
             with open(output_path, 'w') as f:
                 yaml.dump(config, f, default_flow_style=False, sort_keys=False)
             
-            console.print(f"\n[green]✓[/green] Scenario configuration saved to: {output_path}")
+            console.print(f"\n[green]OK[/green] Scenario configuration saved to: {output_path}")
             console.print(f"\nRun your scenario with: [cyan]bilancio run {output_path}[/cyan]")
             return
         
@@ -203,5 +203,5 @@ def create_scenario_wizard(output_path: Path, template: Optional[str] = None) ->
     with open(output_path, 'w') as f:
         yaml.dump(config, f, default_flow_style=False, sort_keys=False)
     
-    console.print(f"\n[green]✓[/green] Scenario configuration saved to: {output_path}")
+    console.print(f"\n[green]OK[/green] Scenario configuration saved to: {output_path}")
     console.print(f"\nRun your scenario with: [cyan]bilancio run {output_path}[/cyan]")

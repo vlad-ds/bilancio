@@ -141,7 +141,7 @@ def validate(scenario_file: Path):
         console.print(f"[dim]Validating {scenario_file}...[/dim]")
         config = load_yaml(scenario_file)
 
-        console.print(f"[green]✓[/green] Configuration syntax is valid")
+        console.print(f"[green]OK[/green] Configuration syntax is valid")
         console.print(f"  Name: {config.name}")
         console.print(f"  Version: {config.version}")
         console.print(f"  Agents: {len(config.agents)}")
@@ -152,11 +152,11 @@ def validate(scenario_file: Path):
         test_system = System()
         apply_to_system(config, test_system)
 
-        console.print(f"[green]✓[/green] Configuration can be applied successfully")
+        console.print(f"[green]OK[/green] Configuration can be applied successfully")
 
         # Run invariant checks
         test_system.assert_invariants()
-        console.print(f"[green]✓[/green] System invariants pass")
+        console.print(f"[green]OK[/green] System invariants pass")
 
         # Summary
         console.print("\n[bold green]Configuration is valid![/bold green]")
@@ -211,7 +211,7 @@ def new(from_template: Optional[str], output: Path):
     """
     try:
         create_scenario_wizard(output, from_template)
-        console.print(f"[green]✓[/green] Created scenario file: {output}")
+        console.print(f"[green]OK[/green] Created scenario file: {output}")
 
     except Exception as e:
         console.print(Panel(
@@ -283,22 +283,22 @@ def analyze(
     intraday_rows = bundle["intraday"]
 
     write_day_metrics_csv(out_csv, metrics_rows)
-    console.print(f"[green]✓[/green] Wrote day metrics CSV: {out_csv}")
+    console.print(f"[green]OK[/green] Wrote day metrics CSV: {out_csv}")
     write_day_metrics_json(out_json, metrics_rows)
-    console.print(f"[green]✓[/green] Wrote day metrics JSON: {out_json}")
+    console.print(f"[green]OK[/green] Wrote day metrics JSON: {out_json}")
 
     # Debtor shares and intraday are optional; only write if path provided
     base_name = out_csv.stem.replace("_metrics_day", "") if out_csv else "metrics"
     ds_path = out_csv.parent / f"{base_name}_ds.csv"
     write_debtor_shares_csv(ds_path, ds_rows)
-    console.print(f"[green]✓[/green] Wrote debtor shares CSV: {ds_path}")
+    console.print(f"[green]OK[/green] Wrote debtor shares CSV: {ds_path}")
 
     if intraday_csv:
         write_intraday_csv(intraday_csv, intraday_rows)
-        console.print(f"[green]✓[/green] Wrote intraday CSV: {intraday_csv}")
+        console.print(f"[green]OK[/green] Wrote intraday CSV: {intraday_csv}")
 
     if html_out:
         title = f"Bilancio Analytics — {events_path.stem.replace('_events','')}"
         subtitle = f"Events: {events_path.name}{' | Balances: ' + balances_path.name if balances_path else ''}"
         write_metrics_html(html_out, metrics_rows, ds_rows, intraday_rows, title=title, subtitle=subtitle)
-        console.print(f"[green]✓[/green] Wrote HTML analytics: {html_out}")
+        console.print(f"[green]OK[/green] Wrote HTML analytics: {html_out}")

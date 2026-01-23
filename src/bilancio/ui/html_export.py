@@ -11,10 +11,15 @@ from typing import Any, Dict, List, Optional
 import math
 from decimal import Decimal
 import html as _html
+import json
+import logging
 
 from bilancio.engines.system import System
 from bilancio.analysis.visualization import build_t_account_rows
 from bilancio.analysis.balances import AgentBalance
+from bilancio.analysis.network import build_network_data
+
+logger = logging.getLogger(__name__)
 
 
 def _load_css() -> str:
@@ -422,6 +427,319 @@ def _split_phase_b_into_subphases(events_b: List[Dict[str, Any]]) -> tuple:
     return b1, b_dealer, b2
 
 
+def _build_network_json_data(
+    initial_network_snapshot: Optional[Any],
+    days_data: List[Dict[str, Any]]
+) -> str:
+    """Build network visualization data as JSON string.
+
+    Args:
+        initial_network_snapshot: Network snapshot for day 0
+        days_data: List of day data dictionaries (each should have 'network_snapshot')
+
+    Returns:
+        JSON string containing snapshots and instrument types
+    """
+    from dataclasses import asdict
+    from decimal import Decimal
+
+    def decimal_to_float(obj):
+        """Convert Decimal to float for JSON serialization."""
+        if isinstance(obj, Decimal):
+            return float(obj)
+        raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
+
+    # Build network data from captured snapshots
+    snapshots = []
+    all_instrument_types = set()
+
+    # Add initial snapshot (Day 0) if available
+    if initial_network_snapshot:
+        # Convert nodes and edges to dictionaries
+        nodes_dict = [asdict(node) for node in initial_network_snapshot.nodes]
+        edges_dict = [asdict(edge) for edge in initial_network_snapshot.edges]
+
+        # Rename 'kind' to 'agent_type' for nodes to match JS expectations
+        for node in nodes_dict:
+            node['agent_type'] = node.pop('kind')
+
+        # Rename 'source'/'target' to 'from'/'to' for edges to match JS expectations
+        for edge in edges_dict:
+            edge['from'] = edge.pop('source')
+            edge['to'] = edge.pop('target')
+            # Convert amount to int if it's a Decimal
+            if isinstance(edge.get('amount'), Decimal):
+                edge['amount'] = int(edge['amount'])
+
+        snapshot = {
+            'day': 0,
+            'nodes': nodes_dict,
+            'edges': edges_dict
+        }
+        snapshots.append(snapshot)
+
+        # Collect instrument types from edges
+        for edge in initial_network_snapshot.edges:
+            all_instrument_types.add(edge.instrument_type)
+
+    # Add snapshots from days_data
+    for day_data in days_data:
+        network_data = day_data.get('network_snapshot')
+        if not network_data:
+            continue
+
+        # Convert nodes and edges to dictionaries
+        nodes_dict = [asdict(node) for node in network_data.nodes]
+        edges_dict = [asdict(edge) for edge in network_data.edges]
+
+        # Rename 'kind' to 'agent_type' for nodes to match JS expectations
+        for node in nodes_dict:
+            node['agent_type'] = node.pop('kind')
+
+        # Rename 'source'/'target' to 'from'/'to' for edges to match JS expectations
+        for edge in edges_dict:
+            edge['from'] = edge.pop('source')
+            edge['to'] = edge.pop('target')
+            # Convert amount to int if it's a Decimal
+            if isinstance(edge.get('amount'), Decimal):
+                edge['amount'] = int(edge['amount'])
+
+        snapshot = {
+            'day': day_data['day'],
+            'nodes': nodes_dict,
+            'edges': edges_dict
+        }
+        snapshots.append(snapshot)
+
+        # Collect instrument types from edges
+        for edge in network_data.edges:
+            all_instrument_types.add(edge.instrument_type)
+
+    # Sort instrument types for consistent ordering
+    instrument_types = sorted(all_instrument_types)
+
+    return json.dumps({
+        'snapshots': snapshots,
+        'instrument_types': instrument_types
+    }, default=decimal_to_float)
+
+
+def _generate_network_viz_js() -> str:
+    """Generate JavaScript code for network visualization.
+
+    Returns:
+        JavaScript code as a string
+    """
+    return """
+// Network Visualization with Plotly
+(function() {
+    const dataEl = document.getElementById('network-data');
+    if (!dataEl) return;
+
+    const data = JSON.parse(dataEl.textContent);
+    const snapshots = data.snapshots;
+    const instrumentTypes = data.instrument_types;
+
+    // Color schemes
+    const instrumentColors = {
+        'cash': '#10b981',
+        'bank_deposit': '#3b82f6',
+        'reserve_deposit': '#8b5cf6',
+        'payable': '#ef4444',
+        'delivery_obligation': '#f59e0b',
+        'dealer_ticket': '#ec4899'
+    };
+
+    const agentColors = {
+        'central_bank': '#7c3aed',
+        'bank': '#2563eb',
+        'household': '#10b981',
+        'firm': '#f59e0b',
+        'dealer': '#ec4899',
+        'treasury': '#14b8a6',
+        'vbt': '#a855f7',
+        'trader': '#10b981'
+    };
+
+    // Current filter state
+    let selectedInstruments = new Set(instrumentTypes);
+
+    // Helper: circular layout
+    function circularLayout(nodes) {
+        const n = nodes.length;
+        const radius = 1.5;
+        const angleStep = (2 * Math.PI) / n;
+        const positions = {};
+        nodes.forEach((node, i) => {
+            const angle = i * angleStep;
+            positions[node.id] = {
+                x: radius * Math.cos(angle),
+                y: radius * Math.sin(angle)
+            };
+        });
+        return positions;
+    }
+
+    // Build traces for a given snapshot
+    function buildTraces(snapshot) {
+        const positions = circularLayout(snapshot.nodes);
+
+        // Filter edges by selected instruments
+        const filteredEdges = snapshot.edges.filter(e =>
+            selectedInstruments.has(e.instrument_type)
+        );
+
+        // Edge traces (one per edge for individual colors)
+        const edgeTraces = filteredEdges.map(edge => {
+            const from = positions[edge.from];
+            const to = positions[edge.to];
+            const color = instrumentColors[edge.instrument_type] || '#999';
+            const width = Math.max(1, Math.log10(edge.amount + 1));
+
+            return {
+                type: 'scatter',
+                mode: 'lines',
+                x: [from.x, to.x],
+                y: [from.y, to.y],
+                line: {
+                    color: color,
+                    width: width
+                },
+                hoverinfo: 'text',
+                text: `${edge.from} → ${edge.to}<br>${edge.instrument_type}: ${edge.amount.toLocaleString()}`,
+                showlegend: false
+            };
+        });
+
+        // Node trace
+        const nodeX = snapshot.nodes.map(n => positions[n.id].x);
+        const nodeY = snapshot.nodes.map(n => positions[n.id].y);
+        const nodeColors = snapshot.nodes.map(n => agentColors[n.agent_type] || '#999');
+        const nodeText = snapshot.nodes.map(n =>
+            `${n.name || n.id}<br>Type: ${n.agent_type}`
+        );
+
+        const nodeTrace = {
+            type: 'scatter',
+            mode: 'markers+text',
+            x: nodeX,
+            y: nodeY,
+            marker: {
+                size: 20,
+                color: nodeColors,
+                line: { color: '#fff', width: 2 }
+            },
+            text: snapshot.nodes.map(n => n.name || n.id),
+            textposition: 'top center',
+            hoverinfo: 'text',
+            hovertext: nodeText,
+            showlegend: false
+        };
+
+        return [...edgeTraces, nodeTrace];
+    }
+
+    // Build frames for animation
+    const frames = snapshots.map(snapshot => ({
+        name: `Day ${snapshot.day}`,
+        data: buildTraces(snapshot)
+    }));
+
+    // Initial plot
+    const initialTraces = buildTraces(snapshots[0]);
+
+    const layout = {
+        title: `Network Graph - Day ${snapshots[0].day}`,
+        showlegend: false,
+        hovermode: 'closest',
+        xaxis: { visible: false, range: [-2, 2] },
+        yaxis: { visible: false, range: [-2, 2] },
+        width: 900,
+        height: 700,
+        plot_bgcolor: '#fafafa',
+        paper_bgcolor: '#fff',
+        sliders: [{
+            active: 0,
+            steps: snapshots.map((snapshot, i) => ({
+                label: `Day ${snapshot.day}`,
+                method: 'animate',
+                args: [[`Day ${snapshot.day}`], {
+                    mode: 'immediate',
+                    transition: { duration: 300 },
+                    frame: { duration: 300, redraw: true }
+                }]
+            })),
+            currentvalue: {
+                prefix: 'Day: ',
+                visible: true,
+                xanchor: 'right'
+            }
+        }],
+        updatemenus: [{
+            type: 'buttons',
+            showactive: false,
+            x: 0.1,
+            y: 1.15,
+            buttons: [
+                {
+                    label: 'Play',
+                    method: 'animate',
+                    args: [null, {
+                        fromcurrent: true,
+                        transition: { duration: 300 },
+                        frame: { duration: 500, redraw: true }
+                    }]
+                },
+                {
+                    label: 'Pause',
+                    method: 'animate',
+                    args: [[null], {
+                        mode: 'immediate',
+                        transition: { duration: 0 },
+                        frame: { duration: 0, redraw: false }
+                    }]
+                }
+            ]
+        }]
+    };
+
+    Plotly.newPlot('network-graph', initialTraces, layout, { responsive: true })
+        .then(() => {
+            Plotly.addFrames('network-graph', frames);
+        });
+
+    // Instrument filter handler
+    const filterCheckboxes = document.querySelectorAll('.instrument-filter');
+    filterCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                selectedInstruments.add(this.value);
+            } else {
+                selectedInstruments.delete(this.value);
+            }
+
+            // Get current frame from slider
+            const slider = document.querySelector('.slider-container');
+            const currentDay = snapshots[0].day; // Default to first day
+            const currentSnapshot = snapshots.find(s => s.day === currentDay) || snapshots[0];
+
+            // Rebuild traces with new filter
+            const newTraces = buildTraces(currentSnapshot);
+            Plotly.react('network-graph', newTraces, layout);
+
+            // Rebuild frames
+            const newFrames = snapshots.map(snapshot => ({
+                name: `Day ${snapshot.day}`,
+                data: buildTraces(snapshot)
+            }));
+            Plotly.deleteFrames('network-graph');
+            Plotly.addFrames('network-graph', newFrames);
+        });
+    });
+})();
+"""
+
+
 def export_pretty_html(
     system: System,
     out_path: Path,
@@ -434,6 +752,7 @@ def export_pretty_html(
     max_days: Optional[int] = None,
     quiet_days: Optional[int] = None,
     initial_rows: Optional[Dict[str, Dict[str, List[dict]]]] = None,
+    initial_network_snapshot: Optional[Any] = None,
 ) -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -493,6 +812,38 @@ def export_pretty_html(
         kind = _html_escape(agent.kind)
         html_parts.append(f"<tr><td>{_html_escape(aid)}</td><td>{name}</td><td>{kind}</td></tr>")
     html_parts.append("</tbody></table></section></section>")
+
+    # Network visualization section
+    try:
+        if days_data and initial_network_snapshot:
+            network_json = _build_network_json_data(initial_network_snapshot, days_data)
+            network_js = _generate_network_viz_js()
+
+            # Parse JSON to get instrument types for filter UI
+            network_data = json.loads(network_json)
+            instrument_types = network_data.get('instrument_types', [])
+
+            # Build instrument filter checkboxes
+            filter_checkboxes = []
+            for inst_type in instrument_types:
+                filter_checkboxes.append(
+                    f'<label><input type="checkbox" class="instrument-filter" value="{_html_escape(inst_type)}" checked> {_html_escape(inst_type)}</label>'
+                )
+
+            html_parts.append('<section class="network-viz">')
+            html_parts.append('<h2>Balance Sheet Network</h2>')
+            html_parts.append('<p class="description">Interactive visualization of asset-liability relationships between agents over time</p>')
+            html_parts.append('<div id="network-graph" style="width: 100%; height: 700px;"></div>')
+            html_parts.append('<div class="network-controls">')
+            html_parts.append('<strong>Filter by Instrument Type:</strong><br>')
+            html_parts.append(' '.join(filter_checkboxes))
+            html_parts.append('</div>')
+            html_parts.append('<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>')
+            html_parts.append(f'<script type="application/json" id="network-data">{network_json}</script>')
+            html_parts.append(f'<script>{network_js}</script>')
+            html_parts.append('</section>')
+    except Exception as e:
+        logger.warning(f"Failed to generate network visualization: {e}", exc_info=True)
 
     # Day 0 (Setup)
     html_parts.append("<section class=\"day-section\"><h2 class=\"day-header\">📅 Day 0 (Setup)</h2>")

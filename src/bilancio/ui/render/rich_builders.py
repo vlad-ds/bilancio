@@ -234,7 +234,7 @@ def build_day_summary(view: DaySummaryView) -> List[RenderableType]:
     
     # Agent balances section
     if view.agent_balances:
-        renderables.append(Text("\n💰 Agent Balances", style="bold yellow"))
+        renderables.append(Text("\n$ Agent Balances", style="bold yellow"))
         renderables.append(build_multiple_agent_balances(view.agent_balances))
     
     return renderables

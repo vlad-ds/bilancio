@@ -673,8 +673,8 @@ def sweep_strategy_outcomes(experiment: Path, verbose: bool):
     by_run_path, overall_path = run_strategy_analysis(experiment)
 
     if by_run_path and by_run_path.exists():
-        console.print(f"[green]✓[/green] Strategy outcomes by run: {by_run_path}")
-        console.print(f"[green]✓[/green] Strategy outcomes overall: {overall_path}")
+        console.print(f"[green]OK[/green] Strategy outcomes by run: {by_run_path}")
+        console.print(f"[green]OK[/green] Strategy outcomes overall: {overall_path}")
     else:
         console.print("[yellow]No output generated - check that repayment_events.csv files exist[/yellow]")
 
@@ -703,6 +703,6 @@ def sweep_dealer_usage(experiment: Path, verbose: bool):
     output_path = run_dealer_usage_analysis(experiment)
 
     if output_path and output_path.exists():
-        console.print(f"[green]✓[/green] Dealer usage summary: {output_path}")
+        console.print(f"[green]OK[/green] Dealer usage summary: {output_path}")
     else:
         console.print("[yellow]No output generated - check that required CSV files exist[/yellow]")
