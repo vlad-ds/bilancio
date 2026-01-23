@@ -1,6 +1,6 @@
 # Bilancio Codebase Documentation
 
-Generated: 2026-01-21 13:58:09 UTC | Branch: main | Commit: 0f2d1c2f
+Generated: 2026-01-23 03:47:14 UTC | Branch: main | Commit: 656f2fab
 
 This document contains the complete codebase structure and content for LLM ingestion.
 
@@ -31726,6 +31726,7 @@ This document contains the complete codebase structure and content for LLM inges
 │       │   ├── loaders.py
 │       │   ├── metrics.py
 │       │   ├── metrics_computer.py
+│       │   ├── network.py
 │       │   ├── report.py
 │       │   ├── strategy_outcomes.py
 │       │   ├── visualization
@@ -31878,6 +31879,7 @@ This document contains the complete codebase structure and content for LLM inges
     │   ├── __init__.py
     │   ├── test_balances.py
     │   ├── test_metrics_computer.py
+    │   ├── test_network.py
     │   ├── test_report_aggregate.py
     │   ├── test_t_account_builder.py
     │   └── test_visualization.py
@@ -31940,7 +31942,7 @@ This document contains the complete codebase structure and content for LLM inges
         ├── test_reserves.py
         └── test_settle_obligation.py
 
-6864 directories, 25066 files
+6864 directories, 25068 files
 
 ```
 
@@ -34323,6 +34325,36 @@ Complete git history from oldest to newest:
   - Reorganize flow for better learning progression
   Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 
+- **3e6d7b4f** (2026-01-21) by github-actions[bot]
+  chore(docs): update codebase_for_llm.md
+
+- **656f2fab** (2026-01-23) by situya87
+  feat: add interactive network visualization for balance sheet connections
+  Add Plotly-based network graph showing asset-liability relationships between agents over time with animation and filtering.
+  New features:
+  - Network data extraction (src/bilancio/analysis/network.py)
+    - NetworkNode, NetworkEdge, NetworkSnapshot dataclasses
+    - build_network_data() extracts nodes and edges from system state
+    - Supports dealer tickets from dealer subsystem
+  - HTML export integration (src/bilancio/ui/html_export.py)
+    - Embeds Plotly.js network visualization
+    - Time slider for navigating through days
+    - Play/pause animation controls
+    - Instrument type filtering (cash, payable, dealer_ticket, etc.)
+    - Circular layout with edge thickness by amount
+  - Network snapshot capture during simulation (src/bilancio/ui/run.py)
+    - Captures initial state (Day 0)
+    - Captures end-of-day state for each simulated day
+    - Preserves ephemeral instruments that settle quickly
+  Windows compatibility fixes:
+  - Replace Unicode emojis with ASCII in formatters, display, wizard, CLI
+  - Remove emoji characters that cause 'charmap' codec errors on Windows console
+  - Replace arrows (→, ←) with ASCII equivalents (>, <-)
+  - Replace symbols (✓, ✗, ⚠) with ASCII ([OK], X, [!])
+  Tests:
+  - Unit tests for network extraction (tests/analysis/test_network.py)
+  Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
+
 ---
 
 ## Source Code (src/bilancio)
@@ -35709,6 +35741,162 @@ class MetricsComputer:
             return Decimal(str(val))
         except Exception:
             return Decimal("0")
+
+```
+
+---
+
+### 📄 src/bilancio/analysis/network.py
+
+```python
+"""Network graph data extraction from Bilancio system state.
+
+This module provides functions to extract network graph data representing
+the relationships between agents through financial instruments/contracts.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, asdict
+from typing import List, Optional
+
+from bilancio.engines.system import System
+
+
+@dataclass
+class NetworkNode:
+    """Represents an agent node in the network graph."""
+
+    id: str
+    name: str
+    kind: str
+
+
+@dataclass
+class NetworkEdge:
+    """Represents a financial relationship (contract) between agents."""
+
+    source: str
+    target: str
+    amount: int
+    instrument_type: str
+    contract_id: str
+
+
+@dataclass
+class NetworkSnapshot:
+    """Complete network graph snapshot for a specific day."""
+
+    day: int
+    nodes: List[NetworkNode]
+    edges: List[NetworkEdge]
+
+
+def build_network_data(
+    system: System,
+    day: int,
+    instrument_types: Optional[List[str]] = None
+) -> NetworkSnapshot:
+    """Build network graph data from system state for a specific day.
+
+    Args:
+        system: The System instance containing state and agents
+        day: The day number for this snapshot
+        instrument_types: Optional list of instrument types to filter by.
+                         If None, all contracts are included.
+
+    Returns:
+        NetworkSnapshot containing nodes (agents) and edges (contracts)
+    """
+    # Extract all agents as NetworkNode objects
+    nodes = []
+    for agent in system.state.agents.values():
+        nodes.append(NetworkNode(
+            id=agent.id,
+            name=agent.name,
+            kind=agent.kind
+        ))
+
+    # Extract contracts as NetworkEdge objects
+    edges = []
+    for contract in system.state.contracts.values():
+        # Apply instrument type filter if provided
+        if instrument_types is not None and contract.kind not in instrument_types:
+            continue
+
+        edges.append(NetworkEdge(
+            source=contract.asset_holder_id,
+            target=contract.liability_issuer_id,
+            amount=contract.amount,
+            instrument_type=contract.kind,
+            contract_id=contract.id
+        ))
+
+    # Also check for dealer tickets if dealer subsystem exists
+    if hasattr(system.state, 'dealer_subsystem') and system.state.dealer_subsystem is not None:
+        dealer_subsystem = system.state.dealer_subsystem
+        if hasattr(dealer_subsystem, 'tickets'):
+            for ticket in dealer_subsystem.tickets.values():
+                # Tickets have: issuer_id (debtor), owner_id (creditor), face (amount)
+                ticket_type = "dealer_ticket"
+
+                # Apply instrument type filter if provided
+                if instrument_types is not None and ticket_type not in instrument_types:
+                    continue
+
+                # Convert Decimal face value to int (minor units)
+                # Assuming face is in major units, multiply by 100 for minor units
+                amount_minor = int(float(ticket.face) * 100)
+
+                edges.append(NetworkEdge(
+                    source=ticket.owner_id,  # Creditor/holder as source (asset holder)
+                    target=ticket.issuer_id,  # Debtor as target (liability issuer)
+                    amount=amount_minor,
+                    instrument_type=ticket_type,
+                    contract_id=ticket.id
+                ))
+
+    return NetworkSnapshot(
+        day=day,
+        nodes=nodes,
+        edges=edges
+    )
+
+
+def build_network_time_series(
+    system: System,
+    days: List[int],
+    instrument_types: Optional[List[str]] = None
+) -> List[NetworkSnapshot]:
+    """Build network graph data for multiple days.
+
+    Args:
+        system: The System instance containing state and agents
+        days: List of day numbers to create snapshots for
+        instrument_types: Optional list of instrument types to filter by.
+                         If None, all contracts are included.
+
+    Returns:
+        List of NetworkSnapshot objects, one for each day
+    """
+    snapshots = []
+    for day in days:
+        snapshot = build_network_data(system, day, instrument_types)
+        snapshots.append(snapshot)
+
+    return snapshots
+
+
+def _snapshot_to_dict(snapshot: NetworkSnapshot) -> dict:
+    """Convert NetworkSnapshot to JSON-serializable dictionary.
+
+    Args:
+        snapshot: The NetworkSnapshot to convert
+
+    Returns:
+        Dictionary representation of the snapshot
+    """
+    return asdict(snapshot)
 
 ```
 
@@ -59384,7 +59572,7 @@ def validate(scenario_file: Path):
         console.print(f"[dim]Validating {scenario_file}...[/dim]")
         config = load_yaml(scenario_file)
 
-        console.print(f"[green]✓[/green] Configuration syntax is valid")
+        console.print(f"[green]OK[/green] Configuration syntax is valid")
         console.print(f"  Name: {config.name}")
         console.print(f"  Version: {config.version}")
         console.print(f"  Agents: {len(config.agents)}")
@@ -59395,11 +59583,11 @@ def validate(scenario_file: Path):
         test_system = System()
         apply_to_system(config, test_system)
 
-        console.print(f"[green]✓[/green] Configuration can be applied successfully")
+        console.print(f"[green]OK[/green] Configuration can be applied successfully")
 
         # Run invariant checks
         test_system.assert_invariants()
-        console.print(f"[green]✓[/green] System invariants pass")
+        console.print(f"[green]OK[/green] System invariants pass")
 
         # Summary
         console.print("\n[bold green]Configuration is valid![/bold green]")
@@ -59454,7 +59642,7 @@ def new(from_template: Optional[str], output: Path):
     """
     try:
         create_scenario_wizard(output, from_template)
-        console.print(f"[green]✓[/green] Created scenario file: {output}")
+        console.print(f"[green]OK[/green] Created scenario file: {output}")
 
     except Exception as e:
         console.print(Panel(
@@ -59526,25 +59714,25 @@ def analyze(
     intraday_rows = bundle["intraday"]
 
     write_day_metrics_csv(out_csv, metrics_rows)
-    console.print(f"[green]✓[/green] Wrote day metrics CSV: {out_csv}")
+    console.print(f"[green]OK[/green] Wrote day metrics CSV: {out_csv}")
     write_day_metrics_json(out_json, metrics_rows)
-    console.print(f"[green]✓[/green] Wrote day metrics JSON: {out_json}")
+    console.print(f"[green]OK[/green] Wrote day metrics JSON: {out_json}")
 
     # Debtor shares and intraday are optional; only write if path provided
     base_name = out_csv.stem.replace("_metrics_day", "") if out_csv else "metrics"
     ds_path = out_csv.parent / f"{base_name}_ds.csv"
     write_debtor_shares_csv(ds_path, ds_rows)
-    console.print(f"[green]✓[/green] Wrote debtor shares CSV: {ds_path}")
+    console.print(f"[green]OK[/green] Wrote debtor shares CSV: {ds_path}")
 
     if intraday_csv:
         write_intraday_csv(intraday_csv, intraday_rows)
-        console.print(f"[green]✓[/green] Wrote intraday CSV: {intraday_csv}")
+        console.print(f"[green]OK[/green] Wrote intraday CSV: {intraday_csv}")
 
     if html_out:
         title = f"Bilancio Analytics — {events_path.stem.replace('_events','')}"
         subtitle = f"Events: {events_path.name}{' | Balances: ' + balances_path.name if balances_path else ''}"
         write_metrics_html(html_out, metrics_rows, ds_rows, intraday_rows, title=title, subtitle=subtitle)
-        console.print(f"[green]✓[/green] Wrote HTML analytics: {html_out}")
+        console.print(f"[green]OK[/green] Wrote HTML analytics: {html_out}")
 
 ```
 
@@ -60228,8 +60416,8 @@ def sweep_strategy_outcomes(experiment: Path, verbose: bool):
     by_run_path, overall_path = run_strategy_analysis(experiment)
 
     if by_run_path and by_run_path.exists():
-        console.print(f"[green]✓[/green] Strategy outcomes by run: {by_run_path}")
-        console.print(f"[green]✓[/green] Strategy outcomes overall: {overall_path}")
+        console.print(f"[green]OK[/green] Strategy outcomes by run: {by_run_path}")
+        console.print(f"[green]OK[/green] Strategy outcomes overall: {overall_path}")
     else:
         console.print("[yellow]No output generated - check that repayment_events.csv files exist[/yellow]")
 
@@ -60258,7 +60446,7 @@ def sweep_dealer_usage(experiment: Path, verbose: bool):
     output_path = run_dealer_usage_analysis(experiment)
 
     if output_path and output_path.exists():
-        console.print(f"[green]✓[/green] Dealer usage summary: {output_path}")
+        console.print(f"[green]OK[/green] Dealer usage summary: {output_path}")
     else:
         console.print("[yellow]No output generated - check that required CSV files exist[/yellow]")
 
@@ -60731,9 +60919,9 @@ def show_day_summary_renderable(
         # Check if balanced
         diff = abs(total_assets - total_liabilities)
         if diff < 0.01:
-            table.add_row("Status", "[green]✓ Balanced[/green]")
+            table.add_row("Status", "[green]OK Balanced[/green]")
         else:
-            table.add_row("Status", f"[red]✗ Imbalanced ({diff:,.2f})[/red]")
+            table.add_row("Status", f"[red]X Imbalanced ({diff:,.2f})[/red]")
         
         renderables.append(table)
     
@@ -60858,10 +61046,15 @@ from typing import Any, Dict, List, Optional
 import math
 from decimal import Decimal
 import html as _html
+import json
+import logging
 
 from bilancio.engines.system import System
 from bilancio.analysis.visualization import build_t_account_rows
 from bilancio.analysis.balances import AgentBalance
+from bilancio.analysis.network import build_network_data
+
+logger = logging.getLogger(__name__)
 
 
 def _load_css() -> str:
@@ -61269,6 +61462,319 @@ def _split_phase_b_into_subphases(events_b: List[Dict[str, Any]]) -> tuple:
     return b1, b_dealer, b2
 
 
+def _build_network_json_data(
+    initial_network_snapshot: Optional[Any],
+    days_data: List[Dict[str, Any]]
+) -> str:
+    """Build network visualization data as JSON string.
+
+    Args:
+        initial_network_snapshot: Network snapshot for day 0
+        days_data: List of day data dictionaries (each should have 'network_snapshot')
+
+    Returns:
+        JSON string containing snapshots and instrument types
+    """
+    from dataclasses import asdict
+    from decimal import Decimal
+
+    def decimal_to_float(obj):
+        """Convert Decimal to float for JSON serialization."""
+        if isinstance(obj, Decimal):
+            return float(obj)
+        raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
+
+    # Build network data from captured snapshots
+    snapshots = []
+    all_instrument_types = set()
+
+    # Add initial snapshot (Day 0) if available
+    if initial_network_snapshot:
+        # Convert nodes and edges to dictionaries
+        nodes_dict = [asdict(node) for node in initial_network_snapshot.nodes]
+        edges_dict = [asdict(edge) for edge in initial_network_snapshot.edges]
+
+        # Rename 'kind' to 'agent_type' for nodes to match JS expectations
+        for node in nodes_dict:
+            node['agent_type'] = node.pop('kind')
+
+        # Rename 'source'/'target' to 'from'/'to' for edges to match JS expectations
+        for edge in edges_dict:
+            edge['from'] = edge.pop('source')
+            edge['to'] = edge.pop('target')
+            # Convert amount to int if it's a Decimal
+            if isinstance(edge.get('amount'), Decimal):
+                edge['amount'] = int(edge['amount'])
+
+        snapshot = {
+            'day': 0,
+            'nodes': nodes_dict,
+            'edges': edges_dict
+        }
+        snapshots.append(snapshot)
+
+        # Collect instrument types from edges
+        for edge in initial_network_snapshot.edges:
+            all_instrument_types.add(edge.instrument_type)
+
+    # Add snapshots from days_data
+    for day_data in days_data:
+        network_data = day_data.get('network_snapshot')
+        if not network_data:
+            continue
+
+        # Convert nodes and edges to dictionaries
+        nodes_dict = [asdict(node) for node in network_data.nodes]
+        edges_dict = [asdict(edge) for edge in network_data.edges]
+
+        # Rename 'kind' to 'agent_type' for nodes to match JS expectations
+        for node in nodes_dict:
+            node['agent_type'] = node.pop('kind')
+
+        # Rename 'source'/'target' to 'from'/'to' for edges to match JS expectations
+        for edge in edges_dict:
+            edge['from'] = edge.pop('source')
+            edge['to'] = edge.pop('target')
+            # Convert amount to int if it's a Decimal
+            if isinstance(edge.get('amount'), Decimal):
+                edge['amount'] = int(edge['amount'])
+
+        snapshot = {
+            'day': day_data['day'],
+            'nodes': nodes_dict,
+            'edges': edges_dict
+        }
+        snapshots.append(snapshot)
+
+        # Collect instrument types from edges
+        for edge in network_data.edges:
+            all_instrument_types.add(edge.instrument_type)
+
+    # Sort instrument types for consistent ordering
+    instrument_types = sorted(all_instrument_types)
+
+    return json.dumps({
+        'snapshots': snapshots,
+        'instrument_types': instrument_types
+    }, default=decimal_to_float)
+
+
+def _generate_network_viz_js() -> str:
+    """Generate JavaScript code for network visualization.
+
+    Returns:
+        JavaScript code as a string
+    """
+    return """
+// Network Visualization with Plotly
+(function() {
+    const dataEl = document.getElementById('network-data');
+    if (!dataEl) return;
+
+    const data = JSON.parse(dataEl.textContent);
+    const snapshots = data.snapshots;
+    const instrumentTypes = data.instrument_types;
+
+    // Color schemes
+    const instrumentColors = {
+        'cash': '#10b981',
+        'bank_deposit': '#3b82f6',
+        'reserve_deposit': '#8b5cf6',
+        'payable': '#ef4444',
+        'delivery_obligation': '#f59e0b',
+        'dealer_ticket': '#ec4899'
+    };
+
+    const agentColors = {
+        'central_bank': '#7c3aed',
+        'bank': '#2563eb',
+        'household': '#10b981',
+        'firm': '#f59e0b',
+        'dealer': '#ec4899',
+        'treasury': '#14b8a6',
+        'vbt': '#a855f7',
+        'trader': '#10b981'
+    };
+
+    // Current filter state
+    let selectedInstruments = new Set(instrumentTypes);
+
+    // Helper: circular layout
+    function circularLayout(nodes) {
+        const n = nodes.length;
+        const radius = 1.5;
+        const angleStep = (2 * Math.PI) / n;
+        const positions = {};
+        nodes.forEach((node, i) => {
+            const angle = i * angleStep;
+            positions[node.id] = {
+                x: radius * Math.cos(angle),
+                y: radius * Math.sin(angle)
+            };
+        });
+        return positions;
+    }
+
+    // Build traces for a given snapshot
+    function buildTraces(snapshot) {
+        const positions = circularLayout(snapshot.nodes);
+
+        // Filter edges by selected instruments
+        const filteredEdges = snapshot.edges.filter(e =>
+            selectedInstruments.has(e.instrument_type)
+        );
+
+        // Edge traces (one per edge for individual colors)
+        const edgeTraces = filteredEdges.map(edge => {
+            const from = positions[edge.from];
+            const to = positions[edge.to];
+            const color = instrumentColors[edge.instrument_type] || '#999';
+            const width = Math.max(1, Math.log10(edge.amount + 1));
+
+            return {
+                type: 'scatter',
+                mode: 'lines',
+                x: [from.x, to.x],
+                y: [from.y, to.y],
+                line: {
+                    color: color,
+                    width: width
+                },
+                hoverinfo: 'text',
+                text: `${edge.from} → ${edge.to}<br>${edge.instrument_type}: ${edge.amount.toLocaleString()}`,
+                showlegend: false
+            };
+        });
+
+        // Node trace
+        const nodeX = snapshot.nodes.map(n => positions[n.id].x);
+        const nodeY = snapshot.nodes.map(n => positions[n.id].y);
+        const nodeColors = snapshot.nodes.map(n => agentColors[n.agent_type] || '#999');
+        const nodeText = snapshot.nodes.map(n =>
+            `${n.name || n.id}<br>Type: ${n.agent_type}`
+        );
+
+        const nodeTrace = {
+            type: 'scatter',
+            mode: 'markers+text',
+            x: nodeX,
+            y: nodeY,
+            marker: {
+                size: 20,
+                color: nodeColors,
+                line: { color: '#fff', width: 2 }
+            },
+            text: snapshot.nodes.map(n => n.name || n.id),
+            textposition: 'top center',
+            hoverinfo: 'text',
+            hovertext: nodeText,
+            showlegend: false
+        };
+
+        return [...edgeTraces, nodeTrace];
+    }
+
+    // Build frames for animation
+    const frames = snapshots.map(snapshot => ({
+        name: `Day ${snapshot.day}`,
+        data: buildTraces(snapshot)
+    }));
+
+    // Initial plot
+    const initialTraces = buildTraces(snapshots[0]);
+
+    const layout = {
+        title: `Network Graph - Day ${snapshots[0].day}`,
+        showlegend: false,
+        hovermode: 'closest',
+        xaxis: { visible: false, range: [-2, 2] },
+        yaxis: { visible: false, range: [-2, 2] },
+        width: 900,
+        height: 700,
+        plot_bgcolor: '#fafafa',
+        paper_bgcolor: '#fff',
+        sliders: [{
+            active: 0,
+            steps: snapshots.map((snapshot, i) => ({
+                label: `Day ${snapshot.day}`,
+                method: 'animate',
+                args: [[`Day ${snapshot.day}`], {
+                    mode: 'immediate',
+                    transition: { duration: 300 },
+                    frame: { duration: 300, redraw: true }
+                }]
+            })),
+            currentvalue: {
+                prefix: 'Day: ',
+                visible: true,
+                xanchor: 'right'
+            }
+        }],
+        updatemenus: [{
+            type: 'buttons',
+            showactive: false,
+            x: 0.1,
+            y: 1.15,
+            buttons: [
+                {
+                    label: 'Play',
+                    method: 'animate',
+                    args: [null, {
+                        fromcurrent: true,
+                        transition: { duration: 300 },
+                        frame: { duration: 500, redraw: true }
+                    }]
+                },
+                {
+                    label: 'Pause',
+                    method: 'animate',
+                    args: [[null], {
+                        mode: 'immediate',
+                        transition: { duration: 0 },
+                        frame: { duration: 0, redraw: false }
+                    }]
+                }
+            ]
+        }]
+    };
+
+    Plotly.newPlot('network-graph', initialTraces, layout, { responsive: true })
+        .then(() => {
+            Plotly.addFrames('network-graph', frames);
+        });
+
+    // Instrument filter handler
+    const filterCheckboxes = document.querySelectorAll('.instrument-filter');
+    filterCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                selectedInstruments.add(this.value);
+            } else {
+                selectedInstruments.delete(this.value);
+            }
+
+            // Get current frame from slider
+            const slider = document.querySelector('.slider-container');
+            const currentDay = snapshots[0].day; // Default to first day
+            const currentSnapshot = snapshots.find(s => s.day === currentDay) || snapshots[0];
+
+            // Rebuild traces with new filter
+            const newTraces = buildTraces(currentSnapshot);
+            Plotly.react('network-graph', newTraces, layout);
+
+            // Rebuild frames
+            const newFrames = snapshots.map(snapshot => ({
+                name: `Day ${snapshot.day}`,
+                data: buildTraces(snapshot)
+            }));
+            Plotly.deleteFrames('network-graph');
+            Plotly.addFrames('network-graph', newFrames);
+        });
+    });
+})();
+"""
+
+
 def export_pretty_html(
     system: System,
     out_path: Path,
@@ -61281,6 +61787,7 @@ def export_pretty_html(
     max_days: Optional[int] = None,
     quiet_days: Optional[int] = None,
     initial_rows: Optional[Dict[str, Dict[str, List[dict]]]] = None,
+    initial_network_snapshot: Optional[Any] = None,
 ) -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -61340,6 +61847,38 @@ def export_pretty_html(
         kind = _html_escape(agent.kind)
         html_parts.append(f"<tr><td>{_html_escape(aid)}</td><td>{name}</td><td>{kind}</td></tr>")
     html_parts.append("</tbody></table></section></section>")
+
+    # Network visualization section
+    try:
+        if days_data and initial_network_snapshot:
+            network_json = _build_network_json_data(initial_network_snapshot, days_data)
+            network_js = _generate_network_viz_js()
+
+            # Parse JSON to get instrument types for filter UI
+            network_data = json.loads(network_json)
+            instrument_types = network_data.get('instrument_types', [])
+
+            # Build instrument filter checkboxes
+            filter_checkboxes = []
+            for inst_type in instrument_types:
+                filter_checkboxes.append(
+                    f'<label><input type="checkbox" class="instrument-filter" value="{_html_escape(inst_type)}" checked> {_html_escape(inst_type)}</label>'
+                )
+
+            html_parts.append('<section class="network-viz">')
+            html_parts.append('<h2>Balance Sheet Network</h2>')
+            html_parts.append('<p class="description">Interactive visualization of asset-liability relationships between agents over time</p>')
+            html_parts.append('<div id="network-graph" style="width: 100%; height: 700px;"></div>')
+            html_parts.append('<div class="network-controls">')
+            html_parts.append('<strong>Filter by Instrument Type:</strong><br>')
+            html_parts.append(' '.join(filter_checkboxes))
+            html_parts.append('</div>')
+            html_parts.append('<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>')
+            html_parts.append(f'<script type="application/json" id="network-data">{network_json}</script>')
+            html_parts.append(f'<script>{network_js}</script>')
+            html_parts.append('</section>')
+    except Exception as e:
+        logger.warning(f"Failed to generate network visualization: {e}", exc_info=True)
 
     # Day 0 (Setup)
     html_parts.append("<section class=\"day-section\"><h2 class=\"day-header\">📅 Day 0 (Setup)</h2>")
@@ -61507,7 +62046,7 @@ class EventFormatterRegistry:
             if key not in skip_fields:
                 lines.append(f"{key}: {value}")
         
-        return title, lines[:3], "❓"  # Limit to 3 lines
+        return title, lines[:3], "?"  # Limit to 3 lines
 
 
 # Create global registry instance
@@ -61522,10 +62061,10 @@ def format_cash_transferred(event: Dict[str, Any]) -> Tuple[str, List[str], str]
     frm = event.get("frm", "Unknown")
     to = event.get("to", "Unknown")
     
-    title = f"💰 Cash Transfer: ${amount:,}"
-    lines = [f"{frm} → {to}"]
-    
-    return title, lines, "💰"
+    title = f"Cash Transfer: ${amount:,}"
+    lines = [f"{frm} -> {to}"]
+
+    return title, lines, "$"
 
 
 @registry.register("ReservesTransferred")
@@ -61535,10 +62074,10 @@ def format_reserves_transferred(event: Dict[str, Any]) -> Tuple[str, List[str], 
     frm = event.get("frm", "Unknown")
     to = event.get("to", "Unknown")
     
-    title = f"🏦 Reserves Transfer: ${amount:,}"
-    lines = [f"{frm} → {to}"]
+    title = f"[BANK] Reserves Transfer: ${amount:,}"
+    lines = [f"{frm} -> {to}"]
     
-    return title, lines, "🏦"
+    return title, lines, "[BANK]"
 
 
 @registry.register("StockTransferred")
@@ -61550,12 +62089,12 @@ def format_stock_transferred(event: Dict[str, Any]) -> Tuple[str, List[str], str
     to = event.get("to", "Unknown")
     unit_price = event.get("unit_price", None)
     
-    title = f"📦 Stock Transfer: {quantity} {sku}"
-    lines = [f"{frm} → {to}"]
+    title = f"[PKG] Stock Transfer: {quantity} {sku}"
+    lines = [f"{frm} -> {to}"]
     if unit_price:
         lines.append(f"@ ${unit_price:,}/unit")
     
-    return title, lines, "📦"
+    return title, lines, "[PKG]"
 
 
 @registry.register("DeliveryObligationCreated")
@@ -61567,12 +62106,12 @@ def format_delivery_obligation_created(event: Dict[str, Any]) -> Tuple[str, List
     to = event.get("to", "Unknown")
     due_day = event.get("due_day", None)
     
-    title = f"📋 Delivery Obligation: {quantity} {sku}"
-    lines = [f"{frm} → {to}"]
+    title = f"[DOC] Delivery Obligation: {quantity} {sku}"
+    lines = [f"{frm} -> {to}"]
     if due_day:
         lines.append(f"Due: Day {due_day}")
     
-    return title, lines, "📋"
+    return title, lines, "[DOC]"
 
 
 @registry.register("DeliveryObligationSettled")
@@ -61583,10 +62122,10 @@ def format_delivery_obligation_settled(event: Dict[str, Any]) -> Tuple[str, List
     debtor = event.get("debtor", "Unknown")
     creditor = event.get("creditor", "Unknown")
     
-    title = f"✅ Delivery Settled: {quantity} {sku}"
-    lines = [f"{debtor} → {creditor}"]
+    title = f"[OK] Delivery Settled: {quantity} {sku}"
+    lines = [f"{debtor} -> {creditor}"]
     
-    return title, lines, "✅"
+    return title, lines, "[OK]"
 
 
 @registry.register("PayableCreated")
@@ -61597,12 +62136,12 @@ def format_payable_created(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     creditor = event.get("creditor", event.get("to", "Unknown"))
     due_day = event.get("due_day", None)
     
-    title = f"💸 Payable Created: ${amount:,}"
+    title = f"[PAY] Payable Created: ${amount:,}"
     lines = [f"{debtor} owes {creditor}"]
     if due_day is not None:
         lines.append(f"Due: Day {due_day}")
     
-    return title, lines, "💸"
+    return title, lines, "[PAY]"
 
 
 @registry.register("PayableSettled")
@@ -61612,10 +62151,10 @@ def format_payable_settled(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     debtor = event.get("debtor", "Unknown")
     creditor = event.get("creditor", "Unknown")
     
-    title = f"💰 Payable Settled: ${amount:,}"
-    lines = [f"{debtor} → {creditor}"]
+    title = f"$ Payable Settled: ${amount:,}"
+    lines = [f"{debtor} -> {creditor}"]
     
-    return title, lines, "💰"
+    return title, lines, "$"
 
 
 @registry.register("CashDeposited")
@@ -61625,10 +62164,10 @@ def format_cash_deposited(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     bank = event.get("bank", "Unknown")
     amount = event.get("amount", 0)
     
-    title = f"🏧 Cash Deposit: ${amount:,}"
-    lines = [f"{customer} → {bank}"]
+    title = f"[ATM] Cash Deposit: ${amount:,}"
+    lines = [f"{customer} -> {bank}"]
     
-    return title, lines, "🏧"
+    return title, lines, "[ATM]"
 
 
 @registry.register("CashWithdrawn")
@@ -61638,10 +62177,10 @@ def format_cash_withdrawn(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     bank = event.get("bank", "Unknown") 
     amount = event.get("amount", 0)
     
-    title = f"💸 Cash Withdrawal: ${amount:,}"
-    lines = [f"{customer} ← {bank}"]
+    title = f"[PAY] Cash Withdrawal: ${amount:,}"
+    lines = [f"{customer} <- {bank}"]
     
-    return title, lines, "💸"
+    return title, lines, "[PAY]"
 
 
 @registry.register("ClientPayment")
@@ -61653,13 +62192,13 @@ def format_client_payment(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     payer_bank = event.get("payer_bank", "Unknown")
     payee_bank = event.get("payee_bank", "Unknown")
     
-    title = f"💳 Inter-Bank Payment: ${amount:,}"
+    title = f"[CARD] Inter-Bank Payment: ${amount:,}"
     lines = [
-        f"{payer} → {payee}",
-        f"via {payer_bank} → {payee_bank}"
+        f"{payer} -> {payee}",
+        f"via {payer_bank} -> {payee_bank}"
     ]
     
-    return title, lines, "💳"
+    return title, lines, "[CARD]"
 
 
 @registry.register("IntraBankPayment")
@@ -61670,13 +62209,13 @@ def format_intra_bank_payment(event: Dict[str, Any]) -> Tuple[str, List[str], st
     amount = event.get("amount", 0)
     bank = event.get("bank", "Unknown")
     
-    title = f"🏦 Intra-Bank Payment: ${amount:,}"
+    title = f"[BANK] Intra-Bank Payment: ${amount:,}"
     lines = [
-        f"{payer} → {payee}",
+        f"{payer} -> {payee}",
         f"at {bank}"
     ]
     
-    return title, lines, "🏦"
+    return title, lines, "[BANK]"
 
 
 @registry.register("CashPayment")
@@ -61686,10 +62225,10 @@ def format_cash_payment(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     payee = event.get("payee", "Unknown")
     amount = event.get("amount", 0)
     
-    title = f"💵 Cash Payment: ${amount:,}"
-    lines = [f"{payer} → {payee}"]
+    title = f"[CASH] Cash Payment: ${amount:,}"
+    lines = [f"{payer} -> {payee}"]
     
-    return title, lines, "💵"
+    return title, lines, "[CASH]"
 
 
 @registry.register("InstrumentMerged")
@@ -61702,13 +62241,13 @@ def format_instrument_merged(event: Dict[str, Any]) -> Tuple[str, List[str], str
     keep_short = keep.split('_')[-1][:8] if keep != "Unknown" else keep
     removed_short = removed.split('_')[-1][:8] if removed != "Unknown" else removed
     
-    title = f"🔀 Cash Consolidation"
+    title = f"[MRG] Cash Consolidation"
     lines = [
-        f"Merged: {removed_short} → {keep_short}",
+        f"Merged: {removed_short} -> {keep_short}",
         f"(Reduces fragmentation)"
     ]
     
-    return title, lines, "🔀"
+    return title, lines, "[MRG]"
 
 
 @registry.register("InterbankCleared")
@@ -61718,10 +62257,10 @@ def format_interbank_cleared(event: Dict[str, Any]) -> Tuple[str, List[str], str
     creditor_bank = event.get("creditor_bank", "Unknown")
     amount = event.get("amount", 0)
     
-    title = f"🔄 Interbank Clearing: ${amount:,}"
-    lines = [f"{debtor_bank} → {creditor_bank}"]
+    title = f"[CLR] Interbank Clearing: ${amount:,}"
+    lines = [f"{debtor_bank} -> {creditor_bank}"]
     
-    return title, lines, "🔄"
+    return title, lines, "[CLR]"
 
 
 @registry.register("CashMinted")
@@ -61730,10 +62269,10 @@ def format_cash_minted(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     to = event.get("to", "Unknown")
     amount = event.get("amount", 0)
     
-    title = f"🖨️ Cash Minted: ${amount:,}"
+    title = f"[MINT] Cash Minted: ${amount:,}"
     lines = [f"To: {to}"]
     
-    return title, lines, "🖨️"
+    return title, lines, "[MINT]"
 
 
 @registry.register("ReservesMinted")
@@ -61742,10 +62281,10 @@ def format_reserves_minted(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     to = event.get("to", "Unknown")
     amount = event.get("amount", 0)
     
-    title = f"🏛️ Reserves Minted: ${amount:,}"
+    title = f"[RSV] Reserves Minted: ${amount:,}"
     lines = [f"Bank: {to}"]
     
-    return title, lines, "🏛️"
+    return title, lines, "[RSV]"
 
 
 @registry.register("StockSplit")
@@ -61756,13 +62295,13 @@ def format_stock_split(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     split_qty = event.get("split_qty", 0)
     remaining_qty = event.get("remaining_qty", 0)
     
-    title = f"✂️ Stock Split: {split_qty} {sku}"
+    title = f"[SPLIT] Stock Split: {split_qty} {sku}"
     lines = [
-        f"From lot of {original_qty} → {remaining_qty} remain",
+        f"From lot of {original_qty} -> {remaining_qty} remain",
         f"(Preparing transfer)"
     ]
     
-    return title, lines, "✂️"
+    return title, lines, "[SPLIT]"
 
 
 @registry.register("DeliveryObligationCancelled")
@@ -61774,13 +62313,13 @@ def format_delivery_cancelled(event: Dict[str, Any]) -> Tuple[str, List[str], st
     # Short ID for readability
     short_id = obligation_id.split('_')[-1][:8] if obligation_id != "Unknown" else obligation_id
     
-    title = f"✓ Obligation Cleared"
+    title = f"[OK] Obligation Cleared"
     lines = [
         f"By: {debtor}",
         f"ID: ...{short_id}"
     ]
-    
-    return title, lines, "✓"
+
+    return title, lines, "[OK]"
 
 
 @registry.register("StockCreated")
@@ -61791,7 +62330,7 @@ def format_stock_created(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     qty = event.get("qty", event.get("quantity", 0))
     unit_price = event.get("unit_price", None)
     
-    title = f"📋 Stock Created: {qty} {sku}"
+    title = f"[DOC] Stock Created: {qty} {sku}"
     lines = [f"Owner: {owner}"]
     if unit_price:
         if isinstance(qty, (int, float)) and isinstance(unit_price, (int, float)):
@@ -61800,7 +62339,7 @@ def format_stock_created(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
         else:
             lines.append(f"Value: ${unit_price}/unit")
     
-    return title, lines, "📋"
+    return title, lines, "[DOC]"
 
 
 # Phase markers
@@ -61808,19 +62347,19 @@ def format_stock_created(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
 def format_phase_a(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     """Format phase A markers."""
     day = event.get("day", "?")
-    return f"⏰ Day {day} begins", ["Morning activities"], "⏰"
+    return f"[TIME] Day {day} begins", ["Morning activities"], "[TIME]"
 
 
 @registry.register("PhaseB")
 def format_phase_b(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     """Format phase B markers."""
-    return "🌅 Business hours", ["Main economic activity"], "🌅"
+    return "[MORN] Business hours", ["Main economic activity"], "[MORN]"
 
 
 @registry.register("PhaseC")
 def format_phase_c(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     """Format phase C markers."""
-    return "🌙 End of day", ["Settlements and clearing"], "🌙"
+    return "[NIGHT] End of day", ["Settlements and clearing"], "[NIGHT]"
 ```
 
 ---
@@ -62121,7 +62660,7 @@ def build_day_summary(view: DaySummaryView) -> List[RenderableType]:
     
     # Agent balances section
     if view.agent_balances:
-        renderables.append(Text("\n💰 Agent Balances", style="bold yellow"))
+        renderables.append(Text("\n$ Agent Balances", style="bold yellow"))
         renderables.append(build_multiple_agent_balances(view.agent_balances))
     
     return renderables
@@ -62329,7 +62868,7 @@ def run_scenario(
         console.print(f"[dim]Default handling mode: {effective_default_handling}[/dim]")
 
         # Show initial state
-        console.print("\n[bold cyan]📅 Day 0 (After Setup)[/bold cyan]")
+        console.print("\n[bold cyan] Day 0 (After Setup)[/bold cyan]")
         renderables = show_day_summary_renderable(system, agent_ids, show, t_account=t_account)
         for renderable in renderables:
             console.print(renderable)
@@ -62358,7 +62897,11 @@ def run_scenario(
             'assets': [_row_dict(r) for r in acct.assets],
             'liabs': [_row_dict(r) for r in acct.liabilities],
         }
-    
+
+    # Capture initial network snapshot (Day 0)
+    from bilancio.analysis.network import build_network_data
+    initial_network_snapshot = build_network_data(system, day=0)
+
     # Track day data for PDF export
     days_data = []
 
@@ -62395,13 +62938,13 @@ def run_scenario(
         export_path = Path(export['balances_csv'])
         export_path.parent.mkdir(parents=True, exist_ok=True)
         write_balances_csv(system, export_path)
-        console.print(f"[green]✓[/green] Exported balances to {export_path}")
+        console.print(f"[green]OK[/green] Exported balances to {export_path}")
     
     if export.get('events_jsonl'):
         export_path = Path(export['events_jsonl'])
         export_path.parent.mkdir(parents=True, exist_ok=True)
         write_events_jsonl(system, export_path)
-        console.print(f"[green]✓[/green] Exported events to {export_path}")
+        console.print(f"[green]OK[/green] Exported events to {export_path}")
 
     # Export dealer metrics if dealer subsystem is enabled
     if enable_dealer and hasattr(system.state, 'dealer_subsystem') and system.state.dealer_subsystem is not None:
@@ -62416,7 +62959,7 @@ def run_scenario(
             dealer_summary = system.state.dealer_subsystem.metrics.summary()
             with dealer_metrics_path.open('w') as f:
                 json.dump(dealer_summary, f, indent=2)
-            console.print(f"[green]✓[/green] Exported dealer metrics to {dealer_metrics_path}")
+            console.print(f"[green]OK[/green] Exported dealer metrics to {dealer_metrics_path}")
 
             # Plan 022: Export detailed dealer CSV logs if enabled
             if detailed_dealer_logging:
@@ -62445,17 +62988,17 @@ def run_scenario(
                 # trades.csv
                 trades_path = out_dir / "trades.csv"
                 metrics.to_trade_log_csv(str(trades_path))
-                console.print(f"[green]✓[/green] Exported trades to {trades_path}")
+                console.print(f"[green]OK[/green] Exported trades to {trades_path}")
 
                 # inventory_timeseries.csv (uses dealer_snapshots with new fields)
                 inventory_path = out_dir / "inventory_timeseries.csv"
                 metrics.to_inventory_timeseries_csv(str(inventory_path))
-                console.print(f"[green]✓[/green] Exported inventory timeseries to {inventory_path}")
+                console.print(f"[green]OK[/green] Exported inventory timeseries to {inventory_path}")
 
                 # system_state_timeseries.csv
                 system_state_path = out_dir / "system_state_timeseries.csv"
                 metrics.to_system_state_csv(str(system_state_path))
-                console.print(f"[green]✓[/green] Exported system state timeseries to {system_state_path}")
+                console.print(f"[green]OK[/green] Exported system state timeseries to {system_state_path}")
 
                 # repayment_events.csv (Plan 022 - Phase 2)
                 # Build repayment events from the event log and trades
@@ -62469,7 +63012,7 @@ def run_scenario(
                 metrics.repayment_events = repayment_events
                 repayment_events_path = out_dir / "repayment_events.csv"
                 metrics.to_repayment_events_csv(str(repayment_events_path))
-                console.print(f"[green]✓[/green] Exported repayment events to {repayment_events_path}")
+                console.print(f"[green]OK[/green] Exported repayment events to {repayment_events_path}")
 
     # Export to HTML if requested (semantic HTML for readability)
     if html_output:
@@ -62485,8 +63028,9 @@ def run_scenario(
             initial_rows=initial_rows,
             max_days=max_days,
             quiet_days=quiet_days,
+            initial_network_snapshot=initial_network_snapshot,
         )
-        console.print(f"[green]✓[/green] Exported HTML report: {html_output}")
+        console.print(f"[green]OK[/green] Exported HTML report: {html_output}")
 
 
 def run_step_mode(
@@ -62551,7 +63095,7 @@ def run_step_mode(
                     })
             if day_before >= 1:
                 # Show day summary
-                console.print(f"\n[bold cyan]📅 Day {day_before}[/bold cyan]")
+                console.print(f"\n[bold cyan] Day {day_before}[/bold cyan]")
                 display_agent_ids = _filter_active_agent_ids(system, agent_ids) if agent_ids is not None else None
                 renderables = show_day_summary_renderable(system, display_agent_ids, show, day=day_before, t_account=t_account)
                 for renderable in renderables:
@@ -62602,7 +63146,7 @@ def run_step_mode(
             
             # Check if we've reached a stable state
             if day_report.quiet and not day_report.has_open_obligations:
-                console.print("[green]✓[/green] System reached stable state")
+                console.print("[green]OK[/green] System reached stable state")
                 break
                 
         except DefaultError as e:
@@ -62724,7 +63268,7 @@ def run_until_stable_mode(
                 # Display this day's results immediately (with correct balance state)
                 # Plan 030: Skip day headers in quiet mode
                 if not quiet_mode:
-                    console.print(f"[bold cyan]📅 Day {day_before}[/bold cyan]")
+                    console.print(f"[bold cyan] Day {day_before}[/bold cyan]")
 
                 # Check invariants if requested
                 if check_invariants == "daily":
@@ -62732,7 +63276,7 @@ def run_until_stable_mode(
                         system.assert_invariants()
                     except Exception as e:
                         if not quiet_mode:
-                            console.print(f"[yellow]⚠ Invariant check failed: {e}[/yellow]")
+                            console.print(f"[yellow][!] Invariant check failed: {e}[/yellow]")
 
                 # Show events and balances for this specific day
                 # Note: events are stored with 0-based day numbers
@@ -62778,7 +63322,11 @@ def run_until_stable_mode(
                             'assets': [to_row(r) for r in acct.assets],
                             'liabs': [to_row(r) for r in acct.liabilities],
                         }
-                
+
+                # Capture network snapshot for this day
+                from bilancio.analysis.network import build_network_data
+                network_snapshot = build_network_data(system, day_before)
+
                 days_data.append({
                     'day': day_before,  # Use actual event day, not 1-based counter
                     'events': day_events,
@@ -62787,6 +63335,7 @@ def run_until_stable_mode(
                     'balances': day_balances,
                     'rows': day_rows,
                     'agent_ids': active_agents_for_day if active_agents_for_day is not None else [],
+                    'network_snapshot': network_snapshot,
                 })
                 
                 # Show activity summary (Plan 030: skip in quiet mode)
@@ -62794,7 +63343,7 @@ def run_until_stable_mode(
                     if report.impacted > 0:
                         console.print(f"[dim]Activity: {report.impacted} impactful events[/dim]")
                     else:
-                        console.print("[dim]→ Quiet day (no activity)[/dim]")
+                        console.print("[dim]-> Quiet day (no activity)[/dim]")
 
                     if report.notes:
                         console.print(f"[dim]Note: {report.notes}[/dim]")
@@ -62814,12 +63363,12 @@ def run_until_stable_mode(
                 stability_condition = stability_condition and not _has_open_obligations(system)
 
             if stability_condition:
-                console.print("[green]✓[/green] System reached stable state")
+                console.print("[green]OK[/green] System reached stable state")
                 break
         
         # If we didn't break early, check if we hit max days
         else:
-            console.print("[yellow]⚠[/yellow] Maximum days reached without stable state")
+            console.print("[yellow][!][/yellow] Maximum days reached without stable state")
         
     except DefaultError as e:
         show_error_panel(
@@ -62963,7 +63512,7 @@ def create_scenario_wizard(output_path: Path, template: Optional[str] = None) ->
             with open(output_path, 'w') as f:
                 yaml.dump(config, f, default_flow_style=False, sort_keys=False)
             
-            console.print(f"\n[green]✓[/green] Scenario configuration saved to: {output_path}")
+            console.print(f"\n[green]OK[/green] Scenario configuration saved to: {output_path}")
             console.print(f"\nRun your scenario with: [cyan]bilancio run {output_path}[/cyan]")
             return
         
@@ -63124,7 +63673,7 @@ def create_scenario_wizard(output_path: Path, template: Optional[str] = None) ->
     with open(output_path, 'w') as f:
         yaml.dump(config, f, default_flow_style=False, sort_keys=False)
     
-    console.print(f"\n[green]✓[/green] Scenario configuration saved to: {output_path}")
+    console.print(f"\n[green]OK[/green] Scenario configuration saved to: {output_path}")
     console.print(f"\nRun your scenario with: [cyan]bilancio run {output_path}[/cyan]")
 ```
 
@@ -63749,6 +64298,292 @@ class TestMetricsComputerInit:
         loader = LocalArtifactLoader(tmp_path)
         computer = MetricsComputer(loader)
         assert computer.loader is not None
+
+```
+
+---
+
+### 🧪 tests/analysis/test_network.py
+
+```python
+"""Tests for network graph data extraction."""
+
+import pytest
+from bilancio.analysis.network import (
+    NetworkNode,
+    NetworkEdge,
+    NetworkSnapshot,
+    build_network_data,
+    build_network_time_series,
+    _snapshot_to_dict,
+)
+from bilancio.engines.system import System
+from bilancio.domain.instruments.means_of_payment import Cash, BankDeposit, ReserveDeposit
+from bilancio.domain.instruments.credit import Payable
+
+
+def test_network_node_creation():
+    """Test NetworkNode dataclass creation."""
+    node = NetworkNode(id="A1", name="Agent 1", kind="household")
+    assert node.id == "A1"
+    assert node.name == "Agent 1"
+    assert node.kind == "household"
+
+
+def test_network_edge_creation():
+    """Test NetworkEdge dataclass creation."""
+    edge = NetworkEdge(
+        source="A1",
+        target="A2",
+        amount=1000,
+        instrument_type="payable",
+        contract_id="C1"
+    )
+    assert edge.source == "A1"
+    assert edge.target == "A2"
+    assert edge.amount == 1000
+    assert edge.instrument_type == "payable"
+    assert edge.contract_id == "C1"
+
+
+def test_build_network_data_simple(system_with_simple_contracts):
+    """Test building network data with simple contracts."""
+    system = system_with_simple_contracts
+
+    snapshot = build_network_data(system, day=0)
+
+    assert snapshot.day == 0
+    assert len(snapshot.nodes) == 3  # CB, H1, H2
+    assert len(snapshot.edges) == 2  # 2 cash contracts
+
+    # Check nodes
+    node_ids = {node.id for node in snapshot.nodes}
+    assert "CB" in node_ids
+    assert "H1" in node_ids
+    assert "H2" in node_ids
+
+    # Check edges
+    edge_types = {edge.instrument_type for edge in snapshot.edges}
+    assert "cash" in edge_types
+
+
+def test_build_network_data_multiple_contracts(system_with_multiple_instruments):
+    """Test building network data with multiple instrument types."""
+    system = system_with_multiple_instruments
+
+    snapshot = build_network_data(system, day=0)
+
+    assert snapshot.day == 0
+    assert len(snapshot.nodes) == 4  # CB, B1, H1, H2
+
+    # Should have various instrument types
+    edge_types = {edge.instrument_type for edge in snapshot.edges}
+    assert "cash" in edge_types
+    assert "bank_deposit" in edge_types
+    assert "reserve_deposit" in edge_types
+
+
+def test_build_network_data_filter_instruments(system_with_multiple_instruments):
+    """Test filtering network edges by instrument type."""
+    system = system_with_multiple_instruments
+
+    # Filter for only cash
+    snapshot = build_network_data(system, day=0, instrument_types=["cash"])
+
+    assert all(edge.instrument_type == "cash" for edge in snapshot.edges)
+
+    # Filter for multiple types
+    snapshot = build_network_data(
+        system,
+        day=0,
+        instrument_types=["cash", "bank_deposit"]
+    )
+
+    edge_types = {edge.instrument_type for edge in snapshot.edges}
+    assert edge_types.issubset({"cash", "bank_deposit"})
+
+
+def test_build_network_time_series(system_with_simple_contracts):
+    """Test building network snapshots for multiple days."""
+    system = system_with_simple_contracts
+
+    days = [0, 1, 2]
+    snapshots = build_network_time_series(system, days)
+
+    assert len(snapshots) == 3
+    assert snapshots[0].day == 0
+    assert snapshots[1].day == 1
+    assert snapshots[2].day == 2
+
+    # Each snapshot should have the same nodes
+    for snapshot in snapshots:
+        assert len(snapshot.nodes) == 3
+
+
+def test_empty_network(empty_system):
+    """Test building network with no contracts."""
+    system = empty_system
+
+    snapshot = build_network_data(system, day=0)
+
+    assert snapshot.day == 0
+    assert len(snapshot.edges) == 0
+    # Should still have nodes (agents)
+    assert len(snapshot.nodes) > 0
+
+
+def test_network_json_serialization(system_with_simple_contracts):
+    """Test converting NetworkSnapshot to JSON-serializable dict."""
+    system = system_with_simple_contracts
+
+    snapshot = build_network_data(system, day=0)
+    snapshot_dict = _snapshot_to_dict(snapshot)
+
+    assert isinstance(snapshot_dict, dict)
+    assert "day" in snapshot_dict
+    assert "nodes" in snapshot_dict
+    assert "edges" in snapshot_dict
+    assert snapshot_dict["day"] == 0
+
+    # Check that nodes are dicts
+    assert isinstance(snapshot_dict["nodes"], list)
+    if len(snapshot_dict["nodes"]) > 0:
+        assert isinstance(snapshot_dict["nodes"][0], dict)
+        assert "id" in snapshot_dict["nodes"][0]
+
+    # Check that edges are dicts
+    assert isinstance(snapshot_dict["edges"], list)
+    if len(snapshot_dict["edges"]) > 0:
+        assert isinstance(snapshot_dict["edges"][0], dict)
+        assert "source" in snapshot_dict["edges"][0]
+        assert "target" in snapshot_dict["edges"][0]
+
+
+def test_edge_source_target_mapping(system_with_simple_contracts):
+    """Test that edges correctly map asset_holder_id to source and liability_issuer_id to target."""
+    system = system_with_simple_contracts
+
+    # Add a specific contract we can verify
+    payable_id = system.new_contract_id()
+    payable = Payable(
+        id=payable_id,
+        amount=500,
+        denom="X",
+        asset_holder_id="H1",
+        liability_issuer_id="H2",
+        due_day=5
+    )
+    system.add_contract(payable)
+
+    snapshot = build_network_data(system, day=0)
+
+    # Find the payable edge
+    payable_edge = next((e for e in snapshot.edges if e.contract_id == payable_id), None)
+    assert payable_edge is not None
+    assert payable_edge.source == "H1"  # asset holder
+    assert payable_edge.target == "H2"  # liability issuer
+    assert payable_edge.amount == 500
+    assert payable_edge.instrument_type == "payable"
+
+
+# Fixtures
+
+@pytest.fixture
+def empty_system():
+    """Create a system with agents but no contracts."""
+    system = System()
+    system.create_agent(id="CB", name="Central Bank", kind="central_bank")
+    system.create_agent(id="H1", name="Household 1", kind="household")
+    return system
+
+
+@pytest.fixture
+def system_with_simple_contracts():
+    """Create a system with a few agents and simple contracts."""
+    system = System()
+    system.create_agent(id="CB", name="Central Bank", kind="central_bank")
+    system.create_agent(id="H1", name="Household 1", kind="household")
+    system.create_agent(id="H2", name="Household 2", kind="household")
+
+    # Add some cash contracts
+    cash1_id = system.new_contract_id()
+    cash1 = Cash(
+        id=cash1_id,
+        amount=100,
+        denom="X",
+        asset_holder_id="H1",
+        liability_issuer_id="CB"
+    )
+    system.add_contract(cash1)
+
+    cash2_id = system.new_contract_id()
+    cash2 = Cash(
+        id=cash2_id,
+        amount=200,
+        denom="X",
+        asset_holder_id="H2",
+        liability_issuer_id="CB"
+    )
+    system.add_contract(cash2)
+
+    return system
+
+
+@pytest.fixture
+def system_with_multiple_instruments():
+    """Create a system with various instrument types."""
+    system = System()
+    system.create_agent(id="CB", name="Central Bank", kind="central_bank")
+    system.create_agent(id="B1", name="Bank 1", kind="bank")
+    system.create_agent(id="H1", name="Household 1", kind="household")
+    system.create_agent(id="H2", name="Household 2", kind="household")
+
+    # Cash
+    cash_id = system.new_contract_id()
+    cash = Cash(
+        id=cash_id,
+        amount=100,
+        denom="X",
+        asset_holder_id="H1",
+        liability_issuer_id="CB"
+    )
+    system.add_contract(cash)
+
+    # Bank deposit
+    deposit_id = system.new_contract_id()
+    deposit = BankDeposit(
+        id=deposit_id,
+        amount=500,
+        denom="X",
+        asset_holder_id="H1",
+        liability_issuer_id="B1"
+    )
+    system.add_contract(deposit)
+
+    # Reserve deposit
+    reserve_id = system.new_contract_id()
+    reserve = ReserveDeposit(
+        id=reserve_id,
+        amount=1000,
+        denom="X",
+        asset_holder_id="B1",
+        liability_issuer_id="CB"
+    )
+    system.add_contract(reserve)
+
+    # Payable
+    payable_id = system.new_contract_id()
+    payable = Payable(
+        id=payable_id,
+        amount=200,
+        denom="X",
+        asset_holder_id="H2",
+        liability_issuer_id="H1",
+        due_day=5
+    )
+    system.add_contract(payable)
+
+    return system
 
 ```
 
@@ -77184,5 +78019,5 @@ def test_settle_multiple_obligations():
 ## End of Codebase
 
 Generated from: /home/runner/work/bilancio/bilancio
-Total source files: 119
-Total test files: 52
+Total source files: 120
+Total test files: 53
