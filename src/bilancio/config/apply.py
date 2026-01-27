@@ -290,6 +290,15 @@ def apply_action(system: System, action_dict: Dict[str, Any], agents: Dict[str, 
                            sku=getattr(instr, 'sku', None),
                            alias=alias)
             
+            # Log the event
+            system.log("PayableCreated",
+                debtor=action.from_agent,
+                creditor=action.to_agent,
+                amount=int(action.amount),
+                due_day=action.due_day,
+                payable_id=payable.id
+            )
+            
         else:
             raise ValueError(f"Unknown action type: {action_type}")
             
