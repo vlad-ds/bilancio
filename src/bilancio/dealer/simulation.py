@@ -37,6 +37,7 @@ from .kernel import KernelParams, recompute_dealer_state
 from .trading import TradeExecutor
 from .events import EventLog
 from .assertions import run_all_assertions, assert_c6_anchor_timing
+from .risk_assessment import RiskAssessor, RiskAssessmentParams
 
 
 @dataclass
@@ -167,12 +168,13 @@ class DealerRingSimulation:
         - Section 10: Ring Trader Policies
     """
 
-    def __init__(self, config: DealerRingConfig):
+    def __init__(self, config: DealerRingConfig, risk_assessor: RiskAssessor | None = None):
         """
         Initialize simulation orchestrator.
 
         Args:
             config: Simulation configuration
+            risk_assessor: Optional risk assessor for trader decisions
         """
         self.config = config
         self.rng = random.Random(config.seed)
@@ -193,6 +195,7 @@ class DealerRingSimulation:
         # Kernel params
         self.params = KernelParams(S=config.ticket_size)
         self.executor = TradeExecutor(self.params, self.rng)
+        self.risk_assessor = risk_assessor
 
         # Initialize dealers and VBTs
         self._init_market_makers()
@@ -828,6 +831,41 @@ class DealerRingSimulation:
         dealer = self.dealers[bucket_id]
         vbt = self.vbts[bucket_id]
 
+        # Risk-based sell decision
+        if self.risk_assessor:
+            # Compute total asset value for urgency calculation
+            asset_value = sum(
+                self.risk_assessor.expected_value(t, self.day)
+                for t in trader.tickets_owned
+            )
+
+            if not self.risk_assessor.should_sell(
+                ticket=ticket,
+                dealer_bid=dealer.bid,
+                current_day=self.day,
+                trader_cash=trader.cash,
+                trader_shortfall=trader.shortfall(self.day),
+                trader_asset_value=asset_value,
+            ):
+                # Log rejection and skip trade
+                ev = self.risk_assessor.expected_value(ticket, self.day)
+                threshold = self.risk_assessor.compute_effective_threshold(
+                    cash=trader.cash,
+                    shortfall=trader.shortfall(self.day),
+                    asset_value=asset_value,
+                )
+                self.events.log_sell_rejected(
+                    day=self.day,
+                    trader_id=agent_id,
+                    ticket_id=ticket.id,
+                    bucket=bucket_id,
+                    offered_price=dealer.bid,
+                    expected_value=ev,
+                    threshold=threshold,
+                    reason="price_below_ev_plus_threshold",
+                )
+                return
+
         # Execute customer sell (trader sells to dealer)
         result = self.executor.execute_customer_sell(
             dealer=dealer,
@@ -899,6 +937,51 @@ class DealerRingSimulation:
             # This happens when trader has asset_issuer_id set but neither
             # dealer nor VBT has tickets from that issuer
             return
+
+        # Risk-based buy validation (post-execution since we need actual ticket)
+        if result.ticket and self.risk_assessor:
+            asset_value = sum(
+                self.risk_assessor.expected_value(t, self.day)
+                for t in trader.tickets_owned
+            )
+
+            # Convert price to unit price for should_buy
+            unit_price = result.price  # Already unit price from executor
+
+            if not self.risk_assessor.should_buy(
+                ticket=result.ticket,
+                dealer_ask=unit_price,
+                current_day=self.day,
+                trader_cash=trader.cash,
+                trader_shortfall=trader.shortfall(self.day),
+                trader_asset_value=asset_value,
+            ):
+                # Reverse the transaction
+                # Return ticket to source (dealer or VBT)
+                if result.is_passthrough:
+                    vbt.inventory.append(result.ticket)
+                    vbt.cash -= result.price
+                else:
+                    dealer.inventory.append(result.ticket)
+                    dealer.cash -= result.price
+
+                # Recompute dealer state
+                recompute_dealer_state(dealer, vbt, self.params)
+
+                # Log rejection
+                ev = self.risk_assessor.expected_value(result.ticket, self.day)
+                threshold = self.risk_assessor.params.base_risk_premium * self.risk_assessor.params.buy_premium_multiplier
+                self.events.log_buy_rejected(
+                    day=self.day,
+                    trader_id=agent_id,
+                    ticket_id=result.ticket.id,
+                    bucket=bucket_id,
+                    offered_price=unit_price,
+                    expected_value=ev,
+                    threshold=threshold,
+                    reason="ev_below_price_plus_threshold",
+                )
+                return
 
         # Update trader state
         if result.ticket:
@@ -1099,6 +1182,15 @@ class DealerRingSimulation:
                     n_tickets=len(bucket_tickets),
                     bucket=bucket_id,
                 )
+
+        # Update risk assessor history
+        if self.risk_assessor:
+            defaulted = recovery_rate < Decimal(1)
+            self.risk_assessor.update_history(
+                day=self.day,
+                issuer_id=issuer_id,
+                defaulted=defaulted
+            )
 
         # Remove tickets from issuer's obligations
         for ticket in tickets:

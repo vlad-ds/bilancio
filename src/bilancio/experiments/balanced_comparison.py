@@ -155,6 +155,21 @@ class BalancedComparisonConfig(BaseModel):
     # VBT configuration (for active mode)
     vbt_share: Decimal = Field(default=Decimal("0.50"), description="VBT capital as fraction of system cash")
 
+    # Risk assessment configuration
+    risk_assessment_enabled: bool = Field(
+        default=True,
+        description="Enable risk-based trader decision making"
+    )
+    risk_assessment_config: Dict[str, Any] = Field(
+        default_factory=lambda: {
+            "base_risk_premium": "0.02",
+            "urgency_sensitivity": "0.10",
+            "buy_premium_multiplier": "2.0",
+            "lookback_window": 5,
+        },
+        description="Risk assessment parameters"
+    )
+
 
 class BalancedComparisonRunner:
     """
@@ -343,6 +358,8 @@ class BalancedComparisonRunner:
             detailed_dealer_logging=self.config.detailed_logging,  # Plan 022
             executor=self.executor,  # Plan 028 cloud support
             quiet=self.config.quiet,  # Plan 030
+            risk_assessment_enabled=self.config.risk_assessment_enabled,
+            risk_assessment_config=self.config.risk_assessment_config if self.config.risk_assessment_enabled else None,
         )
 
     def _get_active_runner(self, outside_mid_ratio: Decimal) -> RingSweepRunner:
@@ -376,6 +393,8 @@ class BalancedComparisonRunner:
             detailed_dealer_logging=self.config.detailed_logging,  # Plan 022
             executor=self.executor,  # Plan 028 cloud support
             quiet=self.config.quiet,  # Plan 030
+            risk_assessment_enabled=self.config.risk_assessment_enabled,
+            risk_assessment_config=self.config.risk_assessment_config if self.config.risk_assessment_enabled else None,
         )
 
     def run_all(self) -> List[BalancedComparisonResult]:

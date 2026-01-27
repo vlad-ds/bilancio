@@ -62,9 +62,9 @@ class RingExplorerParams:
             raise ValueError("Either params.Q_total or params.liquidity.total must be provided")
 
         if liquidity_total is None and Q_total is not None:
-            liquidity_total = (Q_total / model.kappa)
+            liquidity_total = (Q_total * model.kappa)
         elif Q_total is None and liquidity_total is not None:
-            Q_total = (model.kappa * liquidity_total)
+            Q_total = (liquidity_total / model.kappa)
 
         if Q_total is None or liquidity_total is None:
             raise ValueError("Failed to resolve Q_total and liquidity total from parameters")

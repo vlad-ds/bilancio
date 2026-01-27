@@ -54,6 +54,7 @@ from bilancio.dealer.metrics import (
     compute_safety_margin,
     compute_saleable_value,
 )
+from bilancio.dealer.risk_assessment import RiskAssessor, RiskAssessmentParams
 
 
 @dataclass
@@ -109,11 +110,15 @@ class DealerSubsystem:
     # Section 8 Metrics (functional dealer analysis)
     metrics: RunMetrics = field(default_factory=RunMetrics)
 
+    # Risk assessment module (optional)
+    risk_assessor: RiskAssessor | None = None
+
 
 def initialize_dealer_subsystem(
     system,
     dealer_config: DealerRingConfig,
-    current_day: int = 0
+    current_day: int = 0,
+    risk_params: RiskAssessmentParams | None = None,
 ) -> DealerSubsystem:
     """
     Initialize dealer subsystem from system state and configuration.
@@ -180,6 +185,10 @@ def initialize_dealer_subsystem(
         params=KernelParams(S=dealer_config.ticket_size),
         rng=random.Random(dealer_config.seed),
     )
+
+    # Initialize risk assessor if params provided
+    if risk_params:
+        subsystem.risk_assessor = RiskAssessor(risk_params)
 
     # Step 0: Create dealer/VBT agents in main system
     # These agents allow proper ownership tracking when claims transfer to dealers
@@ -360,7 +369,8 @@ def initialize_balanced_dealer_subsystem(
     vbt_share_per_bucket: Decimal = Decimal("0.25"),
     dealer_share_per_bucket: Decimal = Decimal("0.125"),
     mode: str = "active",
-    current_day: int = 0
+    current_day: int = 0,
+    risk_params: RiskAssessmentParams | None = None,
 ) -> DealerSubsystem:
     """
     Initialize dealer subsystem for balanced scenarios (C vs D comparison).
@@ -406,6 +416,10 @@ def initialize_balanced_dealer_subsystem(
         rng=random.Random(dealer_config.seed),
         enabled=(mode == "active"),  # Disable trading for passive mode
     )
+
+    # Initialize risk assessor if params provided
+    if risk_params:
+        subsystem.risk_assessor = RiskAssessor(risk_params)
 
     # Step 0: Ensure dealer/VBT agents exist in main system
     for bucket_config in dealer_config.buckets:
@@ -825,6 +839,36 @@ def run_dealer_trading_phase(
         # Check if liquidity-driven (Section 8.3)
         is_liquidity_driven = trader.shortfall(current_day) > 0
 
+        # Risk assessment check (Plan 032)
+        if subsystem.risk_assessor:
+            # Compute asset value as sum of EVs of owned tickets
+            asset_value = sum(
+                subsystem.risk_assessor.expected_value(t, current_day)
+                for t in trader.tickets_owned
+            )
+            if not subsystem.risk_assessor.should_sell(
+                ticket=ticket,
+                dealer_bid=dealer.bid,
+                current_day=current_day,
+                trader_cash=trader.cash,
+                trader_shortfall=trader.shortfall(current_day),
+                trader_asset_value=asset_value,
+            ):
+                # Trader rejects price - log event and skip
+                events.append({
+                    "kind": "sell_rejected",
+                    "day": current_day,
+                    "phase": "simulation",
+                    "trader_id": trader_id,
+                    "ticket_id": ticket.id,
+                    "bucket": bucket_id,
+                    "offered_price": float(dealer.bid),
+                    "expected_value": float(subsystem.risk_assessor.expected_value(ticket, current_day)),
+                    "threshold": float(subsystem.risk_assessor.params.base_risk_premium),
+                    "reason": "price_below_ev_threshold",
+                })
+                continue
+
         # Execute customer sell
         result = subsystem.executor.execute_customer_sell(
             dealer, vbt, ticket, check_assertions=False
@@ -922,12 +966,58 @@ def run_dealer_trading_phase(
             pre_trader_cash = trader.cash
             pre_safety_margin = _compute_trader_safety_margin(subsystem, trader_id)
 
+            # Risk assessment pre-check for buy (approximate - we don't know exact ticket yet)
+            # We'll do a post-execution check if risk_assessor exists
+            should_reverse = False
+
             # Execute customer buy
             result = subsystem.executor.execute_customer_buy(
                 dealer, vbt, trader_id, check_assertions=False
             )
 
             if result.executed and result.ticket:
+                # Post-execution risk assessment check (Plan 032)
+                if subsystem.risk_assessor:
+                    # Compute asset value (including the ticket we just bought)
+                    asset_value = sum(
+                        subsystem.risk_assessor.expected_value(t, current_day)
+                        for t in trader.tickets_owned
+                    )
+                    # Check if trader would accept this buy
+                    if not subsystem.risk_assessor.should_buy(
+                        ticket=result.ticket,
+                        dealer_ask=result.price,  # Unit price
+                        current_day=current_day,
+                        trader_cash=trader.cash,
+                        trader_shortfall=trader.shortfall(current_day),
+                        trader_asset_value=asset_value,
+                    ):
+                        # Trader rejects - reverse the transaction
+                        should_reverse = True
+                        # Put ticket back to dealer/VBT
+                        if result.is_passthrough:
+                            vbt.inventory.append(result.ticket)
+                            result.ticket.owner_id = f"vbt_{bucket_id}"
+                            vbt.cash -= result.price * result.ticket.face
+                        else:
+                            dealer.inventory.append(result.ticket)
+                            result.ticket.owner_id = f"dealer_{bucket_id}"
+                            dealer.cash -= result.price * result.ticket.face
+                        events.append({
+                            "kind": "buy_rejected",
+                            "day": current_day,
+                            "phase": "simulation",
+                            "trader_id": trader_id,
+                            "ticket_id": result.ticket.id,
+                            "bucket": bucket_id,
+                            "offered_price": float(result.price),
+                            "expected_value": float(subsystem.risk_assessor.expected_value(result.ticket, current_day)),
+                            "threshold": float(subsystem.risk_assessor.params.base_risk_premium * subsystem.risk_assessor.params.buy_premium_multiplier),
+                            "reason": "ev_below_price_threshold",
+                        })
+                        continue
+
+            if result.executed and result.ticket and not should_reverse:
                 # Scale price by ticket face value
                 scaled_price = result.price * result.ticket.face
 

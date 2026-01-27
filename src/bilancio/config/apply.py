@@ -407,6 +407,7 @@ def apply_to_system(config: ScenarioConfig, system: System) -> None:
         from bilancio.engines.dealer_integration import initialize_dealer_subsystem
         from bilancio.dealer.simulation import DealerRingConfig
         from bilancio.dealer.models import BucketConfig
+        from bilancio.dealer.risk_assessment import RiskAssessmentParams
 
         # Convert DealerConfig (YAML model) to DealerRingConfig (internal model)
         bucket_configs = []
@@ -433,4 +434,18 @@ def apply_to_system(config: ScenarioConfig, system: System) -> None:
             seed=42,  # Default seed - can be made configurable later
         )
 
-        system.state.dealer_subsystem = initialize_dealer_subsystem(system, dealer_ring_config)
+        # Create risk assessment params if enabled
+        risk_params = None
+        if config.dealer.risk_assessment and config.dealer.risk_assessment.enabled:
+            risk_params = RiskAssessmentParams(
+                lookback_window=config.dealer.risk_assessment.lookback_window,
+                smoothing_alpha=config.dealer.risk_assessment.smoothing_alpha,
+                base_risk_premium=config.dealer.risk_assessment.base_risk_premium,
+                urgency_sensitivity=config.dealer.risk_assessment.urgency_sensitivity,
+                use_issuer_specific=config.dealer.risk_assessment.use_issuer_specific,
+                buy_premium_multiplier=config.dealer.risk_assessment.buy_premium_multiplier,
+            )
+
+        system.state.dealer_subsystem = initialize_dealer_subsystem(
+            system, dealer_ring_config, risk_params=risk_params
+        )

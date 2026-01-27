@@ -174,6 +174,8 @@ class _RingSweepRunnerConfig(BaseModel):
     default_handling: Optional[str] = None
     dealer_enabled: bool = False
     dealer_config: Optional[Dict[str, Any]] = None
+    risk_assessment_enabled: bool = True
+    risk_assessment_config: Optional[Dict[str, Any]] = None
 
 
 class RingSweepConfig(BaseModel):
@@ -234,6 +236,8 @@ class RingSweepRunner:
         default_handling: str = "fail-fast",
         dealer_enabled: bool = False,
         dealer_config: Optional[Dict[str, Any]] = None,
+        risk_assessment_enabled: bool = True,
+        risk_assessment_config: Optional[Dict[str, Any]] = None,
         balanced_mode: bool = False,
         face_value: Optional[Decimal] = None,
         outside_mid_ratio: Optional[Decimal] = None,
@@ -260,6 +264,8 @@ class RingSweepRunner:
         self.default_handling = default_handling
         self.dealer_enabled = dealer_enabled
         self.dealer_config = dealer_config
+        self.risk_assessment_enabled = risk_assessment_enabled
+        self.risk_assessment_config = risk_assessment_config
         self.balanced_mode = balanced_mode
         self.face_value = face_value or Decimal("20")
         self.outside_mid_ratio = outside_mid_ratio or Decimal("0.75")
@@ -542,6 +548,12 @@ class RingSweepRunner:
                     "dealer_share": Decimal("0.25"),
                     "vbt_share": Decimal("0.50"),
                 })
+            # Add risk assessment config if enabled
+            if self.risk_assessment_enabled:
+                risk_section: Dict[str, Any] = {"enabled": True}
+                if self.risk_assessment_config:
+                    risk_section.update(self.risk_assessment_config)
+                dealer_section["risk_assessment"] = risk_section
             scenario["dealer"] = dealer_section
 
         if self.default_handling:
@@ -778,6 +790,12 @@ class RingSweepRunner:
                     "dealer_share": Decimal("0.25"),
                     "vbt_share": Decimal("0.50"),
                 })
+            # Add risk assessment config if enabled
+            if self.risk_assessment_enabled:
+                risk_section: Dict[str, Any] = {"enabled": True}
+                if self.risk_assessment_config:
+                    risk_section.update(self.risk_assessment_config)
+                dealer_section["risk_assessment"] = risk_section
             scenario["dealer"] = dealer_section
 
         if self.default_handling:
