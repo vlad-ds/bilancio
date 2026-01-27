@@ -22,7 +22,7 @@ class TestLocalArtifactLoaderLoadText:
     def test_load_text_handles_unicode(self, tmp_path: Path):
         """load_text() correctly handles unicode content."""
         test_file = tmp_path / "unicode.txt"
-        test_file.write_text("Hello, \u4e16\u754c! \u00e9\u00e8\u00ea")
+        test_file.write_text("Hello, \u4e16\u754c! \u00e9\u00e8\u00ea", encoding="utf-8")
 
         loader = LocalArtifactLoader(tmp_path)
         result = loader.load_text("unicode.txt")

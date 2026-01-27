@@ -224,7 +224,7 @@ class TestExportToFile:
             export_dealer_ring_html(sim.snapshots, sim.config, path)
 
             assert path.exists()
-            content = path.read_text()
+            content = path.read_text(encoding="utf-8")
             assert "<!DOCTYPE html>" in content
 
     def test_export_creates_parent_dirs(self):
@@ -275,7 +275,7 @@ class TestExportToFile:
             sim.to_html(path, title="Via Method", subtitle="Test subtitle")
 
             assert path.exists()
-            content = path.read_text()
+            content = path.read_text(encoding="utf-8")
             assert "Via Method" in content
             assert "Test subtitle" in content
 

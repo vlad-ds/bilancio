@@ -12,6 +12,9 @@ from bilancio.analysis.network import (
 from bilancio.engines.system import System
 from bilancio.domain.instruments.means_of_payment import Cash, BankDeposit, ReserveDeposit
 from bilancio.domain.instruments.credit import Payable
+from bilancio.domain.agents.central_bank import CentralBank
+from bilancio.domain.agents.household import Household
+from bilancio.domain.agents.bank import Bank
 
 
 def test_network_node_creation():
@@ -159,6 +162,7 @@ def test_edge_source_target_mapping(system_with_simple_contracts):
     payable_id = system.new_contract_id()
     payable = Payable(
         id=payable_id,
+        kind="payable",
         amount=500,
         denom="X",
         asset_holder_id="H1",
@@ -184,8 +188,10 @@ def test_edge_source_target_mapping(system_with_simple_contracts):
 def empty_system():
     """Create a system with agents but no contracts."""
     system = System()
-    system.create_agent(id="CB", name="Central Bank", kind="central_bank")
-    system.create_agent(id="H1", name="Household 1", kind="household")
+    cb = CentralBank(id="CB", name="Central Bank", kind="central_bank")
+    h1 = Household(id="H1", name="Household 1", kind="household")
+    system.add_agent(cb)
+    system.add_agent(h1)
     return system
 
 
@@ -193,14 +199,18 @@ def empty_system():
 def system_with_simple_contracts():
     """Create a system with a few agents and simple contracts."""
     system = System()
-    system.create_agent(id="CB", name="Central Bank", kind="central_bank")
-    system.create_agent(id="H1", name="Household 1", kind="household")
-    system.create_agent(id="H2", name="Household 2", kind="household")
+    cb = CentralBank(id="CB", name="Central Bank", kind="central_bank")
+    h1 = Household(id="H1", name="Household 1", kind="household")
+    h2 = Household(id="H2", name="Household 2", kind="household")
+    system.add_agent(cb)
+    system.add_agent(h1)
+    system.add_agent(h2)
 
     # Add some cash contracts
     cash1_id = system.new_contract_id()
     cash1 = Cash(
         id=cash1_id,
+        kind="cash",
         amount=100,
         denom="X",
         asset_holder_id="H1",
@@ -211,6 +221,7 @@ def system_with_simple_contracts():
     cash2_id = system.new_contract_id()
     cash2 = Cash(
         id=cash2_id,
+        kind="cash",
         amount=200,
         denom="X",
         asset_holder_id="H2",
@@ -225,15 +236,20 @@ def system_with_simple_contracts():
 def system_with_multiple_instruments():
     """Create a system with various instrument types."""
     system = System()
-    system.create_agent(id="CB", name="Central Bank", kind="central_bank")
-    system.create_agent(id="B1", name="Bank 1", kind="bank")
-    system.create_agent(id="H1", name="Household 1", kind="household")
-    system.create_agent(id="H2", name="Household 2", kind="household")
+    cb = CentralBank(id="CB", name="Central Bank", kind="central_bank")
+    b1 = Bank(id="B1", name="Bank 1", kind="bank")
+    h1 = Household(id="H1", name="Household 1", kind="household")
+    h2 = Household(id="H2", name="Household 2", kind="household")
+    system.add_agent(cb)
+    system.add_agent(b1)
+    system.add_agent(h1)
+    system.add_agent(h2)
 
     # Cash
     cash_id = system.new_contract_id()
     cash = Cash(
         id=cash_id,
+        kind="cash",
         amount=100,
         denom="X",
         asset_holder_id="H1",
@@ -245,6 +261,7 @@ def system_with_multiple_instruments():
     deposit_id = system.new_contract_id()
     deposit = BankDeposit(
         id=deposit_id,
+        kind="bank_deposit",
         amount=500,
         denom="X",
         asset_holder_id="H1",
@@ -256,6 +273,7 @@ def system_with_multiple_instruments():
     reserve_id = system.new_contract_id()
     reserve = ReserveDeposit(
         id=reserve_id,
+        kind="reserve_deposit",
         amount=1000,
         denom="X",
         asset_holder_id="B1",
@@ -267,6 +285,7 @@ def system_with_multiple_instruments():
     payable_id = system.new_contract_id()
     payable = Payable(
         id=payable_id,
+        kind="payable",
         amount=200,
         denom="X",
         asset_holder_id="H2",

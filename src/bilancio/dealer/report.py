@@ -632,4 +632,4 @@ def export_dealer_ring_html(
     html_content = generate_dealer_ring_html(snapshots, config, title, subtitle)
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(html_content)
+    path.write_text(html_content, encoding="utf-8")

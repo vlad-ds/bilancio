@@ -41,7 +41,7 @@ class EventFormatterRegistry:
             if key not in skip_fields:
                 lines.append(f"{key}: {value}")
         
-        return title, lines[:3], "?"  # Limit to 3 lines
+        return title, lines[:3], "❓"  # Limit to 3 lines
 
 
 # Create global registry instance
@@ -57,9 +57,9 @@ def format_cash_transferred(event: Dict[str, Any]) -> Tuple[str, List[str], str]
     to = event.get("to", "Unknown")
     
     title = f"Cash Transfer: ${amount:,}"
-    lines = [f"{frm} -> {to}"]
+    lines = [f"{frm} → {to}"]
 
-    return title, lines, "$"
+    return title, lines, "💰"
 
 
 @registry.register("ReservesTransferred")
@@ -70,7 +70,7 @@ def format_reserves_transferred(event: Dict[str, Any]) -> Tuple[str, List[str], 
     to = event.get("to", "Unknown")
     
     title = f"[BANK] Reserves Transfer: ${amount:,}"
-    lines = [f"{frm} -> {to}"]
+    lines = [f"{frm} → {to}"]
     
     return title, lines, "[BANK]"
 
@@ -85,11 +85,11 @@ def format_stock_transferred(event: Dict[str, Any]) -> Tuple[str, List[str], str
     unit_price = event.get("unit_price", None)
     
     title = f"[PKG] Stock Transfer: {quantity} {sku}"
-    lines = [f"{frm} -> {to}"]
+    lines = [f"{frm} → {to}"]
     if unit_price:
         lines.append(f"@ ${unit_price:,}/unit")
-    
-    return title, lines, "[PKG]"
+
+    return title, lines, "📦"
 
 
 @registry.register("DeliveryObligationCreated")
@@ -102,7 +102,7 @@ def format_delivery_obligation_created(event: Dict[str, Any]) -> Tuple[str, List
     due_day = event.get("due_day", None)
     
     title = f"[DOC] Delivery Obligation: {quantity} {sku}"
-    lines = [f"{frm} -> {to}"]
+    lines = [f"{frm} → {to}"]
     if due_day:
         lines.append(f"Due: Day {due_day}")
     
@@ -118,7 +118,7 @@ def format_delivery_obligation_settled(event: Dict[str, Any]) -> Tuple[str, List
     creditor = event.get("creditor", "Unknown")
     
     title = f"[OK] Delivery Settled: {quantity} {sku}"
-    lines = [f"{debtor} -> {creditor}"]
+    lines = [f"{debtor} → {creditor}"]
     
     return title, lines, "[OK]"
 
@@ -147,7 +147,7 @@ def format_payable_settled(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     creditor = event.get("creditor", "Unknown")
     
     title = f"$ Payable Settled: ${amount:,}"
-    lines = [f"{debtor} -> {creditor}"]
+    lines = [f"{debtor} → {creditor}"]
     
     return title, lines, "$"
 
@@ -160,7 +160,7 @@ def format_cash_deposited(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     amount = event.get("amount", 0)
     
     title = f"[ATM] Cash Deposit: ${amount:,}"
-    lines = [f"{customer} -> {bank}"]
+    lines = [f"{customer} → {bank}"]
     
     return title, lines, "[ATM]"
 
@@ -189,8 +189,8 @@ def format_client_payment(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     
     title = f"[CARD] Inter-Bank Payment: ${amount:,}"
     lines = [
-        f"{payer} -> {payee}",
-        f"via {payer_bank} -> {payee_bank}"
+        f"{payer} → {payee}",
+        f"via {payer_bank} → {payee_bank}"
     ]
     
     return title, lines, "[CARD]"
@@ -206,7 +206,7 @@ def format_intra_bank_payment(event: Dict[str, Any]) -> Tuple[str, List[str], st
     
     title = f"[BANK] Intra-Bank Payment: ${amount:,}"
     lines = [
-        f"{payer} -> {payee}",
+        f"{payer} → {payee}",
         f"at {bank}"
     ]
     
@@ -221,7 +221,7 @@ def format_cash_payment(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     amount = event.get("amount", 0)
     
     title = f"[CASH] Cash Payment: ${amount:,}"
-    lines = [f"{payer} -> {payee}"]
+    lines = [f"{payer} → {payee}"]
     
     return title, lines, "[CASH]"
 
@@ -238,7 +238,7 @@ def format_instrument_merged(event: Dict[str, Any]) -> Tuple[str, List[str], str
     
     title = f"[MRG] Cash Consolidation"
     lines = [
-        f"Merged: {removed_short} -> {keep_short}",
+        f"Merged: {removed_short} → {keep_short}",
         f"(Reduces fragmentation)"
     ]
     
@@ -253,7 +253,7 @@ def format_interbank_cleared(event: Dict[str, Any]) -> Tuple[str, List[str], str
     amount = event.get("amount", 0)
     
     title = f"[CLR] Interbank Clearing: ${amount:,}"
-    lines = [f"{debtor_bank} -> {creditor_bank}"]
+    lines = [f"{debtor_bank} → {creditor_bank}"]
     
     return title, lines, "[CLR]"
 
@@ -292,7 +292,7 @@ def format_stock_split(event: Dict[str, Any]) -> Tuple[str, List[str], str]:
     
     title = f"[SPLIT] Stock Split: {split_qty} {sku}"
     lines = [
-        f"From lot of {original_qty} -> {remaining_qty} remain",
+        f"From lot of {original_qty} → {remaining_qty} remain",
         f"(Preparing transfer)"
     ]
     

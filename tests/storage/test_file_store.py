@@ -76,7 +76,8 @@ class TestFileResultStore:
             content=b"test",
         )
 
-        assert rel_path == "exp_001/runs/run_001/out/events.jsonl"
+        # Normalize path separators for cross-platform compatibility
+        assert rel_path.replace("\\", "/") == "exp_001/runs/run_001/out/events.jsonl"
 
     def test_save_artifact_scenario_returns_relative_path(self, tmp_path):
         """Test that save_artifact returns correct relative path for scenario."""
@@ -89,7 +90,8 @@ class TestFileResultStore:
             content=b"test",
         )
 
-        assert rel_path == "exp_001/runs/run_001/scenario.yaml"
+        # Normalize path separators for cross-platform compatibility
+        assert rel_path.replace("\\", "/") == "exp_001/runs/run_001/scenario.yaml"
 
     def test_save_run_creates_result_json(self, tmp_path):
         """Test that save_run creates result.json with correct format."""

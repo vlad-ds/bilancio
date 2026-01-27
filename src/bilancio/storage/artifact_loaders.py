@@ -95,7 +95,7 @@ class LocalArtifactLoader:
             FileNotFoundError: If the artifact does not exist.
         """
         path = self.base_path / reference
-        return path.read_text()
+        return path.read_text(encoding="utf-8")
 
     def exists(self, reference: str) -> bool:
         """Check if artifact exists on filesystem.

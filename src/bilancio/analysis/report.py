@@ -532,7 +532,7 @@ def write_metrics_html(
 </html>
 """
 
-    with p.open("w") as f:
+    with p.open("w", encoding="utf-8") as f:
         f.write(html)
 
 
