@@ -9,6 +9,7 @@ from bilancio.core.errors import ValidationError
 from bilancio.core.ids import AgentId, InstrId, new_id
 from bilancio.domain.agent import Agent
 from bilancio.domain.instruments.base import Instrument
+from bilancio.domain.instruments.cb_loan import CBLoan
 from bilancio.domain.instruments.means_of_payment import Cash, ReserveDeposit
 from bilancio.domain.instruments.delivery import DeliveryObligation
 from bilancio.domain.goods import StockLot
@@ -26,6 +27,7 @@ class State:
     day: int = 0
     cb_cash_outstanding: int = 0
     cb_reserves_outstanding: int = 0
+    cb_loans_outstanding: int = 0  # Total CB loans to banks (principal)
     phase: str = "simulation"
     # Aliases for created contracts (alias -> contract_id)
     aliases: dict[str, str] = field(default_factory=dict)
@@ -306,6 +308,263 @@ class System:
             )
             self.add_contract(c)
             self.log("CashToReserves", bank_id=bank_id, amount=amount, instr_id=instr_id)
+
+    # ---- CB lending facility
+    def cb_lend_reserves(self, bank_id: str, amount: int, day: int, denom: str = "X") -> str:
+        """
+        Central Bank lends reserves to a bank.
+
+        This creates:
+        1. New reserves (CB liability, bank asset)
+        2. A CBLoan (CB asset, bank liability)
+
+        The loan matures at day + 2 with interest at cb_lending_rate.
+
+        Args:
+            bank_id: The borrowing bank
+            amount: Loan principal
+            day: Current day (for maturity calculation)
+            denom: Currency denomination
+
+        Returns:
+            The CBLoan instrument ID
+        """
+        cb_id = self._central_bank_id()
+        cb = self.state.agents[cb_id]
+
+        # Get the CB lending rate
+        cb_rate = getattr(cb, 'cb_lending_rate', Decimal("0.03"))
+
+        with atomic(self):
+            # 1. Create new reserves for the bank
+            reserve_id = self.new_contract_id("R")
+            reserve = ReserveDeposit(
+                id=reserve_id,
+                kind="reserve_deposit",
+                amount=amount,
+                denom=denom,
+                asset_holder_id=bank_id,
+                liability_issuer_id=cb_id,
+                remuneration_rate=getattr(cb, 'reserve_remuneration_rate', None),
+                issuance_day=day,
+            )
+            self.add_contract(reserve)
+            self.state.cb_reserves_outstanding += amount
+
+            # 2. Create the CB loan (bank's liability to CB)
+            loan_id = self.new_contract_id("L")
+            loan = CBLoan(
+                id=loan_id,
+                kind="cb_loan",
+                amount=amount,
+                denom=denom,
+                asset_holder_id=cb_id,  # CB holds the loan as asset
+                liability_issuer_id=bank_id,  # Bank is the borrower
+                cb_rate=cb_rate,
+                issuance_day=day,
+            )
+            self.add_contract(loan)
+            self.state.cb_loans_outstanding += amount
+
+            self.log("CBLoanCreated",
+                     bank_id=bank_id,
+                     amount=amount,
+                     loan_id=loan_id,
+                     reserve_id=reserve_id,
+                     cb_rate=str(cb_rate),
+                     maturity_day=day + 2)
+
+        return loan_id
+
+    def cb_repay_loan(self, loan_id: str, bank_id: str) -> int:
+        """
+        Bank repays a CB loan with interest.
+
+        The bank pays principal + interest by having reserves consumed.
+        The CBLoan is then cancelled.
+
+        Args:
+            loan_id: The CBLoan to repay
+            bank_id: The borrowing bank (must match loan issuer)
+
+        Returns:
+            The total amount repaid (principal + interest)
+        """
+        if loan_id not in self.state.contracts:
+            raise ValidationError(f"Loan {loan_id} not found")
+
+        loan = self.state.contracts[loan_id]
+        if loan.kind != "cb_loan":
+            raise ValidationError(f"{loan_id} is not a CB loan")
+        if loan.liability_issuer_id != bank_id:
+            raise ValidationError(f"Bank {bank_id} is not the borrower of {loan_id}")
+
+        repayment_amount = loan.repayment_amount
+        principal = loan.principal
+
+        with atomic(self):
+            # 1. Consume reserves from bank (repayment amount)
+            remaining = repayment_amount
+            reserve_ids = [cid for cid in self.state.agents[bank_id].asset_ids
+                          if self.state.contracts[cid].kind == "reserve_deposit"]
+
+            for cid in list(reserve_ids):
+                instr = self.state.contracts[cid]
+                take = min(instr.amount, remaining)
+                consume(self, cid, take)
+                remaining -= take
+                if remaining == 0:
+                    break
+
+            if remaining != 0:
+                raise ValidationError(f"Insufficient reserves to repay CB loan: needed {repayment_amount}, short by {remaining}")
+
+            self.state.cb_reserves_outstanding -= repayment_amount
+
+            # 2. Cancel the loan
+            cb_id = loan.asset_holder_id
+            self.state.agents[cb_id].asset_ids.remove(loan_id)
+            self.state.agents[bank_id].liability_ids.remove(loan_id)
+            del self.state.contracts[loan_id]
+            self.state.cb_loans_outstanding -= principal
+
+            self.log("CBLoanRepaid",
+                     bank_id=bank_id,
+                     loan_id=loan_id,
+                     principal=principal,
+                     interest=repayment_amount - principal,
+                     total_repaid=repayment_amount)
+
+        return repayment_amount
+
+    def get_cb_loans_due(self, day: int) -> list[str]:
+        """Get all CB loans that are due on the given day."""
+        due_loans = []
+        for cid, contract in self.state.contracts.items():
+            if contract.kind == "cb_loan" and contract.is_due(day):
+                due_loans.append(cid)
+        return due_loans
+
+    def credit_reserve_interest(self, day: int) -> int:
+        """
+        Credit interest on all reserve deposits that are due for interest.
+
+        Interest is credited every 2 days (at issuance_day + 2, + 4, etc.).
+        New reserves are minted to pay the interest.
+
+        Args:
+            day: Current day
+
+        Returns:
+            Total interest credited across all reserves
+        """
+        cb_id = self._central_bank_id()
+        cb = self.state.agents[cb_id]
+
+        # Check if CB has interest enabled
+        if not getattr(cb, 'reserves_accrue_interest', True):
+            return 0
+
+        total_interest = 0
+
+        with atomic(self):
+            # Find all reserve deposits due for interest
+            for cid in list(self.state.contracts.keys()):
+                contract = self.state.contracts.get(cid)
+                if contract is None or contract.kind != "reserve_deposit":
+                    continue
+
+                # Check if this reserve has interest and is due
+                if not hasattr(contract, 'is_interest_due') or not contract.is_interest_due(day):
+                    continue
+
+                interest = contract.compute_interest()
+                if interest <= 0:
+                    continue
+
+                bank_id = contract.asset_holder_id
+
+                # Mint new reserves for the interest
+                interest_id = self.new_contract_id("R")
+                interest_reserve = ReserveDeposit(
+                    id=interest_id,
+                    kind="reserve_deposit",
+                    amount=interest,
+                    denom=contract.denom,
+                    asset_holder_id=bank_id,
+                    liability_issuer_id=cb_id,
+                    remuneration_rate=contract.remuneration_rate,
+                    issuance_day=day,
+                )
+                self.add_contract(interest_reserve)
+                self.state.cb_reserves_outstanding += interest
+
+                # Update the original contract's last interest day
+                contract.last_interest_day = day
+
+                total_interest += interest
+
+                self.log("ReserveInterestCredited",
+                         bank_id=bank_id,
+                         reserve_id=cid,
+                         interest_reserve_id=interest_id,
+                         interest=interest,
+                         day=day)
+
+        return total_interest
+
+    def mint_reserves_with_interest(
+        self,
+        to_bank_id: str,
+        amount: int,
+        day: int,
+        denom: str = "X",
+        alias: str | None = None
+    ) -> str:
+        """
+        Mint reserves to a bank with interest accrual enabled.
+
+        This is an enhanced version of mint_reserves that sets up the reserve
+        to accrue interest at the CB's reserve remuneration rate.
+
+        Args:
+            to_bank_id: Bank to receive reserves
+            amount: Amount of reserves
+            day: Current day (for interest tracking)
+            denom: Currency denomination
+            alias: Optional alias for UI
+
+        Returns:
+            The reserve instrument ID
+        """
+        cb_id = self._central_bank_id()
+        cb = self.state.agents[cb_id]
+
+        remuneration_rate = None
+        if getattr(cb, 'reserves_accrue_interest', True):
+            remuneration_rate = getattr(cb, 'reserve_remuneration_rate', Decimal("0.01"))
+
+        instr_id = self.new_contract_id("R")
+        reserve = ReserveDeposit(
+            id=instr_id,
+            kind="reserve_deposit",
+            amount=amount,
+            denom=denom,
+            asset_holder_id=to_bank_id,
+            liability_issuer_id=cb_id,
+            remuneration_rate=remuneration_rate,
+            issuance_day=day,
+        )
+
+        with atomic(self):
+            self.add_contract(reserve)
+            self.state.cb_reserves_outstanding += amount
+            if alias is not None:
+                self.log("ReservesMinted", to=to_bank_id, amount=amount, instr_id=instr_id, alias=alias)
+            else:
+                self.log("ReservesMinted", to=to_bank_id, amount=amount, instr_id=instr_id)
+
+        return instr_id
 
     # ---- deposit helpers
     def deposit_ids(self, customer_id: str, bank_id: str) -> list[str]:

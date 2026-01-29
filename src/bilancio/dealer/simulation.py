@@ -114,7 +114,10 @@ class DealerRingConfig:
     clip_nonneg_B: bool = True
 
     # Order flow
-    pi_sell: Decimal = Decimal("0.5")  # P(next arrival is SELL)
+    # NOTE: pi_sell is deprecated and no longer used. Order flow direction is now
+    # determined endogenously by trader economic conditions (sell-eligible vs buy-eligible).
+    # Kept for backward compatibility but has no effect.
+    pi_sell: Decimal = Decimal("0.5")  # DEPRECATED: P(next arrival is SELL)
     N_max: int = 3  # Max arrivals per period
 
     # Trader policies
@@ -774,14 +777,23 @@ class DealerRingSimulation:
         buy_eligible: set[AgentId],
     ) -> None:
         """
-        Randomized one-ticket order flow (Section 11, Step 4).
+        Order flow with crossing: match offsetting orders before taking inventory.
 
-        For each arrival:
-        1. Draw direction: SELL with probability pi_sell, BUY otherwise
-        2. Sample uniformly from eligible set
-        3. Execute one-ticket trade
+        Two-phase approach that minimizes dealer inventory risk:
 
-        Number of arrivals is random up to N_max.
+        Phase 1 - Order Crossing:
+        Match sellers with buyers. For each matched pair:
+        - Seller sells to dealer at bid
+        - Dealer immediately sells to buyer at ask
+        - Dealer earns spread but inventory stays flat
+
+        Phase 2 - Residual Flow:
+        Remaining unmatched traders trade with dealer:
+        - Dealer takes inventory positions
+        - When capacity exhausted, passthrough to VBT
+
+        This is more realistic: real dealers minimize inventory risk by
+        crossing offsetting flow before taking principal positions.
 
         Args:
             sell_eligible: Set of agents eligible to sell
@@ -789,20 +801,194 @@ class DealerRingSimulation:
 
         References:
             - Section 11.4: Order flow generation
+            - Treynor (1987): Dealer as intermediary, not speculator
         """
-        # Determine number of arrivals (1 to N_max)
+        # Build working sets (exclude traders who are both - they sell, not buy)
+        sellers = sell_eligible.copy()
+        buyers = (buy_eligible - sell_eligible).copy()
+
+        # =====================================================================
+        # Phase 1: Order Crossing - match offsetting orders
+        # =====================================================================
+        # Match as many seller-buyer pairs as possible
+        n_crossable = min(len(sellers), len(buyers))
+
+        if n_crossable > 0:
+            # Randomly select which sellers and buyers get matched
+            sellers_list = list(sellers)
+            buyers_list = list(buyers)
+            self.rng.shuffle(sellers_list)
+            self.rng.shuffle(buyers_list)
+
+            for i in range(n_crossable):
+                seller_id = sellers_list[i]
+                buyer_id = buyers_list[i]
+
+                # Execute crossed trade
+                crossed = self._process_crossed_trade(
+                    seller_id, buyer_id, sell_eligible, buy_eligible
+                )
+
+                if crossed:
+                    # Remove from working sets
+                    sellers.discard(seller_id)
+                    buyers.discard(buyer_id)
+
+        # =====================================================================
+        # Phase 2: Residual Flow - unmatched traders go to dealer
+        # =====================================================================
+        # Remaining traders trade with dealer (inventory accumulation)
+        # Limited by N_max arrivals
         if self.config.N_max <= 0:
-            return  # No order flow
-        n_arrivals = self.rng.randint(1, self.config.N_max)
+            return
 
-        for _ in range(n_arrivals):
-            # Draw direction
-            is_sell = self.rng.random() < float(self.config.pi_sell)
+        # Combine remaining into pool
+        remaining_pool = list(sellers) + list(buyers)
+        if not remaining_pool:
+            return
 
-            if is_sell:
-                self._process_sell(sell_eligible)
+        # Process up to N_max unmatched arrivals
+        n_arrivals = min(self.rng.randint(1, self.config.N_max), len(remaining_pool))
+        self.rng.shuffle(remaining_pool)
+
+        for i in range(n_arrivals):
+            agent_id = remaining_pool[i]
+
+            if agent_id in sellers:
+                self._process_sell_for_agent(agent_id, sell_eligible)
             else:
-                self._process_buy(buy_eligible)
+                self._process_buy_for_agent(agent_id, buy_eligible)
+
+    def _process_crossed_trade(
+        self,
+        seller_id: AgentId,
+        buyer_id: AgentId,
+        sell_eligible: set[AgentId],
+        buy_eligible: set[AgentId],
+    ) -> bool:
+        """
+        Execute a crossed trade: seller → dealer → buyer (atomic).
+
+        The dealer intermediates between seller and buyer:
+        - Buys from seller at dealer's bid
+        - Sells to buyer at dealer's ask
+        - Net inventory change: 0
+        - Dealer earns: ask - bid (the spread)
+
+        This happens atomically - if either leg fails, the whole trade fails.
+
+        Args:
+            seller_id: Agent ID of the seller
+            buyer_id: Agent ID of the buyer
+            sell_eligible: Set for updating after trade
+            buy_eligible: Set for updating after trade
+
+        Returns:
+            True if crossed trade executed, False otherwise
+
+        References:
+            - Treynor (1987): Dealer intermediates between hurried buyers and sellers
+        """
+        seller = self.traders[seller_id]
+        buyer = self.traders[buyer_id]
+
+        # Select ticket seller wants to sell
+        ticket = self._select_ticket_to_sell(seller)
+        if ticket is None:
+            return False
+
+        bucket_id = ticket.bucket_id
+        dealer = self.dealers[bucket_id]
+        vbt = self.vbts[bucket_id]
+
+        # Check if buyer can afford the ask price
+        if buyer.cash < dealer.ask:
+            return False  # Buyer can't afford, don't cross
+
+        # Risk-based sell decision (if risk assessor configured)
+        if self.risk_assessor:
+            asset_value = sum(
+                self.risk_assessor.expected_value(t, self.day)
+                for t in seller.tickets_owned
+            )
+            if not self.risk_assessor.should_sell(
+                ticket=ticket,
+                dealer_bid=dealer.bid,
+                current_day=self.day,
+                trader_cash=seller.cash,
+                trader_shortfall=seller.shortfall(self.day),
+                trader_asset_value=asset_value,
+            ):
+                return False  # Seller rejects price
+
+        # Risk-based buy decision (if risk assessor configured)
+        if self.risk_assessor:
+            buyer_asset_value = sum(
+                self.risk_assessor.expected_value(t, self.day)
+                for t in buyer.tickets_owned
+            )
+            if not self.risk_assessor.should_buy(
+                ticket=ticket,
+                dealer_ask=dealer.ask,
+                current_day=self.day,
+                trader_cash=buyer.cash,
+                trader_shortfall=buyer.shortfall(self.day),
+                trader_asset_value=buyer_asset_value,
+            ):
+                return False  # Buyer rejects price
+
+        # Execute the crossed trade atomically
+        # Leg 1: Seller sells to dealer at bid
+        sell_price = dealer.bid
+        seller.tickets_owned.remove(ticket)
+        seller.cash += sell_price
+
+        # Leg 2: Dealer sells to buyer at ask
+        buy_price = dealer.ask
+        ticket.owner_id = buyer_id
+        buyer.tickets_owned.append(ticket)
+        buyer.cash -= buy_price
+
+        # Dealer's net position: bought at bid, sold at ask
+        # Cash: +buy_price - sell_price = spread (earned)
+        # Inventory: +1 - 1 = 0 (unchanged)
+        dealer.cash += (buy_price - sell_price)
+
+        # Update seller's asset issuer constraint
+        if len(seller.tickets_owned) == 0:
+            seller.asset_issuer_id = None
+
+        # Update buyer's asset issuer constraint
+        if buyer.asset_issuer_id is None:
+            buyer.asset_issuer_id = ticket.issuer_id
+
+        # Log the crossed trade
+        self.events.log_trade(
+            day=self.day,
+            side="CROSS_SELL",
+            trader_id=seller_id,
+            ticket_id=ticket.id,
+            bucket=bucket_id,
+            price=sell_price,
+            is_passthrough=False,
+        )
+        self.events.log_trade(
+            day=self.day,
+            side="CROSS_BUY",
+            trader_id=buyer_id,
+            ticket_id=ticket.id,
+            bucket=bucket_id,
+            price=buy_price,
+            is_passthrough=False,
+        )
+
+        # Update eligibility sets
+        if seller.shortfall(self.day) <= 0 or len(seller.tickets_owned) == 0:
+            sell_eligible.discard(seller_id)
+        if buyer.cash <= self.config.buffer_B:
+            buy_eligible.discard(buyer_id)
+
+        return True
 
     def _process_sell(self, eligible: set[AgentId]) -> None:
         """
@@ -819,6 +1005,19 @@ class DealerRingSimulation:
 
         # Sample uniformly from eligible
         agent_id = self.rng.choice(list(eligible))
+        self._process_sell_for_agent(agent_id, eligible)
+
+    def _process_sell_for_agent(self, agent_id: AgentId, eligible: set[AgentId]) -> None:
+        """
+        Process a SELL order for a specific trader.
+
+        Args:
+            agent_id: Agent ID of the trader who wants to sell
+            eligible: Set of agent IDs eligible to sell (for updating after trade)
+
+        References:
+            - Section 11.4: SELL order processing
+        """
         trader = self.traders[agent_id]
 
         # Select ticket to sell (shortest maturity first)
@@ -912,6 +1111,19 @@ class DealerRingSimulation:
 
         # Sample uniformly from eligible
         agent_id = self.rng.choice(list(eligible))
+        self._process_buy_for_agent(agent_id, eligible)
+
+    def _process_buy_for_agent(self, agent_id: AgentId, eligible: set[AgentId]) -> None:
+        """
+        Process a BUY order for a specific trader.
+
+        Args:
+            agent_id: Agent ID of the trader who wants to buy
+            eligible: Set of agent IDs eligible to buy (for updating after trade)
+
+        References:
+            - Section 11.4: BUY order processing
+        """
         trader = self.traders[agent_id]
 
         # Select bucket to buy from (Short -> Mid -> Long preference)
